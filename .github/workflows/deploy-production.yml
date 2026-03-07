@@ -13,6 +13,7 @@ jobs:
   deploy-backend:
     name: Deploy Backend to Production
     needs: test
+    if: needs.test.outputs.api_changed == 'true'
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -45,6 +46,7 @@ jobs:
   deploy-frontend:
     name: Deploy Frontend to Production
     needs: test
+    if: needs.test.outputs.web_changed == 'true'
     runs-on: ubuntu-latest
     environment: production
     defaults:
