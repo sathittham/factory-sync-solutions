@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
-import { useForm } from "react-hook-form";
+import { useForm, type UseFormRegister, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { api, ApiError } from "@/lib/api";
@@ -10,6 +10,9 @@ import { useLocale } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { Turnstile } from "@/components/Turnstile";
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_CF_TURNSTILE_SITE_KEY || "";
 
 const schema = z.object({
 	companyName: z.string().min(1, "register.companyNameError"),
@@ -36,6 +39,13 @@ interface DbdCompanyProfile {
 	province: string;
 }
 
+interface CheckRegIdResponse {
+	registered: boolean;
+	companyName?: string;
+	industryType?: string;
+	companySize?: string;
+}
+
 const industryKeys = [
 	"manufacturing", "food", "automotive", "electronics", "textile", "chemical",
 	"construction", "agriculture", "logistics", "energy", "pharma", "plastics",
@@ -59,6 +69,61 @@ const Spinner = () => (
 	</svg>
 );
 
+function DbdInfoCard({ info }: { readonly info: DbdCompanyProfile }) {
+	return (
+		<div className="rounded-md border bg-muted/30 p-3 text-sm space-y-0.5 animate-scale-in">
+			<p className="font-medium">{info.nameTh}</p>
+			{info.nameEn && <p className="text-muted-foreground text-xs">{info.nameEn}</p>}
+			<p className="text-muted-foreground text-xs">{info.type} &middot; {info.objectiveTextTh || info.objectiveTextEn}</p>
+			{info.address && <p className="text-muted-foreground text-xs">{info.address} {info.subDistrict} {info.district} {info.province}</p>}
+		</div>
+	);
+}
+
+function ContactFields({ formRegister, errors, t, locale }: {
+	readonly formRegister: UseFormRegister<FormData>;
+	readonly errors: FieldErrors<FormData>;
+	readonly t: (key: string) => string;
+	readonly locale: string;
+}) {
+	return (
+		<>
+			<div className="flex items-center gap-3 pt-1">
+				<span className="h-px flex-1 bg-border" />
+				<p className="text-xs font-medium text-muted-foreground">
+					{locale === "th" ? "ข้อมูลผู้ติดต่อ" : "Contact Information"}
+				</p>
+				<span className="h-px flex-1 bg-border" />
+			</div>
+			<div className="space-y-1.5">
+				<label htmlFor="contactName" className="text-sm font-medium">{t("register.contactName")}</label>
+				<Input id="contactName" {...formRegister("contactName")} />
+				{errors.contactName && <p className="text-xs text-destructive">{t(errors.contactName.message || "")}</p>}
+			</div>
+			<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+				<div className="space-y-1.5">
+					<label htmlFor="contactEmail" className="text-sm font-medium">{t("register.contactEmail")}</label>
+					<Input id="contactEmail" type="email" disabled className="bg-muted/40 cursor-not-allowed text-muted-foreground" {...formRegister("contactEmail")} />
+					{errors.contactEmail && <p className="text-xs text-destructive">{t(errors.contactEmail.message || "")}</p>}
+				</div>
+				<div className="space-y-1.5">
+					<label htmlFor="contactPhone" className="text-sm font-medium">{t("register.contactPhone")}</label>
+					<Input id="contactPhone" {...formRegister("contactPhone")} />
+					{errors.contactPhone && <p className="text-xs text-destructive">{t(errors.contactPhone.message || "")}</p>}
+				</div>
+			</div>
+		</>
+	);
+}
+
+async function checkExistingProfile(regId: string): Promise<CheckRegIdResponse | null> {
+	try {
+		return await api.get<CheckRegIdResponse>(`/profile/check/${regId}`);
+	} catch {
+		return null;
+	}
+}
+
 export function RegisterPage() {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
@@ -68,9 +133,18 @@ export function RegisterPage() {
 	const [isLookingUp, setIsLookingUp] = useState(false);
 	const [dbdInfo, setDbdInfo] = useState<DbdCompanyProfile | null>(null);
 	const [regIdTaken, setRegIdTaken] = useState<string | null>(null);
+	const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+
+	const handleTurnstileVerify = useCallback((token: string) => {
+		setTurnstileToken(token);
+	}, []);
+
+	const handleTurnstileExpire = useCallback(() => {
+		setTurnstileToken(null);
+	}, []);
 
 	const {
-		register,
+		register: formRegister,
 		handleSubmit,
 		setValue,
 		watch,
@@ -98,6 +172,19 @@ export function RegisterPage() {
 		return t("register.lookup");
 	}
 
+	const prefillFromExisting = (check: CheckRegIdResponse) => {
+		setRegIdTaken(check.companyName || "Another company");
+		if (check.companyName) setValue("companyName", check.companyName);
+		if (check.industryType) setValue("industryType", check.industryType);
+		if (check.companySize) setValue("companySize", check.companySize);
+	};
+
+	const prefillFromDbd = (company: DbdCompanyProfile) => {
+		if (company.nameTh) setValue("companyName", company.nameTh);
+		const size = estimateCompanySize(company.registerCapital);
+		if (size) setValue("companySize", size);
+	};
+
 	const handleDbdLookup = async () => {
 		const regId = watch("companyRegId");
 		if (!regId || !/^\d{13}$/.test(regId)) return;
@@ -106,20 +193,14 @@ export function RegisterPage() {
 		setDbdInfo(null);
 		setRegIdTaken(null);
 		try {
-			try {
-				const check = await api.get<{ registered: boolean; companyName?: string }>(`/profile/check/${regId}`);
-				if (check.registered) {
-					setRegIdTaken(check.companyName || "Another company");
-				}
-			} catch {
-				// proceed
-			}
+			const check = await checkExistingProfile(regId);
+			const hasExisting = check?.registered === true;
+			if (hasExisting) prefillFromExisting(check);
+
 			const company = await api.get<DbdCompanyProfile>(`/dbd/${regId}`);
 			if (company) {
 				setDbdInfo(company);
-				if (company.nameTh) setValue("companyName", company.nameTh);
-				const size = estimateCompanySize(company.registerCapital);
-				if (size) setValue("companySize", size);
+				if (!hasExisting) prefillFromDbd(company);
 			}
 		} catch {
 			// user fills manually
@@ -131,18 +212,18 @@ export function RegisterPage() {
 	const onSubmit = async (data: FormData) => {
 		setError(null);
 		try {
+			if (TURNSTILE_SITE_KEY && !turnstileToken) {
+				setError(t("register.captchaRequired"));
+				return;
+			}
 			const profile = await api.post<Profile>("/profile", {
 				...data,
-				turnstileToken: "skip-for-now",
+				turnstileToken: turnstileToken || "skip-for-now",
 			});
 			dispatch(setProfile(profile));
 			navigate("/quiz");
 		} catch (err) {
-			if (err instanceof ApiError) {
-				setError(err.message);
-			} else {
-				setError(t("register.error"));
-			}
+			setError(err instanceof ApiError ? err.message : t("register.error"));
 		}
 	};
 
@@ -172,7 +253,7 @@ export function RegisterPage() {
 									id="companyRegId"
 									placeholder="0115560016313"
 									className="font-mono tracking-wide"
-									{...register("companyRegId", {
+									{...formRegister("companyRegId", {
 										onChange: () => { setDbdInfo(null); setRegIdTaken(null); },
 									})}
 								/>
@@ -189,7 +270,6 @@ export function RegisterPage() {
 							{errors.companyRegId && <p className="text-xs text-destructive">{t(errors.companyRegId.message || "")}</p>}
 						</div>
 
-						{/* Already registered notice */}
 						{regIdTaken && (
 							<div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 animate-scale-in">
 								<p className="font-medium text-xs mb-0.5">{t("register.regIdTaken.title")}</p>
@@ -197,20 +277,12 @@ export function RegisterPage() {
 							</div>
 						)}
 
-						{/* DBD lookup result */}
-						{dbdInfo && (
-							<div className="rounded-md border bg-muted/30 p-3 text-sm space-y-0.5 animate-scale-in">
-								<p className="font-medium">{dbdInfo.nameTh}</p>
-								{dbdInfo.nameEn && <p className="text-muted-foreground text-xs">{dbdInfo.nameEn}</p>}
-								<p className="text-muted-foreground text-xs">{dbdInfo.type} &middot; {dbdInfo.objectiveTextTh || dbdInfo.objectiveTextEn}</p>
-								{dbdInfo.address && <p className="text-muted-foreground text-xs">{dbdInfo.address} {dbdInfo.subDistrict} {dbdInfo.district} {dbdInfo.province}</p>}
-							</div>
-						)}
+						{dbdInfo && <DbdInfoCard info={dbdInfo} />}
 
 						{/* Company name */}
 						<div className="space-y-1.5">
 							<label htmlFor="companyName" className="text-sm font-medium">{t("register.companyName")}</label>
-							<Input id="companyName" {...register("companyName")} />
+							<Input id="companyName" {...formRegister("companyName")} />
 							{errors.companyName && <p className="text-xs text-destructive">{t(errors.companyName.message || "")}</p>}
 						</div>
 
@@ -218,7 +290,7 @@ export function RegisterPage() {
 						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 							<div className="space-y-1.5">
 								<label htmlFor="industryType" className="text-sm font-medium">{t("register.industryType")}</label>
-								<Select id="industryType" {...register("industryType")}>
+								<Select id="industryType" {...formRegister("industryType")}>
 									<option value="">{t("register.select")}</option>
 									{industryKeys.map((key) => <option key={key} value={key}>{t(`industry.${key}`)}</option>)}
 								</Select>
@@ -226,7 +298,7 @@ export function RegisterPage() {
 							</div>
 							<div className="space-y-1.5">
 								<label htmlFor="companySize" className="text-sm font-medium">{t("register.companySize")}</label>
-								<Select id="companySize" {...register("companySize")}>
+								<Select id="companySize" {...formRegister("companySize")}>
 									<option value="">{t("register.select")}</option>
 									{sizeKeys.map((key) => <option key={key} value={key}>{t(`size.${key}`)}</option>)}
 								</Select>
@@ -234,44 +306,25 @@ export function RegisterPage() {
 							</div>
 						</div>
 
-						{/* Contact divider */}
-						<div className="flex items-center gap-3 pt-1">
-							<span className="h-px flex-1 bg-border" />
-							<p className="text-xs font-medium text-muted-foreground">
-								{locale === "th" ? "ข้อมูลผู้ติดต่อ" : "Contact Information"}
-							</p>
-							<span className="h-px flex-1 bg-border" />
-						</div>
+						<ContactFields formRegister={formRegister} errors={errors} t={t} locale={locale} />
 
-						{/* Contact name */}
-						<div className="space-y-1.5">
-							<label htmlFor="contactName" className="text-sm font-medium">{t("register.contactName")}</label>
-							<Input id="contactName" {...register("contactName")} />
-							{errors.contactName && <p className="text-xs text-destructive">{t(errors.contactName.message || "")}</p>}
-						</div>
-
-						{/* Email + Phone */}
-						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-							<div className="space-y-1.5">
-								<label htmlFor="contactEmail" className="text-sm font-medium">{t("register.contactEmail")}</label>
-								<Input id="contactEmail" type="email" disabled className="bg-muted/40 cursor-not-allowed text-muted-foreground" {...register("contactEmail")} />
-								{errors.contactEmail && <p className="text-xs text-destructive">{t(errors.contactEmail.message || "")}</p>}
+						{TURNSTILE_SITE_KEY && (
+							<div className="flex justify-center">
+								<Turnstile
+									siteKey={TURNSTILE_SITE_KEY}
+									onVerify={handleTurnstileVerify}
+									onExpire={handleTurnstileExpire}
+									language={locale}
+								/>
 							</div>
-							<div className="space-y-1.5">
-								<label htmlFor="contactPhone" className="text-sm font-medium">{t("register.contactPhone")}</label>
-								<Input id="contactPhone" {...register("contactPhone")} />
-								{errors.contactPhone && <p className="text-xs text-destructive">{t(errors.contactPhone.message || "")}</p>}
-							</div>
-						</div>
+						)}
 
-						{/* Error */}
 						{error && (
 							<div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm text-center animate-scale-in">
 								{error}
 							</div>
 						)}
 
-						{/* Submit */}
 						<Button
 							type="submit"
 							className="w-full h-11 font-semibold"

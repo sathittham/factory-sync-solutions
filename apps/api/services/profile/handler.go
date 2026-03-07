@@ -149,8 +149,11 @@ func (h *Handler) CheckRegID(w http.ResponseWriter, r *http.Request) {
 
 	if profile != nil {
 		pkg.RespondJSON(w, http.StatusOK, map[string]any{
-			"registered":  true,
-			"companyName": profile.CompanyName,
+			"registered":   true,
+			"companyName":  profile.CompanyName,
+			"companyRegId": profile.CompanyRegID,
+			"industryType": profile.IndustryType,
+			"companySize":  profile.CompanySize,
 		})
 		return
 	}

@@ -4,6 +4,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAppSelector } from "@/store";
 import { useLocale } from "@/lib/i18n";
+import { trackPageView } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import {
 	Sheet,
@@ -20,9 +21,10 @@ export function Layout() {
 	const { locale, setLocale, t } = useLocale();
 	const [sheetOpen, setSheetOpen] = useState(false);
 
-	// Close sheet on route change
+	// Close sheet and track page view on route change
 	useEffect(() => {
 		setSheetOpen(false);
+		trackPageView(location.pathname);
 	}, [location.pathname]);
 
 	const handleSignOut = async () => {

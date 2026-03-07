@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from "react";
 
 export type Locale = "th" | "en";
 
@@ -6,6 +6,10 @@ interface LocaleContextValue {
 	locale: Locale;
 	setLocale: (locale: Locale) => void;
 	t: (key: string) => string;
+}
+
+interface LocaleProviderProps {
+	readonly children: ReactNode;
 }
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
@@ -22,7 +26,7 @@ function getInitialLocale(): Locale {
 	return "th";
 }
 
-export function LocaleProvider({ children }: { children: ReactNode }) {
+export function LocaleProvider({ children }: LocaleProviderProps) {
 	const [locale, setLocaleState] = useState<Locale>(getInitialLocale);
 
 	const setLocale = useCallback((l: Locale) => {
@@ -42,8 +46,10 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 		[locale],
 	);
 
+	const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
+
 	return (
-		<LocaleContext.Provider value={{ locale, setLocale, t }}>
+		<LocaleContext.Provider value={value}>
 			{children}
 		</LocaleContext.Provider>
 	);
@@ -86,7 +92,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.lookupLoading": "...",
 		"register.lookupFound": "พบแล้ว",
 		"register.regIdTaken.title": "บริษัทลงทะเบียนแล้ว",
-		"register.regIdTaken.desc": "มีบัญชีที่ใช้เลขทะเบียนนี้แล้ว คุณยังสามารถลงทะเบียนด้วยอีเมลของคุณได้",
+		"register.regIdTaken.desc": "มีบัญชีที่ใช้เลขทะเบียนนี้แล้ว ระบบได้กรอกข้อมูลบริษัทให้แล้ว คุณยังสามารถลงทะเบียนด้วยอีเมลของคุณได้",
 		"register.companyName": "ชื่อบริษัท",
 		"register.industryType": "ประเภทอุตสาหกรรม",
 		"register.companySize": "ขนาดบริษัท",
@@ -96,6 +102,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.submit": "ลงทะเบียน",
 		"register.submitting": "กำลังลงทะเบียน...",
 		"register.error": "การลงทะเบียนล้มเหลว กรุณาลองอีกครั้ง",
+		"register.captchaRequired": "กรุณายืนยันว่าคุณไม่ใช่บอท",
 		"register.select": "เลือก...",
 		"register.regIdError": "ต้องเป็นตัวเลข 13 หลัก",
 		"register.companyNameError": "กรุณากรอกชื่อบริษัท",
@@ -224,7 +231,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.lookupLoading": "...",
 		"register.lookupFound": "Found",
 		"register.regIdTaken.title": "Company already registered",
-		"register.regIdTaken.desc": "already has an account with this registration ID. You can still register with your email.",
+		"register.regIdTaken.desc": "already has an account with this registration ID. Company details have been prefilled. You can still register with your email.",
 		"register.companyName": "Company Name",
 		"register.industryType": "Industry Type",
 		"register.companySize": "Company Size",
@@ -234,6 +241,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.submit": "Register",
 		"register.submitting": "Registering...",
 		"register.error": "Registration failed. Please try again.",
+		"register.captchaRequired": "Please complete the captcha verification.",
 		"register.select": "Select...",
 		"register.regIdError": "Must be 13 digits",
 		"register.companyNameError": "Company name is required",
