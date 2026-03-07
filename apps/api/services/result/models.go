@@ -1,6 +1,6 @@
 package result
 
-import "factory-health-check/apps/api/services/scoring"
+import "github.com/sathittham/factory-health-check/apps/api/services/scoring"
 
 // Assessment represents a completed quiz assessment stored in Firestore.
 type Assessment struct {

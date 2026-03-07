@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"factory-health-check/apps/api/services/notification"
-	"factory-health-check/apps/api/services/result"
-	"factory-health-check/apps/api/services/scoring"
+	"github.com/sathittham/factory-health-check/apps/api/services/notification"
+	"github.com/sathittham/factory-health-check/apps/api/services/result"
+	"github.com/sathittham/factory-health-check/apps/api/services/scoring"
 )
 
 type mockResultRepo struct {

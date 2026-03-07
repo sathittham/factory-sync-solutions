@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"factory-health-check/apps/api/middleware"
-	"factory-health-check/apps/api/pkg"
+	"github.com/sathittham/factory-health-check/apps/api/middleware"
+	"github.com/sathittham/factory-health-check/apps/api/pkg"
 )
 
 type Handler struct {

@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"factory-health-check/apps/api/pkg"
+	"github.com/sathittham/factory-health-check/apps/api/pkg"
 )
 
 var (

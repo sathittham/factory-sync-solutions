@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"factory-health-check/apps/api/services/scoring"
+	"github.com/sathittham/factory-health-check/apps/api/services/scoring"
 
 	"github.com/resend/resend-go/v2"
 )

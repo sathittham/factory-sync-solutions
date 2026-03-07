@@ -8,7 +8,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 
-	"factory-health-check/apps/api/pkg"
+	"github.com/sathittham/factory-health-check/apps/api/pkg"
 )
 
 var (

@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"factory-health-check/apps/api/pkg"
+	"github.com/sathittham/factory-health-check/apps/api/pkg"
 )
 
 var regIDPattern = regexp.MustCompile(`^\d{13}$`)

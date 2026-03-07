@@ -7,7 +7,7 @@ import (
 
 	firebaseAuth "firebase.google.com/go/v4/auth"
 
-	"factory-health-check/apps/api/pkg"
+	"github.com/sathittham/factory-health-check/apps/api/pkg"
 )
 
 type contextKey string

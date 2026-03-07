@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"factory-health-check/apps/api/services/result"
-	"factory-health-check/apps/api/services/scoring"
+	"github.com/sathittham/factory-health-check/apps/api/services/result"
+	"github.com/sathittham/factory-health-check/apps/api/services/scoring"
 
 	"cloud.google.com/go/firestore"
 	"github.com/google/uuid"

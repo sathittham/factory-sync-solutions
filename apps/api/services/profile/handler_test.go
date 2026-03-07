@@ -11,7 +11,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/go-chi/chi/v5"
 
-	"factory-health-check/apps/api/middleware"
+	"github.com/sathittham/factory-health-check/apps/api/middleware"
 )
 
 func withAuth(r *http.Request, uid, email, displayName string) *http.Request {

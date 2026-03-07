@@ -12,15 +12,15 @@ import (
 	"github.com/joho/godotenv"
 	firebase "firebase.google.com/go/v4"
 
-	appMiddleware "factory-health-check/apps/api/middleware"
-	"factory-health-check/apps/api/pkg"
-	"factory-health-check/apps/api/services/admin"
-	"factory-health-check/apps/api/services/dbd"
-	"factory-health-check/apps/api/services/notification"
-	"factory-health-check/apps/api/services/profile"
-	"factory-health-check/apps/api/services/quiz"
-	"factory-health-check/apps/api/services/result"
-	"factory-health-check/apps/api/services/scoring"
+	appMiddleware "github.com/sathittham/factory-health-check/apps/api/middleware"
+	"github.com/sathittham/factory-health-check/apps/api/pkg"
+	"github.com/sathittham/factory-health-check/apps/api/services/admin"
+	"github.com/sathittham/factory-health-check/apps/api/services/dbd"
+	"github.com/sathittham/factory-health-check/apps/api/services/notification"
+	"github.com/sathittham/factory-health-check/apps/api/services/profile"
+	"github.com/sathittham/factory-health-check/apps/api/services/quiz"
+	"github.com/sathittham/factory-health-check/apps/api/services/result"
+	"github.com/sathittham/factory-health-check/apps/api/services/scoring"
 )
 
 func main() {

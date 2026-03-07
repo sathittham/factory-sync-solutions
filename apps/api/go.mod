@@ -1,4 +1,4 @@
-module factory-health-check/apps/api
+module github.com/sathittham/factory-health-check/apps/api
 
 go 1.25.0
 

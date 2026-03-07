@@ -9,9 +9,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"factory-health-check/apps/api/pkg"
-	"factory-health-check/apps/api/services/profile"
-	"factory-health-check/apps/api/services/result"
+	"github.com/sathittham/factory-health-check/apps/api/pkg"
+	"github.com/sathittham/factory-health-check/apps/api/services/profile"
+	"github.com/sathittham/factory-health-check/apps/api/services/result"
 )
 
 type Handler struct {

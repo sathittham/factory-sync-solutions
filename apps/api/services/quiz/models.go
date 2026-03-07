@@ -1,6 +1,6 @@
 package quiz
 
-import "factory-health-check/apps/api/services/scoring"
+import "github.com/sathittham/factory-health-check/apps/api/services/scoring"
 
 // SubmitQuizRequest is the payload for quiz submission.
 type SubmitQuizRequest struct {
