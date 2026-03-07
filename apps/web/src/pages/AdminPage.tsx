@@ -524,6 +524,37 @@ function UserDetailDialog({ user, open, onClose, t, locale }: {
 	);
 }
 
+function RoleChangeDialog({ roleDialog, dialogMsg, onCancel, onConfirm, t }: Readonly<{
+	roleDialog: { user: { displayName: string }; newRole: string } | null;
+	dialogMsg: string;
+	onCancel: () => void;
+	onConfirm: () => void;
+	t: (key: string) => string;
+}>) {
+	const isPromote = roleDialog?.newRole === "admin";
+	const actionLabel = isPromote ? t("admin.promoteAdmin") : t("admin.demoteUser");
+	const btnClass = isPromote ? "bg-violet-600 hover:bg-violet-700" : "";
+
+	return (
+		<Dialog open={!!roleDialog} onOpenChange={(open) => { if (!open) onCancel(); }}>
+			<DialogContent className="sm:max-w-md">
+				<DialogHeader>
+					<DialogTitle>{actionLabel}</DialogTitle>
+					<DialogDescription>{dialogMsg}</DialogDescription>
+				</DialogHeader>
+				<DialogFooter className="gap-2 sm:gap-0">
+					<Button variant="outline" onClick={onCancel} data-testid="admin-role-cancel-btn">
+						{t("admin.cancel")}
+					</Button>
+					<Button onClick={onConfirm} className={btnClass} data-testid="admin-role-confirm-btn">
+						{actionLabel}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
 function UsersTab() {
 	const [users, setUsers] = useState<AdminUser[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -738,28 +769,13 @@ function UsersTab() {
 			/>
 
 			{/* Role change confirmation dialog */}
-			<Dialog open={!!roleDialog} onOpenChange={(open) => { if (!open) setRoleDialog(null); }}>
-				<DialogContent className="sm:max-w-md">
-					<DialogHeader>
-						<DialogTitle>
-							{roleDialog?.newRole === "admin" ? t("admin.promoteAdmin") : t("admin.demoteUser")}
-						</DialogTitle>
-						<DialogDescription>{dialogMsg}</DialogDescription>
-					</DialogHeader>
-					<DialogFooter className="gap-2 sm:gap-0">
-						<Button variant="outline" onClick={() => setRoleDialog(null)} data-testid="admin-role-cancel-btn">
-							{t("admin.cancel")}
-						</Button>
-						<Button
-							onClick={confirmRoleChange}
-							className={roleDialog?.newRole === "admin" ? "bg-violet-600 hover:bg-violet-700" : ""}
-							data-testid="admin-role-confirm-btn"
-						>
-							{roleDialog?.newRole === "admin" ? t("admin.promoteAdmin") : t("admin.demoteUser")}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			<RoleChangeDialog
+				roleDialog={roleDialog}
+				dialogMsg={dialogMsg}
+				onCancel={() => setRoleDialog(null)}
+				onConfirm={confirmRoleChange}
+				t={t}
+			/>
 		</>
 	);
 }
