@@ -555,6 +555,31 @@ function RoleChangeDialog({ roleDialog, dialogMsg, onCancel, onConfirm, t }: Rea
 	);
 }
 
+function RoleToggleButton({ user, updatingUid, onRoleDialog, t }: Readonly<{
+	user: AdminUser;
+	updatingUid: string | null;
+	onRoleDialog: (user: AdminUser, newRole: string) => void;
+	t: (key: string) => string;
+}>) {
+	const isAdmin = user.role === "admin";
+	const isUpdating = updatingUid === user.uid;
+	const roleLabel = isAdmin ? "admin.demoteUser" : "admin.promoteAdmin";
+	const label = isUpdating ? "..." : t(roleLabel);
+	const newRole = isAdmin ? "user" : "admin";
+	const extraClass = isAdmin ? "" : " border-violet-200 text-violet-700 hover:bg-violet-50";
+	return (
+		<Button
+			variant="outline"
+			size="sm"
+			className={`text-xs h-7 px-2${extraClass}`}
+			disabled={isUpdating}
+			onClick={() => onRoleDialog(user, newRole)}
+		>
+			{label}
+		</Button>
+	);
+}
+
 function UsersTab() {
 	const [users, setUsers] = useState<AdminUser[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -608,14 +633,13 @@ function UsersTab() {
 		}
 	};
 
-	const dialogName = roleDialog
-		? roleDialog.user.contactName || roleDialog.user.displayName || roleDialog.user.email
-		: "";
-	const dialogMsg = roleDialog
-		? roleDialog.newRole === "admin"
-			? t("admin.confirmPromote").replace("{name}", dialogName)
-			: t("admin.confirmDemote").replace("{name}", dialogName)
-		: "";
+	let dialogName = "";
+	let dialogMsg = "";
+	if (roleDialog) {
+		dialogName = roleDialog.user.contactName || roleDialog.user.displayName || roleDialog.user.email;
+		const templateKey = roleDialog.newRole === "admin" ? "admin.confirmPromote" : "admin.confirmDemote";
+		dialogMsg = t(templateKey).replace("{name}", dialogName);
+	}
 
 	if (loading) {
 		return (
@@ -716,27 +740,12 @@ function UsersTab() {
 										{formatDateTime(u.createdAt, locale)}
 									</td>
 									<td className="py-3 px-3 sm:px-5 text-right" onClick={(e) => e.stopPropagation()}>
-										{u.role === "admin" ? (
-											<Button
-												variant="outline"
-												size="sm"
-												className="text-xs h-7 px-2"
-												disabled={updatingUid === u.uid}
-												onClick={() => openRoleDialog(u, "user")}
-											>
-												{updatingUid === u.uid ? "..." : t("admin.demoteUser")}
-											</Button>
-										) : (
-											<Button
-												variant="outline"
-												size="sm"
-												className="text-xs h-7 px-2 border-violet-200 text-violet-700 hover:bg-violet-50"
-												disabled={updatingUid === u.uid}
-												onClick={() => openRoleDialog(u, "admin")}
-											>
-												{updatingUid === u.uid ? "..." : t("admin.promoteAdmin")}
-											</Button>
-										)}
+										<RoleToggleButton
+											user={u}
+											updatingUid={updatingUid}
+											onRoleDialog={openRoleDialog}
+											t={t}
+										/>
 									</td>
 								</tr>
 							))}
