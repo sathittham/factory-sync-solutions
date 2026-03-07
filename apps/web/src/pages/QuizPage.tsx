@@ -23,15 +23,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Assessment } from "@/store/resultSlice";
 import { FadeIn, StaggerChildren, StaggerItem, ScaleIn, AnimatePresence, motion } from "@/components/motion";
 
-const QUESTIONS_PER_STEP = 5;
-
-const SKELETON_DIMS = Array.from({ length: 7 }, (_, i) => `dim-skel-${i}`);
-const SKELETON_QUESTIONS = Array.from({ length: 5 }, (_, i) => `q-skel-${i}`);
-
-const likertLabels = {
-	th: ["", "ไม่เห็นด้วย\nอย่างยิ่ง", "ไม่เห็นด้วย", "เฉยๆ", "เห็นด้วย", "เห็นด้วย\nอย่างยิ่ง"],
-	en: ["", "Strongly\nDisagree", "Disagree", "Neutral", "Agree", "Strongly\nAgree"],
-};
+const SKELETON_DIMS = Array.from({ length: 8 }, (_, i) => `dim-skel-${i}`);
+const SKELETON_QUESTIONS = Array.from({ length: 6 }, (_, i) => `q-skel-${i}`);
 
 const diagnosisConfig: Record<string, { color: string; bg: string; border: string; label: Record<string, string> }> = {
 	Beginning: { color: "text-red-700", bg: "bg-red-50", border: "border-red-200", label: { th: "เริ่มต้น", en: "Beginning" } },
@@ -307,7 +300,7 @@ function DimensionTabs({ dimensions, questions, answers, currentStep, locale, on
 }
 
 function QuestionCard({ q, qNum, isAnswered, selectedValue, locale, idx, onAnswer }: Readonly<{
-	q: { id: string; textTh: string; textEn: string };
+	q: { id: string; textTh: string; textEn: string; rubric?: Record<string, { th: string; en: string }> };
 	qNum: number;
 	isAnswered: boolean;
 	selectedValue: number | undefined;
@@ -315,9 +308,9 @@ function QuestionCard({ q, qNum, isAnswered, selectedValue, locale, idx, onAnswe
 	idx: number;
 	onAnswer: (questionId: string, value: number) => void;
 }>) {
-	const { t } = useLocale();
 	const questionText = locale === "th" ? q.textTh : q.textEn;
 	const secondaryText = locale === "th" ? q.textEn : q.textTh;
+	const hasRubric = q.rubric && Object.keys(q.rubric).length > 0;
 
 	return (
 		<motion.div
@@ -341,34 +334,58 @@ function QuestionCard({ q, qNum, isAnswered, selectedValue, locale, idx, onAnswe
 					</div>
 				</div>
 			</div>
-			<div className="flex items-stretch gap-1.5 sm:gap-2 ml-10">
-				{[1, 2, 3, 4, 5].map((val) => {
-					const isSelected = selectedValue === val;
-					return (
-						<button
-							key={val}
-							type="button"
-							onClick={() => onAnswer(q.id, val)}
-							className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 sm:py-2.5 rounded-md text-sm font-semibold transition-colors ${
-								isSelected
-									? "bg-primary text-white"
-									: "bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground"
-							}`}
-						>
-							<span className="text-sm sm:text-base">{val}</span>
-							<span className={`text-[8px] sm:text-[9px] leading-tight text-center whitespace-pre-line font-normal hidden sm:block ${
-								isSelected ? "text-white/70" : "text-muted-foreground/60"
-							}`}>
-								{likertLabels[locale as "th" | "en"][val]}
-							</span>
-						</button>
-					);
-				})}
-			</div>
-			<div className="flex justify-between text-[10px] text-muted-foreground mt-1.5 ml-10 sm:hidden">
-				<span>{t("quiz.stronglyDisagree")}</span>
-				<span>{t("quiz.stronglyAgree")}</span>
-			</div>
+			{hasRubric ? (
+				<div className="space-y-1.5 ml-10">
+					{[1, 2, 3, 4, 5].map((val) => {
+						const isSelected = selectedValue === val;
+						const rubricText = q.rubric?.[String(val)];
+						const label = rubricText ? (locale === "th" ? rubricText.th : rubricText.en) : "";
+						return (
+							<button
+								key={val}
+								type="button"
+								onClick={() => onAnswer(q.id, val)}
+								className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-md text-left transition-colors ${
+									isSelected
+										? "bg-primary text-white"
+										: "bg-secondary/40 text-foreground hover:bg-secondary/70"
+								}`}
+							>
+								<span className={`flex-shrink-0 h-6 w-6 rounded-full text-xs font-bold flex items-center justify-center mt-0.5 ${
+									isSelected ? "bg-white/20 text-white" : "bg-white text-muted-foreground border"
+								}`}>
+									{val}
+								</span>
+								<span className={`text-[13px] sm:text-sm leading-snug ${
+									isSelected ? "text-white/90" : "text-foreground/80"
+								}`}>
+									{label}
+								</span>
+							</button>
+						);
+					})}
+				</div>
+			) : (
+				<div className="flex items-stretch gap-1.5 sm:gap-2 ml-10">
+					{[1, 2, 3, 4, 5].map((val) => {
+						const isSelected = selectedValue === val;
+						return (
+							<button
+								key={val}
+								type="button"
+								onClick={() => onAnswer(q.id, val)}
+								className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 sm:py-2.5 rounded-md text-sm font-semibold transition-colors ${
+									isSelected
+										? "bg-primary text-white"
+										: "bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground"
+								}`}
+							>
+								<span className="text-sm sm:text-base">{val}</span>
+							</button>
+						);
+					})}
+				</div>
+			)}
 		</motion.div>
 	);
 }
@@ -510,18 +527,21 @@ export function QuizPage() {
 		);
 	}
 
-	const totalSteps = Math.ceil(questions.length / QUESTIONS_PER_STEP);
-	const stepQuestions = questions.slice(
-		currentStep * QUESTIONS_PER_STEP,
-		(currentStep + 1) * QUESTIONS_PER_STEP,
-	);
-	const currentDimension = dimensions.find(
-		(d) => d.id === stepQuestions[0]?.dimensionId,
-	);
+	const totalSteps = dimensions.length;
+	const currentDimension = dimensions[currentStep];
+	const stepQuestions = currentDimension
+		? questions.filter((q) => q.dimensionId === currentDimension.id)
+		: [];
 	const answeredCount = Object.keys(answers).length;
 	const progressPct = (answeredCount / questions.length) * 100;
 	const allAnswered = answeredCount === questions.length;
 	const stepAnswered = stepQuestions.filter((q) => answers[q.id]).length;
+
+	// Calculate the global question number offset for current step
+	const stepStartIndex = dimensions.slice(0, currentStep).reduce(
+		(acc, dim) => acc + questions.filter((q) => q.dimensionId === dim.id).length,
+		0,
+	);
 
 	const handleNext = () => {
 		if (currentStep < totalSteps - 1) {
@@ -612,7 +632,7 @@ export function QuizPage() {
 						<QuestionCard
 							key={q.id}
 							q={q}
-							qNum={currentStep * QUESTIONS_PER_STEP + idx + 1}
+							qNum={stepStartIndex + idx + 1}
 							isAnswered={!!answers[q.id]}
 							selectedValue={answers[q.id]}
 							locale={locale}

@@ -163,10 +163,10 @@ func TestGetQuestions(t *testing.T) {
 	if q == nil {
 		t.Fatal("expected non-nil quiz config")
 	}
-	if len(q.Questions) != 35 {
-		t.Errorf("questions = %d, want 35", len(q.Questions))
+	if len(q.Questions) != 43 {
+		t.Errorf("questions = %d, want 43", len(q.Questions))
 	}
-	if len(q.Dimensions) != 7 {
-		t.Errorf("dimensions = %d, want 7", len(q.Dimensions))
+	if len(q.Dimensions) != 8 {
+		t.Errorf("dimensions = %d, want 8", len(q.Dimensions))
 	}
 }

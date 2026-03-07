@@ -3,6 +3,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 interface DimensionScore {
 	dimensionId: string;
 	dimensionName: string;
+	dimensionNameTh: string;
 	score: number;
 	maxScore: number;
 }

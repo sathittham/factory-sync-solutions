@@ -20,35 +20,25 @@ const HERO_IMG =
 
 const FEATURES = [
 	{
-		key: "landing.dim.quality",
+		key: "landing.dim.basic",
 		icon: (
 			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
-				<path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
-				<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
+				<path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
 			</svg>
 		),
 		img: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=80&auto=format&fit=crop",
 	},
 	{
-		key: "landing.dim.safety",
+		key: "landing.dim.improvement",
 		icon: (
 			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
-				<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+				<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeLinejoin="round" strokeLinecap="round" />
 			</svg>
 		),
 		img: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=80&auto=format&fit=crop",
 	},
 	{
-		key: "landing.dim.equipment",
-		icon: (
-			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
-				<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-			</svg>
-		),
-		img: "https://images.unsplash.com/photo-1565043666747-69f6646db940?w=400&q=80&auto=format&fit=crop",
-	},
-	{
-		key: "landing.dim.workforce",
+		key: "landing.dim.coordination",
 		icon: (
 			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
 				<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -60,17 +50,37 @@ const FEATURES = [
 		img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&q=80&auto=format&fit=crop",
 	},
 	{
-		key: "landing.dim.digital",
+		key: "landing.dim.maintenance",
 		icon: (
 			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
-				<rect x="2" y="3" width="20" height="14" rx="2" />
-				<path d="M8 21h8M12 17v4" />
+				<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
 			</svg>
 		),
-		img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80&auto=format&fit=crop",
+		img: "https://images.unsplash.com/photo-1565043666747-69f6646db940?w=400&q=80&auto=format&fit=crop",
 	},
 	{
-		key: "landing.dim.supply",
+		key: "landing.dim.quality",
+		icon: (
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+				<path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+				<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
+			</svg>
+		),
+		img: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=80&auto=format&fit=crop",
+	},
+	{
+		key: "landing.dim.production",
+		icon: (
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+				<rect x="2" y="7" width="20" height="14" rx="2" />
+				<path d="M16 3h-8l-2 4h12l-2-4z" />
+				<path d="M12 11v6M9 14h6" strokeLinecap="round" />
+			</svg>
+		),
+		img: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=80&auto=format&fit=crop",
+	},
+	{
+		key: "landing.dim.material",
 		icon: (
 			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
 				<rect x="1" y="3" width="15" height="13" rx="2" />
@@ -79,15 +89,13 @@ const FEATURES = [
 				<circle cx="18.5" cy="18.5" r="2.5" />
 			</svg>
 		),
-		img: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=80&auto=format&fit=crop",
+		img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80&auto=format&fit=crop",
 	},
 	{
-		key: "landing.dim.environment",
+		key: "landing.dim.cost",
 		icon: (
 			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
-				<path d="M2 22c1-6 6-12 12-13M22 2c-6 1-12 6-13 12" />
-				<path d="M22 2 13 13" strokeLinecap="round" />
-				<path d="M2 22l9-9" strokeLinecap="round" />
+				<path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" strokeLinecap="round" strokeLinejoin="round" />
 			</svg>
 		),
 		img: "https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=80&auto=format&fit=crop",
@@ -108,13 +116,13 @@ const TESTIMONIALS_EN = [
 
 const STEPS_TH = [
 	{ num: "01", title: "ลงทะเบียน", desc: "ลงชื่อเข้าใช้และกรอกข้อมูลบริษัท" },
-	{ num: "02", title: "ทำแบบประเมิน", desc: "ตอบคำถาม 35 ข้อ ใช้เวลาราว 10 นาที" },
+	{ num: "02", title: "ทำแบบประเมิน", desc: "ตอบคำถาม 43 ข้อ ใน 8 มิติ ใช้เวลาราว 15 นาที" },
 	{ num: "03", title: "รับผลวิเคราะห์", desc: "ดูคะแนน จุดแข็ง และข้อเสนอแนะ" },
 ];
 
 const STEPS_EN = [
 	{ num: "01", title: "Register", desc: "Sign in and fill in your company details" },
-	{ num: "02", title: "Take Assessment", desc: "Answer 35 questions in about 10 minutes" },
+	{ num: "02", title: "Take Assessment", desc: "Answer 43 questions across 8 dimensions (~15 min)" },
 	{ num: "03", title: "Get Insights", desc: "View scores, strengths, and recommendations" },
 ];
 
@@ -193,13 +201,13 @@ function SignInDialog({ open, onOpenChange, locale, onSignIn }: Readonly<{
 		? [
 			{ num: "1", text: "เข้าสู่ระบบด้วย Google" },
 			{ num: "2", text: "กรอกข้อมูลบริษัทของคุณ" },
-			{ num: "3", text: "ทำแบบประเมิน 35 ข้อ (~10 นาที)" },
+			{ num: "3", text: "ทำแบบประเมิน 43 ข้อ (~15 นาที)" },
 			{ num: "4", text: "รับผลวิเคราะห์และคำแนะนำทันที" },
 		]
 		: [
 			{ num: "1", text: "Sign in with Google" },
 			{ num: "2", text: "Fill in your company details" },
-			{ num: "3", text: "Complete 35 questions (~10 min)" },
+			{ num: "3", text: "Complete 43 questions (~15 min)" },
 			{ num: "4", text: "Get instant results & recommendations" },
 		];
 
@@ -265,8 +273,8 @@ function BottomCtaSection({ locale, onCtaClick, ctaLabel }: Readonly<{
 				</h2>
 				<p className="text-base text-muted-foreground mb-6">
 					{locale === "th"
-						? "เริ่มต้นฟรี ใช้เวลาเพียง 10 นาที"
-						: "Get started for free in just 10 minutes"}
+						? "เริ่มต้นฟรี ใช้เวลาเพียง 15 นาที"
+						: "Get started for free in about 15 minutes"}
 				</p>
 				<Button
 					size="lg"
@@ -357,9 +365,9 @@ export function LandingPage() {
 
 							<div className="flex items-center gap-4 text-sm text-white/50 sm:ml-2 sm:mt-0 mt-2">
 								{[
-									{ value: "35", label: locale === "th" ? "คำถาม" : "questions" },
-									{ value: "7", label: locale === "th" ? "มิติ" : "dimensions" },
-									{ value: "~10", label: locale === "th" ? "นาที" : "min" },
+									{ value: "43", label: locale === "th" ? "คำถาม" : "questions" },
+									{ value: "8", label: locale === "th" ? "มิติ" : "dimensions" },
+									{ value: "~15", label: locale === "th" ? "นาที" : "min" },
 								].map((stat, i) => (
 									<div key={stat.value + stat.label} className="flex items-center gap-1">
 										{i > 0 && <span className="text-white/20 mr-2">|</span>}
@@ -393,21 +401,21 @@ export function LandingPage() {
 				</div>
 			</section>
 
-			{/* 7 Dimensions Grid */}
+			{/* 8 Dimensions Grid */}
 			<section className="py-16 sm:py-20 bg-secondary/30">
 				<div className="max-w-6xl mx-auto px-4 sm:px-6">
 					<FadeIn className="text-center mb-10">
 						<h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-							{locale === "th" ? "7 มิติหลักที่ประเมิน" : "7 Key Dimensions"}
+							{locale === "th" ? "8 มิติหลักที่ประเมิน" : "8 Key Dimensions"}
 						</h2>
 						<p className="text-base text-muted-foreground max-w-md mx-auto">
 							{locale === "th"
-								? "ครอบคลุมทุกด้านที่สำคัญต่อการดำเนินงานของโรงงาน"
-								: "Comprehensive coverage of every aspect critical to factory operations"}
+								? "ครอบคลุมทุกด้านที่สำคัญต่อการจัดการด้านการผลิตของโรงงาน"
+								: "Comprehensive coverage of every aspect critical to production management"}
 						</p>
 					</FadeIn>
 
-					<StaggerChildren className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" stagger={0.06}>
+					<StaggerChildren className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" stagger={0.06}>
 						{FEATURES.map((feat) => (
 							<StaggerItem
 								key={feat.key}

@@ -14,12 +14,18 @@ type Dimension struct {
 	Weight float64 `json:"weight"`
 }
 
+type RubricLevel struct {
+	Th string `json:"th"`
+	En string `json:"en"`
+}
+
 type Question struct {
-	ID          string  `json:"id"`
-	DimensionID string  `json:"dimensionId"`
-	TextTh      string  `json:"textTh"`
-	TextEn      string  `json:"textEn"`
-	Weight      float64 `json:"weight"`
+	ID          string                    `json:"id"`
+	DimensionID string                    `json:"dimensionId"`
+	TextTh      string                    `json:"textTh"`
+	TextEn      string                    `json:"textEn"`
+	Weight      float64                   `json:"weight"`
+	Rubric      map[string]RubricLevel    `json:"rubric,omitempty"`
 }
 
 // QuizAnswer represents a single user answer.
@@ -30,10 +36,11 @@ type QuizAnswer struct {
 
 // DimensionScore represents the computed score for one dimension.
 type DimensionScore struct {
-	DimensionID   string  `json:"dimensionId"`
-	DimensionName string  `json:"dimensionName"`
-	Score         float64 `json:"score"`
-	MaxScore      float64 `json:"maxScore"`
+	DimensionID     string  `json:"dimensionId" firestore:"dimensionId"`
+	DimensionName   string  `json:"dimensionName" firestore:"dimensionName"`
+	DimensionNameTh string  `json:"dimensionNameTh" firestore:"dimensionNameTh"`
+	Score           float64 `json:"score" firestore:"score"`
+	MaxScore        float64 `json:"maxScore" firestore:"maxScore"`
 }
 
 // ScoringResult contains the full computed result from quiz answers.

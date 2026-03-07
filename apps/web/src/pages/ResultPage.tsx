@@ -17,6 +17,8 @@ import {
 	type Assessment,
 	type DimensionScore,
 } from "@/store/resultSlice";
+import { setQuestions } from "@/store/quizSlice";
+import type { QuizDimension } from "@/store/quizSlice";
 import { useLocale } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -69,13 +71,16 @@ function ScoreRing({ score, size = 140 }: Readonly<{ score: number; size?: numbe
 	);
 }
 
-function DimensionDetail({ dim, isOpen, onToggle }: Readonly<{
+function DimensionDetail({ dim, isOpen, onToggle, locale, t }: Readonly<{
 	dim: DimensionScore;
 	isOpen: boolean;
 	onToggle: () => void;
+	locale: string;
+	t: (key: string) => string;
 }>) {
 	const pct = (dim.score / 5) * 100;
 	const scoreColor = getScoreColor(dim.score);
+	const dimName = locale === "th" ? (dim.dimensionNameTh || dim.dimensionName) : (dim.dimensionName || dim.dimensionNameTh);
 
 	return (
 		<div className="border rounded-lg overflow-hidden transition-colors">
@@ -86,7 +91,7 @@ function DimensionDetail({ dim, isOpen, onToggle }: Readonly<{
 			>
 				<div className="flex-1 min-w-0">
 					<div className="flex items-center justify-between mb-1.5">
-						<span className="text-sm font-medium truncate mr-2">{dim.dimensionName}</span>
+						<span className="text-sm font-medium truncate mr-2">{dimName}</span>
 						<span className="text-sm font-mono font-semibold tabular-nums" style={{ color: scoreColor }}>
 							{dim.score.toFixed(2)}
 						</span>
@@ -110,7 +115,7 @@ function DimensionDetail({ dim, isOpen, onToggle }: Readonly<{
 				<div className="px-4 pb-4 border-t bg-muted/10 animate-fade-up" style={{ animationDelay: "0s" }}>
 					<div className="pt-3 space-y-2">
 						<div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-							<span>Score breakdown</span>
+							<span>{t("result.scoreBreakdown")}</span>
 							<span className="font-mono">{dim.score.toFixed(2)} / {dim.maxScore.toFixed(2)}</span>
 						</div>
 						{/* Visual score indicator */}
@@ -130,8 +135,8 @@ function DimensionDetail({ dim, isOpen, onToggle }: Readonly<{
 							))}
 						</div>
 						<div className="flex justify-between text-[10px] text-muted-foreground">
-							<span>Beginning</span>
-							<span>Advanced</span>
+							<span>{t("result.levelBeginning")}</span>
+							<span>{t("result.levelAdvanced")}</span>
 						</div>
 					</div>
 				</div>
@@ -143,7 +148,8 @@ function DimensionDetail({ dim, isOpen, onToggle }: Readonly<{
 export function ResultPage() {
 	const dispatch = useAppDispatch();
 	const { assessment, assessments, loading } = useAppSelector((s) => s.result);
-	const { t } = useLocale();
+	const { dimensions: quizDimensions, questionsLoaded } = useAppSelector((s) => s.quiz);
+	const { t, locale } = useLocale();
 	const [expandedDim, setExpandedDim] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -162,6 +168,18 @@ export function ResultPage() {
 				.finally(() => dispatch(setLoading(false)));
 		}
 	}, [assessment, loading, dispatch]);
+
+	// Fetch quiz config for dimension name lookup (in case stored assessments lack names)
+	useEffect(() => {
+		if (!questionsLoaded) {
+			api
+				.get<{ dimensions: QuizDimension[]; questions: unknown[] }>("/quiz/questions")
+				.then((data) => {
+					dispatch(setQuestions({ dimensions: data.dimensions, questions: data.questions as [] }));
+				})
+				.catch(() => {});
+		}
+	}, [questionsLoaded, dispatch]);
 
 	if (loading) {
 		return (
@@ -195,11 +213,25 @@ export function ResultPage() {
 	const scores = assessment.scores ?? [];
 	const diag = diagnosisConfig[assessment.diagnosis] || diagnosisConfig.Beginning;
 
+	// Build a lookup from dimensionId → localized name using quiz config as canonical source
+	const dimLookup = Object.fromEntries(
+		quizDimensions.map((d) => [d.id, { th: d.nameTh, en: d.nameEn }]),
+	);
+
+	const dimName = (s: DimensionScore) => {
+		const fromConfig = dimLookup[s.dimensionId];
+		if (fromConfig) return locale === "th" ? fromConfig.th : fromConfig.en;
+		return locale === "th" ? (s.dimensionNameTh || s.dimensionName) : (s.dimensionName || s.dimensionNameTh);
+	};
+
 	const radarData = scores.map((s) => ({
-		dimension: s.dimensionName,
+		dimension: dimName(s),
 		score: s.score,
 		fullMark: 5,
 	}));
+
+	// Build a lookup from EN name → localized name for strengths/weaknesses
+	const nameMap = Object.fromEntries(scores.map((s) => [s.dimensionName, dimName(s)]));
 
 	return (
 		<div className="min-h-[calc(100vh-3.5rem)]">
@@ -265,7 +297,7 @@ export function ResultPage() {
 						<div className="sr-only">
 							{scores.map((s) => (
 								<p key={s.dimensionId}>
-									{s.dimensionName}: {s.score.toFixed(2)} out of 5
+									{dimName(s)}: {s.score.toFixed(2)} / 5
 								</p>
 							))}
 						</div>
@@ -285,6 +317,8 @@ export function ResultPage() {
 									dim={s}
 									isOpen={expandedDim === s.dimensionId}
 									onToggle={() => setExpandedDim(expandedDim === s.dimensionId ? null : s.dimensionId)}
+									locale={locale}
+									t={t}
 								/>
 							))}
 						</div>
@@ -311,7 +345,7 @@ export function ResultPage() {
 								{assessment.strengths.map((s) => (
 									<li key={s} className="flex items-start gap-2 text-[13px] leading-relaxed">
 										<span className="text-emerald-500 mt-0.5 flex-shrink-0">+</span>
-										<span className="text-foreground/80">{s}</span>
+										<span className="text-foreground/80">{nameMap[s] ?? s}</span>
 									</li>
 								))}
 							</ul>
@@ -336,7 +370,7 @@ export function ResultPage() {
 								{assessment.weaknesses.map((w) => (
 									<li key={w} className="flex items-start gap-2 text-[13px] leading-relaxed">
 										<span className="text-red-400 mt-0.5 flex-shrink-0">!</span>
-										<span className="text-foreground/80">{w}</span>
+										<span className="text-foreground/80">{nameMap[w] ?? w}</span>
 									</li>
 								))}
 							</ul>

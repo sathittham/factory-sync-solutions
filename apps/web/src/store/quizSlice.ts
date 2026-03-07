@@ -1,10 +1,16 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
+interface RubricLevel {
+	th: string;
+	en: string;
+}
+
 interface QuizQuestion {
 	id: string;
 	dimensionId: string;
 	textTh: string;
 	textEn: string;
+	rubric?: Record<string, RubricLevel>;
 }
 
 interface QuizDimension {

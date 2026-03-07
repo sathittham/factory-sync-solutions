@@ -222,10 +222,10 @@ func TestLoadQuestions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadQuestions: %v", err)
 	}
-	if len(config.Questions) != 35 {
-		t.Errorf("questions count = %d, want 35", len(config.Questions))
+	if len(config.Questions) != 43 {
+		t.Errorf("questions count = %d, want 43", len(config.Questions))
 	}
-	if len(config.Dimensions) != 7 {
-		t.Errorf("dimensions count = %d, want 7", len(config.Dimensions))
+	if len(config.Dimensions) != 8 {
+		t.Errorf("dimensions count = %d, want 8", len(config.Dimensions))
 	}
 }

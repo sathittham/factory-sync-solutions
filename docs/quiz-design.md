@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-03-07
+version: 2.0.0
+lastUpdated: 2026-03-08
 author: Sathittham Sangthong
 ---
 
@@ -8,293 +8,58 @@ author: Sathittham Sangthong
 
 ## Overview
 
-The Factory Health Check quiz evaluates manufacturing factory readiness across 7 dimensions. Users answer 35 questions (5 per dimension) on a 1-5 Likert scale. Scores are computed per dimension and aggregated into an overall diagnosis.
+The Factory Health Check quiz evaluates manufacturing factory production management maturity across 8 dimensions based on the Shindan methodology. Users answer 43 questions (variable per dimension) on a 1-5 rubric scale with dimension-specific level descriptions. Scores are computed per dimension and aggregated into an overall diagnosis.
+
+Source: `docs/ประเมิน 8 ด้านการผลิต_rev2.3.xls`
 
 ## Dimensions
 
-| # | Dimension | Questions | Description |
-|---|-----------|-----------|-------------|
-| 1 | Quality Management | 5 | Quality control processes, standards, defect tracking |
-| 2 | Safety & Compliance | 5 | Workplace safety, regulatory compliance, incident management |
-| 3 | Equipment & Maintenance | 5 | Equipment upkeep, preventive maintenance, downtime tracking |
-| 4 | Workforce & Training | 5 | Employee skills, training programs, knowledge management |
-| 5 | Digital Transformation | 5 | Automation, data systems, technology adoption |
-| 6 | Supply Chain Management | 5 | Supplier relationships, inventory, logistics |
-| 7 | Environmental Sustainability | 5 | Waste management, energy efficiency, environmental compliance |
+| # | Dimension (TH) | Dimension (EN) | Questions | Key Topics |
+|---|----------------|----------------|-----------|------------|
+| 1 | การจัดการงานเบื้องต้น | Basic Management | 6 | 5S, Visual Management, 3MU, Work Environment, 5G, OJT |
+| 2 | การปรับปรุงการทำงาน | Work Improvement | 4 | QCC, Kaizen Culture, Tools & Equipment, Setup Time (SMED) |
+| 3 | การประสานงาน | Coordination | 4 | Leadership, Data Utilization, Recreation, Goal Setting |
+| 4 | การบำรุงรักษา | Maintenance (TPM) | 4 | Preventive Maintenance, Daily Inspection, Activity Groups, Measurement Tools |
+| 5 | การควบคุมคุณภาพ/การประกันคุณภาพ | Quality Control & Assurance | 6 | 5W/PPM, Traceability, Poka-Yoke, ISO/GMP, SOPs, Internal QC Communication |
+| 6 | การผลิต การควบคุม การส่งมอบ | Production, Control & Delivery | 8 | Lot Size, Work Orders, Delivery Planning, Lead Time, Layout, Multi-Skill, Sales Data, IT Systems |
+| 7 | การควบคุมวัสดุ | Material Control | 5 | WIP/Finished Goods, Advance Ordering, ABC Analysis, Inventory Control, Internal Handling |
+| 8 | การควบคุมต้นทุน | Cost Control | 6 | Cost System, Profit Plan, VE/VA, Problem-Solving Teams, IE/Workflow, Supplier Management |
 
-**Total: 35 questions**
+**Total: 43 questions**
 
-## Answer Scale (1-5 Likert)
+## Answer Scale (1-5 Rubric)
 
-| Value | Label |
-|-------|-------|
-| 1 | Strongly Disagree / Very Poor |
-| 2 | Disagree / Poor |
-| 3 | Neutral / Average |
-| 4 | Agree / Good |
-| 5 | Strongly Agree / Excellent |
+Each question has its own rubric descriptions for levels 1-5. Unlike a generic Likert scale, each level describes a specific maturity state for that topic.
 
-## Sample Questions
+### General Pattern
 
-> **Note**: The sample questions below show English text only for readability. The actual `questions.json` uses bilingual fields (`textTh`/`textEn`) and references dimensions by ID (`dimensionId`) instead of name.
+| Level | General Description |
+|-------|-------------------|
+| 1 | No system / not understood / no interest |
+| 2 | Planning stage / studying / policy exists |
+| 3 | Partially implemented / in practice |
+| 4 | Checked, evaluated, and raised standards |
+| 5 | Fully effective with prevention and continuous improvement |
 
-### Quality Management
+## Sample Question (with Rubric)
 
-```json
-[
-  {
-    "id": "qm-1",
-    "dimension": "Quality Management",
-    "text": "Your factory has documented quality control procedures for all production processes.",
-    "weight": 1.0
-  },
-  {
-    "id": "qm-2",
-    "dimension": "Quality Management",
-    "text": "Quality metrics (defect rate, rework rate) are tracked and reviewed regularly.",
-    "weight": 1.0
-  },
-  {
-    "id": "qm-3",
-    "dimension": "Quality Management",
-    "text": "Your factory uses statistical process control or similar methods to monitor product quality.",
-    "weight": 1.0
-  },
-  {
-    "id": "qm-4",
-    "dimension": "Quality Management",
-    "text": "Customer complaints and returns are systematically recorded and addressed.",
-    "weight": 1.0
-  },
-  {
-    "id": "qm-5",
-    "dimension": "Quality Management",
-    "text": "Your factory holds or is pursuing quality certifications (ISO 9001 or equivalent).",
-    "weight": 1.0
-  }
-]
-```
-
-### Safety & Compliance
+> **Note**: Each question has bilingual fields (`textTh`/`textEn`) and a `rubric` object with level descriptions for 1-5. See `apps/api/config/questions.json` for the full set.
 
 ```json
-[
-  {
-    "id": "sc-1",
-    "dimension": "Safety & Compliance",
-    "text": "All employees receive regular safety training and know emergency procedures.",
-    "weight": 1.0
-  },
-  {
-    "id": "sc-2",
-    "dimension": "Safety & Compliance",
-    "text": "Safety incidents are recorded, investigated, and corrective actions are implemented.",
-    "weight": 1.0
-  },
-  {
-    "id": "sc-3",
-    "dimension": "Safety & Compliance",
-    "text": "Personal protective equipment (PPE) is provided and enforced across all areas.",
-    "weight": 1.0
-  },
-  {
-    "id": "sc-4",
-    "dimension": "Safety & Compliance",
-    "text": "Your factory complies with all applicable local and national safety regulations.",
-    "weight": 1.0
-  },
-  {
-    "id": "sc-5",
-    "dimension": "Safety & Compliance",
-    "text": "Regular safety audits are conducted and findings are resolved promptly.",
-    "weight": 1.0
+{
+  "id": "bm-1",
+  "dimensionId": "basic-management",
+  "textTh": "5 ส.",
+  "textEn": "5S (Sort, Set, Shine, Standardize, Sustain)",
+  "weight": 1.0,
+  "rubric": {
+    "1": { "th": "สับสน", "en": "Confused / no system" },
+    "2": { "th": "กำลังวางแผน", "en": "Planning stage" },
+    "3": { "th": "ลงมือทำแต่ยังไม่สมบูรณ์", "en": "Implementing but not yet complete" },
+    "4": { "th": "มีการตรวจเช็คและยกระดับ", "en": "Check and raise standards" },
+    "5": { "th": "มีการแก้ไขและป้องกัน", "en": "Corrective and preventive actions" }
   }
-]
-```
-
-### Equipment & Maintenance
-
-```json
-[
-  {
-    "id": "em-1",
-    "dimension": "Equipment & Maintenance",
-    "text": "A preventive maintenance schedule exists and is followed for all critical equipment.",
-    "weight": 1.0
-  },
-  {
-    "id": "em-2",
-    "dimension": "Equipment & Maintenance",
-    "text": "Equipment downtime is tracked and analyzed to identify recurring issues.",
-    "weight": 1.0
-  },
-  {
-    "id": "em-3",
-    "dimension": "Equipment & Maintenance",
-    "text": "Spare parts inventory is managed to minimize production disruption.",
-    "weight": 1.0
-  },
-  {
-    "id": "em-4",
-    "dimension": "Equipment & Maintenance",
-    "text": "Equipment operators are trained on proper usage and basic troubleshooting.",
-    "weight": 1.0
-  },
-  {
-    "id": "em-5",
-    "dimension": "Equipment & Maintenance",
-    "text": "Equipment performance data is used to plan replacements and upgrades.",
-    "weight": 1.0
-  }
-]
-```
-
-### Workforce & Training
-
-```json
-[
-  {
-    "id": "wt-1",
-    "dimension": "Workforce & Training",
-    "text": "New employees receive structured onboarding and role-specific training.",
-    "weight": 1.0
-  },
-  {
-    "id": "wt-2",
-    "dimension": "Workforce & Training",
-    "text": "A skills matrix or competency map exists for all production roles.",
-    "weight": 1.0
-  },
-  {
-    "id": "wt-3",
-    "dimension": "Workforce & Training",
-    "text": "Employees have regular opportunities for upskilling and cross-training.",
-    "weight": 1.0
-  },
-  {
-    "id": "wt-4",
-    "dimension": "Workforce & Training",
-    "text": "Employee performance is reviewed regularly with clear feedback and development plans.",
-    "weight": 1.0
-  },
-  {
-    "id": "wt-5",
-    "dimension": "Workforce & Training",
-    "text": "Knowledge transfer processes exist so critical knowledge is not lost when employees leave.",
-    "weight": 1.0
-  }
-]
-```
-
-### Digital Transformation
-
-```json
-[
-  {
-    "id": "dt-1",
-    "dimension": "Digital Transformation",
-    "text": "Production data is collected digitally (not just on paper) and accessible to decision-makers.",
-    "weight": 1.0
-  },
-  {
-    "id": "dt-2",
-    "dimension": "Digital Transformation",
-    "text": "Your factory uses an ERP, MES, or similar system to manage operations.",
-    "weight": 1.0
-  },
-  {
-    "id": "dt-3",
-    "dimension": "Digital Transformation",
-    "text": "Automation is used in repetitive or high-risk production tasks.",
-    "weight": 1.0
-  },
-  {
-    "id": "dt-4",
-    "dimension": "Digital Transformation",
-    "text": "Data analytics or dashboards are used to support operational decisions.",
-    "weight": 1.0
-  },
-  {
-    "id": "dt-5",
-    "dimension": "Digital Transformation",
-    "text": "There is a roadmap or plan for adopting new technologies in the next 1-3 years.",
-    "weight": 1.0
-  }
-]
-```
-
-### Supply Chain Management
-
-```json
-[
-  {
-    "id": "sm-1",
-    "dimension": "Supply Chain Management",
-    "text": "Key suppliers are evaluated and performance is tracked regularly.",
-    "weight": 1.0
-  },
-  {
-    "id": "sm-2",
-    "dimension": "Supply Chain Management",
-    "text": "Inventory levels are managed to balance availability with cost efficiency.",
-    "weight": 1.0
-  },
-  {
-    "id": "sm-3",
-    "dimension": "Supply Chain Management",
-    "text": "Lead times from suppliers are predictable and meet production schedule requirements.",
-    "weight": 1.0
-  },
-  {
-    "id": "sm-4",
-    "dimension": "Supply Chain Management",
-    "text": "Contingency plans exist for supply chain disruptions (alternative suppliers, safety stock).",
-    "weight": 1.0
-  },
-  {
-    "id": "sm-5",
-    "dimension": "Supply Chain Management",
-    "text": "Logistics and warehousing are organized to minimize waste and delays.",
-    "weight": 1.0
-  }
-]
-```
-
-### Environmental Sustainability
-
-```json
-[
-  {
-    "id": "es-1",
-    "dimension": "Environmental Sustainability",
-    "text": "Waste is sorted, tracked, and reduced through documented processes.",
-    "weight": 1.0
-  },
-  {
-    "id": "es-2",
-    "dimension": "Environmental Sustainability",
-    "text": "Energy consumption is monitored and initiatives exist to improve efficiency.",
-    "weight": 1.0
-  },
-  {
-    "id": "es-3",
-    "dimension": "Environmental Sustainability",
-    "text": "Your factory complies with all applicable environmental regulations and permits.",
-    "weight": 1.0
-  },
-  {
-    "id": "es-4",
-    "dimension": "Environmental Sustainability",
-    "text": "Water usage is managed responsibly with treatment for any industrial discharge.",
-    "weight": 1.0
-  },
-  {
-    "id": "es-5",
-    "dimension": "Environmental Sustainability",
-    "text": "Environmental goals (carbon reduction, waste minimization) are set and tracked.",
-    "weight": 1.0
-  }
-]
+}
 ```
 
 ## Scoring Algorithm
@@ -307,16 +72,16 @@ Weighted average of answers within a dimension:
 dimensionScore = sum(answer[i].value * question[i].weight) / sum(question[i].weight)
 ```
 
-With default weight 1.0 and 5 questions: `dimensionScore = sum(5 answers) / 5`
+With default weight 1.0, variable questions per dimension (4-8 questions).
 
 Result: **1.0 - 5.0**
 
 ### 2. Overall Score
 
-Average of all 7 dimension scores:
+Average of all 8 dimension scores:
 
 ```
-overallScore = sum(dimensionScores) / 7
+overallScore = sum(dimensionScores) / 8
 ```
 
 Result: **1.0 - 5.0**
@@ -341,12 +106,12 @@ score = math.Round(score*100) / 100
 
 Boundaries are **inclusive on the lower bound, exclusive on the upper bound** (except Advanced which includes 5.0):
 
-| Score Range | Category | Description |
-|-------------|----------|-------------|
-| >= 4.00 | Advanced | Factory demonstrates excellence across most areas |
-| >= 3.00 and < 4.00 | Established | Solid foundation in place with room for targeted improvement |
-| >= 2.00 and < 3.00 | Developing | Basic practices exist but significant gaps remain |
-| >= 1.00 and < 2.00 | Beginning | Minimal practices in place, needs fundamental improvement |
+| Score Range | Category (EN) | Category (TH) | Description |
+|-------------|---------------|---------------|-------------|
+| >= 4.00 | Advanced | ก้าวหน้า | Factory demonstrates excellence across most areas |
+| >= 3.00 and < 4.00 | Established | มั่นคง | Solid foundation in place with room for targeted improvement |
+| >= 2.00 and < 3.00 | Developing | กำลังพัฒนา | Basic practices exist but significant gaps remain |
+| >= 1.00 and < 2.00 | Beginning | เริ่มต้น | Minimal practices in place, needs fundamental improvement |
 
 ## Configuration File
 
@@ -354,19 +119,26 @@ Location: `apps/api/config/questions.json`
 
 ```json
 {
-  "version": "1.0.0",
+  "version": "2.0.0",
   "dimensions": [
-    { "id": "quality-management", "nameTh": "การจัดการคุณภาพ", "nameEn": "Quality Management", "weight": 1.0 },
-    { "id": "safety-compliance", "nameTh": "ความปลอดภัยและการปฏิบัติตามกฎ", "nameEn": "Safety & Compliance", "weight": 1.0 },
+    { "id": "basic-management", "nameTh": "การจัดการงานเบื้องต้น", "nameEn": "Basic Management", "weight": 1.0 },
+    { "id": "work-improvement", "nameTh": "การปรับปรุงการทำงาน", "nameEn": "Work Improvement", "weight": 1.0 },
     ...
   ],
   "questions": [
     {
-      "id": "qm-1",
-      "dimensionId": "quality-management",
-      "textTh": "โรงงานของคุณมีขั้นตอนการควบคุมคุณภาพที่เป็นลายลักษณ์อักษรสำหรับกระบวนการผลิตทั้งหมด",
-      "textEn": "Your factory has documented quality control procedures for all production processes.",
-      "weight": 1.0
+      "id": "bm-1",
+      "dimensionId": "basic-management",
+      "textTh": "5 ส.",
+      "textEn": "5S (Sort, Set, Shine, Standardize, Sustain)",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "สับสน", "en": "Confused / no system" },
+        "2": { "th": "กำลังวางแผน", "en": "Planning stage" },
+        "3": { "th": "ลงมือทำแต่ยังไม่สมบูรณ์", "en": "Implementing but not yet complete" },
+        "4": { "th": "มีการตรวจเช็คและยกระดับ", "en": "Check and raise standards" },
+        "5": { "th": "มีการแก้ไขและป้องกัน", "en": "Corrective and preventive actions" }
+      }
     }
   ]
 }
@@ -377,21 +149,22 @@ Location: `apps/api/config/questions.json`
 ### Quiz Flow
 
 1. User lands on `/quiz` after registration
-2. Stepper shows 7 steps (one per dimension)
-3. Each step shows 5 question cards with 1-5 radio buttons
-4. Previous / Next navigation between steps
-5. Progress bar shows overall completion (0-100%)
-6. Final step shows Submit button (enabled only when all 35 questions answered)
-7. On submit: loading indicator, then redirect to `/results`
+2. Stepper shows 8 steps (one per dimension)
+3. Each step shows question cards (4-8 per dimension) with rubric-based 1-5 selection
+4. Each level shows its specific rubric description (not generic Likert labels)
+5. Previous / Next navigation between steps
+6. Progress bar shows overall completion (0-100%)
+7. Final step shows Submit button (enabled only when all 43 questions answered)
+8. On submit: loading indicator, then redirect to `/results`
 
 ### Stepper Layout
 
-- **Mobile**: Vertical stepper on the left side, question cards below
-- **Tablet+**: Horizontal stepper at top, question cards below
+- **Mobile**: Horizontal scrollable tabs at top, question cards below
+- **Tablet+**: Horizontal tabs at top, question cards below
 
 ### Validation
 
-- All 35 questions must be answered before submission
+- All 43 questions must be answered before submission
 - Unanswered questions highlighted when user tries to skip ahead
 - No partial submissions allowed
 
@@ -401,5 +174,6 @@ Location: `apps/api/config/questions.json`
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 2.0.0 | 2026-03-08 | Migrate to 8-dimension Shindan production management assessment (43 questions) with rubric-style scoring from XLS; variable questions per dimension (4-8) |
 | 1.1.0 | 2026-03-07 | Update configuration schema to match actual bilingual format (`nameTh`/`nameEn`, `textTh`/`textEn`, `dimensionId`); fix `/result` to `/results` |
 | 1.0.0 | 2026-03-06 | Initial version |

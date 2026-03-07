@@ -1,259 +1,617 @@
 {
-  "version": "1.0.0",
+  "version": "2.0.0",
   "dimensions": [
-    { "id": "quality-management", "nameTh": "การจัดการคุณภาพ", "nameEn": "Quality Management", "weight": 1.0 },
-    { "id": "safety-compliance", "nameTh": "ความปลอดภัยและการปฏิบัติตามกฎ", "nameEn": "Safety & Compliance", "weight": 1.0 },
-    { "id": "equipment-maintenance", "nameTh": "เครื่องจักรและการบำรุงรักษา", "nameEn": "Equipment & Maintenance", "weight": 1.0 },
-    { "id": "workforce-training", "nameTh": "บุคลากรและการฝึกอบรม", "nameEn": "Workforce & Training", "weight": 1.0 },
-    { "id": "digital-transformation", "nameTh": "การเปลี่ยนผ่านสู่ดิจิทัล", "nameEn": "Digital Transformation", "weight": 1.0 },
-    { "id": "supply-chain", "nameTh": "การจัดการห่วงโซ่อุปทาน", "nameEn": "Supply Chain Management", "weight": 1.0 },
-    { "id": "environmental-sustainability", "nameTh": "สิ่งแวดล้อมและความยั่งยืน", "nameEn": "Environmental Sustainability", "weight": 1.0 }
+    { "id": "basic-management", "nameTh": "การจัดการงานเบื้องต้น", "nameEn": "Basic Management", "weight": 1.0 },
+    { "id": "work-improvement", "nameTh": "การปรับปรุงการทำงาน", "nameEn": "Work Improvement", "weight": 1.0 },
+    { "id": "coordination", "nameTh": "การประสานงาน", "nameEn": "Coordination", "weight": 1.0 },
+    { "id": "maintenance", "nameTh": "การบำรุงรักษา", "nameEn": "Maintenance (TPM)", "weight": 1.0 },
+    { "id": "quality-control", "nameTh": "การควบคุมคุณภาพ/การประกันคุณภาพ", "nameEn": "Quality Control & Assurance", "weight": 1.0 },
+    { "id": "production-delivery", "nameTh": "การผลิต การควบคุม การส่งมอบ", "nameEn": "Production, Control & Delivery", "weight": 1.0 },
+    { "id": "material-control", "nameTh": "การควบคุมวัสดุ", "nameEn": "Material Control", "weight": 1.0 },
+    { "id": "cost-control", "nameTh": "การควบคุมต้นทุน", "nameEn": "Cost Control", "weight": 1.0 }
   ],
   "questions": [
     {
-      "id": "qm-1",
-      "dimensionId": "quality-management",
-      "textTh": "โรงงานของคุณมีขั้นตอนการควบคุมคุณภาพที่เป็นลายลักษณ์อักษรสำหรับกระบวนการผลิตทั้งหมด",
-      "textEn": "Your factory has documented quality control procedures for all production processes.",
-      "weight": 1.0
+      "id": "bm-1",
+      "dimensionId": "basic-management",
+      "textTh": "5 ส.",
+      "textEn": "5S (Sort, Set, Shine, Standardize, Sustain)",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "สับสน", "en": "Confused / no system" },
+        "2": { "th": "กำลังวางแผน", "en": "Planning stage" },
+        "3": { "th": "ลงมือทำแต่ยังไม่สมบูรณ์", "en": "Implementing but not yet complete" },
+        "4": { "th": "มีการตรวจเช็คและยกระดับ", "en": "Check and raise standards" },
+        "5": { "th": "มีการแก้ไขและป้องกัน", "en": "Corrective and preventive actions" }
+      }
     },
     {
-      "id": "qm-2",
-      "dimensionId": "quality-management",
-      "textTh": "ตัวชี้วัดคุณภาพ (อัตราของเสีย, อัตราการทำซ้ำ) ถูกติดตามและทบทวนอย่างสม่ำเสมอ",
-      "textEn": "Quality metrics (defect rate, rework rate) are tracked and reviewed regularly.",
-      "weight": 1.0
+      "id": "bm-2",
+      "dimensionId": "basic-management",
+      "textTh": "การจัดการภาคทัศน์ (Visual Management)",
+      "textEn": "Visual Management",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "การติดตามความก้าวหน้าของงานยังไม่ชัดเจน", "en": "Progress tracking unclear" },
+        "2": { "th": "วัตถุดิบและเครื่องมือมีความสะดวกในการนำไปใช้", "en": "Materials and tools accessible" },
+        "3": { "th": "มีการบอกป้ายแสดงตำแหน่ง ทิศทาง สภาวะของสินค้า วัตถุดิบ และเครื่องมือ", "en": "Signs show position, direction, status of goods, materials and tools" },
+        "4": { "th": "มีระบบเตือนเมื่อเกิดปัญหา", "en": "Warning systems in place for problems" },
+        "5": { "th": "มีความฉับไวในการแก้ไขกอบกู้สถานการณ์", "en": "Rapid response and recovery capability" }
+      }
     },
     {
-      "id": "qm-3",
-      "dimensionId": "quality-management",
-      "textTh": "โรงงานใช้การควบคุมกระบวนการเชิงสถิติหรือวิธีการที่คล้ายกันในการตรวจสอบคุณภาพผลิตภัณฑ์",
-      "textEn": "Your factory uses statistical process control or similar methods to monitor product quality.",
-      "weight": 1.0
+      "id": "bm-3",
+      "dimensionId": "basic-management",
+      "textTh": "3MU: Muri, Muda, Mura",
+      "textEn": "3MU: Overburden, Waste, Unevenness",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ยังไม่เข้าใจ", "en": "Not yet understood" },
+        "2": { "th": "มีการประชาสัมพันธ์หลักการ ECRS", "en": "ECRS principles communicated" },
+        "3": { "th": "กำลังดำเนินการในบางส่วนแล้ว", "en": "Partially implemented" },
+        "4": { "th": "ตรวจเช็คและยกระดับ", "en": "Check and raise standards" },
+        "5": { "th": "มีการแก้ไข มีคู่มือและการป้องกันการเกิดซ้ำ", "en": "Corrective actions with manuals and recurrence prevention" }
+      }
     },
     {
-      "id": "qm-4",
-      "dimensionId": "quality-management",
-      "textTh": "ข้อร้องเรียนและการคืนสินค้าจากลูกค้าถูกบันทึกและแก้ไขอย่างเป็นระบบ",
-      "textEn": "Customer complaints and returns are systematically recorded and addressed.",
-      "weight": 1.0
+      "id": "bm-4",
+      "dimensionId": "basic-management",
+      "textTh": "สภาพแวดล้อมในการทำงาน",
+      "textEn": "Work Environment",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มี 5ส. และการวิเคราะห์การทำงานโดยหลักสรีรศาสตร์", "en": "No 5S or ergonomic analysis" },
+        "2": { "th": "มีการวางแผนจะทำ", "en": "Planning to implement" },
+        "3": { "th": "เริ่มทำแล้วแต่ประสบความสำเร็จยังไม่มาก", "en": "Started but limited success" },
+        "4": { "th": "ตรวจเช็คและยกระดับ", "en": "Check and raise standards" },
+        "5": { "th": "มีการแก้ไข มีคู่มือและการป้องกันการเกิดซ้ำ", "en": "Corrective actions with manuals and recurrence prevention" }
+      }
     },
     {
-      "id": "qm-5",
-      "dimensionId": "quality-management",
-      "textTh": "โรงงานของคุณได้รับหรือกำลังดำเนินการขอรับรองมาตรฐานคุณภาพ (ISO 9001 หรือเทียบเท่า)",
-      "textEn": "Your factory holds or is pursuing quality certifications (ISO 9001 or equivalent).",
-      "weight": 1.0
+      "id": "bm-5",
+      "dimensionId": "basic-management",
+      "textTh": "5G (Gemba, Gembutsu, Genjitsu, Genri, Gensoku)",
+      "textEn": "5G (Go-See Methodology)",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "เฉื่อย ไม่มีใครอยากจะแก้ไข", "en": "Passive, no one wants to fix issues" },
+        "2": { "th": "ดำเนินการไปแล้วสำหรับ 3G แรก", "en": "First 3G implemented" },
+        "3": { "th": "มีการฝึกอบรม 5G", "en": "5G training conducted" },
+        "4": { "th": "วิเคราะห์ปัญหาโดยใช้หลักการ 5W", "en": "Problem analysis using 5W method" },
+        "5": { "th": "มีการแก้ไข มีคู่มือและการป้องกันการเกิดซ้ำ", "en": "Corrective actions with manuals and recurrence prevention" }
+      }
     },
     {
-      "id": "sc-1",
-      "dimensionId": "safety-compliance",
-      "textTh": "พนักงานทุกคนได้รับการฝึกอบรมด้านความปลอดภัยอย่างสม่ำเสมอและทราบขั้นตอนฉุกเฉิน",
-      "textEn": "All employees receive regular safety training and know emergency procedures.",
-      "weight": 1.0
+      "id": "bm-6",
+      "dimensionId": "basic-management",
+      "textTh": "OJT (การสอนงานหน้างาน)",
+      "textEn": "OJT (On-the-Job Training)",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ยังไม่เข้าใจ", "en": "Not yet understood" },
+        "2": { "th": "กำลังวางแผน", "en": "Planning stage" },
+        "3": { "th": "ดำเนินการไปบางส่วนแล้ว", "en": "Partially implemented" },
+        "4": { "th": "ตรวจเช็คและยกระดับ", "en": "Check and raise standards" },
+        "5": { "th": "ความสำเร็จทำให้พนักงานมีความสามารถหลากหลาย", "en": "Success: multi-skilled workforce achieved" }
+      }
     },
     {
-      "id": "sc-2",
-      "dimensionId": "safety-compliance",
-      "textTh": "เหตุการณ์ด้านความปลอดภัยถูกบันทึก สอบสวน และดำเนินมาตรการแก้ไข",
-      "textEn": "Safety incidents are recorded, investigated, and corrective actions are implemented.",
-      "weight": 1.0
+      "id": "wi-1",
+      "dimensionId": "work-improvement",
+      "textTh": "กิจกรรมส่งเสริมคุณภาพกลุ่มย่อย (QCC)",
+      "textEn": "Quality Control Circles (QCC)",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ยังไม่เข้าใจ/ยังไม่มีกิจกรรม", "en": "Not understood / no activities" },
+        "2": { "th": "มีนโยบาย/มีกลุ่มกิจกรรมชัดเจน", "en": "Policy exists / clear activity groups" },
+        "3": { "th": "ดำเนินการไปแล้วบางส่วน", "en": "Partially implemented" },
+        "4": { "th": "มีการประชุมนำเสนอผลงานของกลุ่ม", "en": "Group result presentations conducted" },
+        "5": { "th": "มีการนำข้อเสนอแนะไปปรับปรุงมีผลดีต่อการผลิต", "en": "Suggestions implemented with positive production impact" }
+      }
     },
     {
-      "id": "sc-3",
-      "dimensionId": "safety-compliance",
-      "textTh": "อุปกรณ์ป้องกันส่วนบุคคล (PPE) ถูกจัดหาและบังคับใช้ในทุกพื้นที่",
-      "textEn": "Personal protective equipment (PPE) is provided and enforced across all areas.",
-      "weight": 1.0
+      "id": "wi-2",
+      "dimensionId": "work-improvement",
+      "textTh": "การสร้างจิตสำนึกในการปรับปรุง",
+      "textEn": "Improvement Mindset / Kaizen Culture",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ยังไม่มีกิจกรรม", "en": "No activities" },
+        "2": { "th": "มีนโยบายและแนวทางปฏิบัติ", "en": "Policy and guidelines exist" },
+        "3": { "th": "ดำเนินการไปแล้วบางส่วน/มีข้อเสนอแนะจากพนักงาน", "en": "Partially implemented / employee suggestions exist" },
+        "4": { "th": "มีการตรวจสอบและทบทวนข้อเสนอแนะ", "en": "Suggestions reviewed and evaluated" },
+        "5": { "th": "มีการนำข้อเสนอแนะไปปรับปรุงมีผลดีต่อการผลิต", "en": "Suggestions implemented with positive production impact" }
+      }
     },
     {
-      "id": "sc-4",
-      "dimensionId": "safety-compliance",
-      "textTh": "โรงงานของคุณปฏิบัติตามกฎระเบียบด้านความปลอดภัยทั้งในระดับท้องถิ่นและระดับประเทศ",
-      "textEn": "Your factory complies with all applicable local and national safety regulations.",
-      "weight": 1.0
+      "id": "wi-3",
+      "dimensionId": "work-improvement",
+      "textTh": "เครื่องมือและอุปกรณ์",
+      "textEn": "Tools & Equipment for Improvement",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีเครื่องมือและอุปกรณ์อำนวยความสะดวกในการทำงานที่เหมาะสม", "en": "No appropriate tools and equipment" },
+        "2": { "th": "มีนโยบายและงบประมาณในการจัดหาเครื่องมืออุปกรณ์", "en": "Budget and policy for tool procurement" },
+        "3": { "th": "ดำเนินการไปแล้วบางส่วน", "en": "Partially implemented" },
+        "4": { "th": "มีการตรวจสอบและทบทวนอยู่เสมอ", "en": "Regularly reviewed and checked" },
+        "5": { "th": "มีการพัฒนาปรับปรุงเครื่องมืออุปกรณ์เพื่อใช้งานเองในองค์กร", "en": "In-house tool development and improvement" }
+      }
     },
     {
-      "id": "sc-5",
-      "dimensionId": "safety-compliance",
-      "textTh": "มีการตรวจสอบด้านความปลอดภัยอย่างสม่ำเสมอและแก้ไขข้อบกพร่องอย่างรวดเร็ว",
-      "textEn": "Regular safety audits are conducted and findings are resolved promptly.",
-      "weight": 1.0
+      "id": "wi-4",
+      "dimensionId": "work-improvement",
+      "textTh": "การปรับปรุงเวลาติดตั้งเครื่องจักรและอุปกรณ์",
+      "textEn": "Setup Time Reduction (SMED)",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่คำนึงด้านการสูญเปล่าด้านเวลา", "en": "No awareness of time waste" },
+        "2": { "th": "มีคู่มือมาตรฐานในการปฏิบัติงานแต่ยังขาดวินัยในการปฏิบัติ", "en": "Standard manual exists but not consistently followed" },
+        "3": { "th": "มีคู่มือมาตรฐานและนำมาใช้ปฏิบัติงาน", "en": "Standard manual used in practice" },
+        "4": { "th": "ตรวจเช็คและยกระดับ", "en": "Check and raise standards" },
+        "5": { "th": "เวลาในการ set-up ก้าวสู่เลข 1 หน่วย", "en": "Setup time approaches single-digit minutes" }
+      }
     },
     {
-      "id": "em-1",
-      "dimensionId": "equipment-maintenance",
-      "textTh": "มีตารางการบำรุงรักษาเชิงป้องกันและปฏิบัติตามสำหรับเครื่องจักรที่สำคัญทั้งหมด",
-      "textEn": "A preventive maintenance schedule exists and is followed for all critical equipment.",
-      "weight": 1.0
+      "id": "co-1",
+      "dimensionId": "coordination",
+      "textTh": "การจัดการ ความเป็นผู้นำและหน้าที่รับผิดชอบ",
+      "textEn": "Management, Leadership & Responsibilities",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ยังสับสน", "en": "Still confused" },
+        "2": { "th": "มีการกำหนดรายละเอียดแต่ละเลยการปฏิบัติ", "en": "Defined but not practiced" },
+        "3": { "th": "มีความสัมพันธ์จากบนลงล่างและล่างขึ้นบน", "en": "Top-down and bottom-up communication" },
+        "4": { "th": "มีการประเมินและยกระดับ", "en": "Evaluated and raised standards" },
+        "5": { "th": "มีระบบควบคุมการทำงานด้วยตนเอง", "en": "Self-managing work system" }
+      }
     },
     {
-      "id": "em-2",
-      "dimensionId": "equipment-maintenance",
-      "textTh": "เวลาหยุดทำงานของเครื่องจักรถูกติดตามและวิเคราะห์เพื่อระบุปัญหาที่เกิดซ้ำ",
-      "textEn": "Equipment downtime is tracked and analyzed to identify recurring issues.",
-      "weight": 1.0
+      "id": "co-2",
+      "dimensionId": "coordination",
+      "textTh": "การใช้ข้อมูลในองค์กร",
+      "textEn": "Organizational Data Utilization",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ยังสับสน", "en": "Still confused" },
+        "2": { "th": "มีคู่มือระดับสะสางและสะดวก", "en": "Basic manuals at sort and set-in-order level" },
+        "3": { "th": "มีการปฏิบัติ", "en": "In practice" },
+        "4": { "th": "มีการปรับปรุงข้อมูลให้เป็นปัจจุบันอยู่เสมอ", "en": "Data regularly updated and current" },
+        "5": { "th": "การใช้ข้อมูลจากบนลงล่าง ล่างขึ้นบน แนวระนาบ", "en": "Data flows top-down, bottom-up, and horizontally" }
+      }
     },
     {
-      "id": "em-3",
-      "dimensionId": "equipment-maintenance",
-      "textTh": "สินค้าคงคลังอะไหล่ถูกจัดการเพื่อลดการหยุดชะงักของการผลิต",
-      "textEn": "Spare parts inventory is managed to minimize production disruption.",
-      "weight": 1.0
+      "id": "co-3",
+      "dimensionId": "coordination",
+      "textTh": "สันทนาการ",
+      "textEn": "Recreation & Team Activities",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ยังไม่มี", "en": "None" },
+        "2": { "th": "มีบ้างแต่จัดขึ้นเองอย่างไม่เป็นทางการ", "en": "Some informal activities" },
+        "3": { "th": "แผนกจัดกันเอง", "en": "Department-organized events" },
+        "4": { "th": "ทุกแผนกจัดร่วมกันโดยผู้บริหารเห็นชอบ", "en": "Cross-department events approved by management" },
+        "5": { "th": "จัดทั่วทั้งองค์กรและได้รับงบประมาณสนับสนุน", "en": "Organization-wide with dedicated budget" }
+      }
     },
     {
-      "id": "em-4",
-      "dimensionId": "equipment-maintenance",
-      "textTh": "ผู้ปฏิบัติงานเครื่องจักรได้รับการฝึกอบรมเรื่องการใช้งานที่ถูกต้องและการแก้ไขปัญหาเบื้องต้น",
-      "textEn": "Equipment operators are trained on proper usage and basic troubleshooting.",
-      "weight": 1.0
+      "id": "co-4",
+      "dimensionId": "coordination",
+      "textTh": "การกำหนดเป้าหมายการบริหาร",
+      "textEn": "Management Goal Setting",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีเป้าหมาย", "en": "No goals" },
+        "2": { "th": "วางแผนแล้ว", "en": "Plans made" },
+        "3": { "th": "กำลังดำเนินการตามแผนเพื่อมุ่งสู่เป้าหมายทั้งองค์กร", "en": "Working toward organization-wide goals" },
+        "4": { "th": "มีการประเมินและยกระดับ", "en": "Evaluated and raised standards" },
+        "5": { "th": "มีการนำข้อมูลจากปีก่อนมาเป็นพื้นฐานปรับปรุงแก้ไขในปีนี้", "en": "Previous year data used as baseline for improvement" }
+      }
     },
     {
-      "id": "em-5",
-      "dimensionId": "equipment-maintenance",
-      "textTh": "ข้อมูลประสิทธิภาพเครื่องจักรถูกใช้ในการวางแผนการเปลี่ยนและอัปเกรด",
-      "textEn": "Equipment performance data is used to plan replacements and upgrades.",
-      "weight": 1.0
+      "id": "mt-1",
+      "dimensionId": "maintenance",
+      "textTh": "กิจกรรมซ่อมบำรุงและการเตรียมอะไหล่สำรอง",
+      "textEn": "Maintenance Activities & Spare Parts",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่สนใจ/ซ่อมเมื่อเสีย/สำรองอะไหล่ไม่เหมาะสม", "en": "No interest / fix when broken / inadequate spare parts" },
+        "2": { "th": "มีการวางแผนซ่อมบำรุง/สำรองอะไหล่เหมาะสม", "en": "Maintenance plan / appropriate spare parts" },
+        "3": { "th": "ดำเนินการตามแผนแล้ว", "en": "Plan executed" },
+        "4": { "th": "วิเคราะห์ข้อมูลเปรียบเทียบผลกับแผนอยู่เสมอ", "en": "Data analyzed and compared against plan regularly" },
+        "5": { "th": "มีการแก้ไข มีคู่มือและมาตรการป้องกันการเกิดซ้ำ", "en": "Corrective actions with manuals and recurrence prevention" }
+      }
     },
     {
-      "id": "wt-1",
-      "dimensionId": "workforce-training",
-      "textTh": "พนักงานใหม่ได้รับการปฐมนิเทศอย่างเป็นระบบและการฝึกอบรมเฉพาะตำแหน่ง",
-      "textEn": "New employees receive structured onboarding and role-specific training.",
-      "weight": 1.0
+      "id": "mt-2",
+      "dimensionId": "maintenance",
+      "textTh": "การตรวจเช็คประจำวันโดยพนักงาน",
+      "textEn": "Daily Inspection by Operators",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่สนใจ/ไม่มีระบบ/ไม่มีผู้รับผิดชอบโดยตรง", "en": "No interest / no system / no responsible person" },
+        "2": { "th": "มีแผนตรวจเช็คประจำวัน/กำหนดผู้รับผิดชอบชัดเจน", "en": "Daily check plan / clear responsible persons" },
+        "3": { "th": "ดำเนินการตามแผนแล้ว เช่น ทำความสะอาด การตรวจเช็คน้ำมัน", "en": "Plan executed: cleaning, oil checks, etc." },
+        "4": { "th": "ทราบเหตุผิดปกติในทันทีและแจ้งผู้รับผิดชอบ", "en": "Abnormalities detected immediately and reported" },
+        "5": { "th": "มีการแก้ไข มีคู่มือและมาตรการป้องกันการเกิดซ้ำ", "en": "Corrective actions with manuals and recurrence prevention" }
+      }
     },
     {
-      "id": "wt-2",
-      "dimensionId": "workforce-training",
-      "textTh": "มีตารางทักษะหรือแผนที่ความสามารถสำหรับตำแหน่งการผลิตทั้งหมด",
-      "textEn": "A skills matrix or competency map exists for all production roles.",
-      "weight": 1.0
+      "id": "mt-3",
+      "dimensionId": "maintenance",
+      "textTh": "การกำหนดกลุ่มกิจกรรมพิเศษเพื่อทำการบำรุงรักษา",
+      "textEn": "Special Maintenance Activity Groups",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่สนใจ/เป็นงานของฝ่ายซ่อมบำรุงเท่านั้น", "en": "No interest / maintenance dept. only" },
+        "2": { "th": "ผู้บริหารประกาศนโยบายชัดเจน/มีแผนดำเนินการและผู้รับผิดชอบ", "en": "Clear management policy / plan and responsible persons" },
+        "3": { "th": "ดำเนินการเป็นกลุ่มอย่างชัดเจนและเต็มไปด้วยความกระตือรือร้นทั้งองค์กร", "en": "Active group implementation with enthusiasm across organization" },
+        "4": { "th": "วิเคราะห์ข้อมูลเปรียบเทียบผลกับแผนอยู่เสมอ", "en": "Data analyzed and compared against plan regularly" },
+        "5": { "th": "มีการแก้ไข มีคู่มือและมาตรการป้องกันการเกิดซ้ำ", "en": "Corrective actions with manuals and recurrence prevention" }
+      }
     },
     {
-      "id": "wt-3",
-      "dimensionId": "workforce-training",
-      "textTh": "พนักงานมีโอกาสในการพัฒนาทักษะและฝึกอบรมข้ามสายงานอย่างสม่ำเสมอ",
-      "textEn": "Employees have regular opportunities for upskilling and cross-training.",
-      "weight": 1.0
+      "id": "mt-4",
+      "dimensionId": "maintenance",
+      "textTh": "เครื่องมือและอุปกรณ์ (การวัด)",
+      "textEn": "Measurement Tools & Equipment",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่สนใจ", "en": "No interest" },
+        "2": { "th": "วางแผน/เขียนคู่มือปฏิบัติ", "en": "Planning / writing operation manuals" },
+        "3": { "th": "มีผู้รับผิดชอบในการดูแลรักษา", "en": "Responsible persons assigned for maintenance" },
+        "4": { "th": "มีการสอบเทียบเครื่องมือวัดตามสภาพ", "en": "Calibration performed as needed" },
+        "5": { "th": "มีการตรวจสอบความแม่นยำตามเวลา", "en": "Accuracy verified on schedule" }
+      }
     },
     {
-      "id": "wt-4",
-      "dimensionId": "workforce-training",
-      "textTh": "ผลการปฏิบัติงานของพนักงานถูกทบทวนอย่างสม่ำเสมอพร้อมข้อเสนอแนะและแผนพัฒนาที่ชัดเจน",
-      "textEn": "Employee performance is reviewed regularly with clear feedback and development plans.",
-      "weight": 1.0
+      "id": "qc-1",
+      "dimensionId": "quality-control",
+      "textTh": "วิธีการหาปัญหา 5W และสัดส่วนของเสีย (PPM)",
+      "textEn": "5W Problem-Finding & Defect Rate (PPM)",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "แก้ปัญหาของเสียเฉพาะหน้าเท่านั้น", "en": "Only firefighting defects" },
+        "2": { "th": "กำลังจัดการระบบการเก็บข้อมูล", "en": "Setting up data collection system" },
+        "3": { "th": "ดำเนินการเก็บข้อมูลแต่ยังไม่ได้นำมาวิเคราะห์อย่างจริงจัง", "en": "Data collected but not seriously analyzed" },
+        "4": { "th": "มีมาตรการแก้ไขแต่ยังไม่ปฏิบัติอย่างจริงจัง", "en": "Corrective measures exist but not seriously implemented" },
+        "5": { "th": "มีการแก้ไข มีคู่มือและการป้องกันการเกิดซ้ำ", "en": "Corrective actions with manuals and recurrence prevention" }
+      }
     },
     {
-      "id": "wt-5",
-      "dimensionId": "workforce-training",
-      "textTh": "มีกระบวนการถ่ายทอดความรู้เพื่อไม่ให้สูญเสียความรู้ที่สำคัญเมื่อพนักงานลาออก",
-      "textEn": "Knowledge transfer processes exist so critical knowledge is not lost when employees leave.",
-      "weight": 1.0
+      "id": "qc-2",
+      "dimensionId": "quality-control",
+      "textTh": "การสอบกลับและเอกสารควบคุม",
+      "textEn": "Traceability & Document Control",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ยังไม่มีกฎเกณฑ์", "en": "No rules" },
+        "2": { "th": "ระบบยังไม่สมบูรณ์", "en": "System incomplete" },
+        "3": { "th": "มีกฎเกณฑ์ชัดเจน แต่ปฏิบัติยังไม่สมบูรณ์", "en": "Clear rules but incomplete compliance" },
+        "4": { "th": "มีประสิทธิผลเต็มที่", "en": "Fully effective" },
+        "5": { "th": "มีการทบทวนกฎเกณฑ์ใหม่อยู่เสมอ", "en": "Rules regularly reviewed and updated" }
+      }
     },
     {
-      "id": "dt-1",
-      "dimensionId": "digital-transformation",
-      "textTh": "ข้อมูลการผลิตถูกเก็บรวบรวมในรูปแบบดิจิทัล (ไม่ใช่แค่บนกระดาษ) และผู้บริหารสามารถเข้าถึงได้",
-      "textEn": "Production data is collected digitally (not just on paper) and accessible to decision-makers.",
-      "weight": 1.0
+      "id": "qc-3",
+      "dimensionId": "quality-control",
+      "textTh": "การป้องกันความผิดพลาดจากการสะเพร่า (Poka-Yoke)",
+      "textEn": "Error-Proofing (Poka-Yoke)",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ยังไม่มีความรู้", "en": "No knowledge" },
+        "2": { "th": "มีการประยุกต์ใช้อุปกรณ์ช่วย", "en": "Assistive devices applied" },
+        "3": { "th": "มีระบบเตือน", "en": "Warning system in place" },
+        "4": { "th": "มีระบบเตือนและหยุดอัตโนมัติ", "en": "Warning and automatic stop system" },
+        "5": { "th": "มีการแก้ไขที่ต้นเหตุทันที มีคู่มือและการป้องกันการเกิดซ้ำ", "en": "Immediate root cause fix with manuals and recurrence prevention" }
+      }
     },
     {
-      "id": "dt-2",
-      "dimensionId": "digital-transformation",
-      "textTh": "โรงงานใช้ระบบ ERP, MES หรือระบบที่คล้ายกันในการจัดการการดำเนินงาน",
-      "textEn": "Your factory uses an ERP, MES, or similar system to manage operations.",
-      "weight": 1.0
+      "id": "qc-4",
+      "dimensionId": "quality-control",
+      "textTh": "ระบบประกันคุณภาพ (ISO 9000s, GMP)",
+      "textEn": "Quality Assurance System (ISO 9000, GMP)",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ยังไม่มีความรู้/ยังไม่มีแผน", "en": "No knowledge / no plan" },
+        "2": { "th": "เริ่มดำเนินการวางแผนอบรม", "en": "Started planning training" },
+        "3": { "th": "จัดตั้งหน่วยงานภายในรับผิดชอบและตรวจสอบภายใน", "en": "Internal unit established for internal audits" },
+        "4": { "th": "ผ่านการตรวจสอบจากองค์กรภายนอก", "en": "Passed external audit" },
+        "5": { "th": "องค์กรขับเคลื่อนด้วยระบบอย่างแท้จริง", "en": "Organization truly driven by the system" }
+      }
     },
     {
-      "id": "dt-3",
-      "dimensionId": "digital-transformation",
-      "textTh": "มีการใช้ระบบอัตโนมัติในงานที่ซ้ำซ้อนหรือมีความเสี่ยงสูง",
-      "textEn": "Automation is used in repetitive or high-risk production tasks.",
-      "weight": 1.0
+      "id": "qc-5",
+      "dimensionId": "quality-control",
+      "textTh": "คู่มือปฏิบัติงาน",
+      "textEn": "Work Instructions / SOPs",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "มีคู่มืออยู่ที่ QMR หรือหัวหน้างานเท่านั้น", "en": "Manuals only at QMR or supervisor level" },
+        "2": { "th": "มีคู่มืออยู่ ณ สถานที่ปฏิบัติงาน แต่ยังปฏิบัติตามความเคยชินแบบเดิม", "en": "Manuals at workstation but old habits persist" },
+        "3": { "th": "ผู้ปฏิบัติงานเข้าใจและปฏิบัติงานตามคู่มืออย่างเคร่งครัด", "en": "Workers understand and strictly follow manuals" },
+        "4": { "th": "ปฏิบัติงานตามคู่มืออย่างเคร่งครัดและหาวิธีการปรับปรุงให้ง่ายขึ้น", "en": "Strict compliance with continuous simplification efforts" },
+        "5": { "th": "มีการแก้ไขปรับปรุงคู่มือให้ทำงานมีประสิทธิภาพยิ่งขึ้นอยู่เสมอ", "en": "Manuals continuously improved for better efficiency" }
+      }
     },
     {
-      "id": "dt-4",
-      "dimensionId": "digital-transformation",
-      "textTh": "มีการใช้การวิเคราะห์ข้อมูลหรือแดชบอร์ดเพื่อสนับสนุนการตัดสินใจเชิงปฏิบัติการ",
-      "textEn": "Data analytics or dashboards are used to support operational decisions.",
-      "weight": 1.0
+      "id": "qc-6",
+      "dimensionId": "quality-control",
+      "textTh": "ข่าวสารการควบคุมคุณภาพภายในองค์กร",
+      "textEn": "Internal Quality Communication",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ยังไม่มี", "en": "None" },
+        "2": { "th": "แจ้งข่าวเฉพาะงานของเสีย", "en": "Only defect news reported" },
+        "3": { "th": "แจ้งข่าวงานของดีและของเสียพร้อมสาเหตุ", "en": "Good and defective work reported with causes" },
+        "4": { "th": "แจ้งข่าวของดีของเสียพร้อมสาเหตุและวิธีการ", "en": "Reported with causes and countermeasures" },
+        "5": { "th": "มีการนำข่าวข้อมูลด้านคุณภาพไปใช้ทั่วทั้งองค์กร", "en": "Quality data used across entire organization" }
+      }
     },
     {
-      "id": "dt-5",
-      "dimensionId": "digital-transformation",
-      "textTh": "มีแผนงานหรือโรดแมปสำหรับการนำเทคโนโลยีใหม่มาใช้ในช่วง 1-3 ปีข้างหน้า",
-      "textEn": "There is a roadmap or plan for adopting new technologies in the next 1-3 years.",
-      "weight": 1.0
+      "id": "pd-1",
+      "dimensionId": "production-delivery",
+      "textTh": "การวางแผนเกี่ยวกับขนาดรุ่นผลิต (Lot Size)",
+      "textEn": "Production Lot Size Planning",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการควบคุม", "en": "No control" },
+        "2": { "th": "มีการศึกษาเพื่อลดเวลานำลง ขนาดรุ่นเล็กลง", "en": "Studying to reduce lead time and lot size" },
+        "3": { "th": "ใช้หลักการวิเคราะห์ P-Q Analysis และกำหนดรูปแบบ", "en": "P-Q Analysis used to determine pattern" },
+        "4": { "th": "มีประสิทธิผล แต่ขนาดรุ่นยังไม่มีความสม่ำเสมอ", "en": "Effective but lot size not yet consistent" },
+        "5": { "th": "มีประสิทธิภาพและขนาดของรุ่นสม่ำเสมอ", "en": "Efficient with consistent lot sizes" }
+      }
     },
     {
-      "id": "sm-1",
-      "dimensionId": "supply-chain",
-      "textTh": "ซัพพลายเออร์หลักถูกประเมินและติดตามผลการดำเนินงานอย่างสม่ำเสมอ",
-      "textEn": "Key suppliers are evaluated and performance is tracked regularly.",
-      "weight": 1.0
+      "id": "pd-2",
+      "dimensionId": "production-delivery",
+      "textTh": "ระบบการสั่งงานและการจ่ายงาน",
+      "textEn": "Work Order & Dispatch System",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีระบบ ขึ้นอยู่กับพนักงานแต่ละคน", "en": "No system, depends on individual workers" },
+        "2": { "th": "กำลังศึกษา", "en": "Under study" },
+        "3": { "th": "ควบคุมโดยหัวหน้างาน", "en": "Controlled by supervisors" },
+        "4": { "th": "มีความสัมพันธ์กับแผนการผลิตอย่างดี", "en": "Well-linked with production plan" },
+        "5": { "th": "มีประสิทธิผลดี", "en": "Highly effective" }
+      }
     },
     {
-      "id": "sm-2",
-      "dimensionId": "supply-chain",
-      "textTh": "ระดับสินค้าคงคลังถูกจัดการเพื่อสร้างสมดุลระหว่างความพร้อมใช้งานกับประสิทธิภาพด้านต้นทุน",
-      "textEn": "Inventory levels are managed to balance availability with cost efficiency.",
-      "weight": 1.0
+      "id": "pd-3",
+      "dimensionId": "production-delivery",
+      "textTh": "การวางแผนการส่งมอบให้แก่ลูกค้าภายนอก",
+      "textEn": "Delivery Planning to Customers",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีแผน เมื่อสินค้าครบก็ส่ง", "en": "No plan, ship when ready" },
+        "2": { "th": "วางแผนวันต่อวัน", "en": "Day-to-day planning" },
+        "3": { "th": "วางแผนรายสัปดาห์ รายเดือน และมากกว่า 1 เดือน", "en": "Weekly, monthly, and >1 month planning" },
+        "4": { "th": "แผนการส่งมอบเชื่อมโยงกับแผนของฝ่ายขาย ฝ่ายจัดซื้อ และฝ่ายผลิต", "en": "Delivery plan linked with sales, purchasing, and production" },
+        "5": { "th": "แผนการส่งมอบเชื่อมโยงกับแผนของฝ่ายอื่นๆ ทั้งองค์กร อย่างทันเวลา", "en": "Delivery plan linked across all departments in real-time" }
+      }
     },
     {
-      "id": "sm-3",
-      "dimensionId": "supply-chain",
-      "textTh": "ระยะเวลานำส่งจากซัพพลายเออร์สามารถคาดการณ์ได้และตรงตามตารางการผลิต",
-      "textEn": "Lead times from suppliers are predictable and meet production schedule requirements.",
-      "weight": 1.0
+      "id": "pd-4",
+      "dimensionId": "production-delivery",
+      "textTh": "เวลานำในการส่งมอบ",
+      "textEn": "Delivery Lead Time",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่กำหนดเวลา", "en": "No time defined" },
+        "2": { "th": "กำหนดเวลาแต่ยังไม่ปฏิบัติ", "en": "Time defined but not followed" },
+        "3": { "th": "กำหนดแต่ปฏิบัติยังไม่เป็นระบบ", "en": "Defined but not systematically followed" },
+        "4": { "th": "กำหนดและปฏิบัติอย่างเป็นระบบแต่ยังผลิตเผื่อ", "en": "Systematic but still overproducing" },
+        "5": { "th": "เป็นระบบและส่งมอบทัน 100% โดยไม่ผลิตเผื่อ", "en": "Systematic, 100% on-time delivery without overproduction" }
+      }
     },
     {
-      "id": "sm-4",
-      "dimensionId": "supply-chain",
-      "textTh": "มีแผนสำรองสำหรับการหยุดชะงักของห่วงโซ่อุปทาน (ซัพพลายเออร์สำรอง, สต็อกสำรอง)",
-      "textEn": "Contingency plans exist for supply chain disruptions (alternative suppliers, safety stock).",
-      "weight": 1.0
+      "id": "pd-5",
+      "dimensionId": "production-delivery",
+      "textTh": "แผนผังโรงงาน",
+      "textEn": "Factory Layout",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "การใช้พื้นที่โรงงานไม่คำนึงถึงสายการผลิตและการเคลื่อนย้ายที่ประหยัด", "en": "Layout ignores production flow and efficient material movement" },
+        "2": { "th": "กำลังศึกษา", "en": "Under study" },
+        "3": { "th": "มีการปรับเปลี่ยนเคลื่อนย้ายเฉพาะงานเบา หรือเครื่องจักรอุปกรณ์เบาๆ", "en": "Rearranged for light work / light equipment only" },
+        "4": { "th": "มีประสิทธิผลแต่ยังสามารถปรับปรุงให้ดีกว่านี้ได้", "en": "Effective but room for improvement" },
+        "5": { "th": "มีประสิทธิผล มีการปรับเปลี่ยนเพื่อให้ทำงานสะดวกขึ้นอยู่เสมอ", "en": "Effective with continuous improvement for convenience" }
+      }
     },
     {
-      "id": "sm-5",
-      "dimensionId": "supply-chain",
-      "textTh": "การขนส่งและคลังสินค้าถูกจัดระเบียบเพื่อลดความสูญเปล่าและความล่าช้า",
-      "textEn": "Logistics and warehousing are organized to minimize waste and delays.",
-      "weight": 1.0
+      "id": "pd-6",
+      "dimensionId": "production-delivery",
+      "textTh": "การเสริมสร้างความชำนาญงานที่หลากหลายแก่พนักงาน",
+      "textEn": "Multi-Skill Development",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่สนใจ", "en": "No interest" },
+        "2": { "th": "กำลังศึกษา", "en": "Under study" },
+        "3": { "th": "แนะนำด้วยระบบที่มีอยู่", "en": "Guided through existing system" },
+        "4": { "th": "ฝึกอบรมแบบ OJT", "en": "OJT training" },
+        "5": { "th": "มีประสิทธิผลดี", "en": "Highly effective" }
+      }
     },
     {
-      "id": "es-1",
-      "dimensionId": "environmental-sustainability",
-      "textTh": "ของเสียถูกคัดแยก ติดตาม และลดลงผ่านกระบวนการที่เป็นเอกสาร",
-      "textEn": "Waste is sorted, tracked, and reduced through documented processes.",
-      "weight": 1.0
+      "id": "pd-7",
+      "dimensionId": "production-delivery",
+      "textTh": "ข้อมูลด้านการขายเพื่อแผนการผลิต",
+      "textEn": "Sales Data for Production Planning",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีข้อมูลด้านการขาย", "en": "No sales data" },
+        "2": { "th": "มีข้อมูลแต่ขาดการวิเคราะห์", "en": "Data exists but not analyzed" },
+        "3": { "th": "มีข้อมูลและนำมาวิเคราะห์ประเมินบ้าง", "en": "Data collected and partially analyzed" },
+        "4": { "th": "มีการประเมินและหามาตรการปรับปรุงอย่างต่อเนื่อง", "en": "Continuous evaluation and improvement measures" },
+        "5": { "th": "มีข้อมูลทั้งขององค์กรและคู่แข่ง", "en": "Both internal and competitor data available" }
+      }
     },
     {
-      "id": "es-2",
-      "dimensionId": "environmental-sustainability",
-      "textTh": "การใช้พลังงานถูกตรวจสอบและมีโครงการเพื่อปรับปรุงประสิทธิภาพ",
-      "textEn": "Energy consumption is monitored and initiatives exist to improve efficiency.",
-      "weight": 1.0
+      "id": "pd-8",
+      "dimensionId": "production-delivery",
+      "textTh": "ระบบ LAN และฐานข้อมูลกลาง",
+      "textEn": "LAN & Central Database System",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีระบบ ขึ้นอยู่กับหัวหน้างาน", "en": "No system, depends on supervisors" },
+        "2": { "th": "ดำเนินการในแต่ละแผนกด้วยมือ", "en": "Manual operations per department" },
+        "3": { "th": "วางแผนโดยใช้ระบบ Computer", "en": "Computer-based planning" },
+        "4": { "th": "การทำงานบางส่วนควบคุมโดย Computer", "en": "Some operations computer-controlled" },
+        "5": { "th": "ระบบมีประสิทธิผลทั้งองค์กร", "en": "System effective across entire organization" }
+      }
     },
     {
-      "id": "es-3",
-      "dimensionId": "environmental-sustainability",
-      "textTh": "โรงงานปฏิบัติตามกฎระเบียบด้านสิ่งแวดล้อมและใบอนุญาตที่เกี่ยวข้องทั้งหมด",
-      "textEn": "Your factory complies with all applicable environmental regulations and permits.",
-      "weight": 1.0
+      "id": "mc-1",
+      "dimensionId": "material-control",
+      "textTh": "งานระหว่างผลิตและผลิตภัณฑ์สำเร็จรูป",
+      "textEn": "Work-In-Process & Finished Goods",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ควบคุมไม่ได้", "en": "Out of control" },
+        "2": { "th": "งานระหว่างผลิตน้อยลงเนื่องจากการลดเวลานำ", "en": "WIP reduced through lead time reduction" },
+        "3": { "th": "การวางแผนเหมาะสมทั้งปริมาณและเวลา", "en": "Proper planning in quantity and timing" },
+        "4": { "th": "จัดทำระบบควบคุมและการทำงานเป็นไปตามแผนอย่างดี", "en": "Control system established, working well per plan" },
+        "5": { "th": "ระบบภายในเป็นแบบ JIT และคงระดับคงคลังไว้น้อยที่สุด", "en": "Internal JIT system with minimal inventory" }
+      }
     },
     {
-      "id": "es-4",
-      "dimensionId": "environmental-sustainability",
-      "textTh": "การใช้น้ำถูกจัดการอย่างรับผิดชอบพร้อมการบำบัดน้ำเสียจากอุตสาหกรรม",
-      "textEn": "Water usage is managed responsibly with treatment for any industrial discharge.",
-      "weight": 1.0
+      "id": "mc-2",
+      "dimensionId": "material-control",
+      "textTh": "การผลิต การจัดส่ง และการสั่งซื้อล่วงหน้า",
+      "textEn": "Production, Delivery & Advance Ordering",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีหลักเกณฑ์ ควบคุมไม่ได้", "en": "No criteria, out of control" },
+        "2": { "th": "ได้รับข้อมูลจากลูกค้า", "en": "Customer data received" },
+        "3": { "th": "การจัดซื้อยึดถือเวลานำของการผลิตในการวางแผน", "en": "Purchasing based on production lead time" },
+        "4": { "th": "มีการตรวจสอบเป็นระยะ ไม่มีการขาดแคลนวัตถุดิบ", "en": "Regular checks, no material shortages" },
+        "5": { "th": "มีการรักษางานระหว่างผลิตและสินค้าสำเร็จอย่างมีประสิทธิภาพ", "en": "WIP and finished goods managed efficiently" }
+      }
     },
     {
-      "id": "es-5",
-      "dimensionId": "environmental-sustainability",
-      "textTh": "มีการตั้งเป้าหมายด้านสิ่งแวดล้อม (ลดคาร์บอน, ลดของเสีย) และติดตามผล",
-      "textEn": "Environmental goals (carbon reduction, waste minimization) are set and tracked.",
-      "weight": 1.0
+      "id": "mc-3",
+      "dimensionId": "material-control",
+      "textTh": "กระบวนการจัดซื้อ และการวิเคราะห์ ABC",
+      "textEn": "Purchasing Process & ABC Analysis",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีหลักเกณฑ์ ควบคุมไม่ได้", "en": "No criteria, out of control" },
+        "2": { "th": "มีการศึกษาจากระดับบนลงสู่ระดับล่าง", "en": "Top-down study conducted" },
+        "3": { "th": "มีกฎในการสั่งซื้อและใช้การวิเคราะห์ ABC", "en": "Purchasing rules and ABC analysis in use" },
+        "4": { "th": "คำนึงถึงผลกระทบด้านต้นทุนโดยเฉพาะสินค้ากลุ่ม A", "en": "Cost impact considered especially for A-class items" },
+        "5": { "th": "มีประสิทธิผลทั้งองค์กร", "en": "Effective across entire organization" }
+      }
+    },
+    {
+      "id": "mc-4",
+      "dimensionId": "material-control",
+      "textTh": "การควบคุมสินค้าคงคลัง",
+      "textEn": "Inventory Control",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีหลักเกณฑ์ ควบคุมไม่ได้", "en": "No criteria, out of control" },
+        "2": { "th": "นโยบายชัดเจน มีระบบวางแผนควบคุม", "en": "Clear policy, planning and control system" },
+        "3": { "th": "ดำเนินการและกำหนดระดับคงคลัง", "en": "Inventory levels set and maintained" },
+        "4": { "th": "ควบคุมด้วยคอมพิวเตอร์/มีการประมวลผลทันทีเมื่อมีการเปลี่ยนแปลง", "en": "Computer-controlled with real-time updates" },
+        "5": { "th": "มีการควบคุมระดับสินค้าคงคลังและเงื่อนไขเหมาะสม", "en": "Inventory levels and conditions optimally controlled" }
+      }
+    },
+    {
+      "id": "mc-5",
+      "dimensionId": "material-control",
+      "textTh": "การขนย้ายภายในโรงงาน",
+      "textEn": "Internal Material Handling",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ชิ้นงานที่จะขนย้ายอยู่เป็นกองไม่มีระเบียบ", "en": "Items piled disorderly" },
+        "2": { "th": "มีการจัดชิ้นงานเป็นระเบียบแต่ยังตั้งอยู่กับพื้นต้องใช้แรงงานในการยก", "en": "Organized but on floor, requiring manual lifting" },
+        "3": { "th": "มีการจัดชิ้นงานเป็นระเบียบพร้อมขนย้ายได้ทันที", "en": "Organized and ready for immediate transport" },
+        "4": { "th": "วางชิ้นงานบนรถลาก มีการนำระบบรางส่งหรือสายพานช่วย", "en": "On carts with conveyor/rail systems assisting" },
+        "5": { "th": "สามารถทำสายการผลิตอย่างต่อเนื่องได้", "en": "Continuous production flow achieved" }
+      }
+    },
+    {
+      "id": "cc-1",
+      "dimensionId": "cost-control",
+      "textTh": "ระบบการควบคุมต้นทุน",
+      "textEn": "Cost Control System",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีฐานข้อมูลต้นทุน ไม่สามารถควบคุมได้", "en": "No cost database, uncontrollable" },
+        "2": { "th": "มีการวางแผนและสร้างระบบ", "en": "Planning and system building" },
+        "3": { "th": "ดำเนินการไปแล้ว", "en": "Implemented" },
+        "4": { "th": "มีระบบคอมพิวเตอร์ช่วย ข้อมูลได้รับการประมวลผลเปรียบเทียบกับแผนได้ทันเวลา", "en": "Computer-aided, data processed and compared with plan in real-time" },
+        "5": { "th": "ใช้เป็นเครื่องมือในการบริหารเพื่อเป้าหมาย (MBO)", "en": "Used as management tool for MBO" }
+      }
+    },
+    {
+      "id": "cc-2",
+      "dimensionId": "cost-control",
+      "textTh": "แผนกำไร/ผลการดำเนินงานจริง/การทบทวน",
+      "textEn": "Profit Plan / Actual Results / Review",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการวางแผนกำไร", "en": "No profit planning" },
+        "2": { "th": "มีการวางแผน", "en": "Plan exists" },
+        "3": { "th": "ดำเนินการไปแล้ว", "en": "Implemented" },
+        "4": { "th": "มีการตรวจผลจริงเปรียบเทียบกับแผน", "en": "Actual results compared with plan" },
+        "5": { "th": "มีการปรับปรุงควบคุมให้เป็นไปตามแผน", "en": "Continuous control and improvement to meet plan" }
+      }
+    },
+    {
+      "id": "cc-3",
+      "dimensionId": "cost-control",
+      "textTh": "วิศวกรรมคุณค่า (VE, VA)",
+      "textEn": "Value Engineering (VE/VA)",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีความรู้", "en": "No knowledge" },
+        "2": { "th": "กำลังศึกษา", "en": "Under study" },
+        "3": { "th": "เริ่มไปบางส่วนหรือบางแผนกแล้ว", "en": "Started in some areas or departments" },
+        "4": { "th": "เกิดผลที่ดีทั้งองค์กรเมื่อกระตุ้น", "en": "Good results organization-wide when prompted" },
+        "5": { "th": "มีจิตสำนึก VE ทั้งองค์กร", "en": "VE mindset embedded across organization" }
+      }
+    },
+    {
+      "id": "cc-4",
+      "dimensionId": "cost-control",
+      "textTh": "การกำหนดหัวข้อพิเศษและการสร้างทีมแก้ปัญหาเฉพาะ",
+      "textEn": "Special Topics & Problem-Solving Teams",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มี", "en": "None" },
+        "2": { "th": "กำลังศึกษา", "en": "Under study" },
+        "3": { "th": "ดำเนินการไปแล้วบางส่วน", "en": "Partially implemented" },
+        "4": { "th": "เกิดผลที่ดี", "en": "Good results" },
+        "5": { "th": "เกิดผลดีและเต็มไปด้วยความกระตือรือร้นทั้งองค์กร", "en": "Great results with organization-wide enthusiasm" }
+      }
+    },
+    {
+      "id": "cc-5",
+      "dimensionId": "cost-control",
+      "textTh": "กิจกรรมด้านวิศวกรรมอุตสาหการและการปรับปรุงการไหลของงาน",
+      "textEn": "Industrial Engineering & Workflow Improvement",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีความรู้", "en": "No knowledge" },
+        "2": { "th": "กำลังศึกษา", "en": "Under study" },
+        "3": { "th": "เริ่มไปบางส่วนหรือบางแผนกแล้ว", "en": "Started in some areas or departments" },
+        "4": { "th": "เกิดผลที่ดี", "en": "Good results" },
+        "5": { "th": "เกิดผลดีและเต็มไปด้วยความกระตือรือร้นทั้งองค์กร", "en": "Great results with organization-wide enthusiasm" }
+      }
+    },
+    {
+      "id": "cc-6",
+      "dimensionId": "cost-control",
+      "textTh": "การบริหารจัดการผู้รับจ้างช่วงหรือซัพพลายเออร์",
+      "textEn": "Subcontractor & Supplier Management",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีระบบบริหาร ไม่มีอำนาจการต่อรอง", "en": "No management system, no bargaining power" },
+        "2": { "th": "มีการวางแผนและจัดทำข้อมูลต้นทุนการผลิตในแต่ละสินค้า เปรียบเทียบแต่ละราย", "en": "Production cost data per product, comparison by supplier" },
+        "3": { "th": "มีการวางแผนและใช้ข้อมูลต้นทุนในการจัดซื้อจัดจ้าง", "en": "Cost data used for procurement decisions" },
+        "4": { "th": "ประเมินผู้รับจ้างช่วงหรือซัพพลายเออร์เป็นระยะๆ", "en": "Periodic subcontractor/supplier evaluation" },
+        "5": { "th": "ประเมินผู้รับจ้างช่วงหรือซัพพลายเออร์และมีมาตรการแก้ไขร่วมกัน", "en": "Joint evaluation with collaborative corrective actions" }
+      }
     }
   ]
 }

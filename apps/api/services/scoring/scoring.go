@@ -33,8 +33,10 @@ func ComputeScores(questions []Question, dimensions []Dimension, answers []QuizA
 
 	// Build dimension name lookup
 	dimNames := make(map[string]string, len(dimensions))
+	dimNamesTh := make(map[string]string, len(dimensions))
 	for _, d := range dimensions {
 		dimNames[d.ID] = d.NameEn
+		dimNamesTh[d.ID] = d.NameTh
 	}
 
 	// Group questions by dimension
@@ -66,10 +68,11 @@ func ComputeScores(questions []Question, dimensions []Dimension, answers []QuizA
 			score = roundTo2(acc.weightedSum / acc.totalWeight)
 		}
 		dimScores = append(dimScores, DimensionScore{
-			DimensionID:   dimID,
-			DimensionName: dimNames[dimID],
-			Score:         score,
-			MaxScore:      5.0,
+			DimensionID:     dimID,
+			DimensionName:   dimNames[dimID],
+			DimensionNameTh: dimNamesTh[dimID],
+			Score:           score,
+			MaxScore:        5.0,
 		})
 		totalDimScore += score
 	}

@@ -10,7 +10,7 @@ const mockAssessment: Assessment = {
 	id: "a-1",
 	uid: "u-1",
 	scores: [
-		{ dimensionId: "d1", dimensionName: "Strategy", score: 4.0, maxScore: 5 },
+		{ dimensionId: "d1", dimensionName: "Strategy", dimensionNameTh: "กลยุทธ์", score: 4.0, maxScore: 5 },
 	],
 	overallScore: 4.0,
 	strengths: ["Strategy"],
