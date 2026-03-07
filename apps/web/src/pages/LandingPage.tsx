@@ -1,9 +1,19 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { useAppSelector } from "@/store";
 import { useLocale } from "@/lib/i18n";
+import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion";
 
 const HERO_IMG =
 	"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1200&q=80&auto=format&fit=crop";
@@ -84,6 +94,18 @@ const FEATURES = [
 	},
 ] as const;
 
+const TESTIMONIALS_TH = [
+	{ name: "สมชาย ว.", role: "ผู้จัดการโรงงาน, อุตสาหกรรมอาหาร", quote: "ผลประเมินช่วยให้เราเห็นจุดอ่อนที่ไม่เคยสังเกตมาก่อน ปรับปรุงได้ตรงจุดทันที" },
+	{ name: "วิภา ส.", role: "ผู้อำนวยการฝ่ายผลิต, อิเล็กทรอนิกส์", quote: "ใช้เวลาแค่ 10 นาที แต่ได้ข้อมูลเชิงลึกที่นำไปวางแผนพัฒนาโรงงานได้จริง" },
+	{ name: "ประเสริฐ ก.", role: "เจ้าของกิจการ SME, พลาสติก", quote: "เปรียบเทียบคะแนนกับค่าเฉลี่ยอุตสาหกรรมได้ ทำให้รู้ว่าเราอยู่ตรงไหน" },
+];
+
+const TESTIMONIALS_EN = [
+	{ name: "Somchai W.", role: "Factory Manager, Food Industry", quote: "The assessment helped us identify blind spots we never noticed. We improved immediately." },
+	{ name: "Wipa S.", role: "Production Director, Electronics", quote: "Just 10 minutes for deep insights that we actually used for factory development planning." },
+	{ name: "Prasert K.", role: "SME Owner, Plastics", quote: "Being able to compare scores with industry averages showed us exactly where we stand." },
+];
+
 const STEPS_TH = [
 	{ num: "01", title: "ลงทะเบียน", desc: "ลงชื่อเข้าใช้และกรอกข้อมูลบริษัท" },
 	{ num: "02", title: "ทำแบบประเมิน", desc: "ตอบคำถาม 35 ข้อ ใช้เวลาราว 10 นาที" },
@@ -96,14 +118,165 @@ const STEPS_EN = [
 	{ num: "03", title: "Get Insights", desc: "View scores, strengths, and recommendations" },
 ];
 
-function GoogleIcon() {
+function TestimonialsSection({ locale }: Readonly<{ locale: string }>) {
+	const testimonials = locale === "th" ? TESTIMONIALS_TH : TESTIMONIALS_EN;
 	return (
-		<svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="mr-2.5">
-			<path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4" />
-			<path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853" />
-			<path d="M3.964 10.712A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.712V4.956H.957A8.997 8.997 0 000 9c0 1.452.348 2.827.957 4.044l3.007-2.332z" fill="#FBBC05" />
-			<path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.956L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335" />
-		</svg>
+		<section className="py-16 sm:py-20 bg-white">
+			<div className="max-w-6xl mx-auto px-4 sm:px-6">
+				<FadeIn>
+					<h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-10 text-center">
+						{locale === "th" ? "เสียงจากผู้ใช้งานจริง" : "What Users Say"}
+					</h2>
+				</FadeIn>
+				<StaggerChildren className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+					{testimonials.map((item) => (
+						<StaggerItem
+							key={item.name}
+							className="bg-secondary/30 rounded-lg p-5 sm:p-6"
+						>
+							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-primary/30 mb-3">
+								<path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" fill="currentColor" />
+								<path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z" fill="currentColor" />
+							</svg>
+							<p className="text-base text-foreground leading-relaxed mb-4">{item.quote}</p>
+							<div>
+								<p className="text-base font-semibold text-foreground">{item.name}</p>
+								<p className="text-sm text-muted-foreground">{item.role}</p>
+							</div>
+						</StaggerItem>
+					))}
+				</StaggerChildren>
+			</div>
+		</section>
+	);
+}
+
+function ContactSection({ locale }: Readonly<{ locale: string }>) {
+	return (
+		<section className="py-16 sm:py-20 bg-secondary/30">
+			<div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
+				<h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
+					{locale === "th" ? "ติดต่อเรา" : "Contact Us"}
+				</h2>
+				<p className="text-base text-muted-foreground mb-8 max-w-md mx-auto">
+					{locale === "th"
+						? "สนใจตรวจสุขภาพโรงงาน หรือต้องการข้อมูลเพิ่มเติม ติดต่อทีมงานของเราได้เลย"
+						: "Interested in a factory health check or need more information? Reach out to our team."}
+				</p>
+				<a
+					href="https://lin.ee/rWwdF9q"
+					target="_blank"
+					rel="noopener noreferrer"
+					className="inline-flex items-center gap-2.5 bg-[#06C755] hover:bg-[#05b34c] text-white font-semibold text-[15px] h-12 px-8 rounded-lg transition-colors"
+				>
+					<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="flex-shrink-0">
+						<path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
+					</svg>
+					{locale === "th" ? "แอดไลน์ @STM23" : "Add Line @STM23"}
+				</a>
+				<p className="text-sm text-muted-foreground mt-4">
+					{locale === "th" ? "หรือ Email: " : "Or Email: "}
+					<a href="mailto:contact@stm23.com" className="text-primary hover:underline font-medium">contact@stm23.com</a>
+				</p>
+			</div>
+		</section>
+	);
+}
+
+function SignInDialog({ open, onOpenChange, locale, onSignIn }: Readonly<{
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	locale: string;
+	onSignIn: () => void;
+}>) {
+	const dialogSteps = locale === "th"
+		? [
+			{ num: "1", text: "เข้าสู่ระบบด้วย Google" },
+			{ num: "2", text: "กรอกข้อมูลบริษัทของคุณ" },
+			{ num: "3", text: "ทำแบบประเมิน 35 ข้อ (~10 นาที)" },
+			{ num: "4", text: "รับผลวิเคราะห์และคำแนะนำทันที" },
+		]
+		: [
+			{ num: "1", text: "Sign in with Google" },
+			{ num: "2", text: "Fill in your company details" },
+			{ num: "3", text: "Complete 35 questions (~10 min)" },
+			{ num: "4", text: "Get instant results & recommendations" },
+		];
+
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="sm:max-w-md">
+				<DialogHeader>
+					<DialogTitle className="text-xl">
+						{locale === "th" ? "เริ่มต้นใช้งาน" : "Get Started"}
+					</DialogTitle>
+					<DialogDescription className="text-base">
+						{locale === "th"
+							? "ขั้นตอนง่ายๆ เพียง 4 ขั้นตอน"
+							: "Just 4 simple steps to get your results"}
+					</DialogDescription>
+				</DialogHeader>
+				<div className="space-y-3 py-2">
+					{dialogSteps.map((step) => (
+						<div key={step.num} className="flex items-center gap-3">
+							<div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold flex-shrink-0">
+								{step.num}
+							</div>
+							<span className="text-[15px] text-foreground">{step.text}</span>
+						</div>
+					))}
+				</div>
+				<div className="flex flex-col gap-2 pt-2">
+					<Button
+						size="lg"
+						className="h-12 text-[15px] font-semibold gap-2"
+						onClick={() => {
+							onOpenChange(false);
+							onSignIn();
+						}}
+					>
+						<svg className="w-5 h-5" viewBox="0 0 24 24">
+							<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+							<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+							<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+							<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+						</svg>
+						{locale === "th" ? "เข้าสู่ระบบด้วย Google" : "Sign in with Google"}
+					</Button>
+					<p className="text-xs text-center text-muted-foreground">
+						{locale === "th" ? "ฟรี ไม่มีค่าใช้จ่าย" : "Free, no cost involved"}
+					</p>
+				</div>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+function BottomCtaSection({ locale, onCtaClick, ctaLabel }: Readonly<{
+	locale: string;
+	onCtaClick: () => void;
+	ctaLabel: string;
+}>) {
+	return (
+		<section className="py-16 sm:py-20 bg-white">
+			<div className="max-w-xl mx-auto px-4 sm:px-6 text-center animate-fade-up">
+				<h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
+					{locale === "th" ? "พร้อมประเมินโรงงานของคุณแล้วหรือยัง?" : "Ready to assess your factory?"}
+				</h2>
+				<p className="text-base text-muted-foreground mb-6">
+					{locale === "th"
+						? "เริ่มต้นฟรี ใช้เวลาเพียง 10 นาที"
+						: "Get started for free in just 10 minutes"}
+				</p>
+				<Button
+					size="lg"
+					className="h-12 px-10 text-[15px] font-semibold"
+					onClick={onCtaClick}
+				>
+					{ctaLabel}
+				</Button>
+			</div>
+		</section>
 	);
 }
 
@@ -129,12 +302,15 @@ function useRedirectIfAuthenticated() {
 export function LandingPage() {
 	const redirected = useRedirectIfAuthenticated();
 	const { locale, t } = useLocale();
+	const [showDialog, setShowDialog] = useState(false);
 
 	const handleSignIn = async () => {
+		trackEvent("sign_in_click", { method: "google" });
 		try {
 			await signInWithPopup(auth, googleProvider);
+			trackEvent("sign_in_success", { method: "google" });
 		} catch {
-			// User cancelled or error
+			trackEvent("sign_in_error", { method: "google" });
 		}
 	};
 
@@ -156,7 +332,7 @@ export function LandingPage() {
 				<div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/70 to-slate-900/40" />
 
 				<div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28 lg:py-36">
-					<div className="max-w-xl animate-fade-up">
+					<FadeIn className="max-w-xl" y={32}>
 						<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-white/80 text-xs font-medium mb-6">
 							<span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
 							{locale === "th" ? "แบบประเมินออนไลน์ ฟรี" : "Free Online Assessment"}
@@ -174,10 +350,9 @@ export function LandingPage() {
 							<Button
 								size="lg"
 								className="h-12 px-8 text-[15px] font-semibold bg-white text-slate-900 hover:bg-white/90"
-								onClick={handleSignIn}
+								onClick={() => setShowDialog(true)}
 							>
-								<GoogleIcon />
-								{t("landing.signIn")}
+								{t("landing.cta")}
 							</Button>
 
 							<div className="flex items-center gap-4 text-sm text-white/50 sm:ml-2 sm:mt-0 mt-2">
@@ -194,52 +369,49 @@ export function LandingPage() {
 								))}
 							</div>
 						</div>
-					</div>
+					</FadeIn>
 				</div>
 			</section>
 
 			{/* How It Works */}
 			<section className="py-16 sm:py-20 bg-white">
 				<div className="max-w-6xl mx-auto px-4 sm:px-6">
-					<h2 className="text-xl sm:text-2xl font-bold text-foreground mb-10 text-center">
-						{locale === "th" ? "ขั้นตอนง่ายๆ 3 ขั้นตอน" : "How It Works"}
-					</h2>
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-10">
-						{steps.map((step, i) => (
-							<div
-								key={step.num}
-								className="text-center animate-fade-up"
-								style={{ animationDelay: `${i * 0.1}s` }}
-							>
+					<FadeIn>
+						<h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-10 text-center">
+							{locale === "th" ? "ขั้นตอนง่ายๆ 3 ขั้นตอน" : "How It Works"}
+						</h2>
+					</FadeIn>
+					<StaggerChildren className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-10" stagger={0.12}>
+						{steps.map((step) => (
+							<StaggerItem key={step.num} className="text-center">
 								<div className="text-4xl font-bold text-primary/15 mb-2 font-mono">{step.num}</div>
-								<h3 className="text-base font-semibold text-foreground mb-1">{step.title}</h3>
-								<p className="text-sm text-muted-foreground">{step.desc}</p>
-							</div>
+								<h3 className="text-lg font-semibold text-foreground mb-1">{step.title}</h3>
+								<p className="text-base text-muted-foreground">{step.desc}</p>
+							</StaggerItem>
 						))}
-					</div>
+					</StaggerChildren>
 				</div>
 			</section>
 
 			{/* 7 Dimensions Grid */}
 			<section className="py-16 sm:py-20 bg-secondary/30">
 				<div className="max-w-6xl mx-auto px-4 sm:px-6">
-					<div className="text-center mb-10">
-						<h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
+					<FadeIn className="text-center mb-10">
+						<h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
 							{locale === "th" ? "7 มิติหลักที่ประเมิน" : "7 Key Dimensions"}
 						</h2>
-						<p className="text-sm text-muted-foreground max-w-md mx-auto">
+						<p className="text-base text-muted-foreground max-w-md mx-auto">
 							{locale === "th"
 								? "ครอบคลุมทุกด้านที่สำคัญต่อการดำเนินงานของโรงงาน"
 								: "Comprehensive coverage of every aspect critical to factory operations"}
 						</p>
-					</div>
+					</FadeIn>
 
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-						{FEATURES.map((feat, i) => (
-							<div
+					<StaggerChildren className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" stagger={0.06}>
+						{FEATURES.map((feat) => (
+							<StaggerItem
 								key={feat.key}
-								className="group relative bg-white rounded-lg border overflow-hidden animate-fade-up hover:shadow-md transition-shadow"
-								style={{ animationDelay: `${i * 0.06}s` }}
+								className="group relative bg-white rounded-lg border overflow-hidden hover:shadow-md transition-shadow"
 							>
 								<div className="h-32 overflow-hidden">
 									<img
@@ -253,35 +425,20 @@ export function LandingPage() {
 									<div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
 										{feat.icon}
 									</div>
-									<span className="text-sm font-medium text-foreground">{t(feat.key)}</span>
+									<span className="text-base font-medium text-foreground">{t(feat.key)}</span>
 								</div>
-							</div>
+							</StaggerItem>
 						))}
-					</div>
+					</StaggerChildren>
 				</div>
 			</section>
 
-			{/* Bottom CTA */}
-			<section className="py-16 sm:py-20 bg-white">
-				<div className="max-w-xl mx-auto px-4 sm:px-6 text-center animate-fade-up">
-					<h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3">
-						{locale === "th" ? "พร้อมประเมินโรงงานของคุณแล้วหรือยัง?" : "Ready to assess your factory?"}
-					</h2>
-					<p className="text-sm text-muted-foreground mb-6">
-						{locale === "th"
-							? "เริ่มต้นฟรี ใช้เวลาเพียง 10 นาที"
-							: "Get started for free in just 10 minutes"}
-					</p>
-					<Button
-						size="lg"
-						className="h-12 px-10 text-[15px] font-semibold"
-						onClick={handleSignIn}
-					>
-						<GoogleIcon />
-						{t("landing.signIn")}
-					</Button>
-				</div>
-			</section>
+			<TestimonialsSection locale={locale} />
+			<ContactSection locale={locale} />
+
+			<BottomCtaSection locale={locale} onCtaClick={() => setShowDialog(true)} ctaLabel={t("landing.ctaBottom")} />
+
+			<SignInDialog open={showDialog} onOpenChange={setShowDialog} locale={locale} onSignIn={handleSignIn} />
 		</div>
 	);
 }

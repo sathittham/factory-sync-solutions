@@ -8,6 +8,7 @@ import {
 	ResponsiveContainer,
 } from "recharts";
 import { api } from "@/lib/api";
+import { trackEvent } from "@/lib/analytics";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
 	setAssessment,
@@ -19,6 +20,7 @@ import {
 import { useLocale } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FadeIn, StaggerChildren, StaggerItem, ScaleIn } from "@/components/motion";
 
 const diagnosisConfig: Record<string, { color: string; bg: string; border: string }> = {
 	Beginning: { color: "text-red-700", bg: "bg-red-50", border: "border-red-200" },
@@ -153,6 +155,7 @@ export function ResultPage() {
 					dispatch(setAssessments(data));
 					if (data.length > 0) {
 						dispatch(setAssessment(data[0]));
+						trackEvent("result_view", { overall_score: data[0].overallScore, diagnosis: data[0].diagnosis });
 					}
 				})
 				.catch(() => {})
@@ -202,7 +205,8 @@ export function ResultPage() {
 		<div className="min-h-[calc(100vh-3.5rem)]">
 			<div className="container max-w-4xl py-6 sm:py-8 space-y-5" data-testid="result-summary">
 				{/* Hero score section */}
-				<div className="bg-white rounded-lg border p-6 sm:p-8 animate-fade-up">
+				<ScaleIn>
+				<div className="bg-white rounded-lg border p-6 sm:p-8">
 					<div className="flex flex-col sm:flex-row items-center gap-6">
 						<div className="relative flex-shrink-0">
 							<ScoreRing score={assessment.overallScore} size={148} />
@@ -227,11 +231,13 @@ export function ResultPage() {
 						</div>
 					</div>
 				</div>
+				</ScaleIn>
 
 				{/* Radar + Dimension detail */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 					{/* Radar Chart */}
-					<div className="bg-white rounded-lg border p-6 animate-fade-up" data-testid="result-spider-chart" style={{ animationDelay: "0.1s" }}>
+					<FadeIn delay={0.1}>
+					<div className="bg-white rounded-lg border p-6" data-testid="result-spider-chart">
 						<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
 							{t("result.dimensionScores")}
 						</h2>
@@ -264,9 +270,11 @@ export function ResultPage() {
 							))}
 						</div>
 					</div>
+					</FadeIn>
 
 					{/* Dimension detail list — clickable */}
-					<div className="bg-white rounded-lg border p-6 animate-fade-up" style={{ animationDelay: "0.15s" }}>
+					<FadeIn delay={0.15}>
+					<div className="bg-white rounded-lg border p-6">
 						<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
 							{t("result.dimensionDetail")}
 						</h2>
@@ -281,12 +289,14 @@ export function ResultPage() {
 							))}
 						</div>
 					</div>
+					</FadeIn>
 				</div>
 
 				{/* Strengths & Weaknesses */}
-				<div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+				<StaggerChildren stagger={0.1} className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 					{assessment.strengths?.length > 0 && (
-						<div className="bg-white rounded-lg border border-emerald-200 p-6 animate-fade-up" data-testid="result-strengths-panel" style={{ animationDelay: "0.25s" }}>
+						<StaggerItem>
+						<div className="bg-white rounded-lg border border-emerald-200 p-6" data-testid="result-strengths-panel">
 							<div className="flex items-center gap-2 mb-4">
 								<div className="h-7 w-7 rounded-md bg-emerald-50 flex items-center justify-center">
 									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-emerald-600">
@@ -306,10 +316,12 @@ export function ResultPage() {
 								))}
 							</ul>
 						</div>
+						</StaggerItem>
 					)}
 
 					{assessment.weaknesses?.length > 0 && (
-						<div className="bg-white rounded-lg border border-red-200 p-6 animate-fade-up" data-testid="result-weaknesses-panel" style={{ animationDelay: "0.3s" }}>
+						<StaggerItem>
+						<div className="bg-white rounded-lg border border-red-200 p-6" data-testid="result-weaknesses-panel">
 							<div className="flex items-center gap-2 mb-4">
 								<div className="h-7 w-7 rounded-md bg-red-50 flex items-center justify-center">
 									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-red-500">
@@ -329,12 +341,14 @@ export function ResultPage() {
 								))}
 							</ul>
 						</div>
+						</StaggerItem>
 					)}
-				</div>
+				</StaggerChildren>
 
 				{/* Previous assessments */}
 				{assessments.length > 1 && (
-					<div className="bg-white rounded-lg border p-6 animate-fade-up" style={{ animationDelay: "0.35s" }}>
+					<FadeIn delay={0.3}>
+					<div className="bg-white rounded-lg border p-6">
 						<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
 							{t("result.previousAssessments")}
 						</h2>
@@ -365,6 +379,7 @@ export function ResultPage() {
 							))}
 						</div>
 					</div>
+					</FadeIn>
 				)}
 			</div>
 		</div>

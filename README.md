@@ -1,5 +1,5 @@
 ---
-version: 1.1.0
+version: 1.2.0
 lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
@@ -127,12 +127,14 @@ Root-level commands run across all packages via Makefile:
 - **State**: Redux Toolkit
 - **Forms**: react-hook-form + zod
 - **Charts**: recharts (radar/spider chart)
+- **Animations**: motion (v12+) — page transitions, staggered reveals, scroll-triggered entrances
 - **Auth**: Firebase Authentication (Google Sign-In)
 - **Database**: Firestore
 - **Backend**: Go 1.25.x on Google Cloud Run
 - **Hosting**: Cloudflare Pages
 - **Email**: Resend
-- **Linting/Formatting**: Biome
+- **Analytics**: Google Analytics 4 + Google Tag Manager
+- **Linting/Formatting**: Biome + SonarQube
 - **Monorepo**: Makefile
 - **Routing**: React Router v7
 - **Go Framework**: Chi (lightweight HTTP router)
@@ -143,11 +145,12 @@ Root-level commands run across all packages via Makefile:
 ## Core User Flow
 
 1. Land on marketing page
-2. Sign in with Google
-3. Complete registration (profile + company info)
-4. Take factory health check quiz
-5. View diagnosis: summary, spider chart, strengths/weaknesses
+2. Sign in with Google (avatar + name from Google account)
+3. Complete registration (contact person + company info)
+4. Take factory health check quiz (animated step transitions)
+5. View diagnosis: summary, spider chart, strengths/weaknesses (animated sections)
 6. Receive result email
+7. Edit profile via dialog (user account read-only from Google, editable contact + company sections)
 
 ## Routes
 
@@ -157,7 +160,6 @@ Root-level commands run across all packages via Makefile:
 | `/register` | Authenticated |
 | `/quiz` | Authenticated + registered |
 | `/results` | Authenticated + registered |
-| `/profile` | Authenticated + registered |
 | `/admin` | Authenticated + admin role |
 | `*` | 404 Not Found page |
 
@@ -194,7 +196,7 @@ MIT License. Copyright (c) 2026 Sathittham Sangthong. See [LICENSE](LICENSE) for
 
 ## Status
 
-Project initialization phase: planning + scaffold setup.
+Active development — core user flow implemented (auth, registration, quiz, results, profile).
 
 ---
 
@@ -204,3 +206,4 @@ Project initialization phase: planning + scaffold setup.
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Turborepo → Makefile, Cloud Functions → Cloud Run, fixed env vars, routes, Swagger status, added missing doc links |
+| 1.2.0 | 2026-03-07 | Profile dialog (3 sections: account/contact/company), Google avatar in navbar, motion animations (quiz + results), SonarQube fixes, analytics events, data-testid attributes |

@@ -4,6 +4,7 @@ import { useForm, type UseFormRegister, type FieldErrors } from "react-hook-form
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { api, ApiError } from "@/lib/api";
+import { trackEvent } from "@/lib/analytics";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { setProfile, type Profile } from "@/store/authSlice";
 import { useLocale } from "@/lib/i18n";
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Turnstile } from "@/components/Turnstile";
+import { LegalModal, type LegalType } from "@/components/LegalModal";
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_CF_TURNSTILE_SITE_KEY || "";
 
@@ -22,6 +24,8 @@ const schema = z.object({
 	contactName: z.string().min(1, "register.contactNameError"),
 	contactEmail: z.string().email("register.contactEmailError"),
 	contactPhone: z.string().min(9, "register.contactPhoneError"),
+	acceptTerms: z.literal(true, { errorMap: () => ({ message: "register.acceptTermsError" }) }),
+	marketingConsent: z.boolean().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -134,6 +138,7 @@ export function RegisterPage() {
 	const [dbdInfo, setDbdInfo] = useState<DbdCompanyProfile | null>(null);
 	const [regIdTaken, setRegIdTaken] = useState<string | null>(null);
 	const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+	const [legalModal, setLegalModal] = useState<LegalType>(null);
 
 	const handleTurnstileVerify = useCallback((token: string) => {
 		setTurnstileToken(token);
@@ -211,18 +216,23 @@ export function RegisterPage() {
 
 	const onSubmit = async (data: FormData) => {
 		setError(null);
+		trackEvent("registration_submit", { industry: data.industryType, size: data.companySize });
 		try {
 			if (TURNSTILE_SITE_KEY && !turnstileToken) {
 				setError(t("register.captchaRequired"));
 				return;
 			}
+			const { acceptTerms: _, ...payload } = data;
 			const profile = await api.post<Profile>("/profile", {
-				...data,
+				...payload,
+				marketingConsent: !!data.marketingConsent,
 				turnstileToken: turnstileToken || "skip-for-now",
 			});
 			dispatch(setProfile(profile));
+			trackEvent("registration_success", { industry: data.industryType, size: data.companySize });
 			navigate("/quiz");
 		} catch (err) {
+			trackEvent("registration_error", { error: err instanceof ApiError ? err.message : "unknown" });
 			setError(err instanceof ApiError ? err.message : t("register.error"));
 		}
 	};
@@ -308,7 +318,42 @@ export function RegisterPage() {
 
 						<ContactFields formRegister={formRegister} errors={errors} t={t} locale={locale} />
 
-						{TURNSTILE_SITE_KEY && (
+						{/* Consent checkboxes */}
+					<div className="space-y-3 pt-1">
+						<div className="flex items-start gap-2.5">
+							<input
+								type="checkbox"
+								id="acceptTerms"
+								className="mt-1 h-4 w-4 rounded border-gray-300 accent-primary"
+								{...formRegister("acceptTerms")}
+							/>
+							<label htmlFor="acceptTerms" className="text-sm leading-relaxed">
+								{t("register.acceptTerms")}{" "}
+								<button type="button" onClick={() => setLegalModal("terms")} className="text-primary hover:underline font-medium">{t("register.termsLink")}</button>
+								{" "}{t("register.and")}{" "}
+								<button type="button" onClick={() => setLegalModal("privacy")} className="text-primary hover:underline font-medium">{t("register.privacyLink")}</button>
+							</label>
+						</div>
+						{errors.acceptTerms && <p className="text-xs text-destructive ml-6">{t(errors.acceptTerms.message || "")}</p>}
+
+						<div className="flex items-start gap-2.5">
+							<input
+								type="checkbox"
+								id="marketingConsent"
+								className="mt-1 h-4 w-4 rounded border-gray-300 accent-primary"
+								{...formRegister("marketingConsent")}
+							/>
+							<label htmlFor="marketingConsent" className="text-sm leading-relaxed">
+								{t("register.marketingConsent")}
+								<span className="block text-xs text-muted-foreground mt-0.5">
+									{t("register.marketingConsentDetail")}{" "}
+									<button type="button" onClick={() => setLegalModal("marketing")} className="text-primary hover:underline font-medium">{t("register.marketingPolicyLink")}</button>
+								</span>
+							</label>
+						</div>
+					</div>
+
+					{TURNSTILE_SITE_KEY && (
 							<div className="flex justify-center">
 								<Turnstile
 									siteKey={TURNSTILE_SITE_KEY}
@@ -341,6 +386,7 @@ export function RegisterPage() {
 					</form>
 				</div>
 			</div>
+			<LegalModal open={legalModal} onClose={() => setLegalModal(null)} />
 		</div>
 	);
 }

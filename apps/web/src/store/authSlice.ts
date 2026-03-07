@@ -4,6 +4,7 @@ interface AuthUser {
 	uid: string;
 	email: string;
 	displayName: string;
+	photoURL: string | null;
 }
 
 interface Profile {

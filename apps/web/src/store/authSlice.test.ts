@@ -21,7 +21,7 @@ describe("authSlice", () => {
 	it("setUser sets authenticated state", () => {
 		const state = authReducer(
 			initial,
-			setUser({ uid: "u-1", email: "a@b.com", displayName: "Test" }),
+			setUser({ uid: "u-1", email: "a@b.com", displayName: "Test", photoURL: null }),
 		);
 		expect(state.isAuthenticated).toBe(true);
 		expect(state.user?.uid).toBe("u-1");
@@ -30,7 +30,7 @@ describe("authSlice", () => {
 	it("setUser null clears auth", () => {
 		let state = authReducer(
 			initial,
-			setUser({ uid: "u-1", email: "a@b.com", displayName: "Test" }),
+			setUser({ uid: "u-1", email: "a@b.com", displayName: "Test", photoURL: null }),
 		);
 		state = authReducer(state, setUser(null));
 		expect(state.isAuthenticated).toBe(false);
@@ -87,7 +87,7 @@ describe("authSlice", () => {
 	it("logout resets everything", () => {
 		let state = authReducer(
 			initial,
-			setUser({ uid: "u-1", email: "a@b.com", displayName: "Test" }),
+			setUser({ uid: "u-1", email: "a@b.com", displayName: "Test", photoURL: null }),
 		);
 		state = authReducer(state, logout());
 		expect(state.user).toBeNull();

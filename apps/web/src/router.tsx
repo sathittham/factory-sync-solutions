@@ -8,7 +8,6 @@ import { RegisterPage } from "@/pages/RegisterPage";
 import { QuizPage } from "@/pages/QuizPage";
 import { ResultPage } from "@/pages/ResultPage";
 import { AdminPage } from "@/pages/AdminPage";
-import { ProfilePage } from "@/pages/ProfilePage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 
 export const router = createBrowserRouter([
@@ -25,8 +24,7 @@ export const router = createBrowserRouter([
 						children: [
 							{ path: "quiz", element: <QuizPage /> },
 							{ path: "results", element: <ResultPage /> },
-							{ path: "profile", element: <ProfilePage /> },
-						],
+							],
 					},
 					{
 						element: <AdminGuard />,

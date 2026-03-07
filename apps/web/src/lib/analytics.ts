@@ -1,8 +1,8 @@
 declare global {
-	interface Window {
-		dataLayer: unknown[];
-		gtag: (...args: unknown[]) => void;
-	}
+	// biome-ignore lint/style/noVar: globalThis augmentation requires var
+	var dataLayer: unknown[];
+	// biome-ignore lint/style/noVar: globalThis augmentation requires var
+	var gtag: (...args: unknown[]) => void;
 }
 
 const GTM_ID = import.meta.env.VITE_GTM_ID || "";
@@ -16,12 +16,12 @@ export function initAnalytics() {
 
 	// Google Tag Manager
 	if (GTM_ID) {
-		window.dataLayer = window.dataLayer || [];
+		globalThis.dataLayer = globalThis.dataLayer || [];
 		const script = document.createElement("script");
 		script.async = true;
 		script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(GTM_ID)}`;
 		document.head.appendChild(script);
-		window.dataLayer.push({ "gtm.start": Date.now(), event: "gtm.js" });
+		globalThis.dataLayer.push({ "gtm.start": Date.now(), event: "gtm.js" });
 
 		// GTM noscript fallback
 		const noscript = document.createElement("noscript");
@@ -42,24 +42,24 @@ export function initAnalytics() {
 		script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_ID)}`;
 		document.head.appendChild(script);
 
-		window.dataLayer = window.dataLayer || [];
-		window.gtag = function gtag() {
+		globalThis.dataLayer = globalThis.dataLayer || [];
+		globalThis.gtag = function gtag() {
 			// biome-ignore lint/style/noArguments: gtag requires arguments object
-			window.dataLayer.push(arguments);
+			globalThis.dataLayer.push(arguments);
 		};
-		window.gtag("js", new Date());
-		window.gtag("config", GA_ID);
+		globalThis.gtag("js", new Date());
+		globalThis.gtag("config", GA_ID);
 	}
 }
 
 export function trackEvent(eventName: string, params?: Record<string, unknown>) {
-	if (window.gtag) {
-		window.gtag("event", eventName, params);
+	if (globalThis.gtag) {
+		globalThis.gtag("event", eventName, params);
 	}
 }
 
 export function trackPageView(path: string) {
-	if (window.gtag && GA_ID) {
-		window.gtag("config", GA_ID, { page_path: path });
+	if (globalThis.gtag && GA_ID) {
+		globalThis.gtag("config", GA_ID, { page_path: path });
 	}
 }

@@ -69,7 +69,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		"nav.results": "ผลลัพธ์",
 		"nav.admin": "แอดมิน",
 		"nav.signOut": "ออกจากระบบ",
-		"nav.profile": "โปรไฟล์บริษัท",
+		"nav.profile": "โปรไฟล์",
 
 		// Landing
 		"landing.title": "Factory Health Check",
@@ -83,6 +83,9 @@ const translations: Record<Locale, Record<string, string>> = {
 		"landing.dim.supply": "การจัดการห่วงโซ่อุปทาน",
 		"landing.dim.environment": "สิ่งแวดล้อมและความยั่งยืน",
 		"landing.signIn": "เข้าสู่ระบบด้วย Google",
+		"landing.cta": "เริ่มตรวจสุขภาพโรงงานฟรี!",
+		"landing.ctaBottom": "เริ่มประเมินฟรีเลย",
+		"nav.login": "เข้าสู่ระบบ",
 
 		// Register
 		"register.title": "ลงทะเบียนบริษัท",
@@ -111,6 +114,14 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.contactNameError": "กรุณากรอกชื่อผู้ติดต่อ",
 		"register.contactEmailError": "อีเมลไม่ถูกต้อง",
 		"register.contactPhoneError": "กรุณากรอกเบอร์โทรศัพท์",
+		"register.acceptTerms": "ฉันยอมรับ",
+		"register.termsLink": "ข้อกำหนดการใช้งาน",
+		"register.and": "และ",
+		"register.privacyLink": "นโยบายความเป็นส่วนตัว",
+		"register.acceptTermsError": "กรุณายอมรับข้อกำหนดและนโยบายความเป็นส่วนตัว",
+		"register.marketingConsent": "ฉันยินยอมรับข้อมูลข่าวสารและกิจกรรมส่งเสริมการตลาด",
+		"register.marketingConsentDetail": "คุณสามารถยกเลิกได้ทุกเมื่อ ดูรายละเอียดที่",
+		"register.marketingPolicyLink": "นโยบายการตลาด",
 
 		// Industry types
 		"industry.manufacturing": "การผลิต",
@@ -187,14 +198,28 @@ const translations: Record<Locale, Record<string, string>> = {
 		"admin.noDetail": "ไม่มีรายละเอียดเพิ่มเติม",
 
 		// Profile
-		"profile.title": "โปรไฟล์บริษัท",
-		"profile.subtitle": "แก้ไขข้อมูลบริษัทและผู้ติดต่อ",
+		"profile.title": "โปรไฟล์",
+		"profile.subtitle": "แก้ไขข้อมูลส่วนตัวและข้อมูลบริษัท",
+		"profile.userSection": "บัญชีผู้ใช้",
+		"profile.contactSection": "ข้อมูลผู้ติดต่อ",
+		"profile.companySection": "ข้อมูลบริษัท",
 		"profile.email": "อีเมลบัญชี",
 		"profile.regId": "เลขทะเบียนนิติบุคคล",
 		"profile.save": "บันทึกการเปลี่ยนแปลง",
 		"profile.saving": "กำลังบันทึก...",
 		"profile.saved": "บันทึกเรียบร้อยแล้ว",
 		"profile.error": "บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง",
+
+		// Top bar
+		"topbar.cta": "สนใจตรวจสุขภาพโรงงาน? ติดต่อ Line @STM23",
+
+		// Footer
+		"footer.terms": "ข้อกำหนดการใช้งาน",
+		"footer.privacy": "นโยบายความเป็นส่วนตัว",
+		"footer.cookies": "ตั้งค่าคุกกี้",
+		"footer.cookiePolicy": "นโยบายคุกกี้",
+		"footer.marketing": "นโยบายการตลาด",
+		"footer.contact": "ติดต่อเรา",
 
 		// 404
 		"notFound.title": "ไม่พบหน้าที่ค้นหา",
@@ -208,7 +233,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		"nav.results": "Results",
 		"nav.admin": "Admin",
 		"nav.signOut": "Sign Out",
-		"nav.profile": "Company Profile",
+		"nav.profile": "Profile",
 
 		// Landing
 		"landing.title": "Factory Health Check",
@@ -222,6 +247,9 @@ const translations: Record<Locale, Record<string, string>> = {
 		"landing.dim.supply": "Supply Chain Management",
 		"landing.dim.environment": "Environmental Sustainability",
 		"landing.signIn": "Sign in with Google",
+		"landing.cta": "Start Free Factory Health Check!",
+		"landing.ctaBottom": "Start Free Assessment",
+		"nav.login": "Sign In",
 
 		// Register
 		"register.title": "Register Your Company",
@@ -250,6 +278,14 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.contactNameError": "Contact name is required",
 		"register.contactEmailError": "Invalid email",
 		"register.contactPhoneError": "Phone number is required",
+		"register.acceptTerms": "I accept the",
+		"register.termsLink": "Terms & Conditions",
+		"register.and": "and",
+		"register.privacyLink": "Privacy Policy",
+		"register.acceptTermsError": "You must accept the Terms & Conditions and Privacy Policy",
+		"register.marketingConsent": "I consent to receive marketing communications and promotions",
+		"register.marketingConsentDetail": "You can unsubscribe at any time. See our",
+		"register.marketingPolicyLink": "Marketing Policy",
 
 		// Industry types
 		"industry.manufacturing": "Manufacturing",
@@ -327,14 +363,28 @@ const translations: Record<Locale, Record<string, string>> = {
 
 		// 404
 		// Profile
-		"profile.title": "Company Profile",
-		"profile.subtitle": "Edit your company and contact information.",
+		"profile.title": "Profile",
+		"profile.subtitle": "Edit your personal and company information.",
+		"profile.userSection": "Account",
+		"profile.contactSection": "Contact Person",
+		"profile.companySection": "Company",
 		"profile.email": "Account Email",
 		"profile.regId": "Registration ID",
 		"profile.save": "Save Changes",
 		"profile.saving": "Saving...",
 		"profile.saved": "Changes saved successfully.",
 		"profile.error": "Failed to save. Please try again.",
+
+		// Top bar
+		"topbar.cta": "Interested in a factory health check? Contact Line @STM23",
+
+		// Footer
+		"footer.terms": "Terms & Conditions",
+		"footer.privacy": "Privacy Policy",
+		"footer.cookies": "Cookie Settings",
+		"footer.cookiePolicy": "Cookie Policy",
+		"footer.marketing": "Marketing Policy",
+		"footer.contact": "Contact Us",
 
 		// 404
 		"notFound.title": "Page not found",
