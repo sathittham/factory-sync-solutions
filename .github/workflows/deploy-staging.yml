@@ -14,38 +14,32 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     environment: staging
-    defaults:
-      run:
-        working-directory: apps/api
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.25"
-          cache-dependency-path: apps/api/go.sum
-
-      - name: Build
-        run: go build ./...
 
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - uses: google-github-actions/deploy-cloud-functions@v3
-        with:
-          name: factory-health-check-api-staging
-          runtime: go125
-          region: asia-southeast1
-          source_dir: apps/api
-          entry_point: main
-          environment_variables: |
-            ENVIRONMENT=staging
-            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
-            CF_TURNSTILE_SECRET=${{ secrets.CF_TURNSTILE_SECRET }}
-            SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }}
-            SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }}
-            ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }}
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE=asia-southeast1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID || 'factory-health-check' }}/cloud-run/factory-health-check-api-staging:${{ github.sha }}
+          docker build -t $IMAGE apps/api
+          docker push $IMAGE
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy factory-health-check-api-staging \
+            --image=asia-southeast1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID || 'factory-health-check' }}/cloud-run/factory-health-check-api-staging:${{ github.sha }} \
+            --region=asia-southeast1 \
+            --platform=managed \
+            --allow-unauthenticated \
+            --set-env-vars="ENVIRONMENT=staging,RESEND_API_KEY=${{ secrets.RESEND_API_KEY }},CF_TURNSTILE_SECRET=${{ secrets.CF_TURNSTILE_SECRET }},SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }},SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }},ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }}"
 
   deploy-frontend:
     name: Deploy Frontend to Staging
