@@ -1,18 +1,19 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
 # Factory Health Check
 
-A Turborepo monorepo containing a React SPA frontend and Go backend services for evaluating factory health through a guided quiz. Users register, answer a series of questions, and receive a diagnosis with a spider chart visualization, key strengths/weaknesses, and an email copy of their results.
+A Makefile-managed monorepo containing a React SPA frontend and Go backend API for evaluating factory health through a guided quiz. Users register, answer a series of questions, and receive a diagnosis with a spider chart visualization, key strengths/weaknesses, and an email copy of their results.
 
 ## Prerequisites
 
 - Node.js >= 20
 - npm >= 10
-- Go >= 1.25 (backend services)
+- Go >= 1.25 (backend API)
+- Make (included on macOS/Linux)
 
 ## Monorepo Structure
 
@@ -20,10 +21,8 @@ A Turborepo monorepo containing a React SPA frontend and Go backend services for
 factory-health-check/
 ├── apps/
 │   ├── web/                # React + Vite SPA (frontend)
-│   └── api/                # Go Cloud Functions (backend services)
-├── packages/
-│   └── shared/             # Shared configs (quiz question JSON, constants)
-├── turbo.json              # Turborepo pipeline config
+│   └── api/                # Go Cloud Run service (backend API)
+├── Makefile                # Monorepo task runner
 ├── package.json            # Root workspace config
 └── docs/                   # Project documentation
 ```
@@ -31,65 +30,72 @@ factory-health-check/
 ## Quick Start
 
 ```bash
-# Install all dependencies (workspaces)
-npm install
+# Install frontend dependencies
+make install
 
-# Start all apps in dev mode
-npx turbo dev
+# Start all apps in dev mode (API + Web in parallel)
+make dev
 
 # Start only frontend
-npx turbo dev --filter=web
+make dev-web
 
 # Start only backend
-cd apps/api && go run .
+make dev-api
 ```
 
 ## Environment Variables
 
-Create a `.env.local` file in `apps/web/`:
+Copy `.env.example` files and fill in values:
 
 ```bash
-# Firebase
+cp apps/web/.env.example apps/web/.env
+cp apps/api/.env.example apps/api/.env
+```
+
+### Frontend (`apps/web/.env`)
+
+```bash
+# Firebase (public config — get from Firebase Console > Project Settings)
 VITE_FIREBASE_API_KEY=
 VITE_FIREBASE_AUTH_DOMAIN=
 VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
 
-# API
+# API base URL (empty = use Vite proxy in dev)
 VITE_API_BASE_URL=
 
-# Cloudflare Turnstile (bot protection)
+# Cloudflare Turnstile (public site key)
 VITE_CF_TURNSTILE_SITE_KEY=
-
-# Google Analytics
-VITE_GA_MEASUREMENT_ID=
 ```
 
-Backend environment variables (in `apps/api/` or GCP Secret Manager):
+### Backend (`apps/api/.env`)
 
 ```bash
-RESEND_API_KEY=
 GCP_PROJECT_ID=
-FIREBASE_SERVICE_ACCOUNT=         # path to service account JSON
-CF_TURNSTILE_SECRET_KEY=          # Cloudflare Turnstile server-side secret
-ALLOWED_ORIGINS=http://localhost:5173,https://factory-health-check.pages.dev
-SLACK_WEBHOOK_REGISTRATIONS=     # Slack webhook for new registrations
-SLACK_WEBHOOK_QUIZ_RESULTS=      # Slack webhook for quiz results
-SLACK_WEBHOOK_SERVER_STATUS=     # Slack webhook for server status
+GOOGLE_APPLICATION_CREDENTIALS=   # path to service account JSON
+PORT=8080
+ENVIRONMENT=development
+ALLOWED_ORIGINS=http://localhost:5173
+RESEND_API_KEY=
+CF_TURNSTILE_SECRET=              # Cloudflare Turnstile server-side secret
+SLACK_WEBHOOK_REGISTRATION=       # Slack webhook for new registrations
+SLACK_WEBHOOK_QUIZ_RESULT=        # Slack webhook for quiz results
 ```
 
-These are server-side secrets — never expose to the frontend.
+Backend secrets are stored in `.env` locally and injected via GitHub Secrets in CI/CD. Never expose to the frontend.
 
 ## Available Scripts
 
-Root-level commands run across all packages via Turborepo:
+Root-level commands run across all packages via Makefile:
 
 | Command | Description |
 |---------|-------------|
-| `npx turbo dev` | Start all apps in dev mode |
-| `npx turbo build` | Build all apps |
-| `npx turbo lint` | Lint all packages (Biome + golangci-lint) |
-| `npx turbo test` | Run all tests (Vitest + go test) |
+| `make dev` | Start all apps in dev mode |
+| `make build` | Build all apps |
+| `make lint` | Lint all packages (Biome + go vet) |
+| `make test` | Run all tests (Vitest + go test) |
 
 ### Frontend (`apps/web`)
 
@@ -123,16 +129,16 @@ Root-level commands run across all packages via Turborepo:
 - **Charts**: recharts (radar/spider chart)
 - **Auth**: Firebase Authentication (Google Sign-In)
 - **Database**: Firestore
-- **Backend**: Go 1.25.x on Google Cloud Functions (2nd gen)
+- **Backend**: Go 1.25.x on Google Cloud Run
 - **Hosting**: Cloudflare Pages
 - **Email**: Resend
 - **Linting/Formatting**: Biome
-- **Monorepo**: Turborepo
+- **Monorepo**: Makefile
 - **Routing**: React Router v7
 - **Go Framework**: Chi (lightweight HTTP router)
-- **API Docs**: Swagger/OpenAPI (auto-generated via swaggo)
+- **API Docs**: Swagger/OpenAPI via swaggo (planned — not yet implemented)
 - **Notifications**: Slack (Incoming Webhooks)
-- **Analytics**: Google Analytics 4
+- **i18n**: Thai/English via `useLocale()` hook
 
 ## Core User Flow
 
@@ -147,11 +153,11 @@ Root-level commands run across all packages via Turborepo:
 
 | Route | Access |
 |-------|--------|
-| `/` | Public |
-| `/auth` | Public |
+| `/` | Public (landing + sign in) |
 | `/register` | Authenticated |
 | `/quiz` | Authenticated + registered |
-| `/result` | Authenticated + registered |
+| `/results` | Authenticated + registered |
+| `/profile` | Authenticated + registered |
 | `/admin` | Authenticated + admin role |
 | `*` | 404 Not Found page |
 
@@ -177,6 +183,9 @@ Root-level commands run across all packages via Turborepo:
 | [UI Wireframes](docs/ui-wireframes.md) | Screen layouts for all pages |
 | [User Flow](docs/user-flow.md) | User journey diagram with decision points |
 | [Locale & Date/Time](docs/locale-guide.md) | UTC storage, Thai locale, Buddhist Era, formatting |
+| [Environment Variables](docs/env-variables.md) | All required env vars and secrets per environment |
+| [Deployment Guide](docs/deployment-guide.md) | Cloud Run, Cloudflare Pages, CI/CD pipelines |
+| [Implementation Plan](docs/implementation-plan.md) | Phased roadmap with milestones |
 | [Contributing](CONTRIBUTING.md) | Git workflow, coding standards |
 
 ## License
@@ -194,3 +203,4 @@ Project initialization phase: planning + scaffold setup.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Turborepo → Makefile, Cloud Functions → Cloud Run, fixed env vars, routes, Swagger status, added missing doc links |

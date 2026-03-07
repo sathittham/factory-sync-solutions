@@ -14,6 +14,8 @@ import (
 	"github.com/sathittham/factory-health-check/apps/api/services/result"
 )
 
+const msgInternalError = "internal error"
+
 type Handler struct {
 	resultSvc  *result.Service
 	profileSvc *profile.Service
@@ -28,6 +30,55 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Get("/assessments", h.ListAssessments)
 	r.Get("/assessments/{assessmentId}", h.GetAssessment)
 	r.Get("/export", h.ExportCSV)
+}
+
+// enrichedAssessment extends Assessment with profile data for admin views.
+type enrichedAssessment struct {
+	result.Assessment
+	CompanyName  string `json:"companyName"`
+	IndustryType string `json:"industryType"`
+	CompanySize  string `json:"companySize"`
+	ContactName  string `json:"contactName"`
+	ContactEmail string `json:"contactEmail"`
+}
+
+// collectUIDs extracts unique UIDs from assessments.
+func collectUIDs(assessments []result.Assessment) []string {
+	seen := make(map[string]bool)
+	var uids []string
+	for _, a := range assessments {
+		if !seen[a.UID] {
+			seen[a.UID] = true
+			uids = append(uids, a.UID)
+		}
+	}
+	return uids
+}
+
+// enrichAssessments joins profile data to assessments.
+func (h *Handler) enrichAssessments(r *http.Request, assessments []result.Assessment) []enrichedAssessment {
+	uids := collectUIDs(assessments)
+	slog.Info("enriching assessments", "assessmentCount", len(assessments), "uniqueUIDs", len(uids), "uids", uids)
+
+	profiles, err := h.profileSvc.GetProfilesByUIDs(r.Context(), uids)
+	if err != nil {
+		slog.Error("failed to load profiles for admin view", "error", err.Error())
+		profiles = map[string]*profile.Profile{}
+	}
+	slog.Info("profiles loaded", "profileCount", len(profiles))
+
+	enriched := make([]enrichedAssessment, len(assessments))
+	for i, a := range assessments {
+		enriched[i] = enrichedAssessment{Assessment: a}
+		if p, ok := profiles[a.UID]; ok {
+			enriched[i].CompanyName = p.CompanyName
+			enriched[i].IndustryType = p.IndustryType
+			enriched[i].CompanySize = p.CompanySize
+			enriched[i].ContactName = p.ContactName
+			enriched[i].ContactEmail = p.ContactEmail
+		}
+	}
+	return enriched
 }
 
 // ListAssessments godoc
@@ -54,18 +105,20 @@ func (h *Handler) ListAssessments(w http.ResponseWriter, r *http.Request) {
 	results, err := h.resultSvc.ListResults(r.Context(), filters, limit)
 	if err != nil {
 		slog.Error("list assessments failed", "error", err.Error())
-		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "internal error")
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 		return
 	}
 	if results == nil {
 		results = []result.Assessment{}
 	}
-	pkg.RespondList(w, results, len(results))
+
+	enriched := h.enrichAssessments(r, results)
+	pkg.RespondList(w, enriched, len(enriched))
 }
 
 // GetAssessment godoc
 // @Summary      Get assessment detail
-// @Description  Admin endpoint to get a specific assessment by ID
+// @Description  Admin endpoint to get a specific assessment by ID, enriched with company profile
 // @Tags         Admin
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
@@ -83,13 +136,14 @@ func (h *Handler) GetAssessment(w http.ResponseWriter, r *http.Request) {
 	results, err := h.resultSvc.ListResults(r.Context(), nil, 0)
 	if err != nil {
 		slog.Error("get assessment failed", "error", err.Error())
-		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "internal error")
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 		return
 	}
 
 	for _, a := range results {
 		if a.ID == assessmentID {
-			pkg.RespondJSON(w, http.StatusOK, a)
+			enriched := h.enrichAssessments(r, []result.Assessment{a})
+			pkg.RespondJSON(w, http.StatusOK, enriched[0])
 			return
 		}
 	}
@@ -98,7 +152,7 @@ func (h *Handler) GetAssessment(w http.ResponseWriter, r *http.Request) {
 
 // ExportCSV godoc
 // @Summary      Export assessments as CSV
-// @Description  Admin endpoint to download all assessments as a CSV file
+// @Description  Admin endpoint to download all assessments as a CSV file with company data
 // @Tags         Admin
 // @Produce      text/csv
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
@@ -111,9 +165,11 @@ func (h *Handler) ExportCSV(w http.ResponseWriter, r *http.Request) {
 	results, err := h.resultSvc.ListResults(r.Context(), nil, 0)
 	if err != nil {
 		slog.Error("export csv failed", "error", err.Error())
-		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "internal error")
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 		return
 	}
+
+	enriched := h.enrichAssessments(r, results)
 
 	w.Header().Set("Content-Type", "text/csv")
 	w.Header().Set("Content-Disposition", "attachment; filename=assessments.csv")
@@ -122,16 +178,23 @@ func (h *Handler) ExportCSV(w http.ResponseWriter, r *http.Request) {
 	defer writer.Flush()
 
 	// Header row
-	writer.Write([]string{"ID", "UID", "Overall Score", "Diagnosis", "Submitted At"})
+	writer.Write([]string{
+		"ID", "UID", "Company Name", "Industry Type", "Company Size",
+		"Contact Name", "Contact Email", "Overall Score", "Diagnosis", "Submitted At",
+	})
 
-	for _, a := range results {
+	for _, a := range enriched {
 		writer.Write([]string{
 			a.ID,
 			a.UID,
+			a.CompanyName,
+			a.IndustryType,
+			a.CompanySize,
+			a.ContactName,
+			a.ContactEmail,
 			fmt.Sprintf("%.2f", a.OverallScore),
 			a.Diagnosis,
 			a.SubmittedAt,
 		})
 	}
-
 }

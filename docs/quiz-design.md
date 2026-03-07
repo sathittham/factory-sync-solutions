@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -35,6 +35,8 @@ The Factory Health Check quiz evaluates manufacturing factory readiness across 7
 | 5 | Strongly Agree / Excellent |
 
 ## Sample Questions
+
+> **Note**: The sample questions below show English text only for readability. The actual `questions.json` uses bilingual fields (`textTh`/`textEn`) and references dimensions by ID (`dimensionId`) instead of name.
 
 ### Quality Management
 
@@ -354,47 +356,16 @@ Location: `apps/api/config/questions.json`
 {
   "version": "1.0.0",
   "dimensions": [
-    {
-      "id": "quality-management",
-      "name": "Quality Management",
-      "order": 1
-    },
-    {
-      "id": "safety-compliance",
-      "name": "Safety & Compliance",
-      "order": 2
-    },
-    {
-      "id": "equipment-maintenance",
-      "name": "Equipment & Maintenance",
-      "order": 3
-    },
-    {
-      "id": "workforce-training",
-      "name": "Workforce & Training",
-      "order": 4
-    },
-    {
-      "id": "digital-transformation",
-      "name": "Digital Transformation",
-      "order": 5
-    },
-    {
-      "id": "supply-chain",
-      "name": "Supply Chain Management",
-      "order": 6
-    },
-    {
-      "id": "environmental-sustainability",
-      "name": "Environmental Sustainability",
-      "order": 7
-    }
+    { "id": "quality-management", "nameTh": "การจัดการคุณภาพ", "nameEn": "Quality Management", "weight": 1.0 },
+    { "id": "safety-compliance", "nameTh": "ความปลอดภัยและการปฏิบัติตามกฎ", "nameEn": "Safety & Compliance", "weight": 1.0 },
+    ...
   ],
   "questions": [
     {
       "id": "qm-1",
-      "dimension": "Quality Management",
-      "text": "Your factory has documented quality control procedures for all production processes.",
+      "dimensionId": "quality-management",
+      "textTh": "โรงงานของคุณมีขั้นตอนการควบคุมคุณภาพที่เป็นลายลักษณ์อักษรสำหรับกระบวนการผลิตทั้งหมด",
+      "textEn": "Your factory has documented quality control procedures for all production processes.",
       "weight": 1.0
     }
   ]
@@ -411,7 +382,7 @@ Location: `apps/api/config/questions.json`
 4. Previous / Next navigation between steps
 5. Progress bar shows overall completion (0-100%)
 6. Final step shows Submit button (enabled only when all 35 questions answered)
-7. On submit: loading indicator, then redirect to `/result`
+7. On submit: loading indicator, then redirect to `/results`
 
 ### Stepper Layout
 
@@ -430,4 +401,5 @@ Location: `apps/api/config/questions.json`
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.1.0 | 2026-03-07 | Update configuration schema to match actual bilingual format (`nameTh`/`nameEn`, `textTh`/`textEn`, `dimensionId`); fix `/result` to `/results` |
 | 1.0.0 | 2026-03-06 | Initial version |

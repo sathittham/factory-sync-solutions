@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -27,28 +27,27 @@ npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-
 
 **`vitest.config.ts`**:
 ```typescript
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   test: {
     globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/test/setup.ts',
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'src/test/',
-        '**/*.config.*',
-        '**/*.d.ts',
-      ],
-    },
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
+    css: true,
   },
 });
 ```
+
+> **Note**: Coverage configuration (provider, reporters, thresholds) can be added to the `test` block when needed. See [Vitest coverage docs](https://vitest.dev/guide/coverage).
 
 **`src/test/setup.ts`**:
 ```typescript
@@ -248,90 +247,82 @@ npm run test:e2e -- file.ts # Specific file
 - **Frontend integration**: Cover all user-facing components and forms
 - **E2E**: Cover critical user flows (registration, quiz, result, email, admin)
 
+> **Note**: These are target goals. Coverage thresholds are not currently enforced in CI.
+
 ## CI/CD Integration
 
 **`.github/workflows/test.yml`**:
+
+The CI pipeline uses path-based change detection to run only relevant tests. It also supports `workflow_call` so deploy workflows can reuse it.
+
 ```yaml
-name: Tests
+name: Test
 
 on:
   push:
     branches: [main, staging, develop]
   pull_request:
     branches: [main, staging, develop]
+  workflow_call:
 
 jobs:
-  lint:
+  changes:
+    name: Detect Changes
     runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - run: npm ci
-      - run: npx turbo lint
-
-  frontend-unit-tests:
-    runs-on: ubuntu-latest
-    needs: lint
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+          fetch-depth: 2
+      - id: filter
+        uses: dorny/paths-filter@v3
         with:
-          node-version: '20'
-      - run: npm ci
-      - run: cd apps/web && npm run test:coverage
-      - uses: codecov/codecov-action@v5
+          filters: |
+            api:
+              - 'apps/api/**'
+            web:
+              - 'apps/web/**'
 
-  backend-unit-tests:
+  backend:
+    name: Backend Tests
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
-    needs: lint
+    defaults:
+      run:
+        working-directory: apps/api
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
-      - run: cd apps/api && go test -cover ./...
+          go-version: "1.25"
+          cache-dependency-path: apps/api/go.sum
+      - run: go mod download
+      - run: go vet ./...
+      - run: go test -race -cover ./...
+      - run: go build ./...
 
-  e2e-tests:
+  frontend:
+    name: Frontend Tests
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
-    needs: [frontend-unit-tests, backend-unit-tests]
+    defaults:
+      run:
+        working-directory: apps/web
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
       - run: npm ci
-      - run: cd apps/web && npx playwright install --with-deps
-      - run: cd apps/web && npm run test:e2e
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report
-          path: apps/web/playwright-report/
-
-  notify-slack:
-    runs-on: ubuntu-latest
-    needs: [e2e-tests]
-    if: always()
-    steps:
-      - uses: slackapi/slack-github-action@v2
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_CI_CD }}
-          webhook-type: incoming-webhook
-          payload: |
-            {
-              "text": "${{ github.workflow }} on ${{ github.ref_name }}: ${{ needs.e2e-tests.result == 'success' && 'Passed' || 'Failed' }}",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*${{ github.workflow }}* on `${{ github.ref_name }}`\nStatus: ${{ needs.e2e-tests.result == 'success' && ':white_check_mark: Passed' || ':x: Failed' }}\nCommit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>"
-                  }
-                }
-              ]
-            }
+      - run: npx tsc --noEmit
+      - run: npx vitest run
+      - run: npx vite build
 ```
 
 ## Best Practices
@@ -353,3 +344,4 @@ jobs:
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Updated CI/CD workflow to match actual test.yml (path-based jobs, Node 22, no turbo), fixed vitest.config.ts example, added coverage note |

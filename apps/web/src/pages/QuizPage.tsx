@@ -18,6 +18,11 @@ import type { Assessment } from "@/store/resultSlice";
 
 const QUESTIONS_PER_STEP = 5;
 
+const likertLabels = {
+	th: ["", "ไม่เห็นด้วย\nอย่างยิ่ง", "ไม่เห็นด้วย", "เฉยๆ", "เห็นด้วย", "เห็นด้วย\nอย่างยิ่ง"],
+	en: ["", "Strongly\nDisagree", "Disagree", "Neutral", "Agree", "Strongly\nAgree"],
+};
+
 export function QuizPage() {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
@@ -44,10 +49,10 @@ export function QuizPage() {
 
 	if (hasCompletedQuiz && !startRetake) {
 		return (
-			<div className="min-h-[calc(100vh-10rem)] flex items-center justify-center p-4">
-				<div className="w-full max-w-md bg-white rounded-2xl shadow-lg border p-8 text-center animate-fade-up">
-					<div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-						<svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-primary">
+			<div className="min-h-[calc(100vh-7rem)] flex items-center justify-center p-4">
+				<div className="w-full max-w-md bg-white rounded-lg border p-8 text-center animate-fade-up">
+					<div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-primary">
 							<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
 						</svg>
 					</div>
@@ -70,14 +75,14 @@ export function QuizPage() {
 		return (
 			<div className="container max-w-2xl py-10 space-y-4">
 				<Skeleton className="h-8 w-48" />
-				<Skeleton className="h-2 w-full rounded-full" />
+				<Skeleton className="h-2.5 w-full rounded-full" />
 				<div className="flex gap-2 mt-4">
 					{Array.from({ length: 7 }).map((_, i) => (
-						<Skeleton key={i} className="h-8 w-20 rounded-full" />
+						<Skeleton key={`dim-${i}`} className="h-8 w-20 rounded-full" />
 					))}
 				</div>
 				{Array.from({ length: 5 }).map((_, i) => (
-					<Skeleton key={i} className="h-28 w-full rounded-xl" />
+					<Skeleton key={`q-${i}`} className="h-32 w-full rounded-lg" />
 				))}
 			</div>
 		);
@@ -139,24 +144,26 @@ export function QuizPage() {
 		locale === "th" ? q.textEn : q.textTh;
 
 	return (
-		<div className="bg-dots min-h-[calc(100vh-4rem)]">
-			<div className="container max-w-2xl py-8 sm:py-10" data-testid="quiz-stepper">
-				<div className="mb-8">
-					<h1 className="text-2xl sm:text-3xl font-extrabold mb-4">{t("quiz.title")}</h1>
-					<div className="flex items-center gap-3 mb-1">
-						<div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
-							<div
-								className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 ease-out"
-								style={{ width: `${progressPct}%` }}
-							/>
-						</div>
-						<span className="text-sm font-mono font-medium text-muted-foreground tabular-nums">
-							{answeredCount}/{questions.length}
+		<div className="min-h-[calc(100vh-3.5rem)]">
+			<div className="container max-w-2xl py-6 sm:py-8" data-testid="quiz-stepper">
+				{/* Header + Progress */}
+				<div className="mb-6">
+					<div className="flex items-end justify-between mb-3">
+						<h1 className="text-2xl font-bold">{t("quiz.title")}</h1>
+						<span className="text-sm font-mono text-primary tabular-nums">
+							{answeredCount}<span className="text-muted-foreground">/{questions.length}</span>
 						</span>
+					</div>
+					<div className="relative h-2 bg-secondary rounded-full overflow-hidden">
+						<div
+							className="absolute inset-y-0 left-0 bg-primary rounded-full transition-all duration-700 ease-out"
+							style={{ width: `${progressPct}%` }}
+						/>
 					</div>
 				</div>
 
-				<div className="flex gap-1.5 mb-6 overflow-x-auto pb-1 -mx-2 px-2">
+				{/* Dimension tabs */}
+				<div className="flex gap-1.5 mb-6 overflow-x-auto pb-1 -mx-2 px-2 scrollbar-none">
 					{dimensions.map((dim, i) => {
 						const dimQuestions = questions.filter((q) => q.dimensionId === dim.id);
 						const dimAnswered = dimQuestions.filter((q) => answers[q.id]).length;
@@ -167,16 +174,16 @@ export function QuizPage() {
 								key={dim.id}
 								type="button"
 								onClick={() => dispatch(setCurrentStep(i))}
-								className={`relative flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-all ${
+								className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${
 									i === currentStep
-										? "bg-primary text-white shadow-sm shadow-primary/25"
+										? "bg-primary text-white"
 										: isComplete
-											? "bg-green-50 text-green-700 border border-green-200"
-											: "bg-white text-muted-foreground border border-border hover:border-primary/30 hover:text-foreground"
+											? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+											: "bg-white text-muted-foreground border hover:text-foreground"
 								}`}
 							>
 								{isComplete && i !== currentStep && (
-									<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+									<svg width="11" height="11" viewBox="0 0 12 12" fill="none">
 										<path d="M3 6l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
 									</svg>
 								)}
@@ -186,22 +193,24 @@ export function QuizPage() {
 					})}
 				</div>
 
+				{/* Current dimension header */}
 				{currentDimension && (
-					<div className="flex items-center justify-between mb-5">
+					<div className="flex items-center justify-between mb-4">
 						<div>
-							<h2 className="text-lg font-bold">
+							<h2 className="text-lg font-bold leading-tight">
 								{locale === "th" ? currentDimension.nameTh : currentDimension.nameEn}
 							</h2>
-							<p className="text-sm text-muted-foreground">
+							<p className="text-xs text-muted-foreground mt-0.5">
 								{locale === "th" ? currentDimension.nameEn : currentDimension.nameTh}
 							</p>
 						</div>
-						<span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-1 rounded">
+						<span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-1 rounded-md">
 							{stepAnswered}/{stepQuestions.length}
 						</span>
 					</div>
 				)}
 
+				{/* Question cards */}
 				<div className="space-y-3">
 					{stepQuestions.map((q, idx) => {
 						const qNum = currentStep * QUESTIONS_PER_STEP + idx + 1;
@@ -211,16 +220,14 @@ export function QuizPage() {
 							<div
 								key={q.id}
 								data-testid="quiz-question-card"
-								className={`bg-white rounded-xl border p-5 transition-all duration-200 animate-fade-up ${
-									isAnswered
-										? "border-primary/20 shadow-sm"
-										: "border-border hover:border-border/80"
+								className={`bg-white rounded-lg border p-5 transition-colors animate-fade-up ${
+									isAnswered ? "border-primary/20" : ""
 								}`}
 								style={{ animationDelay: `${idx * 0.05}s` }}
 							>
 								<div className="mb-4">
 									<div className="flex items-start gap-3">
-										<span className={`flex-shrink-0 h-7 w-7 rounded-full text-xs font-bold flex items-center justify-center ${
+										<span className={`flex-shrink-0 h-7 w-7 rounded-md text-xs font-bold flex items-center justify-center transition-colors ${
 											isAnswered
 												? "bg-primary text-white"
 												: "bg-muted text-muted-foreground"
@@ -228,33 +235,43 @@ export function QuizPage() {
 											{qNum}
 										</span>
 										<div className="flex-1 min-w-0">
-											<p className="font-medium text-foreground leading-snug">
+											<p className="font-medium text-foreground leading-snug text-[15px]">
 												{getQuestionText(q)}
 											</p>
-											<p className="text-sm text-muted-foreground mt-0.5 leading-snug">
+											<p className="text-[13px] text-muted-foreground mt-0.5 leading-snug">
 												{getSecondaryText(q)}
 											</p>
 										</div>
 									</div>
 								</div>
 
-								<div className="flex items-center gap-1 sm:gap-2 ml-10">
-									{[1, 2, 3, 4, 5].map((val) => (
-										<button
-											key={val}
-											type="button"
-											onClick={() => dispatch(setAnswer({ questionId: q.id, value: val }))}
-											className={`flex-1 h-10 sm:h-11 rounded-lg text-sm font-semibold transition-all duration-150 ${
-												answers[q.id] === val
-													? "bg-primary text-white shadow-sm shadow-primary/25 scale-105"
-													: "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border"
-											}`}
-										>
-											{val}
-										</button>
-									))}
+								{/* Likert scale */}
+								<div className="flex items-stretch gap-1.5 sm:gap-2 ml-10">
+									{[1, 2, 3, 4, 5].map((val) => {
+										const isSelected = answers[q.id] === val;
+										return (
+											<button
+												key={val}
+												type="button"
+												onClick={() => dispatch(setAnswer({ questionId: q.id, value: val }))}
+												className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 sm:py-2.5 rounded-md text-sm font-semibold transition-colors ${
+													isSelected
+														? "bg-primary text-white"
+														: "bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground"
+												}`}
+											>
+												<span className="text-sm sm:text-base">{val}</span>
+												<span className={`text-[8px] sm:text-[9px] leading-tight text-center whitespace-pre-line font-normal hidden sm:block ${
+													isSelected ? "text-white/70" : "text-muted-foreground/60"
+												}`}>
+													{likertLabels[locale][val]}
+												</span>
+											</button>
+										);
+									})}
 								</div>
-								<div className="flex justify-between text-[11px] text-muted-foreground mt-1.5 ml-10">
+								{/* Mobile-only labels */}
+								<div className="flex justify-between text-[10px] text-muted-foreground mt-1.5 ml-10 sm:hidden">
 									<span>{t("quiz.stronglyDisagree")}</span>
 									<span>{t("quiz.stronglyAgree")}</span>
 								</div>
@@ -263,30 +280,32 @@ export function QuizPage() {
 					})}
 				</div>
 
+				{/* Error */}
 				{error && (
-					<div className="mt-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center">
+					<div className="mt-4 p-3 rounded-md bg-destructive/10 text-destructive text-sm text-center animate-scale-in">
 						{error}
 					</div>
 				)}
 
-				<div className="flex items-center justify-between mt-8 pt-6 border-t">
+				{/* Navigation */}
+				<div className="flex items-center justify-between mt-6 pt-5 border-t">
 					<Button
 						variant="outline"
 						onClick={handlePrev}
 						disabled={currentStep === 0}
 						data-testid="quiz-prev-btn"
-						className="gap-1"
+						className="gap-1.5"
 					>
-						<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+						<svg width="14" height="14" viewBox="0 0 16 16" fill="none">
 							<path d="M10 4l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
 						</svg>
 						{t("quiz.previous")}
 					</Button>
 
 					{currentStep < totalSteps - 1 ? (
-						<Button onClick={handleNext} data-testid="quiz-next-btn" className="gap-1">
+						<Button onClick={handleNext} data-testid="quiz-next-btn" className="gap-1.5">
 							{t("quiz.next")}
-							<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+							<svg width="14" height="14" viewBox="0 0 16 16" fill="none">
 								<path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
 							</svg>
 						</Button>
@@ -295,7 +314,7 @@ export function QuizPage() {
 							onClick={handleSubmit}
 							disabled={!allAnswered || isSubmitting}
 							data-testid="quiz-submit-btn"
-							className="gap-2 shadow-md shadow-primary/20"
+							className="gap-2"
 						>
 							{isSubmitting ? (
 								<>

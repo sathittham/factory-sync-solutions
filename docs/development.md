@@ -43,7 +43,7 @@ All code in this project must strictly follow these principles. They apply equal
 - Monitor Firestore read/write counts against free tier limits (50K reads, 20K writes/day)
 - Set Cloud Logging retention per environment (staging: 14 days, production: 90 days)
 - Quiz questions as static config = zero Firestore cost for the most common read
-- Cloud Functions: use appropriate memory (256–512 MB) and timeout (10–30s)
+- Cloud Run: use appropriate memory and timeout settings
 - Avoid redundant Firestore calls — don't fetch the same document twice in one request
 
 ### 5. Security First
@@ -52,7 +52,7 @@ All code in this project must strictly follow these principles. They apply equal
 - **Authorization**: admin role checked server-side — never trust frontend-only checks
 - **Data scoping**: all Firestore queries scoped to the authenticated user's UID
 - **Input validation**: struct validation tags on all request DTOs, path params validated before use
-- **Secrets**: GCP Secret Manager in deployed environments, `.env` locally (gitignored)
+- **Secrets**: GitHub Secrets injected as env vars at deploy time, `.env` locally (gitignored)
 - **No secrets in frontend**: only `VITE_` prefixed public config
 - **Bot protection**: Cloudflare Turnstile on registration, rate limiting on all endpoints
 - **CORS**: explicit allowed origins — no wildcard in production
@@ -60,22 +60,20 @@ All code in this project must strictly follow these principles. They apply equal
 
 ---
 
-## Monorepo (Turborepo)
+## Monorepo (Makefile)
 
-All apps and packages are managed with Turborepo. The `turbo.json` pipeline defines task dependencies so that `build`, `lint`, and `test` run in the correct order with caching.
+Apps are managed independently with a root `Makefile` for convenience commands:
 
 ```bash
-npx turbo dev              # Start all apps
-npx turbo build            # Build all apps
-npx turbo lint             # Lint all packages
-npx turbo test             # Run all tests
-npx turbo dev --filter=web # Start only frontend
+make dev-api               # Start Go backend
+make dev-web               # Start Vite frontend
+make lint-api              # Lint backend (go vet)
+make lint-web              # Lint frontend (biome)
+make test-api              # Run Go tests
+make test-web              # Run Vitest
 ```
 
-Key benefits:
-- Incremental builds with remote caching
-- Parallel task execution across packages
-- Single `npm install` at the root for all workspaces
+Each app has its own build and test commands (`apps/api/` uses Go toolchain, `apps/web/` uses npm/Vite).
 
 ## Linting & Formatting
 
@@ -195,18 +193,7 @@ Playwright E2E tests cover mobile via the `Mobile Chrome` project (Pixel 5). Add
 
 ## API Documentation (Swagger)
 
-API docs are auto-generated from Go source code using `swaggo/swag`:
-
-```bash
-# Generate swagger spec
-cd apps/api && swag init
-
-# Output: docs/swagger.json, docs/swagger.yaml, docs/docs.go
-```
-
-- Annotate handlers with `@Summary`, `@Param`, `@Success`, `@Router` comments
-- Swagger UI available at `/api/v1/swagger/` (staging only, disabled in production)
-- Re-generate in CI before each build to keep spec in sync
+> **Status**: Not yet implemented. Swagger annotations exist in handler source code but swaggo is not installed and the Swagger UI route is commented out. See [swagger-openapi.md](swagger-openapi.md) for the planned setup.
 
 ## API Versioning
 
@@ -239,35 +226,29 @@ Flow: `feature/*` → `develop` → `staging` → `main`
 
 ### CI/CD Pipeline (GitHub Actions)
 
-All pipelines use `npx turbo` to leverage caching and parallel execution.
-
 ```yaml
-1. On push to develop:
-   - npx turbo lint
-   - npx turbo test (Vitest + go test)
-   - npx turbo build (verification only)
+1. On push/PR to main, staging, develop (test.yml):
+   - Detect changed paths (api vs web)
+   - Backend: go vet, go test -race -cover, go build
+   - Frontend: tsc --noEmit, vitest run, vite build
 
-2. On push to staging:
-   - npx turbo lint
-   - npx turbo test
-   - npx turbo build
-   - Deploy apps/web to Cloudflare Pages (staging)
-   - Deploy apps/api to GCP Cloud Functions (staging)
+2. On tag v*-staging (deploy-staging.yml):
+   - Run tests (reusable test.yml)
+   - Build & deploy backend Docker image to Cloud Run
+   - Build & deploy frontend to Cloudflare Pages
 
-3. On push to main:
-   - npx turbo lint
-   - npx turbo test
-   - npx turbo build
-   - Deploy apps/web to Cloudflare Pages (production)
-   - Deploy apps/api to GCP Cloud Functions (production)
+3. On tag v*.*.* (deploy-production.yml):
+   - Run tests (reusable test.yml)
+   - Build & deploy backend Docker image to Cloud Run
+   - Build & deploy frontend to Cloudflare Pages
 ```
 
 ### Environments
 
 | Environment | Frontend URL | Backend |
 |-------------|-------------|---------|
-| Staging | `factory-health-check-staging.pages.dev` | GCP staging project |
-| Production | `factory-health-check.pages.dev` | GCP production project |
+| Staging | `factory-health-check-staging.pages.dev` | Cloud Run (staging) |
+| Production | `factory-health-check.pages.dev` | Cloud Run (production) |
 
 ## Monitoring & Logging
 
@@ -283,13 +264,13 @@ Real-time alerts sent to Slack channels via Incoming Webhooks:
 - `#registrations` — New user registration
 - `#quiz-results` — Quiz result submitted (company, score, diagnosis)
 - `#ci-cd` — GitHub Actions pipeline status (pass/fail)
-- `#server-status` — Cloud Function health checks and error alerts
+- `#server-status` — Cloud Run health checks and error alerts
 
 See [architecture.md](architecture.md#slack-notifications) for full details.
 
 ### Backend (Go)
 
-- **Cloud Monitoring**: Stackdriver for Cloud Functions
+- **Cloud Monitoring**: Stackdriver for Cloud Run
 - **Cloud Logging**: Structured logs from Go services
 - **Firestore Usage**: Monitor read/write operations
 
@@ -303,7 +284,7 @@ See [architecture.md](architecture.md#slack-notifications) for full details.
 ### Email Not Sent
 - Check Resend API key validity
 - Verify email job status in Firestore
-- Review Cloud Functions logs for errors
+- Review Cloud Run logs for errors
 
 ### Quiz Submission Errors
 - Validate all required fields are completed
@@ -322,3 +303,4 @@ See [architecture.md](architecture.md#slack-notifications) for full details.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Updated: Turborepo -> Makefile, Cloud Functions -> Cloud Run, Swagger marked as not implemented, fixed CI/CD pipeline |

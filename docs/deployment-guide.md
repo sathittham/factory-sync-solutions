@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -10,49 +10,39 @@ author: Sathittham Sangthong
 
 | Component | Platform | Method |
 |-----------|----------|--------|
-| Frontend (React SPA) | Cloudflare Pages | Git integration (auto-deploy on push) |
-| Backend (Go API) | Google Cloud Functions (2nd gen) | `gcloud` CLI via GitHub Actions |
+| Frontend (React SPA) | Cloudflare Pages | GitHub Actions (`cloudflare/wrangler-action`) |
+| Backend (Go API) | Google Cloud Run | Docker container via GitHub Actions |
 | Database | Firestore | Managed service (no deployment needed) |
 | Auth | Firebase Authentication | Managed service (no deployment needed) |
 
-## Branch Strategy
+## Branch & Tag Strategy
 
-| Branch | Deploys to | Trigger |
-|--------|------------|---------|
-| `main` | Production | Push / merge |
-| `staging` | Staging | Push / merge |
-| `develop` | CI only (no deploy) | Push / PR |
-
-Flow: `feature/*` → `develop` → `staging` → `main`
+| Trigger | Deploys to | Workflow |
+|---------|------------|---------|
+| Tag `v*-staging` | Staging | `deploy-staging.yml` |
+| Tag `v*.*.*` (excluding `-*`) | Production | `deploy-production.yml` |
+| Push/PR to `main`, `staging`, `develop` | CI only (tests) | `test.yml` |
 
 ## Frontend Deployment (Cloudflare Pages)
 
-### Setup (One-Time)
+### Automatic Deployment (GitHub Actions)
 
-1. Connect GitHub repository to Cloudflare Pages in the Cloudflare dashboard.
-2. Configure build settings:
-   - **Build command**: `npx turbo build --filter=web`
-   - **Build output directory**: `apps/web/dist`
-   - **Root directory**: `/`
-   - **Node.js version**: `20`
-3. Set environment variables in Cloudflare Pages dashboard (see [env-variables.md](env-variables.md#frontend-react-spa)).
-4. Configure preview deployments for `staging` branch.
+The `deploy-staging.yml` and `deploy-production.yml` workflows handle frontend deployment automatically:
 
-### Automatic Deployment
-
-Cloudflare Pages auto-deploys on push to connected branches:
-- `main` → Production URL: `factory-health-check.pages.dev`
-- `staging` → Preview URL: `factory-health-check-staging.pages.dev`
+1. Installs dependencies (`npm ci`)
+2. Builds with Vite (`npx vite build`) with injected `VITE_*` env vars
+3. Deploys via `cloudflare/wrangler-action@v3`
 
 ### Manual Deployment
 
 ```bash
 cd apps/web
-npm run build
+npm ci
+npx vite build
 npx wrangler pages deploy dist --project-name=factory-health-check
 ```
 
-## Backend Deployment (Cloud Functions)
+## Backend Deployment (Cloud Run)
 
 ### Prerequisites
 
@@ -65,89 +55,68 @@ gcloud auth login
 gcloud config set project <PROJECT_ID>
 
 # Enable required APIs
-gcloud services enable cloudfunctions.googleapis.com
-gcloud services enable cloudbuild.googleapis.com
+gcloud services enable run.googleapis.com
+gcloud services enable artifactregistry.googleapis.com
 gcloud services enable firestore.googleapis.com
-gcloud services enable secretmanager.googleapis.com
 ```
 
-### Cloud Function Configuration
+### Cloud Run Configuration
 
 | Setting | Value |
 |---------|-------|
-| Runtime | Go 1.25 |
-| Memory | 256 MB (default), 512 MB (if needed) |
-| Timeout | 30 seconds |
-| Min instances | 0 (scale to zero) |
-| Max instances | 10 (staging), 100 (production) |
-| Concurrency | 80 (default) |
-| Region | `asia-southeast1` (or closest to users) |
+| Runtime | Docker (Go binary) |
+| Region | `asia-southeast1` |
+| Allow unauthenticated | Yes (API handles auth internally) |
 
 ### Manual Deployment
 
 ```bash
 cd apps/api
 
-# Deploy to staging
-gcloud functions deploy factory-health-check-api \
-  --gen2 \
-  --runtime=go125 \
+# Build and push Docker image
+IMAGE=asia-southeast1-docker.pkg.dev/<PROJECT_ID>/cloud-run/factory-health-check-api:latest
+docker build -t $IMAGE .
+docker push $IMAGE
+
+# Deploy to Cloud Run
+gcloud run deploy factory-health-check-api \
+  --image=$IMAGE \
   --region=asia-southeast1 \
-  --source=. \
-  --entry-point=main \
-  --trigger-http \
+  --platform=managed \
   --allow-unauthenticated \
-  --memory=256Mi \
-  --timeout=30s \
-  --min-instances=0 \
-  --max-instances=10 \
-  --set-env-vars="ENVIRONMENT=staging,ALLOWED_ORIGINS=https://factory-health-check-staging.pages.dev" \
-  --set-secrets="RESEND_API_KEY=RESEND_API_KEY:latest,CF_TURNSTILE_SECRET=CF_TURNSTILE_SECRET:latest"
+  --set-env-vars="ENVIRONMENT=staging,ALLOWED_ORIGINS=https://factory-health-check-staging.pages.dev"
 ```
 
-### GCP Secret Manager Setup
+### Secrets Management
+
+Secrets are injected as environment variables from **GitHub Secrets** at deploy time via `--set-env-vars` in the Cloud Run deploy step. No GCP Secret Manager setup is required for the current workflow.
 
 ```bash
-# Create secrets (one-time)
-echo -n "re_xxx" | gcloud secrets create RESEND_API_KEY --data-file=-
-echo -n "0x4AAA..." | gcloud secrets create CF_TURNSTILE_SECRET --data-file=-
-
-# Grant Cloud Function service account access
-gcloud secrets add-iam-policy-binding RESEND_API_KEY \
-  --member="serviceAccount:<PROJECT_NUMBER>-compute@developer.gserviceaccount.com" \
-  --role="roles/secretmanager.secretAccessor"
-
-gcloud secrets add-iam-policy-binding CF_TURNSTILE_SECRET \
-  --member="serviceAccount:<PROJECT_NUMBER>-compute@developer.gserviceaccount.com" \
-  --role="roles/secretmanager.secretAccessor"
+# Secrets passed in deploy workflow:
+# RESEND_API_KEY, CF_TURNSTILE_SECRET, SLACK_WEBHOOK_REGISTRATION, SLACK_WEBHOOK_QUIZ_RESULT
+# These come from GitHub repo Settings > Secrets and variables > Actions
 ```
+
+> **Migration path**: If you outgrow GitHub Secrets, switch to GCP Secret Manager via `--set-secrets` flag. No code changes needed.
 
 ## CI/CD Pipeline (GitHub Actions)
 
 ### Pipeline Stages
 
 ```
-Push to develop:
-  1. Lint (Biome + golangci-lint)
-  2. Test (Vitest + go test)
-  3. Build (verification only)
-  4. Notify Slack (#ci-cd)
+Tag v*-staging (staging deploy):
+  1. Run tests (reusable test.yml)
+  2. Build & push Docker image to Artifact Registry
+  3. Deploy backend to Cloud Run (staging)
+  4. Build frontend with Vite
+  5. Deploy frontend to Cloudflare Pages (staging)
 
-Push to staging:
-  1. Lint
-  2. Test
-  3. Build
-  4. Deploy frontend → Cloudflare Pages (staging)
-  5. Deploy backend → Cloud Functions (staging)
-  6. Notify Slack (#ci-cd)
-
-Push to main:
-  1. Lint
-  2. Test
-  3. Build
-  4. Deploy frontend → Cloudflare Pages (production)
-  5. Deploy backend → Cloud Functions (production)
-  6. Notify Slack (#ci-cd)
+Tag v*.*.* (production deploy):
+  1. Run tests (reusable test.yml)
+  2. Build & push Docker image to Artifact Registry
+  3. Deploy backend to Cloud Run (production)
+  4. Build frontend with Vite
+  5. Deploy frontend to Cloudflare Pages (production)
 ```
 
 ### Required GitHub Secrets
@@ -157,41 +126,30 @@ See [env-variables.md](env-variables.md#cicd-github-actions-secrets) for the ful
 ### Backend Deploy Job
 
 ```yaml
-deploy-api:
+deploy-backend:
   runs-on: ubuntu-latest
-  needs: [backend-unit-tests]
-  if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main'
+  needs: test
   steps:
     - uses: actions/checkout@v4
-
-    - id: auth
-      uses: google-github-actions/auth@v2
+    - uses: google-github-actions/auth@v2
       with:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
-
     - uses: google-github-actions/setup-gcloud@v2
-
-    - name: Deploy Cloud Function
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
+    - name: Build and push Docker image
       run: |
-        ENV=${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
-        MAX_INSTANCES=${{ github.ref == 'refs/heads/main' && '100' || '10' }}
-        ORIGINS=${{ github.ref == 'refs/heads/main' && 'https://factory-health-check.pages.dev' || 'https://factory-health-check-staging.pages.dev' }}
-
-        cd apps/api
-        gcloud functions deploy factory-health-check-api \
-          --gen2 \
-          --runtime=go125 \
+        IMAGE=asia-southeast1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID || 'factory-health-check' }}/cloud-run/factory-health-check-api:${{ github.sha }}
+        docker build -t $IMAGE apps/api
+        docker push $IMAGE
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy factory-health-check-api \
+          --image=asia-southeast1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID || 'factory-health-check' }}/cloud-run/factory-health-check-api:${{ github.sha }} \
           --region=asia-southeast1 \
-          --source=. \
-          --entry-point=main \
-          --trigger-http \
+          --platform=managed \
           --allow-unauthenticated \
-          --memory=256Mi \
-          --timeout=30s \
-          --min-instances=0 \
-          --max-instances=$MAX_INSTANCES \
-          --set-env-vars="ENVIRONMENT=$ENV,ALLOWED_ORIGINS=$ORIGINS" \
-          --set-secrets="RESEND_API_KEY=RESEND_API_KEY:latest,CF_TURNSTILE_SECRET=CF_TURNSTILE_SECRET:latest"
+          --set-env-vars="ENVIRONMENT=production,RESEND_API_KEY=${{ secrets.RESEND_API_KEY }},..."
 ```
 
 ## Firestore Setup
@@ -228,10 +186,9 @@ firebase emulators:start --only firestore,auth
 After deploying to any environment:
 
 1. **Health check**: `curl https://<API_URL>/healthz`
-2. **Swagger UI** (staging only): `https://<API_URL>/api/v1/swagger/index.html`
-3. **Smoke test**: Sign in with Google → register → submit quiz → view result
-4. **Check Slack**: Verify notifications arrive in `#registrations` and `#quiz-results`
-5. **Check logs**: `gcloud functions logs read factory-health-check-api --region=asia-southeast1`
+2. **Smoke test**: Sign in with Google -> register -> submit quiz -> view result
+3. **Check Slack**: Verify notifications arrive in `#registrations` and `#quiz-results`
+4. **Check logs**: `gcloud run services logs read factory-health-check-api --region=asia-southeast1`
 
 ## Rollback
 
@@ -242,18 +199,19 @@ Cloudflare Pages supports instant rollback to any previous deployment from the d
 ### Backend
 
 ```bash
-# List recent deployments
-gcloud functions describe factory-health-check-api --region=asia-southeast1
+# List Cloud Run revisions
+gcloud run revisions list --service=factory-health-check-api --region=asia-southeast1
 
-# Rollback by redeploying from a previous commit
-git checkout <previous-commit-sha>
-# Re-run the deploy command
+# Route traffic to a previous revision
+gcloud run services update-traffic factory-health-check-api \
+  --to-revisions=<REVISION_NAME>=100 \
+  --region=asia-southeast1
 ```
 
 ## Monitoring After Deploy
 
-- **Cloud Functions dashboard**: Check invocation count, error rate, latency
-- **Cloud Logging**: Filter by `resource.labels.function_name="factory-health-check-api"`
+- **Cloud Run dashboard**: Check request count, error rate, latency
+- **Cloud Logging**: Filter by `resource.type="cloud_run_revision"`
 - **Firestore usage**: Check read/write counts against free tier limits (50K reads, 20K writes/day)
 - **Slack `#server-status`**: Watch for error alerts
 
@@ -263,10 +221,10 @@ See [logging-monitoring.md](logging-monitoring.md) for detailed monitoring setup
 
 ## See Also
 
-- [env-variables.md](env-variables.md) — All required environment variables
-- [architecture.md](architecture.md) — System architecture and platform choices
-- [development.md](development.md) — Branch strategy and CI/CD pipeline overview
-- [logging-monitoring.md](logging-monitoring.md) — Monitoring, alerting, and log retention
+- [env-variables.md](env-variables.md) -- All required environment variables
+- [architecture.md](architecture.md) -- System architecture and platform choices
+- [development.md](development.md) -- Branch strategy and CI/CD pipeline overview
+- [logging-monitoring.md](logging-monitoring.md) -- Monitoring, alerting, and log retention
 
 ---
 
@@ -275,3 +233,4 @@ See [logging-monitoring.md](logging-monitoring.md) for detailed monitoring setup
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Updated: Cloud Functions -> Cloud Run, removed turbo references, fixed secrets management, updated deploy commands |

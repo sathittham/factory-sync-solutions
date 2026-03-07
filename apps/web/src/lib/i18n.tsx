@@ -151,6 +151,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		"result.noResults.title": "ยังไม่มีผลลัพธ์",
 		"result.noResults.desc": "ทำแบบประเมินเพื่อดูผลประเมินสุขภาพโรงงาน",
 		"result.previousAssessments": "ผลประเมินก่อนหน้า",
+		"result.dimensionDetail": "รายละเอียดรายมิติ",
 
 		// Diagnosis
 		"diagnosis.Beginning": "เริ่มต้น",
@@ -173,6 +174,10 @@ const translations: Record<Locale, Record<string, string>> = {
 		"admin.diagnosis": "ผลวินิจฉัย",
 		"admin.date": "วันที่",
 		"admin.noAssessments": "ไม่พบข้อมูลการประเมิน",
+		"admin.company": "บริษัท",
+		"admin.contactName": "ผู้ติดต่อ",
+		"admin.contactEmail": "อีเมลผู้ติดต่อ",
+		"admin.noDetail": "ไม่มีรายละเอียดเพิ่มเติม",
 
 		// Profile
 		"profile.title": "โปรไฟล์บริษัท",
@@ -284,6 +289,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		"result.noResults.title": "No Results Yet",
 		"result.noResults.desc": "Complete the quiz to see your factory health assessment.",
 		"result.previousAssessments": "Previous Assessments",
+		"result.dimensionDetail": "Dimension Detail",
 
 		// Diagnosis
 		"diagnosis.Beginning": "Beginning",
@@ -306,6 +312,10 @@ const translations: Record<Locale, Record<string, string>> = {
 		"admin.diagnosis": "Diagnosis",
 		"admin.date": "Date",
 		"admin.noAssessments": "No assessments found.",
+		"admin.company": "Company",
+		"admin.contactName": "Contact",
+		"admin.contactEmail": "Contact Email",
+		"admin.noDetail": "No additional detail available.",
 
 		// 404
 		// Profile

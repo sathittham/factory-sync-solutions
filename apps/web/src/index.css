@@ -4,28 +4,27 @@
 
 @layer base {
 	:root {
-		--background: 220 20% 97%;
-		--foreground: 220 30% 10%;
+		--background: 0 0% 100%;
+		--foreground: 220 14% 10%;
 		--card: 0 0% 100%;
-		--card-foreground: 220 30% 10%;
+		--card-foreground: 220 14% 10%;
 		--popover: 0 0% 100%;
-		--popover-foreground: 220 30% 10%;
-		--primary: 220 70% 45%;
+		--popover-foreground: 220 14% 10%;
+		--primary: 220 65% 48%;
 		--primary-foreground: 0 0% 100%;
-		--secondary: 220 15% 92%;
-		--secondary-foreground: 220 30% 20%;
-		--muted: 220 15% 92%;
-		--muted-foreground: 220 10% 46%;
-		--accent: 38 92% 50%;
-		--accent-foreground: 38 90% 10%;
+		--secondary: 220 14% 96%;
+		--secondary-foreground: 220 14% 20%;
+		--muted: 220 14% 96%;
+		--muted-foreground: 220 8% 46%;
+		--accent: 220 65% 48%;
+		--accent-foreground: 0 0% 100%;
 		--destructive: 0 72% 51%;
 		--destructive-foreground: 0 0% 100%;
-		--border: 220 15% 88%;
-		--input: 220 15% 88%;
-		--ring: 220 70% 45%;
-		--radius: 0.625rem;
+		--border: 220 13% 91%;
+		--input: 220 13% 91%;
+		--ring: 220 65% 48%;
+		--radius: 0.5rem;
 
-		/* Custom tokens */
 		--success: 152 60% 40%;
 		--success-foreground: 0 0% 100%;
 		--warning: 38 92% 50%;
@@ -40,12 +39,12 @@
 
 	body {
 		@apply bg-background text-foreground antialiased;
-		font-family: "IBM Plex Sans Thai", "Outfit", system-ui, sans-serif;
+		font-family: "IBM Plex Sans Thai", system-ui, -apple-system, sans-serif;
 	}
 
 	h1, h2, h3, h4, h5, h6 {
-		font-family: "Outfit", "IBM Plex Sans Thai", system-ui, sans-serif;
-		@apply tracking-tight;
+		font-family: "IBM Plex Sans Thai", system-ui, -apple-system, sans-serif;
+		@apply tracking-tight font-bold;
 	}
 
 	code, .font-mono {
@@ -54,71 +53,45 @@
 }
 
 @layer components {
-	/* Subtle grid pattern for backgrounds */
-	.bg-grid {
-		background-image:
-			linear-gradient(to right, hsl(220 15% 88% / 0.5) 1px, transparent 1px),
-			linear-gradient(to bottom, hsl(220 15% 88% / 0.5) 1px, transparent 1px);
-		background-size: 24px 24px;
+	.bg-grid { }
+	.bg-dots { }
+	.bg-mesh { }
+
+	.glass {
+		@apply bg-white/80 backdrop-blur-sm;
 	}
 
-	/* Dot pattern */
-	.bg-dots {
-		background-image: radial-gradient(hsl(220 15% 78% / 0.4) 1px, transparent 1px);
-		background-size: 20px 20px;
+	.card-elevated {
+		@apply shadow-sm;
 	}
 
-	/* Gradient mesh accent */
-	.bg-mesh {
-		background:
-			radial-gradient(at 20% 20%, hsl(220 70% 45% / 0.08) 0px, transparent 50%),
-			radial-gradient(at 80% 80%, hsl(38 92% 50% / 0.06) 0px, transparent 50%),
-			radial-gradient(at 50% 0%, hsl(220 70% 45% / 0.04) 0px, transparent 70%);
-	}
-
-	/* Score gauge animation */
 	.animate-score-fill {
 		animation: scoreFill 1s ease-out forwards;
 	}
-
 	@keyframes scoreFill {
 		from { width: 0%; }
 	}
 
-	/* Stagger reveal animation */
 	.animate-fade-up {
-		animation: fadeUp 0.5s ease-out forwards;
+		animation: fadeUp 0.4s ease-out forwards;
 		opacity: 0;
 	}
-
 	@keyframes fadeUp {
-		from {
-			opacity: 0;
-			transform: translateY(12px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
+		from { opacity: 0; transform: translateY(8px); }
+		to { opacity: 1; transform: translateY(0); }
 	}
 
-	/* Pulse glow for active elements */
-	.glow-primary {
-		box-shadow: 0 0 0 3px hsl(220 70% 45% / 0.15);
+	.animate-scale-in {
+		animation: scaleIn 0.3s ease-out forwards;
+		opacity: 0;
 	}
-
-	.glow-accent {
-		box-shadow: 0 0 0 3px hsl(38 92% 50% / 0.2);
-	}
-
-	/* Glass card effect */
-	.glass {
-		@apply bg-white/80 backdrop-blur-sm;
+	@keyframes scaleIn {
+		from { opacity: 0; transform: scale(0.95); }
+		to { opacity: 1; transform: scale(1); }
 	}
 }
 
 @layer utilities {
-	/* Stagger delays for list animations */
 	.delay-1 { animation-delay: 0.05s; }
 	.delay-2 { animation-delay: 0.1s; }
 	.delay-3 { animation-delay: 0.15s; }
@@ -126,4 +99,5 @@
 	.delay-5 { animation-delay: 0.25s; }
 	.delay-6 { animation-delay: 0.3s; }
 	.delay-7 { animation-delay: 0.35s; }
+	.text-balance { text-wrap: balance; }
 }

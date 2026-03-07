@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -120,7 +120,7 @@ type RegisterRequest struct {
     IndustryType   string `json:"industryType" validate:"required"`
     CompanySize    string `json:"companySize" validate:"required,oneof=small medium large"`
     ContactName    string `json:"contactName" validate:"required,min=2,max=100"`
-    ContactEmail   string `json:"contactEmail" validate:"required,email,max=255"`
+    ContactEmail   string `json:"contactEmail" validate:"required,email"`
     ContactPhone   string `json:"contactPhone" validate:"required"`
     TurnstileToken string `json:"turnstileToken" validate:"required"`
 }
@@ -203,16 +203,16 @@ func corsMiddleware(next http.Handler) http.Handler {
 
 ## Rate Limiting
 
-| Endpoint Type | Limit |
-|--------------|-------|
-| Public endpoints | 60 requests/minute per IP |
-| Authenticated endpoints | 120 requests/minute per user |
+| Layer | Limit |
+|-------|-------|
+| Per-instance in-memory | 10 requests/second burst per IP (defense-in-depth) |
+| Global (primary) | Cloudflare WAF rate limiting rules |
 
-### Strategy for Serverless (Cloud Functions)
+### Strategy for Cloud Run
 
-In-memory rate limiters (e.g., `golang.org/x/time/rate`) **do not work** across Cloud Function instances because each instance has its own memory. Use a layered approach:
+In-memory rate limiters (e.g., `golang.org/x/time/rate`) **do not work** across Cloud Run container instances because each instance has its own memory. Use a layered approach:
 
-1. **Cloudflare WAF / Rate Limiting Rules** (recommended primary layer): Configure rate limiting rules in Cloudflare dashboard. This handles per-IP rate limiting before requests reach Cloud Functions.
+1. **Cloudflare WAF / Rate Limiting Rules** (recommended primary layer): Configure rate limiting rules in Cloudflare dashboard. This handles per-IP rate limiting before requests reach Cloud Run.
 2. **Per-instance in-memory limiter** (defense-in-depth): Protects individual instances from burst abuse. Not globally accurate but prevents a single instance from being overwhelmed.
 
 ```go
@@ -315,13 +315,13 @@ func securityHeaders(next http.Handler) http.Handler {
 | Environment | Secret Store | Access |
 |-------------|-------------|--------|
 | Local dev | `.env` file (gitignored) | Developer only |
-| Staging | GCP Secret Manager | Staging service account |
-| Production | GCP Secret Manager | Production service account (restricted) |
+| Staging | GitHub Secrets | Injected at deploy via `--set-env-vars` |
+| Production | GitHub Secrets | Injected at deploy via `--set-env-vars` |
 
 **Rules:**
 - Never hardcode secrets in source code
 - Never commit `.env` files (only `.env.example`)
-- Use GCP Secret Manager for all deployed environments
+- Use GitHub Secrets for all deployed environments (migration path to GCP Secret Manager available)
 - Rotate API keys regularly (Resend, Turnstile)
 
 ## Frontend Security
@@ -343,7 +343,7 @@ func securityHeaders(next http.Handler) http.Handler {
 | **Bot protection** | Turnstile verified on registration |
 | **CORS** | Explicit origins, no wildcard in production |
 | **Rate limiting** | Applied on public and authenticated endpoints |
-| **Secrets** | GCP Secret Manager, never hardcoded |
+| **Secrets** | GitHub Secrets (or GCP Secret Manager), never hardcoded |
 | **Logging** | No sensitive data in logs |
 | **Frontend** | No secrets exposed, VITE_ prefix only |
 
@@ -363,3 +363,4 @@ func securityHeaders(next http.Handler) http.Handler {
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Updated rate limiting values, Cloud Functions → Cloud Run, GCP Secret Manager → GitHub Secrets, removed max=255 from ContactEmail |

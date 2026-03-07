@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -121,26 +121,26 @@ func maskPhone(phone string) string {
 
 ## Google Cloud Logging
 
-Cloud Functions automatically send stdout/stderr to Cloud Logging. No additional setup is required.
+Cloud Run automatically sends stdout/stderr to Cloud Logging. No additional setup is required.
 
 ### Log Explorer Queries
 
 ```
 -- Errors from a specific service
-resource.type="cloud_function"
-resource.labels.function_name="profile-service"
+resource.type="cloud_run_revision"
+resource.labels.service_name="profile-service"
 severity>=ERROR
 
 -- Requests by user
-resource.type="cloud_function"
+resource.type="cloud_run_revision"
 jsonPayload.uid="user-123"
 
 -- Slow requests (>1s)
-resource.type="cloud_function"
+resource.type="cloud_run_revision"
 jsonPayload.duration_ms>1000
 
 -- Recent errors with details
-resource.type="cloud_function"
+resource.type="cloud_run_revision"
 severity=ERROR
 timestamp>="2026-01-20T00:00:00Z"
 ```
@@ -154,14 +154,15 @@ timestamp>="2026-01-20T00:00:00Z"
 
 ## Google Cloud Monitoring
 
-### Cloud Functions Built-in Metrics
+### Cloud Run Built-in Metrics
 
-Cloud Functions automatically reports:
-- **Invocations**: Total function calls
-- **Execution time**: Duration per invocation
-- **Memory usage**: Memory consumed per invocation
-- **Error count**: Failed invocations
-- **Active instances**: Concurrent executions
+Cloud Run automatically reports:
+- **Request count**: Total requests
+- **Request latency**: Duration per request
+- **Container instance count**: Active instances
+- **Memory utilization**: Memory usage per instance
+- **CPU utilization**: CPU usage per instance
+- **Billable container instance time**
 
 ### Alerting Policies
 
@@ -171,7 +172,7 @@ Create alerting policies in Cloud Monitoring console or via Terraform:
 |-------|-----------|-------------|
 | Error rate spike | Error count > 10 in 5 min | Slack `#server-status` |
 | High latency | p95 latency > 3s for 5 min | Slack `#server-status` |
-| Function failures | Execution errors > 5 in 1 min | Slack `#server-status` |
+| Container errors | Error count > 5 in 1 min | Slack `#server-status` |
 
 ### Firestore Monitoring
 
@@ -193,13 +194,13 @@ Real-time alerts sent to Slack channels via Incoming Webhooks:
 | `#registrations` | New user registration |
 | `#quiz-results` | Quiz result submitted |
 | `#ci-cd` | GitHub Actions pipeline status |
-| `#server-status` | Cloud Function health checks, error alerts |
+| `#server-status` | Cloud Run health checks, error alerts |
 
 See [architecture.md](architecture.md#slack-notifications) for implementation details.
 
 ## Health Check Endpoint
 
-Each Cloud Function should expose a `/healthz` endpoint:
+The Cloud Run service exposes a `/healthz` endpoint:
 
 ```go
 r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -209,7 +210,7 @@ r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
 })
 ```
 
-A scheduled Cloud Function or Cloud Scheduler job pings each service's health endpoint and sends status to the `#server-status` Slack channel.
+A Cloud Scheduler job pings each service's health endpoint and sends status to the `#server-status` Slack channel.
 
 ## Log Levels by Environment
 
@@ -247,3 +248,4 @@ A scheduled Cloud Function or Cloud Scheduler job pings each service's health en
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Updated Cloud Functions → Cloud Run throughout, fixed resource.type filters, updated metrics |

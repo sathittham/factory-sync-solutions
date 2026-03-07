@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -153,14 +153,19 @@ Thailand uses Buddhist Era (พ.ศ.) which is 543 years ahead of the Gregorian 
 
 ---
 
-## Future: Multi-Language Support (Phase 2)
+## Multi-Language Support (Implemented)
 
-Multi-language (TH/EN) with a language switcher is planned for Phase 2. See [architecture.md](architecture.md#nice-to-have). When implemented:
+Multi-language (TH/EN) with a language switcher is already implemented. Key components:
 
-- Store user language preference in the `users` Firestore collection
-- Use React context or Redux to manage current locale
-- Switch `Intl.DateTimeFormat` locale based on user preference
-- All UI text should be externalized into locale files
+- `useLocale()` hook manages current locale state
+- Language switcher in the header allows toggling between Thai and English
+- Quiz questions are bilingual (`textTh`/`textEn` fields in `questions.json`)
+- Dimension names are bilingual (`nameTh`/`nameEn`)
+- UI text uses locale-aware rendering
+
+### Date Formatting with Locale
+
+The helper functions shown above are **recommended patterns** but not yet implemented as shared utilities. Currently, date formatting uses `toLocaleDateString()` directly in components. Consider extracting shared helpers as the app grows.
 
 ---
 
@@ -238,3 +243,4 @@ describe('date formatting', () => {
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Updated multi-language section from "Phase 2 future" to "Implemented", added date formatting note |

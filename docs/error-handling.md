@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -48,6 +48,7 @@ func (s *ProfileService) GetProfile(ctx context.Context, uid string) (*Profile, 
 | Code | HTTP Status | When to Use |
 |------|-------------|-------------|
 | `VALIDATION_ERROR` | 400 | Invalid input, missing fields |
+| `CAPTCHA_FAILED` | 400 | Turnstile verification failed |
 | `UNAUTHORIZED` | 401 | Missing/invalid Firebase ID token |
 | `FORBIDDEN` | 403 | Authenticated but not authorized |
 | `NOT_FOUND` | 404 | Resource doesn't exist |
@@ -166,6 +167,8 @@ if status.Code(err) == codes.AlreadyExists {
 }
 ```
 
+> **Note**: The `AlreadyExists` check above is shown for reference but is not currently used in the codebase. The profile service checks for duplicates at the service layer by querying first, then creating.
+
 ---
 
 ## Chi Middleware Recovery
@@ -225,3 +228,4 @@ No custom recovery middleware is needed.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Added CAPTCHA_FAILED error code, added note about AlreadyExists pattern not being used |

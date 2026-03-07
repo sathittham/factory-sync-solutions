@@ -65,13 +65,13 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 
 | Secret | Description |
 |--------|-------------|
-| `GCP_SA_KEY` | GCP service account key JSON (Cloud Functions deployment) |
+| `GCP_SA_KEY` | GCP service account key JSON (Cloud Run deployment) |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API token (Pages deployment) |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
-| `RESEND_API_KEY` | Resend email API key (injected into Cloud Function) |
-| `CF_TURNSTILE_SECRET` | Cloudflare Turnstile server secret (injected into Cloud Function) |
-| `SLACK_WEBHOOK_REGISTRATION` | Slack webhook for registrations (injected into Cloud Function) |
-| `SLACK_WEBHOOK_QUIZ_RESULT` | Slack webhook for quiz results (injected into Cloud Function) |
+| `RESEND_API_KEY` | Resend email API key (injected into Cloud Run) |
+| `CF_TURNSTILE_SECRET` | Cloudflare Turnstile server secret (injected into Cloud Run) |
+| `SLACK_WEBHOOK_REGISTRATION` | Slack webhook for registrations (injected into Cloud Run) |
+| `SLACK_WEBHOOK_QUIZ_RESULT` | Slack webhook for quiz results (injected into Cloud Run) |
 
 ### GitHub Variables (per environment)
 
@@ -125,10 +125,10 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 ## Rules
 
 - **Never commit `.env` files** — only `.env.example` (without real values) is committed.
-- **Use GitHub Secrets** for all secrets in staging and production. Secrets are injected into Cloud Functions at deploy time via `environment_variables`.
+- **Use GitHub Secrets** for all secrets in staging and production. Secrets are injected into Cloud Run at deploy time via `--set-env-vars`.
 - **Only `VITE_` prefixed vars** are exposed to the browser — never put secrets there.
 - **Rotate keys regularly** — Resend API key, Turnstile secret, Slack webhooks.
-- **Migration path** — if you outgrow GitHub Secrets, switch to GCP Secret Manager via Cloud Functions `--set-secrets` flag. No code changes needed — `os.Getenv()` stays the same.
+- **Migration path** — if you outgrow GitHub Secrets, switch to GCP Secret Manager via Cloud Run `--set-secrets` flag. No code changes needed — `os.Getenv()` stays the same.
 
 ---
 
@@ -138,3 +138,4 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-06 | Updated to GitHub Secrets strategy, fixed Slack webhook names, added workflow triggers table |
+| 1.2.0 | 2026-03-07 | Updated Cloud Functions → Cloud Run references throughout |

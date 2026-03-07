@@ -89,6 +89,15 @@ func (s *Service) CreateProfile(ctx context.Context, uid, email, displayName str
 	return profile, nil
 }
 
+// GetProfilesByUIDs returns profiles for the given UIDs (batch lookup for admin).
+func (s *Service) GetProfilesByUIDs(ctx context.Context, uids []string) (map[string]*Profile, error) {
+	profiles, err := s.repo.GetByUIDs(ctx, uids)
+	if err != nil {
+		return nil, fmt.Errorf("get profiles by uids: %w", err)
+	}
+	return profiles, nil
+}
+
 func (s *Service) UpdateProfile(ctx context.Context, uid string, req *UpdateProfileRequest) (*Profile, error) {
 	existing, err := s.repo.GetByUID(ctx, uid)
 	if err != nil {

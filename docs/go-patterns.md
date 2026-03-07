@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -52,16 +52,22 @@ apps/api/
 │   ├── scoring/
 │   │   ├── scoring.go         # Score computation logic
 │   │   └── scoring_test.go
+│   ├── dbd/
+│   │   ├── handler.go
+│   │   ├── handler_test.go
+│   │   ├── models.go
+│   │   ├── service.go
+│   │   └── service_test.go
 │   ├── result/
 │   │   ├── handler.go
+│   │   ├── repository.go
 │   │   └── service.go
 │   ├── notification/
 │   │   ├── email.go           # Resend email integration
 │   │   ├── slack.go           # Slack webhook integration
 │   │   └── service.go
 │   └── admin/
-│       ├── handler.go
-│       └── service.go
+│       └── handler.go         # Handler with inline orchestration (no separate service layer)
 ├── middleware/
 │   ├── auth.go                # Firebase token verification
 │   ├── cors.go                # CORS configuration
@@ -445,7 +451,7 @@ Initialize the Firestore client once at startup. The Firebase Admin SDK resolves
 
 - **Local dev**: Set `GOOGLE_APPLICATION_CREDENTIALS` env var pointing to a service account JSON file, or use `gcloud auth application-default login`.
 - **Firestore Emulator**: Set `FIRESTORE_EMULATOR_HOST=localhost:8080` (no credentials needed).
-- **GCP (Cloud Functions)**: Uses Application Default Credentials automatically — no env var needed.
+- **GCP (Cloud Run)**: Uses Application Default Credentials automatically — no env var needed.
 
 See [env-variables.md](env-variables.md) for the full list of required environment variables.
 
@@ -552,36 +558,23 @@ func (m *MockRepository) Create(ctx context.Context, profile *Profile) error {
 }
 ```
 
-## Cloud Functions Entry Point
-
-For deployment as a Google Cloud Function (2nd gen):
+## Cloud Run Entry Point
 
 ```go
 package main
 
-import (
-    "context"
-    "log"
-    "net/http"
-    "os"
-
-    "github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
-)
-
 func main() {
     // Setup router with all routes and middleware
     r := setupRouter()
-
-    // Register with Functions Framework
-    funcframework.RegisterHTTPFunction("/", r.ServeHTTP)
 
     port := os.Getenv("PORT")
     if port == "" {
         port = "8080"
     }
 
-    if err := funcframework.Start(port); err != nil {
-        log.Fatalf("funcframework.Start: %v", err)
+    slog.Info("server starting", "port", port)
+    if err := http.ListenAndServe(":"+port, r); err != nil {
+        log.Fatalf("server error: %v", err)
     }
 }
 ```
@@ -645,4 +638,5 @@ func RespondError(w http.ResponseWriter, status int, code, message string) {
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.1.0 | 2026-03-07 | Add dbd service, fix result/admin structure, update to Cloud Run entry point |
 | 1.0.0 | 2026-03-06 | Initial version |

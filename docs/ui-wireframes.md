@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -195,7 +195,7 @@ author: Sathittham Sangthong
 **Components**: `Progress`, `RadioGroup`, `Card`, `Button` (shadcn)
 **data-testid**: `quiz-stepper`, `quiz-question-card`, `quiz-next-btn`, `quiz-prev-btn`, `quiz-submit-btn`
 
-## 4. Result Page (/result)
+## 4. Result Page (/results)
 
 ### Mobile
 
@@ -303,6 +303,13 @@ author: Sathittham Sangthong
 **Components**: `Card` (stats), `Select` (filters), `Table`, `Button` (shadcn)
 **data-testid**: `admin-assessment-table`, `admin-filter-industry`, `admin-filter-size`, `admin-export-csv-btn`
 
+## Notes
+
+> **Not yet wireframed**: The following pages/elements exist in implementation but are not yet documented here:
+> - **Profile Page (`/profile`)**: Editable company profile with pre-filled registration data
+> - **Navigation header**: Hamburger menu (mobile), language toggle (TH/EN), user menu
+> - The "Email Me My Results" button shown in the Result Page wireframe is planned but not yet implemented in the frontend.
+
 ## 6. 404 Page
 
 ```
@@ -394,3 +401,4 @@ author: Sathittham Sangthong
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Fixed /result → /results route, added notes about missing wireframes (ProfilePage, nav, email button) |

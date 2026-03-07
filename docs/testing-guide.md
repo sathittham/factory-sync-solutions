@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -540,8 +540,8 @@ cd apps/api && go test -race ./...
 # Skip integration tests (unit only)
 cd apps/api && go test -short ./...
 
-# Using Turborepo (from project root)
-npx turbo test --filter=api
+# Using Makefile (from project root)
+make test-api
 ```
 
 ## Checklist for Testable Services
@@ -562,3 +562,4 @@ npx turbo test --filter=api
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Replaced Turborepo reference with Makefile |

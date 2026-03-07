@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -172,11 +172,12 @@ go test -v -race ./...
 go vet ./...
 ```
 
-### Via Turborepo
+### Via Makefile
 
 ```bash
-# Root-level — runs both frontend and backend lint
-npx turbo lint
+# Root-level — runs both frontend and backend checks
+make lint
+make test
 ```
 
 ## Complexity Thresholds
@@ -221,3 +222,4 @@ Before submitting code:
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Replaced Turborepo reference with Makefile |

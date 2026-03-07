@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -15,7 +15,7 @@ flowchart TD
     C -- No --> D[Click Sign in with Google]
     D --> E[Firebase Google Sign-In]
     E --> F{Auth success?}
-    F -- No --> G[Show error, stay on /auth]
+    F -- No --> G[Show error on landing page]
     F -- Yes --> H{Has profile?}
     C -- Yes --> H
 
@@ -28,7 +28,7 @@ flowchart TD
 
     H -- Yes --> O{Has completed quiz?}
     O -- No --> N
-    O -- Yes --> P[Redirect to /result]
+    O -- Yes --> P[Redirect to /results]
 
     N --> Q[Answer 35 questions across 7 dimensions]
     Q --> R[Submit quiz]
@@ -36,7 +36,7 @@ flowchart TD
     S --> T[Store assessment in Firestore]
     T --> U[Send result email via Resend]
     T --> V[Slack notification to #quiz-results]
-    U --> W[Redirect to /result]
+    U --> W[Redirect to /results]
     V --> W
 
     W --> X[View Result Page]
@@ -85,7 +85,7 @@ sequenceDiagram
     API->>SL: POST webhook (#quiz-results)
 
     API-->>SPA: 201 Created { assessment result }
-    SPA->>SPA: Redirect to /result
+    SPA->>SPA: Redirect to /results
 ```
 
 ## Route Guard Logic
@@ -95,7 +95,7 @@ flowchart TD
     A[User navigates to route] --> B{Route requires auth?}
     B -- No --> C[Allow access]
     B -- Yes --> D{isAuthenticated?}
-    D -- No --> E[Redirect to /auth]
+    D -- No --> E[Redirect to /]
     D -- Yes --> F{Route requires registration?}
     F -- No --> G[Allow access]
     F -- Yes --> H{isRegistered?}
@@ -112,10 +112,10 @@ flowchart TD
 | Route | Auth | Registered | Admin |
 |-------|------|-----------|-------|
 | `/` | - | - | - |
-| `/auth` | - | - | - |
 | `/register` | Required | - | - |
 | `/quiz` | Required | Required | - |
-| `/result` | Required | Required | - |
+| `/results` | Required | Required | - |
+| `/profile` | Required | Required | - |
 | `/admin` | Required | Required | Required |
 
 ## State Transitions
@@ -128,7 +128,7 @@ stateDiagram-v2
     NotStarted --> InProgress : User answers first question
     InProgress --> InProgress : Navigate between dimensions
     InProgress --> Completed : Submit all answers
-    Completed --> [*] : Redirect to /result
+    Completed --> [*] : Redirect to /results
 ```
 
 ### Authentication State
@@ -149,3 +149,4 @@ stateDiagram-v2
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Fix route names (/result -> /results), remove /auth route, add /profile route, fix redirect targets |

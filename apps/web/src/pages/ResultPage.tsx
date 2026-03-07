@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
 	Radar,
 	RadarChart,
@@ -14,34 +14,50 @@ import {
 	setAssessments,
 	setLoading,
 	type Assessment,
+	type DimensionScore,
 } from "@/store/resultSlice";
 import { useLocale } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const diagnosisConfig: Record<string, { color: string; bg: string; border: string; icon: string }> = {
-	Beginning: { color: "text-red-700", bg: "bg-red-50", border: "border-red-200", icon: "M12 9v2m0 4h.01" },
-	Developing: { color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200", icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" },
-	Established: { color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200", icon: "M9 12l2 2 4-4" },
-	Advanced: { color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", icon: "M5 13l4 4L19 7" },
+const diagnosisConfig: Record<string, { color: string; bg: string; border: string }> = {
+	Beginning: { color: "text-red-700", bg: "bg-red-50", border: "border-red-200" },
+	Developing: { color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200" },
+	Established: { color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200" },
+	Advanced: { color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" },
 };
 
-function ScoreRing({ score, size = 120 }: { score: number; size?: number }) {
+function getScoreColor(score: number): string {
+	if (score >= 4) return "hsl(152 60% 38%)";
+	if (score >= 3) return "hsl(220 65% 48%)";
+	if (score >= 2) return "hsl(38 92% 50%)";
+	return "hsl(0 72% 51%)";
+}
+
+function ScoreRing({ score, size = 140 }: Readonly<{ score: number; size?: number }>) {
 	const pct = (score / 5) * 100;
-	const r = (size - 12) / 2;
+	const strokeW = 10;
+	const r = (size - strokeW) / 2;
 	const circumference = 2 * Math.PI * r;
 	const offset = circumference - (pct / 100) * circumference;
 
 	return (
 		<svg width={size} height={size} className="transform -rotate-90">
-			<circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(220 15% 92%)" strokeWidth="10" />
 			<circle
 				cx={size / 2}
 				cy={size / 2}
 				r={r}
 				fill="none"
-				stroke="hsl(220 70% 45%)"
-				strokeWidth="10"
+				stroke="hsl(220 14% 93%)"
+				strokeWidth={strokeW}
+			/>
+			<circle
+				cx={size / 2}
+				cy={size / 2}
+				r={r}
+				fill="none"
+				stroke="hsl(220 65% 48%)"
+				strokeWidth={strokeW}
 				strokeLinecap="round"
 				strokeDasharray={circumference}
 				strokeDashoffset={offset}
@@ -51,10 +67,82 @@ function ScoreRing({ score, size = 120 }: { score: number; size?: number }) {
 	);
 }
 
+function DimensionDetail({ dim, isOpen, onToggle }: Readonly<{
+	dim: DimensionScore;
+	isOpen: boolean;
+	onToggle: () => void;
+}>) {
+	const pct = (dim.score / 5) * 100;
+	const scoreColor = getScoreColor(dim.score);
+
+	return (
+		<div className="border rounded-lg overflow-hidden transition-colors">
+			<button
+				type="button"
+				onClick={onToggle}
+				className="w-full flex items-center gap-3 p-4 text-left hover:bg-muted/30 transition-colors"
+			>
+				<div className="flex-1 min-w-0">
+					<div className="flex items-center justify-between mb-1.5">
+						<span className="text-sm font-medium truncate mr-2">{dim.dimensionName}</span>
+						<span className="text-sm font-mono font-semibold tabular-nums" style={{ color: scoreColor }}>
+							{dim.score.toFixed(2)}
+						</span>
+					</div>
+					<div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+						<div
+							className="h-full rounded-full animate-score-fill"
+							style={{ width: `${pct}%`, background: scoreColor }}
+						/>
+					</div>
+				</div>
+				<svg
+					width="16" height="16" viewBox="0 0 16 16" fill="none"
+					className={`text-muted-foreground flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+				>
+					<path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+				</svg>
+			</button>
+
+			{isOpen && (
+				<div className="px-4 pb-4 border-t bg-muted/10 animate-fade-up" style={{ animationDelay: "0s" }}>
+					<div className="pt-3 space-y-2">
+						<div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+							<span>Score breakdown</span>
+							<span className="font-mono">{dim.score.toFixed(2)} / {dim.maxScore.toFixed(2)}</span>
+						</div>
+						{/* Visual score indicator */}
+						<div className="grid grid-cols-5 gap-1">
+							{[1, 2, 3, 4, 5].map((level) => (
+								<div key={level} className="text-center">
+									<div
+										className={`h-8 rounded-md flex items-center justify-center text-xs font-medium transition-colors ${
+											dim.score >= level
+												? "bg-primary/15 text-primary"
+												: "bg-muted/50 text-muted-foreground/40"
+										}`}
+									>
+										{level}
+									</div>
+								</div>
+							))}
+						</div>
+						<div className="flex justify-between text-[10px] text-muted-foreground">
+							<span>Beginning</span>
+							<span>Advanced</span>
+						</div>
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
+
 export function ResultPage() {
 	const dispatch = useAppDispatch();
 	const { assessment, assessments, loading } = useAppSelector((s) => s.result);
 	const { t } = useLocale();
+	const [expandedDim, setExpandedDim] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (!assessment && !loading) {
@@ -77,20 +165,20 @@ export function ResultPage() {
 			<div className="container max-w-4xl py-10 space-y-6">
 				<Skeleton className="h-10 w-64" />
 				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-					<Skeleton className="h-40 rounded-2xl" />
-					<Skeleton className="h-40 rounded-2xl col-span-2" />
+					<Skeleton className="h-44 rounded-lg" />
+					<Skeleton className="h-44 rounded-lg col-span-2" />
 				</div>
-				<Skeleton className="h-80 rounded-2xl" />
+				<Skeleton className="h-80 rounded-lg" />
 			</div>
 		);
 	}
 
 	if (!assessment) {
 		return (
-			<div className="min-h-[calc(100vh-10rem)] flex items-center justify-center p-4">
+			<div className="min-h-[calc(100vh-7rem)] flex items-center justify-center p-4">
 				<div className="text-center animate-fade-up">
-					<div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-						<svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-muted-foreground">
+					<div className="h-14 w-14 rounded-lg bg-muted flex items-center justify-center mx-auto mb-4">
+						<svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-muted-foreground">
 							<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
 						</svg>
 					</div>
@@ -111,56 +199,59 @@ export function ResultPage() {
 	}));
 
 	return (
-		<div className="bg-dots min-h-[calc(100vh-4rem)]">
-			<div className="container max-w-4xl py-8 sm:py-10 space-y-6" data-testid="result-summary">
+		<div className="min-h-[calc(100vh-3.5rem)]">
+			<div className="container max-w-4xl py-6 sm:py-8 space-y-5" data-testid="result-summary">
 				{/* Hero score section */}
-				<div className="bg-white rounded-2xl border shadow-sm overflow-hidden animate-fade-up">
-					<div className="h-1 bg-gradient-to-r from-primary via-primary/80 to-accent" />
-					<div className="p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6">
-						{/* Score ring */}
+				<div className="bg-white rounded-lg border p-6 sm:p-8 animate-fade-up">
+					<div className="flex flex-col sm:flex-row items-center gap-6">
 						<div className="relative flex-shrink-0">
-							<ScoreRing score={assessment.overallScore} size={140} />
+							<ScoreRing score={assessment.overallScore} size={148} />
 							<div className="absolute inset-0 flex flex-col items-center justify-center">
-								<span className="text-3xl font-extrabold tabular-nums">
+								<span className="text-3xl sm:text-4xl font-bold tabular-nums tracking-tight">
 									{assessment.overallScore.toFixed(2)}
 								</span>
-								<span className="text-xs text-muted-foreground font-medium">/5.00</span>
+								<span className="text-xs text-muted-foreground font-mono">/5.00</span>
 							</div>
 						</div>
 
-						<div className="text-center sm:text-left">
-							<h1 className="text-2xl font-extrabold mb-2">{t("result.overallScore")}</h1>
-							<Badge className={`text-sm px-3 py-1 ${diag.bg} ${diag.color} ${diag.border} border font-semibold`}>
+						<div className="text-center sm:text-left flex-1">
+							<h1 className="text-2xl sm:text-3xl font-bold mb-2">{t("result.overallScore")}</h1>
+							<Badge className={`text-sm px-3 py-1 ${diag.bg} ${diag.color} ${diag.border} border font-medium`}>
 								{t(`diagnosis.${assessment.diagnosis}`)}
 							</Badge>
+							{assessment.submittedAt && (
+								<p className="text-xs text-muted-foreground font-mono mt-3">
+									{new Date(assessment.submittedAt).toLocaleDateString()}
+								</p>
+							)}
 						</div>
 					</div>
 				</div>
 
-				{/* Radar + Dimension scores side by side */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				{/* Radar + Dimension detail */}
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 					{/* Radar Chart */}
-					<div className="bg-white rounded-2xl border shadow-sm p-6 animate-fade-up" data-testid="result-spider-chart" style={{ animationDelay: "0.1s" }}>
-						<h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
+					<div className="bg-white rounded-lg border p-6 animate-fade-up" data-testid="result-spider-chart" style={{ animationDelay: "0.1s" }}>
+						<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
 							{t("result.dimensionScores")}
 						</h2>
-						<ResponsiveContainer width="100%" height={300}>
+						<ResponsiveContainer width="100%" height={280} className="sm:[&]:!h-[320px]">
 							<RadarChart data={radarData}>
-								<PolarGrid stroke="hsl(220 15% 88%)" />
+								<PolarGrid stroke="hsl(220 13% 91%)" strokeDasharray="3 3" />
 								<PolarAngleAxis
 									dataKey="dimension"
-									tick={{ fontSize: 11, fill: "hsl(220 10% 46%)" }}
+									tick={{ fontSize: 10, fill: "hsl(220 8% 46%)" }}
 								/>
 								<PolarRadiusAxis
 									angle={90}
 									domain={[0, 5]}
-									tick={{ fontSize: 9, fill: "hsl(220 10% 60%)" }}
+									tick={{ fontSize: 9, fill: "hsl(220 8% 60%)" }}
 								/>
 								<Radar
 									dataKey="score"
-									stroke="hsl(220 70% 45%)"
-									fill="hsl(220 70% 45%)"
-									fillOpacity={0.15}
+									stroke="hsl(220 65% 48%)"
+									fill="hsl(220 65% 48%)"
+									fillOpacity={0.12}
 									strokeWidth={2}
 								/>
 							</RadarChart>
@@ -174,57 +265,43 @@ export function ResultPage() {
 						</div>
 					</div>
 
-					{/* Dimension bars */}
-					<div className="bg-white rounded-2xl border shadow-sm p-6 animate-fade-up" style={{ animationDelay: "0.15s" }}>
-						<h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
-							{t("result.dimensionScores")}
+					{/* Dimension detail list — clickable */}
+					<div className="bg-white rounded-lg border p-6 animate-fade-up" style={{ animationDelay: "0.15s" }}>
+						<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+							{t("result.dimensionDetail")}
 						</h2>
-						<div className="space-y-4">
-							{scores.map((s, i) => (
-								<div key={s.dimensionId} className="animate-fade-up" style={{ animationDelay: `${0.2 + i * 0.05}s` }}>
-									<div className="flex justify-between items-baseline mb-1.5">
-										<span className="text-sm font-medium truncate mr-2">{s.dimensionName}</span>
-										<span className="text-sm font-mono font-bold tabular-nums">{s.score.toFixed(2)}</span>
-									</div>
-									<div className="h-2.5 bg-secondary rounded-full overflow-hidden">
-										<div
-											className="h-full rounded-full animate-score-fill"
-											style={{
-												width: `${(s.score / 5) * 100}%`,
-												background: s.score >= 3.5
-													? "hsl(152 60% 40%)"
-													: s.score >= 2.5
-														? "hsl(220 70% 45%)"
-														: "hsl(0 72% 51%)",
-												animationDelay: `${0.3 + i * 0.08}s`,
-											}}
-										/>
-									</div>
-								</div>
+						<div className="space-y-2">
+							{scores.map((s) => (
+								<DimensionDetail
+									key={s.dimensionId}
+									dim={s}
+									isOpen={expandedDim === s.dimensionId}
+									onToggle={() => setExpandedDim(expandedDim === s.dimensionId ? null : s.dimensionId)}
+								/>
 							))}
 						</div>
 					</div>
 				</div>
 
 				{/* Strengths & Weaknesses */}
-				<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+				<div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 					{assessment.strengths?.length > 0 && (
-						<div className="bg-white rounded-2xl border shadow-sm p-6 animate-fade-up" data-testid="result-strengths-panel" style={{ animationDelay: "0.25s" }}>
+						<div className="bg-white rounded-lg border border-emerald-200 p-6 animate-fade-up" data-testid="result-strengths-panel" style={{ animationDelay: "0.25s" }}>
 							<div className="flex items-center gap-2 mb-4">
-								<div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-emerald-600">
+								<div className="h-7 w-7 rounded-md bg-emerald-50 flex items-center justify-center">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-emerald-600">
 										<path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
 									</svg>
 								</div>
-								<h3 className="text-sm font-bold uppercase tracking-wider text-emerald-700">
+								<h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
 									{t("result.strengths")}
 								</h3>
 							</div>
 							<ul className="space-y-2">
 								{assessment.strengths.map((s) => (
-									<li key={s} className="flex items-start gap-2 text-sm">
+									<li key={s} className="flex items-start gap-2 text-[13px] leading-relaxed">
 										<span className="text-emerald-500 mt-0.5 flex-shrink-0">+</span>
-										{s}
+										<span className="text-foreground/80">{s}</span>
 									</li>
 								))}
 							</ul>
@@ -232,22 +309,22 @@ export function ResultPage() {
 					)}
 
 					{assessment.weaknesses?.length > 0 && (
-						<div className="bg-white rounded-2xl border shadow-sm p-6 animate-fade-up" data-testid="result-weaknesses-panel" style={{ animationDelay: "0.3s" }}>
+						<div className="bg-white rounded-lg border border-red-200 p-6 animate-fade-up" data-testid="result-weaknesses-panel" style={{ animationDelay: "0.3s" }}>
 							<div className="flex items-center gap-2 mb-4">
-								<div className="h-8 w-8 rounded-lg bg-red-50 flex items-center justify-center">
-									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-red-500">
+								<div className="h-7 w-7 rounded-md bg-red-50 flex items-center justify-center">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-red-500">
 										<path d="M12 9v2m0 4h.01M5.07 19h13.86c1.1 0 1.8-1.17 1.26-2.12l-6.93-12c-.54-.94-1.9-.94-2.44 0l-6.93 12C4.35 17.83 5.05 19 6.15 19z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
 									</svg>
 								</div>
-								<h3 className="text-sm font-bold uppercase tracking-wider text-red-700">
+								<h3 className="text-xs font-semibold uppercase tracking-wider text-red-700">
 									{t("result.weaknesses")}
 								</h3>
 							</div>
 							<ul className="space-y-2">
 								{assessment.weaknesses.map((w) => (
-									<li key={w} className="flex items-start gap-2 text-sm">
+									<li key={w} className="flex items-start gap-2 text-[13px] leading-relaxed">
 										<span className="text-red-400 mt-0.5 flex-shrink-0">!</span>
-										{w}
+										<span className="text-foreground/80">{w}</span>
 									</li>
 								))}
 							</ul>
@@ -257,31 +334,33 @@ export function ResultPage() {
 
 				{/* Previous assessments */}
 				{assessments.length > 1 && (
-					<div className="bg-white rounded-2xl border shadow-sm p-6 animate-fade-up" style={{ animationDelay: "0.35s" }}>
-						<h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
+					<div className="bg-white rounded-lg border p-6 animate-fade-up" style={{ animationDelay: "0.35s" }}>
+						<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
 							{t("result.previousAssessments")}
 						</h2>
-						<div className="space-y-1.5">
+						<div className="space-y-1">
 							{assessments.map((a) => (
 								<button
 									key={a.id}
 									type="button"
 									onClick={() => dispatch(setAssessment(a))}
-									className={`w-full flex justify-between items-center p-3 rounded-lg text-sm transition-colors ${
+									className={`w-full flex justify-between items-center p-3 rounded-md text-sm transition-colors ${
 										a.id === assessment.id
-											? "bg-primary/5 border border-primary/20"
-											: "hover:bg-muted"
+											? "bg-primary/5 border border-primary/15"
+											: "hover:bg-muted/50 border border-transparent"
 									}`}
 								>
-									<span className="text-muted-foreground">
+									<span className="text-muted-foreground font-mono text-xs">
 										{new Date(a.submittedAt).toLocaleDateString()}
 									</span>
-									<span className="font-mono font-bold">
-										{a.overallScore.toFixed(2)}
-										<span className="text-muted-foreground font-normal ml-2">
-											{t(`diagnosis.${a.diagnosis}`)}
+									<div className="flex items-center gap-2">
+										<span className="font-mono font-semibold tabular-nums">
+											{a.overallScore.toFixed(2)}
 										</span>
-									</span>
+										<Badge className={`text-[10px] px-2 py-0.5 border ${(diagnosisConfig[a.diagnosis] || diagnosisConfig.Beginning).bg} ${(diagnosisConfig[a.diagnosis] || diagnosisConfig.Beginning).color} ${(diagnosisConfig[a.diagnosis] || diagnosisConfig.Beginning).border}`}>
+											{t(`diagnosis.${a.diagnosis}`)}
+										</Badge>
+									</div>
 								</button>
 							))}
 						</div>

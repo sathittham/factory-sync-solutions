@@ -45,6 +45,20 @@ func (m *MockRepository) Update(ctx context.Context, uid string, updates []fires
 	return nil
 }
 
+func (m *MockRepository) GetByUIDs(ctx context.Context, uids []string) (map[string]*Profile, error) {
+	result := make(map[string]*Profile)
+	for _, uid := range uids {
+		p, err := m.GetByUID(ctx, uid)
+		if err != nil {
+			return nil, err
+		}
+		if p != nil {
+			result[uid] = p
+		}
+	}
+	return result, nil
+}
+
 func TestGetProfile_Success(t *testing.T) {
 	mock := &MockRepository{
 		GetByUIDFunc: func(ctx context.Context, uid string) (*Profile, error) {

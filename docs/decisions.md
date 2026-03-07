@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -55,16 +55,16 @@ author: Sathittham Sangthong
 - Widely adopted with strong ecosystem and community support
 - TypeScript-first with good type inference
 
-## ADR-006: Turborepo for Monorepo
+## ADR-006: Makefile for Monorepo
 
-**Decision**: Use Turborepo to manage the monorepo containing frontend (React) and backend (Go) apps.
+**Decision**: Use a Makefile to manage the monorepo containing frontend (React) and backend (Go) apps. Previously used Turborepo but migrated to Makefile for simplicity.
 
 **Rationale**:
-- Unified `build`, `lint`, `test` pipelines across apps and packages
-- Incremental builds with intelligent caching (local + remote)
-- Parallel task execution for faster CI
-- Simple configuration via `turbo.json`
-- Single `npm install` at root manages all JS workspaces
+- Unified `build`, `lint`, `test` commands across apps
+- No Node.js dependency for running Go tasks
+- Simple, explicit task definitions
+- Works natively on all Unix systems
+- Single entry point for all development workflows
 
 ## ADR-007: Biome over ESLint + Prettier
 
@@ -106,9 +106,11 @@ author: Sathittham Sangthong
 - Built-in middleware support (CORS, logging, auth, rate limiting)
 - Route grouping for API versioning (`/api/v1/`)
 
-## ADR-011: Swagger/OpenAPI via swaggo
+## ADR-011: Swagger/OpenAPI via swaggo (Planned)
 
 **Decision**: Auto-generate API documentation from Go source code using `swaggo/swag`.
+
+**Status**: Not yet implemented. Swagger annotations exist in handler code as comments, but swaggo is not installed (not in go.mod) and the Swagger UI route is commented out in `main.go`. See [swagger-openapi.md](swagger-openapi.md) for the planned setup.
 
 **Rationale**:
 - Docs stay in sync with code via source annotations
@@ -132,7 +134,7 @@ author: Sathittham Sangthong
 
 **Rationale**:
 - Globally unique without coordination (no auto-increment or sequence)
-- Safe for distributed systems (multiple Cloud Function instances)
+- Safe for distributed systems (multiple Cloud Run instances)
 - No information leakage (unlike sequential IDs)
 - Standard format recognized across all languages and tools
 
@@ -147,6 +149,28 @@ author: Sathittham Sangthong
 - CI/CD integration via official `slackapi/slack-github-action`
 - Team already uses Slack for communication
 
+## ADR-015: Multi-Language Support (Thai/English)
+
+**Decision**: Implement bilingual support (Thai and English) with a language switcher in the header.
+
+**Rationale**:
+- Primary users are Thai factory operators who may prefer Thai UI
+- International stakeholders need English option
+- `useLocale()` hook manages locale state
+- Quiz questions stored with `textTh`/`textEn` fields in static JSON config
+- Dimension names stored with `nameTh`/`nameEn` fields
+- No external i18n library needed for current scope
+
+## ADR-016: DBD DataWarehouse Integration
+
+**Decision**: Add a `dbd-service` to look up Thai company information from the Department of Business Development (DBD) DataWarehouse by registration ID.
+
+**Rationale**:
+- Auto-prefills company registration form with official data
+- Reduces user input errors
+- Uses publicly available DBD DataWarehouse API
+- Improves UX by requiring only the 13-digit registration ID
+
 ---
 
 ## Changelog
@@ -154,3 +178,4 @@ author: Sathittham Sangthong
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Updated ADR-006 (Turborepo → Makefile), ADR-011 (Swagger status), ADR-013 (Cloud Run), added ADR-015 (i18n) and ADR-016 (DBD) |

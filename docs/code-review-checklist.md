@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -24,7 +24,7 @@ Check every item below when writing or modifying code. For new endpoints or serv
 - [ ] Firestore security rules enforce user-scoped access (users can only read/write their own data)
 - [ ] Cloudflare Turnstile token verified server-side on registration form
 - [ ] Rate limiting on public endpoints
-- [ ] Secrets stored in GCP Secret Manager or env vars — never hardcoded
+- [ ] Secrets stored in GitHub Secrets or env vars — never hardcoded
 - [ ] User input sanitized — no injection vectors
 - [ ] CORS origins from `ALLOWED_ORIGINS` env var — no wildcard in production
 
@@ -40,7 +40,7 @@ Check every item below when writing or modifying code. For new endpoints or serv
 - [ ] camelCase for JSON tags and Firestore field names
 - [ ] HTTP status codes match convention (200/201/400/401/403/404/409/500)
 - [ ] Error codes match convention: `VALIDATION_ERROR`, `NOT_FOUND`, `CONFLICT`, `FORBIDDEN`, `INTERNAL_ERROR`
-- [ ] Swagger annotations on all handler functions (`@Summary`, `@Param`, `@Success`, `@Router`)
+- [ ] Swagger annotations on handler functions (when swaggo is implemented — see [swagger-openapi.md](swagger-openapi.md))
 - [ ] Timestamps use UTC RFC3339 format
 
 ---
@@ -59,7 +59,7 @@ Check every item below when writing or modifying code. For new endpoints or serv
 ## 4. Cost Optimization
 
 - [ ] Firestore reads minimized — fetch only what's needed
-- [ ] Cloud Functions configured with appropriate memory (256–512 MB) and timeout (10–30s)
+- [ ] Cloud Run configured with appropriate memory and timeout settings
 - [ ] Cloud Logging retention set per environment (staging: 14 days, production: 90 days)
 - [ ] No unbounded Firestore queries — always use limits
 - [ ] Quiz question definitions served from bundled config — zero Firestore read cost
@@ -134,8 +134,9 @@ npx biome check .
 npm run test
 npx tsc --noEmit
 
-# Full pipeline
-npx turbo lint test
+# Full pipeline (from project root)
+make lint
+make test
 ```
 
 ---
@@ -145,3 +146,4 @@ npx turbo lint test
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Updated: Swagger note, Cloud Functions → Cloud Run, GCP Secret Manager → GitHub Secrets, turbo → Makefile |

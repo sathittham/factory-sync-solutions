@@ -12,6 +12,7 @@ import (
 // RepositoryInterface defines the profile data access contract.
 type RepositoryInterface interface {
 	GetByUID(ctx context.Context, uid string) (*Profile, error)
+	GetByUIDs(ctx context.Context, uids []string) (map[string]*Profile, error)
 	GetByRegID(ctx context.Context, regID string) (*Profile, error)
 	Create(ctx context.Context, profile *Profile) error
 	Update(ctx context.Context, uid string, updates []firestore.Update) error
@@ -40,6 +41,39 @@ func (r *Repository) GetByUID(ctx context.Context, uid string) (*Profile, error)
 		return nil, fmt.Errorf("unmarshal profile: %w", err)
 	}
 	return &profile, nil
+}
+
+func (r *Repository) GetByUIDs(ctx context.Context, uids []string) (map[string]*Profile, error) {
+	profiles := make(map[string]*Profile, len(uids))
+	if len(uids) == 0 {
+		return profiles, nil
+	}
+
+	// Firestore GetAll by document refs — no batch-size limit
+	refs := make([]*firestore.DocumentRef, len(uids))
+	for i, uid := range uids {
+		refs[i] = r.client.Collection("users").Doc(uid)
+	}
+
+	docs, err := r.client.GetAll(ctx, refs)
+	if err != nil {
+		return nil, fmt.Errorf("firestore get all: %w", err)
+	}
+
+	for _, doc := range docs {
+		if !doc.Exists() {
+			continue
+		}
+		var p Profile
+		if err := doc.DataTo(&p); err != nil {
+			continue
+		}
+		// Use document ID as key — more reliable than p.UID which may be empty
+		// if the uid field wasn't stored in the document data.
+		p.UID = doc.Ref.ID
+		profiles[doc.Ref.ID] = &p
+	}
+	return profiles, nil
 }
 
 func (r *Repository) GetByRegID(ctx context.Context, regID string) (*Profile, error) {

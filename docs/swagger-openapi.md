@@ -8,6 +8,10 @@ author: Sathittham Sangthong
 
 ## Overview
 
+> **Status: NOT YET IMPLEMENTED**
+>
+> Swagger annotations exist in handler source code, but swaggo is not installed (`go.mod` does not include it), the Swagger UI route is commented out in `main.go`, and CI does not run `swag init`. This document describes the planned setup for when Swagger is enabled.
+
 Use **swaggo/swag** to auto-generate OpenAPI documentation from Go code annotations. Swagger UI is served at `/api/v1/swagger/` in non-production environments.
 
 ## Setup
@@ -43,7 +47,7 @@ apps/api/docs/
 └── swagger.yaml  # OpenAPI spec (YAML)
 ```
 
-> Note: `apps/api/docs/` is gitignored — regenerated in CI before each build.
+> Note: `apps/api/docs/` would be gitignored — not yet generated.
 
 ## Main API Annotation
 
@@ -263,7 +267,7 @@ if os.Getenv("ENVIRONMENT") != "production" {
 
 ## CI/CD Integration
 
-Swagger docs are regenerated in CI before each build. See [testing.md](testing.md) for the full workflow.
+When implemented, Swagger docs will be regenerated in CI before each build. See [testing.md](testing.md) for the full workflow.
 
 ```yaml
 # In the build job
@@ -291,4 +295,5 @@ Swagger docs are regenerated in CI before each build. See [testing.md](testing.m
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.1.0 | 2026-03-07 | Add NOT YET IMPLEMENTED status notice; clarify docs not yet generated and CI not yet active |
 | 1.0.0 | 2026-03-06 | Initial version |

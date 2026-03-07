@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -10,7 +10,7 @@ author: Sathittham Sangthong
 
 - Use only free tiers from GCP and Cloudflare as much as possible.
 - Keep each domain capability as an independent serverless microservice.
-- Monorepo via Turborepo for unified builds, linting, and testing across frontend and backend.
+- Monorepo with Makefile for unified builds, linting, and testing across frontend and backend.
 
 ## Monorepo Layout
 
@@ -29,12 +29,11 @@ factory-health-check/
 │       │   ├── scoring/
 │       │   ├── result/
 │       │   ├── notification/
-│       │   └── admin/
+│       │   ├── admin/
+│       │   └── dbd/              # DBD DataWarehouse company lookup
 │       ├── go.mod
 │       └── main.go
-├── packages/
-│   └── shared/               # Shared configs (quiz question JSON, constants)
-├── turbo.json
+├── Makefile
 ├── package.json
 └── docs/
 ```
@@ -47,8 +46,8 @@ factory-health-check/
 | DNS / CDN / WAF | Cloudflare |
 | Authentication | Firebase Authentication (Google Sign-In) |
 | Core data store | Firestore (Spark/free-tier limits) |
-| Serverless APIs/compute | Google Cloud Functions (2nd gen) with Go 1.25.x |
-| Monorepo | Turborepo |
+| Containerized APIs | Google Cloud Run with Go 1.25.x (Docker) |
+| Monorepo | Makefile (previously Turborepo) |
 | Source control | GitHub |
 | CI/CD | GitHub Actions |
 | Slack notifications | Slack Incoming Webhooks |
@@ -67,6 +66,7 @@ Logical service boundaries:
 | `result-service` | Persist and fetch result summaries |
 | `notification-service` | Send result email and Slack notifications after submission |
 | `admin-service` | Admin analytics queries and management endpoints (role-protected) |
+| `dbd-service` | Thai DBD DataWarehouse company lookup by registration ID |
 
 ## MVP Integration Flow
 
@@ -86,7 +86,8 @@ Logical service boundaries:
 |-------|-------------|
 | `/` | Public |
 | `/register` | Authenticated only |
-| `/quiz`, `/result` | Authenticated + registered |
+| `/quiz`, `/results` | Authenticated + registered |
+| `/profile` | Authenticated + registered |
 | `/admin` | Authenticated + admin role |
 
 ## GA4 Event Tracking
@@ -136,22 +137,23 @@ graph TD
         FS["Firestore Database<br/>users | assessments | email_jobs"]
     end
 
-    subgraph GCF["Google Cloud Functions (Go 1.25.x)"]
+    subgraph GCR["Google Cloud Run (Go 1.25.x)"]
         PS[Profile Service]
         QS[Quiz Service]
         SS[Scoring Service]
         RS[Result Service]
         NS[Notification Service]
         AS[Admin Service]
+        DS[DBD Service]
     end
 
     RESEND["Resend (Email API)"]
     SLACK["Slack (Incoming Webhooks)"]
 
     SPA -- "Google Sign-In" --> AUTH
-    SPA -- "REST API calls<br/>(Bearer ID token)" --> GCF
-    GCF -- "verify token" --> AUTH
-    GCF -- "read/write" --> FS
+    SPA -- "REST API calls<br/>(Bearer ID token)" --> GCR
+    GCR -- "verify token" --> AUTH
+    GCR -- "read/write" --> FS
     NS -- "send email" --> RESEND
     NS -- "send notification" --> SLACK
 ```
@@ -162,7 +164,7 @@ graph TD
 
 1. SPA authenticates user with Firebase Google Sign-In and obtains a Firebase ID token.
 2. For every API call, the SPA sends the ID token in the `Authorization` header: `Bearer <firebase-id-token>`.
-3. Each Go Cloud Function verifies the token using the Firebase Admin SDK (`auth.VerifyIDToken`).
+3. The Go Cloud Run service verifies the token using the Firebase Admin SDK (`auth.VerifyIDToken`).
 4. The verified `uid` is used to scope data access and enforce role-based permissions.
 
 ### CORS
@@ -176,9 +178,8 @@ Go API endpoints must allow cross-origin requests from the SPA:
 ### Rate Limiting
 
 Apply rate limiting on Go API endpoints to prevent abuse:
-- **Public endpoints**: 60 requests/minute per IP
-- **Authenticated endpoints**: 120 requests/minute per user
-- Use Cloudflare WAF rate limiting rules as the primary layer, with per-instance in-memory limiters as defense-in-depth. See [security-guide.md](security-guide.md#rate-limiting) for details.
+- **Per-instance in-memory limiter**: 10 requests/second burst per IP (defense-in-depth)
+- Use Cloudflare WAF rate limiting rules as the primary layer for global rate limiting. See [security-guide.md](security-guide.md#rate-limiting) for details.
 
 ### Cloudflare Turnstile (Bot Protection)
 
@@ -189,21 +190,12 @@ Used on the registration form to prevent bot signups:
 
 ## API Documentation (Swagger/OpenAPI)
 
-Auto-generated from Go source code using `swaggo/swag`:
+> **Status**: Not yet implemented. Swagger annotations exist in handler code but swaggo is not installed and the Swagger UI route is commented out in `main.go`. See [swagger-openapi.md](swagger-openapi.md) for the planned setup.
 
-```bash
-# Install swag CLI
-go install github.com/swaggo/swag/cmd/swag@latest
-
-# Generate docs from annotations in apps/api
-cd apps/api && swag init
-
-# Output: docs/swagger.json, docs/swagger.yaml, docs/docs.go
-```
-
-- Annotate Go handlers with `swaggo` comments (`@Summary`, `@Param`, `@Success`, `@Router`, etc.)
+When implemented:
+- Auto-generate from Go source code using `swaggo/swag`
 - Serve Swagger UI at `/api/v1/swagger/` in non-production environments
-- Swagger spec is auto-regenerated in CI on every build
+- Regenerate in CI before each build
 
 ## Quiz Data Source
 
@@ -256,24 +248,22 @@ Slack Incoming Webhooks are used to send real-time notifications to a designated
 ### Environment Variables
 
 ```bash
-SLACK_WEBHOOK_REGISTRATIONS=    # Webhook URL for #registrations channel
-SLACK_WEBHOOK_QUIZ_RESULTS=     # Webhook URL for #quiz-results channel
-SLACK_WEBHOOK_SERVER_STATUS=    # Webhook URL for #server-status channel
-SLACK_WEBHOOK_CI_CD=            # Webhook URL for #ci-cd channel (used in GitHub Actions secrets)
+SLACK_WEBHOOK_REGISTRATION=     # Webhook URL for #registrations channel
+SLACK_WEBHOOK_QUIZ_RESULT=      # Webhook URL for #quiz-results channel
 ```
+
+## Implemented Features (beyond MVP)
+
+- **Multi-language support (TH/EN)**: Language switcher in header, `useLocale()` hook, bilingual quiz config (`textTh`/`textEn`, `nameTh`/`nameEn`)
+- **DBD company lookup**: Auto-prefill company info from Thai DBD DataWarehouse via `dbd-service`
+- **Profile management**: Editable company profile page at `/profile`
 
 ## Future Enhancements
 
-- Persistent result history per company
+- Persistent result history per company (partially done — previous assessments shown)
 - PDF export for diagnosis report
 - Benchmark comparison by industry/size
-- Multi-language support (TH/EN)
-
-## Nice to Have
-
-- Company profile auto-prefill from DBD DataWarehouse (`https://datawarehouse.dbd.go.th/`) using company registration ID.
-- Internationalization (TH/EN) with language switcher.
-- Theme support: dark mode and light mode.
+- Theme support: dark mode and light mode
 
 ## Next Phase: Legal & Compliance
 
@@ -295,3 +285,4 @@ Initial legal implementation scope:
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Updated: Cloud Functions -> Cloud Run, added DBD service, fixed rate limiting values, fixed webhook var names, updated Swagger status, added i18n as implemented feature |

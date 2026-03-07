@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-03-07
 author: Sathittham Sangthong
 ---
 
@@ -35,7 +35,7 @@ Everything else depends on this. Build first.
 - [x] **0.6** `apps/api/middleware/ratelimit.go` — Per-IP rate limiter (defense-in-depth)
 - [x] **0.7** `apps/api/middleware/security.go` — Security headers middleware
 - [x] **0.8** `apps/api/config/questions.json` — All 35 quiz questions (7 dimensions × 5)
-- [x] **0.9** `apps/api/main.go` — Entry point: Firebase init, Firestore init, wire repos/services/handlers, Chi router, Cloud Functions framework
+- [x] **0.9** `apps/api/main.go` — Entry point: Firebase init, Firestore init, wire repos/services/handlers, Chi router, Cloud Run (standard http.ListenAndServe)
 - [x] **0.10** Run `go build ./...` — verify everything compiles
 - [x] **0.11** Run `go test ./...` — verify existing tests still pass
 - [x] **0.12** Update `go.mod` — add all required dependencies
@@ -295,12 +295,12 @@ Everything else depends on this. Build first.
 ## Phase 8: CI/CD & Deployment ✓
 
 - [x] `.github/workflows/test.yml` — lint + test on push/PR (frontend + backend)
-- [x] `.github/workflows/deploy-staging.yml` — deploy to staging on push to `staging`
-- [x] `.github/workflows/deploy-production.yml` — deploy to production on push to `main` (runs tests first)
+- [x] `.github/workflows/deploy-staging.yml` — deploy to staging on tag `v*-staging`
+- [x] `.github/workflows/deploy-production.yml` — deploy to production on tag `v*.*.*` (runs tests first)
 - [x] `firestore.rules` — security rules (user-scoped reads, admin reads, backend-only writes)
 - [x] `firestore.indexes.json` — composite index for assessments by uid + submittedAt
 - [x] `.env.example` — all env vars documented (frontend + backend)
-- [ ] GCP Secret Manager setup for staging + production (manual setup)
+- [x] GitHub Secrets configured for staging + production environments
 - [ ] Cloudflare Pages project connected to GitHub (manual setup)
 - [ ] Post-deploy smoke test (manual)
 
@@ -357,7 +357,7 @@ Phase 0 (Foundation)
 |----------|--------|-----------|
 | Admin role source of truth | Firebase custom claims | Single authoritative source; Firestore `role` field is read-only mirror |
 | Notification failure handling | Log and continue | Email/Slack failures must NOT fail quiz submission |
-| Rate limiting in serverless | Cloudflare WAF primary + per-instance defense-in-depth | In-memory limiters don't work across Cloud Function instances |
+| Rate limiting in serverless | Cloudflare WAF primary + per-instance defense-in-depth | In-memory limiters don't work across Cloud Run instances |
 | Score rounding | 2 decimal places before classification | Prevents ambiguous boundary behavior (e.g., 3.995 → 4.00 = Advanced) |
 | Quiz questions source | Static JSON in `apps/api/config/` | Zero Firestore cost, version-controlled, easy PR review |
 
@@ -380,3 +380,4 @@ Phase 0 (Foundation)
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-03-07 | Updated Cloud Functions → Cloud Run, fixed deploy triggers (tag-based), GitHub Secrets instead of GCP Secret Manager |
