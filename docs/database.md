@@ -70,37 +70,7 @@ Principles:
 - Admin access must be role-protected both in Firestore Rules and Cloud Functions.
 - Use `auth.uid` as primary identity key across services.
 
-Example Firestore rules:
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    match /users/{uid} {
-      allow read, update: if request.auth != null && request.auth.uid == uid;
-      allow create: if request.auth != null && request.auth.uid == uid;
-      allow delete: if false;
-      // Admin can read any user
-      allow read: if request.auth.token.role == 'admin';
-    }
-
-    match /assessments/{assessmentId} {
-      allow read: if request.auth != null
-        && resource.data.uid == request.auth.uid;
-      allow create: if request.auth != null
-        && request.resource.data.uid == request.auth.uid;
-      allow update, delete: if false;
-      // Admin can read any assessment
-      allow read: if request.auth.token.role == 'admin';
-    }
-
-    match /email_jobs/{jobId} {
-      // Only Cloud Functions (Admin SDK) can read/write
-      allow read, write: if false;
-    }
-  }
-}
-```
+The authoritative Firestore security rules are maintained in [security-guide.md](security-guide.md#firestore-security-rules). See that document for the full rules and any updates.
 
 ## Registration Fields
 
@@ -164,18 +134,21 @@ Example question:
    - Average of all dimension scores
    - Result: 1.0 – 5.0
 
-4. **Strengths/Weaknesses**:
-   - Strengths: dimensions scoring >= 3.5
-   - Weaknesses: dimensions scoring < 2.5
+4. **Rounding**: All scores are rounded to 2 decimal places before classification.
 
-5. **Diagnosis Categories**:
+5. **Strengths/Weaknesses**:
+   - Strengths: dimensions scoring >= 3.50
+   - Weaknesses: dimensions scoring < 2.50
+   - Neutral: 2.50 – 3.49 (not classified)
+
+6. **Diagnosis Categories** (inclusive lower bound, exclusive upper bound; Advanced includes 5.0):
 
    | Score Range | Category |
    |-------------|----------|
-   | 4.0 – 5.0 | Advanced |
-   | 3.0 – 3.9 | Established |
-   | 2.0 – 2.9 | Developing |
-   | 1.0 – 1.9 | Beginning |
+   | >= 4.00 | Advanced |
+   | >= 3.00 and < 4.00 | Established |
+   | >= 2.00 and < 3.00 | Developing |
+   | >= 1.00 and < 2.00 | Beginning |
 
 ## Email Service
 

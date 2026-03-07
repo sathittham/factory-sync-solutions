@@ -42,7 +42,7 @@ func verifyToken(ctx context.Context, authClient *firebaseAuth.Client, idToken s
 
 ### Role-Based Access Control
 
-Roles are stored in Firebase custom claims or the `users` Firestore collection:
+The **primary source of truth** for roles is **Firebase custom claims** (set via Admin SDK). The `role` field in the `users` Firestore collection is a read-only mirror for display/query purposes — it must not be used for authorization decisions.
 
 | Role | Access |
 |------|--------|
@@ -208,23 +208,53 @@ func corsMiddleware(next http.Handler) http.Handler {
 | Public endpoints | 60 requests/minute per IP |
 | Authenticated endpoints | 120 requests/minute per user |
 
-Use `golang.org/x/time/rate` for in-memory rate limiting:
+### Strategy for Serverless (Cloud Functions)
+
+In-memory rate limiters (e.g., `golang.org/x/time/rate`) **do not work** across Cloud Function instances because each instance has its own memory. Use a layered approach:
+
+1. **Cloudflare WAF / Rate Limiting Rules** (recommended primary layer): Configure rate limiting rules in Cloudflare dashboard. This handles per-IP rate limiting before requests reach Cloud Functions.
+2. **Per-instance in-memory limiter** (defense-in-depth): Protects individual instances from burst abuse. Not globally accurate but prevents a single instance from being overwhelmed.
 
 ```go
-import "golang.org/x/time/rate"
+import (
+    "net/http"
+    "sync"
+    "time"
 
-var limiter = rate.NewLimiter(rate.Every(time.Second), 2) // 2 req/sec burst
+    "golang.org/x/time/rate"
+)
 
-func rateLimitMiddleware(next http.Handler) http.Handler {
+// Per-IP rate limiter (per-instance — defense-in-depth, not globally accurate)
+var (
+    limiters = make(map[string]*rate.Limiter)
+    mu       sync.Mutex
+)
+
+func getLimiter(key string, rps rate.Limit, burst int) *rate.Limiter {
+    mu.Lock()
+    defer mu.Unlock()
+    if lim, ok := limiters[key]; ok {
+        return lim
+    }
+    lim := rate.NewLimiter(rps, burst)
+    limiters[key] = lim
+    return lim
+}
+
+func RateLimitByIP(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        if !limiter.Allow() {
-            respondError(w, http.StatusTooManyRequests, "RATE_LIMIT_EXCEEDED", "too many requests")
+        ip := r.RemoteAddr
+        lim := getLimiter(ip, rate.Every(time.Second), 2)
+        if !lim.Allow() {
+            pkg.RespondError(w, http.StatusTooManyRequests, "RATE_LIMIT_EXCEEDED", "too many requests")
             return
         }
         next.ServeHTTP(w, r)
     })
 }
 ```
+
+> **Note**: For production, rely on Cloudflare rate limiting rules as the primary enforcement layer. The per-instance limiter above is a best-effort fallback.
 
 ## Sensitive Data Protection
 
@@ -316,6 +346,15 @@ func securityHeaders(next http.Handler) http.Handler {
 | **Secrets** | GCP Secret Manager, never hardcoded |
 | **Logging** | No sensitive data in logs |
 | **Frontend** | No secrets exposed, VITE_ prefix only |
+
+---
+
+## See Also
+
+- [go-patterns.md](go-patterns.md) — Firebase Auth middleware implementation
+- [code-review-checklist.md](code-review-checklist.md) — Security review checklist
+- [env-variables.md](env-variables.md) — All required environment variables and secrets
+- [architecture.md](architecture.md) — CORS origins and Turnstile integration
 
 ---
 

@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	:root {
+		--background: 220 20% 97%;
+		--foreground: 220 30% 10%;
+		--card: 0 0% 100%;
+		--card-foreground: 220 30% 10%;
+		--popover: 0 0% 100%;
+		--popover-foreground: 220 30% 10%;
+		--primary: 220 70% 45%;
+		--primary-foreground: 0 0% 100%;
+		--secondary: 220 15% 92%;
+		--secondary-foreground: 220 30% 20%;
+		--muted: 220 15% 92%;
+		--muted-foreground: 220 10% 46%;
+		--accent: 38 92% 50%;
+		--accent-foreground: 38 90% 10%;
+		--destructive: 0 72% 51%;
+		--destructive-foreground: 0 0% 100%;
+		--border: 220 15% 88%;
+		--input: 220 15% 88%;
+		--ring: 220 70% 45%;
+		--radius: 0.625rem;
+
+		/* Custom tokens */
+		--success: 152 60% 40%;
+		--success-foreground: 0 0% 100%;
+		--warning: 38 92% 50%;
+		--warning-foreground: 38 90% 10%;
+	}
+}
+
+@layer base {
+	* {
+		@apply border-border;
+	}
+
+	body {
+		@apply bg-background text-foreground antialiased;
+		font-family: "IBM Plex Sans Thai", "Outfit", system-ui, sans-serif;
+	}
+
+	h1, h2, h3, h4, h5, h6 {
+		font-family: "Outfit", "IBM Plex Sans Thai", system-ui, sans-serif;
+		@apply tracking-tight;
+	}
+
+	code, .font-mono {
+		font-family: "JetBrains Mono", ui-monospace, monospace;
+	}
+}
+
+@layer components {
+	/* Subtle grid pattern for backgrounds */
+	.bg-grid {
+		background-image:
+			linear-gradient(to right, hsl(220 15% 88% / 0.5) 1px, transparent 1px),
+			linear-gradient(to bottom, hsl(220 15% 88% / 0.5) 1px, transparent 1px);
+		background-size: 24px 24px;
+	}
+
+	/* Dot pattern */
+	.bg-dots {
+		background-image: radial-gradient(hsl(220 15% 78% / 0.4) 1px, transparent 1px);
+		background-size: 20px 20px;
+	}
+
+	/* Gradient mesh accent */
+	.bg-mesh {
+		background:
+			radial-gradient(at 20% 20%, hsl(220 70% 45% / 0.08) 0px, transparent 50%),
+			radial-gradient(at 80% 80%, hsl(38 92% 50% / 0.06) 0px, transparent 50%),
+			radial-gradient(at 50% 0%, hsl(220 70% 45% / 0.04) 0px, transparent 70%);
+	}
+
+	/* Score gauge animation */
+	.animate-score-fill {
+		animation: scoreFill 1s ease-out forwards;
+	}
+
+	@keyframes scoreFill {
+		from { width: 0%; }
+	}
+
+	/* Stagger reveal animation */
+	.animate-fade-up {
+		animation: fadeUp 0.5s ease-out forwards;
+		opacity: 0;
+	}
+
+	@keyframes fadeUp {
+		from {
+			opacity: 0;
+			transform: translateY(12px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	/* Pulse glow for active elements */
+	.glow-primary {
+		box-shadow: 0 0 0 3px hsl(220 70% 45% / 0.15);
+	}
+
+	.glow-accent {
+		box-shadow: 0 0 0 3px hsl(38 92% 50% / 0.2);
+	}
+
+	/* Glass card effect */
+	.glass {
+		@apply bg-white/80 backdrop-blur-sm;
+	}
+}
+
+@layer utilities {
+	/* Stagger delays for list animations */
+	.delay-1 { animation-delay: 0.05s; }
+	.delay-2 { animation-delay: 0.1s; }
+	.delay-3 { animation-delay: 0.15s; }
+	.delay-4 { animation-delay: 0.2s; }
+	.delay-5 { animation-delay: 0.25s; }
+	.delay-6 { animation-delay: 0.3s; }
+	.delay-7 { animation-delay: 0.35s; }
+}

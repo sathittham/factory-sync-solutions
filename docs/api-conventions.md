@@ -99,6 +99,7 @@ func RespondJSON(w http.ResponseWriter, status int, data any) {
 
 func RespondList(w http.ResponseWriter, data any, count int) {
     w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(map[string]any{
         "success": true,
         "data":    data,
@@ -268,6 +269,15 @@ func (h *ProfileHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 ```
 
 See [architecture.md](architecture.md#api-documentation-swaggeropenapi) for setup.
+
+---
+
+## See Also
+
+- [go-patterns.md](go-patterns.md) — Go implementation patterns (handler, service, repository)
+- [error-handling.md](error-handling.md) — Sentinel error pattern and handler error mapping
+- [swagger-openapi.md](swagger-openapi.md) — Swagger annotation details and model definitions
+- [database.md](database.md) — Firestore collections and data models
 
 ---
 

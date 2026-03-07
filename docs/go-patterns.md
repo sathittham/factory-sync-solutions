@@ -87,19 +87,49 @@ apps/api/
 package main
 
 import (
+    "context"
+    "log"
     "log/slog"
     "net/http"
     "os"
 
     "github.com/go-chi/chi/v5"
     chiMiddleware "github.com/go-chi/chi/v5/middleware"
+    firebase "firebase.google.com/go/v4"
 
     "factory-health-check/apps/api/middleware"
+    "factory-health-check/apps/api/pkg"
     "factory-health-check/apps/api/services/profile"
     "factory-health-check/apps/api/services/quiz"
 )
 
 func main() {
+    ctx := context.Background()
+
+    // Initialize Firebase Admin SDK (uses GOOGLE_APPLICATION_CREDENTIALS or
+    // Application Default Credentials on GCP)
+    app, err := firebase.NewApp(ctx, nil)
+    if err != nil {
+        log.Fatalf("firebase init: %v", err)
+    }
+
+    // Firebase Auth client — for token verification and admin role checks
+    authClient, err := app.Auth(ctx)
+    if err != nil {
+        log.Fatalf("firebase auth init: %v", err)
+    }
+
+    // Firestore client — shared across all repositories
+    firestoreClient := pkg.NewFirestoreClient(ctx)
+    defer firestoreClient.Close()
+
+    // Wire up repositories, services, and handlers
+    profileRepo := profile.NewRepository(firestoreClient)
+    profileSvc := profile.NewService(profileRepo)
+    profileHandler := profile.NewHandler(profileSvc)
+
+    // ... (repeat for quiz, result, admin, notification services)
+
     r := chi.NewRouter()
 
     // Global middleware
@@ -123,7 +153,7 @@ func main() {
 
         // Authenticated routes
         r.Group(func(r chi.Router) {
-            r.Use(middleware.FirebaseAuth)
+            r.Use(middleware.FirebaseAuth(authClient))
 
             r.Route("/profile", profileHandler.Routes)
             r.Route("/quiz", quizHandler.Routes)
@@ -131,7 +161,7 @@ func main() {
 
             // Admin routes (additional role check)
             r.Route("/admin", func(r chi.Router) {
-                r.Use(middleware.RequireAdmin)
+                r.Use(middleware.RequireAdmin(authClient))
                 adminHandler.Routes(r)
             })
         })
@@ -195,6 +225,10 @@ func GetUID(r *http.Request) string {
 ## Admin Role Check
 
 ```go
+// RequireAdmin checks the admin role from Firebase custom claims.
+// Custom claims are the authoritative source of truth for roles.
+// The `role` field in the `users` Firestore collection is a read-only
+// mirror for display/query purposes only.
 func RequireAdmin(authClient *firebaseAuth.Client) func(http.Handler) http.Handler {
     return func(next http.Handler) http.Handler {
         return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -204,7 +238,7 @@ func RequireAdmin(authClient *firebaseAuth.Client) func(http.Handler) http.Handl
                 return
             }
 
-            // Check custom claims or profile record for admin role
+            // Check admin role via Firebase custom claims (authoritative source)
             user, err := authClient.GetUser(r.Context(), uid)
             if err != nil {
                 pkg.RespondError(w, http.StatusForbidden, "FORBIDDEN", "access denied")
@@ -407,7 +441,13 @@ func (r *Repository) Update(ctx context.Context, uid string, updates []firestore
 
 ## Firestore Client Initialization
 
-Initialize the Firestore client once at startup:
+Initialize the Firestore client once at startup. The Firebase Admin SDK resolves credentials automatically:
+
+- **Local dev**: Set `GOOGLE_APPLICATION_CREDENTIALS` env var pointing to a service account JSON file, or use `gcloud auth application-default login`.
+- **Firestore Emulator**: Set `FIRESTORE_EMULATOR_HOST=localhost:8080` (no credentials needed).
+- **GCP (Cloud Functions)**: Uses Application Default Credentials automatically — no env var needed.
+
+See [env-variables.md](env-variables.md) for the full list of required environment variables.
 
 ```go
 package pkg
@@ -567,6 +607,7 @@ func RespondJSON(w http.ResponseWriter, status int, data any) {
 
 func RespondList(w http.ResponseWriter, data any, count int) {
     w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(map[string]any{
         "success": true,
         "data":    data,
@@ -586,6 +627,17 @@ func RespondError(w http.ResponseWriter, status int, code, message string) {
     })
 }
 ```
+
+---
+
+## See Also
+
+- [api-conventions.md](api-conventions.md) — Naming conventions, response format, error codes
+- [error-handling.md](error-handling.md) — Sentinel error pattern and handler error mapping
+- [testing-guide.md](testing-guide.md) — Go-specific testing patterns and mock examples
+- [security-guide.md](security-guide.md) — Authentication, authorization, and Firestore security rules
+- [database.md](database.md) — Firestore collections, data models, and scoring algorithm
+- [env-variables.md](env-variables.md) — All required environment variables
 
 ---
 

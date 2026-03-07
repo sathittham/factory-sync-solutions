@@ -18,7 +18,7 @@ Check every item below when writing or modifying code. For new endpoints or serv
 
 - [ ] Firebase ID token verified via `auth.VerifyIDToken` on all authenticated endpoints
 - [ ] User UID extracted from verified token — never from request body or query params
-- [ ] Admin role checked server-side (Firebase custom claims or profile record) — never trust frontend-only checks
+- [ ] Admin role checked server-side via Firebase custom claims (authoritative source) — never trust frontend-only checks
 - [ ] Input validated with struct tags (`validate:"required,min=2,max=50"`)
 - [ ] No sensitive data logged (passwords, tokens, PII, Firebase ID tokens)
 - [ ] Firestore security rules enforce user-scoped access (users can only read/write their own data)

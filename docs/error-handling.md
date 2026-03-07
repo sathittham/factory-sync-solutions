@@ -212,6 +212,14 @@ No custom recovery middleware is needed.
 
 ---
 
+## See Also
+
+- [api-conventions.md](api-conventions.md) — Response envelope format and error codes
+- [go-patterns.md](go-patterns.md) — Handler/service/repository layer pattern
+- [logging-monitoring.md](logging-monitoring.md) — Structured error logging with `log/slog`
+
+---
+
 ## Changelog
 
 | Version | Date | Description |

@@ -319,22 +319,32 @@ overallScore = sum(dimensionScores) / 7
 
 Result: **1.0 - 5.0**
 
-### 3. Strengths and Weaknesses
+### 3. Rounding
+
+All scores are rounded to **2 decimal places** before classification:
+
+```go
+score = math.Round(score*100) / 100
+```
+
+### 4. Strengths and Weaknesses
 
 | Classification | Threshold |
 |---------------|-----------|
-| Strength | Dimension score >= 3.5 |
-| Weakness | Dimension score < 2.5 |
-| Neutral | 2.5 - 3.4 (not shown as strength or weakness) |
+| Strength | Dimension score >= 3.50 |
+| Weakness | Dimension score < 2.50 |
+| Neutral | 2.50 – 3.49 (not shown as strength or weakness) |
 
-### 4. Diagnosis Categories
+### 5. Diagnosis Categories
+
+Boundaries are **inclusive on the lower bound, exclusive on the upper bound** (except Advanced which includes 5.0):
 
 | Score Range | Category | Description |
 |-------------|----------|-------------|
-| 4.0 - 5.0 | Advanced | Factory demonstrates excellence across most areas |
-| 3.0 - 3.9 | Established | Solid foundation in place with room for targeted improvement |
-| 2.0 - 2.9 | Developing | Basic practices exist but significant gaps remain |
-| 1.0 - 1.9 | Beginning | Minimal practices in place, needs fundamental improvement |
+| >= 4.00 | Advanced | Factory demonstrates excellence across most areas |
+| >= 3.00 and < 4.00 | Established | Solid foundation in place with room for targeted improvement |
+| >= 2.00 and < 3.00 | Developing | Basic practices exist but significant gaps remain |
+| >= 1.00 and < 2.00 | Beginning | Minimal practices in place, needs fundamental improvement |
 
 ## Configuration File
 

@@ -6,14 +6,20 @@ node_modules/
 # Build output
 dist/
 build/
-.next/
 out/
 
 # Environment variables
 .env
 .env.local
 .env.*.local
+.env.development
+.env.staging
+.env.production
 !.env.example
+
+# Service account keys
+firebase-sa.json
+*-firebase-adminsdk-*.json
 
 # IDE
 .idea/
@@ -32,8 +38,6 @@ cover.out
 playwright-report/
 test-results/
 
-# Turborepo
-.turbo/
 
 # Go
 apps/api/docs/          # auto-generated Swagger docs

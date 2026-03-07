@@ -178,7 +178,7 @@ Go API endpoints must allow cross-origin requests from the SPA:
 Apply rate limiting on Go API endpoints to prevent abuse:
 - **Public endpoints**: 60 requests/minute per IP
 - **Authenticated endpoints**: 120 requests/minute per user
-- Use Cloud Functions concurrency limits and/or middleware (e.g., `golang.org/x/time/rate`)
+- Use Cloudflare WAF rate limiting rules as the primary layer, with per-instance in-memory limiters as defense-in-depth. See [security-guide.md](security-guide.md#rate-limiting) for details.
 
 ### Cloudflare Turnstile (Bot Protection)
 
