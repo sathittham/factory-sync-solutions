@@ -12,7 +12,6 @@ jobs:
   deploy-backend:
     name: Deploy Backend to Staging
     needs: test
-    if: needs.test.outputs.api_changed == 'true'
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -45,7 +44,6 @@ jobs:
   deploy-frontend:
     name: Deploy Frontend to Staging
     needs: test
-    if: needs.test.outputs.web_changed == 'true'
     runs-on: ubuntu-latest
     environment: staging
     defaults:

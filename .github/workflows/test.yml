@@ -6,11 +6,6 @@ on:
   pull_request:
     branches: [main, staging, develop]
   workflow_call:
-    outputs:
-      api_changed:
-        value: ${{ jobs.changes.outputs.api }}
-      web_changed:
-        value: ${{ jobs.changes.outputs.web }}
 
 jobs:
   changes:
