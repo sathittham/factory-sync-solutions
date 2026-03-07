@@ -1,6 +1,6 @@
 ---
-version: 1.2.0
-lastUpdated: 2026-03-07
+version: 1.3.0
+lastUpdated: 2026-03-08
 author: Sathittham Sangthong
 ---
 
@@ -49,7 +49,7 @@ Copy `.env.example` files and fill in values:
 
 ```bash
 cp apps/web/.env.example apps/web/.env
-cp apps/api/.env.example apps/api/.env
+cp apps/api/.env.example apps/api/.env.development
 ```
 
 ### Frontend (`apps/web/.env`)
@@ -68,9 +68,15 @@ VITE_API_BASE_URL=
 
 # Cloudflare Turnstile (public site key)
 VITE_CF_TURNSTILE_SITE_KEY=
+
+# Google Tag Manager (container ID, e.g. GTM-XXXXXXX)
+VITE_GTM_ID=
+
+# Google Analytics 4 (measurement ID, e.g. G-XXXXXXXXXX)
+VITE_GA_MEASUREMENT_ID=
 ```
 
-### Backend (`apps/api/.env`)
+### Backend (`apps/api/.env.development`)
 
 ```bash
 GCP_PROJECT_ID=
@@ -141,6 +147,7 @@ Root-level commands run across all packages via Makefile:
 - **API Docs**: Swagger/OpenAPI via swaggo (planned — not yet implemented)
 - **Notifications**: Slack (Incoming Webhooks)
 - **i18n**: Thai/English via `useLocale()` hook
+- **Theming**: Light/dark/system via `useTheme()` hook with FOUC prevention
 
 ## Core User Flow
 
@@ -207,3 +214,4 @@ Active development — core user flow implemented (auth, registration, quiz, res
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Turborepo → Makefile, Cloud Functions → Cloud Run, fixed env vars, routes, Swagger status, added missing doc links |
 | 1.2.0 | 2026-03-07 | Profile dialog (3 sections: account/contact/company), Google avatar in navbar, motion animations (quiz + results), SonarQube fixes, analytics events, data-testid attributes |
+| 1.3.0 | 2026-03-08 | Theme system (light/dark/system) with FOUC prevention, dark mode fixes across all pages, Layout refactoring for SonarQube compliance, admin user management API, app READMEs |

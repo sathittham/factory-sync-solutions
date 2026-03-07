@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocale } from "@/lib/i18n";
+import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -105,10 +106,10 @@ function CookieBanner({ isTh, onSettings, onAcceptAll, onOpenLegal }: {
 						</button>
 					</p>
 					<div className="flex items-center justify-end gap-2">
-						<Button variant="outline" size="sm" onClick={onSettings} className="text-xs">
+						<Button variant="outline" size="sm" onClick={onSettings} className="text-xs" data-testid="cookie-settings-btn">
 							{isTh ? "การตั้งค่าคุกกี้" : "Cookie Settings"}
 						</Button>
-						<Button size="sm" onClick={onAcceptAll} className="text-xs">
+						<Button size="sm" onClick={onAcceptAll} className="text-xs" data-testid="cookie-accept-all-btn">
 							{isTh ? "ยอมรับทั้งหมด" : "Accept All"}
 						</Button>
 					</div>
@@ -181,7 +182,7 @@ function CookieSettings({ isTh, analytics, marketing, onAnalyticsChange, onMarke
 			</div>
 
 			<div className="px-6 py-4 border-t">
-				<Button onClick={onConfirm} className="w-full">
+				<Button onClick={onConfirm} className="w-full" data-testid="cookie-confirm-btn">
 					{isTh ? "ยืนยันตัวเลือกของฉัน" : "Confirm My Selection"}
 				</Button>
 			</div>
@@ -204,12 +205,14 @@ export function CookieConsent({ open, openSettings, onClose, onOpenLegal }: Cook
 		setMarketing(true);
 		saveConsent(true, true);
 		setSettingsOpen(false);
+		trackEvent("cookie_consent", { action: "accept_all" });
 		onClose();
 	};
 
 	const handleConfirm = () => {
 		saveConsent(analytics, marketing);
 		setSettingsOpen(false);
+		trackEvent("cookie_consent", { action: "confirm", analytics, marketing });
 		onClose();
 	};
 

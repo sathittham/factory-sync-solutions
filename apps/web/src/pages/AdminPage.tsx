@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
 import { api } from "@/lib/api";
+import { trackEvent } from "@/lib/analytics";
 import { useLocale } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/dayjs";
 import { Badge } from "@/components/ui/badge";
@@ -155,8 +156,9 @@ function QuizTab() {
 			a.download = `assessments-${new Date().toISOString().slice(0, 10)}.csv`;
 			a.click();
 			URL.revokeObjectURL(url);
+			trackEvent("admin_export_csv", { count: assessments.length });
 		} catch {
-			// Export failed
+			trackEvent("admin_export_csv_error");
 		}
 	};
 
@@ -566,8 +568,10 @@ function UsersTab() {
 				prev.map((u) => (u.uid === user.uid ? { ...u, role: newRole } : u)),
 			);
 			setToast({ type: "success", msg: t("admin.roleUpdated") });
+			trackEvent("admin_role_change", { newRole });
 		} catch {
 			setToast({ type: "error", msg: t("admin.roleError") });
+			trackEvent("admin_role_change_error", { newRole });
 		} finally {
 			setUpdatingUid(null);
 		}
@@ -743,12 +747,13 @@ function UsersTab() {
 						<DialogDescription>{dialogMsg}</DialogDescription>
 					</DialogHeader>
 					<DialogFooter className="gap-2 sm:gap-0">
-						<Button variant="outline" onClick={() => setRoleDialog(null)}>
+						<Button variant="outline" onClick={() => setRoleDialog(null)} data-testid="admin-role-cancel-btn">
 							{t("admin.cancel")}
 						</Button>
 						<Button
 							onClick={confirmRoleChange}
 							className={roleDialog?.newRole === "admin" ? "bg-violet-600 hover:bg-violet-700" : ""}
+							data-testid="admin-role-confirm-btn"
 						>
 							{roleDialog?.newRole === "admin" ? t("admin.promoteAdmin") : t("admin.demoteUser")}
 						</Button>
@@ -779,8 +784,9 @@ export function AdminPage() {
 			a.download = `assessments-${new Date().toISOString().slice(0, 10)}.csv`;
 			a.click();
 			URL.revokeObjectURL(url);
+			trackEvent("admin_export_csv");
 		} catch {
-			// Export failed
+			trackEvent("admin_export_csv_error");
 		}
 	};
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"regexp"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -15,6 +16,28 @@ import (
 	"github.com/sathittham/factory-health-check/apps/api/services/profile"
 	"github.com/sathittham/factory-health-check/apps/api/services/result"
 )
+
+const (
+	maxAssessmentLimit = 500
+	maxUserLimit       = 500
+	maxExportRows      = 10000
+)
+
+var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+
+func parseLimit(raw string, defaultVal, maxVal int) int {
+	if raw == "" {
+		return defaultVal
+	}
+	parsed, err := strconv.Atoi(raw)
+	if err != nil || parsed < 1 {
+		return defaultVal
+	}
+	if parsed > maxVal {
+		return maxVal
+	}
+	return parsed
+}
 
 const msgInternalError = "internal error"
 
@@ -92,19 +115,14 @@ func (h *Handler) enrichAssessments(r *http.Request, assessments []result.Assess
 // @Tags         Admin
 // @Produce      json
 // @Param        Authorization  header  string  true   "Bearer {firebase-id-token}"
-// @Param        limit          query   int     false  "Max results (default 100)"
+// @Param        limit          query   int     false  "Max results (default 100, max 500)"
 // @Success      200  {object}  map[string]any
 // @Failure      401  {object}  map[string]any
 // @Failure      403  {object}  map[string]any
 // @Security     BearerAuth
 // @Router       /api/v1/admin/assessments [get]
 func (h *Handler) ListAssessments(w http.ResponseWriter, r *http.Request) {
-	limit := 100
-	if l := r.URL.Query().Get("limit"); l != "" {
-		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
-			limit = parsed
-		}
-	}
+	limit := parseLimit(r.URL.Query().Get("limit"), 100, maxAssessmentLimit)
 
 	filters := map[string]string{}
 	results, err := h.resultSvc.ListResults(r.Context(), filters, limit)
@@ -136,6 +154,10 @@ func (h *Handler) ListAssessments(w http.ResponseWriter, r *http.Request) {
 // @Router       /api/v1/admin/assessments/{assessmentId} [get]
 func (h *Handler) GetAssessment(w http.ResponseWriter, r *http.Request) {
 	assessmentID := chi.URLParam(r, "assessmentId")
+	if !uuidPattern.MatchString(assessmentID) {
+		pkg.RespondError(w, http.StatusBadRequest, "BAD_REQUEST", "invalid assessment ID format")
+		return
+	}
 
 	// Admin can view any assessment — no UID scoping
 	results, err := h.resultSvc.ListResults(r.Context(), nil, 0)
@@ -167,7 +189,7 @@ func (h *Handler) GetAssessment(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /api/v1/admin/export [get]
 func (h *Handler) ExportCSV(w http.ResponseWriter, r *http.Request) {
-	results, err := h.resultSvc.ListResults(r.Context(), nil, 0)
+	results, err := h.resultSvc.ListResults(r.Context(), nil, maxExportRows)
 	if err != nil {
 		slog.Error("export csv failed", "error", err.Error())
 		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
@@ -204,14 +226,20 @@ func (h *Handler) ExportCSV(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ListUsers returns all registered user profiles.
+// ListUsers godoc
+// @Summary      List all users
+// @Description  Admin endpoint to list registered user profiles with optional limit
+// @Tags         Admin
+// @Produce      json
+// @Param        Authorization  header  string  true   "Bearer {firebase-id-token}"
+// @Param        limit          query   int     false  "Max results (default 200, max 500)"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  map[string]any
+// @Failure      403  {object}  map[string]any
+// @Security     BearerAuth
+// @Router       /api/v1/admin/users [get]
 func (h *Handler) ListUsers(w http.ResponseWriter, r *http.Request) {
-	limit := 200
-	if l := r.URL.Query().Get("limit"); l != "" {
-		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
-			limit = parsed
-		}
-	}
+	limit := parseLimit(r.URL.Query().Get("limit"), 200, maxUserLimit)
 
 	profiles, err := h.profileSvc.ListProfiles(r.Context(), limit)
 	if err != nil {
@@ -230,9 +258,28 @@ type setRoleRequest struct {
 	Role string `json:"role"`
 }
 
-// SetUserRole updates a user's role in both Firestore and Firebase custom claims.
+// SetUserRole godoc
+// @Summary      Set user role
+// @Description  Admin endpoint to update a user's role (admin or user) in Firestore and Firebase custom claims
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Param        Authorization  header  string          true  "Bearer {firebase-id-token}"
+// @Param        uid            path    string          true  "Firebase UID"
+// @Param        body           body    setRoleRequest  true  "Role payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]any
+// @Failure      401  {object}  map[string]any
+// @Failure      403  {object}  map[string]any
+// @Failure      500  {object}  map[string]any
+// @Security     BearerAuth
+// @Router       /api/v1/admin/users/{uid}/role [put]
 func (h *Handler) SetUserRole(w http.ResponseWriter, r *http.Request) {
 	uid := chi.URLParam(r, "uid")
+	if uid == "" || len(uid) > 128 {
+		pkg.RespondError(w, http.StatusBadRequest, "BAD_REQUEST", "invalid uid")
+		return
+	}
 
 	var req setRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

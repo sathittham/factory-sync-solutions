@@ -263,6 +263,7 @@ export function RegisterPage() {
 									id="companyRegId"
 									placeholder="0115560016313"
 									className="font-mono tracking-wide"
+									data-testid="reg-company-id-input"
 									{...formRegister("companyRegId", {
 										onChange: () => { setDbdInfo(null); setRegIdTaken(null); },
 									})}
@@ -273,6 +274,7 @@ export function RegisterPage() {
 									onClick={handleDbdLookup}
 									disabled={isLookingUp || !!dbdInfo}
 									className="flex-shrink-0 min-w-[80px]"
+									data-testid="reg-dbd-lookup-btn"
 								>
 									{isLookingUp ? <Spinner /> : getLookupLabel()}
 								</Button>

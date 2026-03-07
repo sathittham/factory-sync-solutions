@@ -1,3 +1,12 @@
+// @title        Factory Health Check API
+// @version      0.1.0
+// @description  REST API for the Factory Health Check assessment platform
+// @host         localhost:8080
+// @BasePath     /api/v1
+// @securityDefinitions.apikey  BearerAuth
+// @in                          header
+// @name                        Authorization
+// @description                 Firebase ID token (Bearer {token})
 package main
 
 import (

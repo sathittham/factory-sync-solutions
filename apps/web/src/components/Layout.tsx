@@ -610,8 +610,17 @@ export function Layout() {
 	const { isAuthenticated, isAdmin, profile, user } = useAppSelector((s) => s.auth);
 	const navigate = useNavigate();
 	const location = useLocation();
-	const { locale, setLocale, t } = useLocale();
-	const { theme, setTheme } = useTheme();
+	const { locale, setLocale: rawSetLocale, t } = useLocale();
+	const { theme, setTheme: rawSetTheme } = useTheme();
+
+	const setLocale = (l: "th" | "en") => {
+		rawSetLocale(l);
+		trackEvent("locale_change", { locale: l });
+	};
+	const setTheme = (th: Theme) => {
+		rawSetTheme(th);
+		trackEvent("theme_change", { theme: th });
+	};
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const [profileOpen, setProfileOpen] = useState(false);
 	const [legalModal, setLegalModal] = useState<LegalType>(null);
