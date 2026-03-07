@@ -23,12 +23,13 @@ import { useLocale } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FadeIn, StaggerChildren, StaggerItem, ScaleIn } from "@/components/motion";
+import { useTheme } from "@/lib/theme";
 
 const diagnosisConfig: Record<string, { color: string; bg: string; border: string }> = {
-	Beginning: { color: "text-red-700", bg: "bg-red-50", border: "border-red-200" },
-	Developing: { color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200" },
-	Established: { color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200" },
-	Advanced: { color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" },
+	Beginning: { color: "text-red-700 dark:text-red-400", bg: "bg-red-50 dark:bg-red-950/30", border: "border-red-200 dark:border-red-800" },
+	Developing: { color: "text-amber-700 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/30", border: "border-amber-200 dark:border-amber-800" },
+	Established: { color: "text-blue-700 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/30", border: "border-blue-200 dark:border-blue-800" },
+	Advanced: { color: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/30", border: "border-emerald-200 dark:border-emerald-800" },
 };
 
 function getScoreColor(score: number): string {
@@ -52,7 +53,7 @@ function ScoreRing({ score, size = 140 }: Readonly<{ score: number; size?: numbe
 				cy={size / 2}
 				r={r}
 				fill="none"
-				stroke="hsl(220 14% 93%)"
+				stroke="hsl(var(--border))"
 				strokeWidth={strokeW}
 			/>
 			<circle
@@ -60,7 +61,7 @@ function ScoreRing({ score, size = 140 }: Readonly<{ score: number; size?: numbe
 				cy={size / 2}
 				r={r}
 				fill="none"
-				stroke="hsl(220 65% 48%)"
+				stroke="hsl(var(--primary))"
 				strokeWidth={strokeW}
 				strokeLinecap="round"
 				strokeDasharray={circumference}
@@ -150,6 +151,8 @@ export function ResultPage() {
 	const { assessment, assessments, loading } = useAppSelector((s) => s.result);
 	const { dimensions: quizDimensions, questionsLoaded } = useAppSelector((s) => s.quiz);
 	const { t, locale } = useLocale();
+	const { resolvedTheme } = useTheme();
+	const isDark = resolvedTheme === "dark";
 	const [expandedDim, setExpandedDim] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -238,7 +241,7 @@ export function ResultPage() {
 			<div className="container max-w-4xl py-6 sm:py-8 space-y-5" data-testid="result-summary">
 				{/* Hero score section */}
 				<ScaleIn>
-				<div className="bg-white rounded-lg border p-6 sm:p-8">
+				<div className="bg-card rounded-lg border p-6 sm:p-8">
 					<div className="flex flex-col sm:flex-row items-center gap-6">
 						<div className="relative flex-shrink-0">
 							<ScoreRing score={assessment.overallScore} size={148} />
@@ -269,26 +272,26 @@ export function ResultPage() {
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 					{/* Radar Chart */}
 					<FadeIn delay={0.1}>
-					<div className="bg-white rounded-lg border p-6" data-testid="result-spider-chart">
+					<div className="bg-card rounded-lg border p-6" data-testid="result-spider-chart">
 						<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
 							{t("result.dimensionScores")}
 						</h2>
 						<ResponsiveContainer width="100%" height={280} className="sm:[&]:!h-[320px]">
 							<RadarChart data={radarData}>
-								<PolarGrid stroke="hsl(220 13% 91%)" strokeDasharray="3 3" />
+								<PolarGrid stroke={isDark ? "hsl(220 13% 20%)" : "hsl(220 13% 91%)"} strokeDasharray="3 3" />
 								<PolarAngleAxis
 									dataKey="dimension"
-									tick={{ fontSize: 10, fill: "hsl(220 8% 46%)" }}
+									tick={{ fontSize: 10, fill: isDark ? "hsl(220 8% 55%)" : "hsl(220 8% 46%)" }}
 								/>
 								<PolarRadiusAxis
 									angle={90}
 									domain={[0, 5]}
-									tick={{ fontSize: 9, fill: "hsl(220 8% 60%)" }}
+									tick={{ fontSize: 9, fill: isDark ? "hsl(220 8% 50%)" : "hsl(220 8% 60%)" }}
 								/>
 								<Radar
 									dataKey="score"
-									stroke="hsl(220 65% 48%)"
-									fill="hsl(220 65% 48%)"
+									stroke={isDark ? "hsl(217 65% 55%)" : "hsl(220 65% 48%)"}
+									fill={isDark ? "hsl(217 65% 55%)" : "hsl(220 65% 48%)"}
 									fillOpacity={0.12}
 									strokeWidth={2}
 								/>
@@ -306,7 +309,7 @@ export function ResultPage() {
 
 					{/* Dimension detail list — clickable */}
 					<FadeIn delay={0.15}>
-					<div className="bg-white rounded-lg border p-6">
+					<div className="bg-card rounded-lg border p-6">
 						<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
 							{t("result.dimensionDetail")}
 						</h2>
@@ -330,14 +333,14 @@ export function ResultPage() {
 				<StaggerChildren stagger={0.1} className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 					{assessment.strengths?.length > 0 && (
 						<StaggerItem>
-						<div className="bg-white rounded-lg border border-emerald-200 p-6" data-testid="result-strengths-panel">
+						<div className="bg-card rounded-lg border border-emerald-200 dark:border-emerald-800 p-6" data-testid="result-strengths-panel">
 							<div className="flex items-center gap-2 mb-4">
-								<div className="h-7 w-7 rounded-md bg-emerald-50 flex items-center justify-center">
-									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-emerald-600">
+								<div className="h-7 w-7 rounded-md bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-emerald-600 dark:text-emerald-400">
 										<path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
 									</svg>
 								</div>
-								<h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
+								<h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
 									{t("result.strengths")}
 								</h3>
 							</div>
@@ -355,14 +358,14 @@ export function ResultPage() {
 
 					{assessment.weaknesses?.length > 0 && (
 						<StaggerItem>
-						<div className="bg-white rounded-lg border border-red-200 p-6" data-testid="result-weaknesses-panel">
+						<div className="bg-card rounded-lg border border-red-200 dark:border-red-800 p-6" data-testid="result-weaknesses-panel">
 							<div className="flex items-center gap-2 mb-4">
-								<div className="h-7 w-7 rounded-md bg-red-50 flex items-center justify-center">
-									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-red-500">
+								<div className="h-7 w-7 rounded-md bg-red-50 dark:bg-red-950/40 flex items-center justify-center">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-red-500 dark:text-red-400">
 										<path d="M12 9v2m0 4h.01M5.07 19h13.86c1.1 0 1.8-1.17 1.26-2.12l-6.93-12c-.54-.94-1.9-.94-2.44 0l-6.93 12C4.35 17.83 5.05 19 6.15 19z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
 									</svg>
 								</div>
-								<h3 className="text-xs font-semibold uppercase tracking-wider text-red-700">
+								<h3 className="text-xs font-semibold uppercase tracking-wider text-red-700 dark:text-red-400">
 									{t("result.weaknesses")}
 								</h3>
 							</div>
@@ -382,7 +385,7 @@ export function ResultPage() {
 				{/* Previous assessments */}
 				{assessments.length > 1 && (
 					<FadeIn delay={0.3}>
-					<div className="bg-white rounded-lg border p-6">
+					<div className="bg-card rounded-lg border p-6">
 						<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
 							{t("result.previousAssessments")}
 						</h2>

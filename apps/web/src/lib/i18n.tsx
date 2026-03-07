@@ -200,6 +200,31 @@ const translations: Record<Locale, Record<string, string>> = {
 		"admin.contactName": "ผู้ติดต่อ",
 		"admin.contactEmail": "อีเมลผู้ติดต่อ",
 		"admin.noDetail": "ไม่มีรายละเอียดเพิ่มเติม",
+		"admin.subtitle": "ภาพรวมและจัดการการประเมิน",
+		"admin.tabQuiz": "แบบประเมิน",
+		"admin.tabUsers": "ผู้ใช้งาน",
+		"admin.users": "ผู้ใช้งาน",
+		"admin.email": "อีเมล",
+		"admin.role": "บทบาท",
+		"admin.registered": "วันลงทะเบียน",
+		"admin.promoteAdmin": "ตั้งเป็นแอดมิน",
+		"admin.demoteUser": "ลดเป็นผู้ใช้",
+		"admin.roleAdmin": "แอดมิน",
+		"admin.roleUser": "ผู้ใช้",
+		"admin.noUsers": "ไม่พบข้อมูลผู้ใช้",
+		"admin.confirmPromote": "ยืนยันตั้ง {name} เป็นแอดมิน?",
+		"admin.confirmDemote": "ยืนยันลด {name} เป็นผู้ใช้ปกติ?",
+		"admin.roleUpdated": "อัปเดตบทบาทเรียบร้อย",
+		"admin.roleError": "อัปเดตบทบาทไม่สำเร็จ",
+		"admin.cancel": "ยกเลิก",
+		"admin.allRoles": "บทบาททั้งหมด",
+		"admin.filterAdmin": "เฉพาะแอดมิน",
+		"admin.filterUser": "เฉพาะผู้ใช้",
+		"admin.userDetail": "รายละเอียดผู้ใช้",
+		"admin.regId": "เลขทะเบียนนิติบุคคล",
+		"admin.phone": "เบอร์โทรศัพท์",
+		"admin.lastUpdated": "อัปเดตล่าสุด",
+		"admin.accountEmail": "อีเมลบัญชี",
 
 		// Profile
 		"profile.title": "โปรไฟล์",
@@ -216,6 +241,12 @@ const translations: Record<Locale, Record<string, string>> = {
 
 		// Top bar
 		"topbar.cta": "สนใจตรวจสุขภาพโรงงาน? ติดต่อ Line @STM23",
+
+		// Theme
+		"theme.label": "ธีม",
+		"theme.light": "สว่าง",
+		"theme.dark": "มืด",
+		"theme.system": "ตามระบบ",
 
 		// Footer
 		"footer.terms": "ข้อกำหนดการใช้งาน",
@@ -368,6 +399,31 @@ const translations: Record<Locale, Record<string, string>> = {
 		"admin.contactName": "Contact",
 		"admin.contactEmail": "Contact Email",
 		"admin.noDetail": "No additional detail available.",
+		"admin.subtitle": "Assessment overview & management",
+		"admin.tabQuiz": "Assessments",
+		"admin.tabUsers": "Users",
+		"admin.users": "Users",
+		"admin.email": "Email",
+		"admin.role": "Role",
+		"admin.registered": "Registered",
+		"admin.promoteAdmin": "Promote to Admin",
+		"admin.demoteUser": "Demote to User",
+		"admin.roleAdmin": "Admin",
+		"admin.roleUser": "User",
+		"admin.noUsers": "No users found.",
+		"admin.confirmPromote": "Promote {name} to admin?",
+		"admin.confirmDemote": "Demote {name} to regular user?",
+		"admin.roleUpdated": "Role updated successfully",
+		"admin.roleError": "Failed to update role",
+		"admin.cancel": "Cancel",
+		"admin.allRoles": "All Roles",
+		"admin.filterAdmin": "Admins Only",
+		"admin.filterUser": "Users Only",
+		"admin.userDetail": "User Detail",
+		"admin.regId": "Registration ID",
+		"admin.phone": "Phone",
+		"admin.lastUpdated": "Last Updated",
+		"admin.accountEmail": "Account Email",
 
 		// 404
 		// Profile
@@ -385,6 +441,12 @@ const translations: Record<Locale, Record<string, string>> = {
 
 		// Top bar
 		"topbar.cta": "Interested in a factory health check? Contact Line @STM23",
+
+		// Theme
+		"theme.label": "Theme",
+		"theme.light": "Light",
+		"theme.dark": "Dark",
+		"theme.system": "System",
 
 		// Footer
 		"footer.terms": "Terms & Conditions",

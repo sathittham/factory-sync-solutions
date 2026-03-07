@@ -10,7 +10,7 @@ import { setProfile, type Profile } from "@/store/authSlice";
 import { useLocale } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import { Select } from "@/components/form/native-select";
 import { Turnstile } from "@/components/Turnstile";
 import { LegalModal, type LegalType } from "@/components/LegalModal";
 
@@ -240,7 +240,7 @@ export function RegisterPage() {
 	return (
 		<div className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center p-4 sm:p-6">
 			<div className="w-full max-w-lg animate-fade-up" data-testid="registration-form">
-				<div className="bg-white rounded-lg border p-6 sm:p-8">
+				<div className="bg-card rounded-lg border p-6 sm:p-8">
 					{/* Header */}
 					<div className="flex items-start gap-3 mb-6">
 						<div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">

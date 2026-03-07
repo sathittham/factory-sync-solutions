@@ -48,7 +48,7 @@ function Toggle({ checked, onChange }: { readonly checked: boolean; readonly onC
 			aria-checked={checked}
 			onClick={onChange}
 			className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-				checked ? "bg-primary" : "bg-gray-200"
+				checked ? "bg-primary" : "bg-muted"
 			}`}
 		>
 			<span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
@@ -92,7 +92,7 @@ function CookieBanner({ isTh, onSettings, onAcceptAll, onOpenLegal }: {
 	return (
 		<div className="fixed bottom-0 left-0 right-0 z-50 p-4 animate-fade-up">
 			<div className="container max-w-3xl">
-				<div className="bg-white rounded-lg border shadow-lg p-4 sm:p-5 space-y-3">
+				<div className="bg-card rounded-lg border shadow-lg p-4 sm:p-5 space-y-3">
 					<p className="font-semibold text-sm">
 						{isTh ? "เว็บไซต์นี้ใช้คุกกี้" : "This website uses cookies"}
 					</p>

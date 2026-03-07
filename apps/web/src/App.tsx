@@ -4,6 +4,7 @@ import { store } from "@/store";
 import { router } from "@/router";
 import { useAuth } from "@/hooks/useAuth";
 import { LocaleProvider } from "@/lib/i18n";
+import { ThemeProvider } from "@/lib/theme";
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
 	useAuth();
@@ -13,11 +14,13 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
 export function App() {
 	return (
 		<Provider store={store}>
-			<LocaleProvider>
-				<AuthInitializer>
-					<RouterProvider router={router} />
-				</AuthInitializer>
-			</LocaleProvider>
+			<ThemeProvider>
+				<LocaleProvider>
+					<AuthInitializer>
+						<RouterProvider router={router} />
+					</AuthInitializer>
+				</LocaleProvider>
+			</ThemeProvider>
 		</Provider>
 	);
 }

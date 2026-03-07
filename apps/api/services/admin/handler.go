@@ -2,12 +2,14 @@ package admin
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	firebaseAuth "firebase.google.com/go/v4/auth"
 
 	"github.com/sathittham/factory-health-check/apps/api/pkg"
 	"github.com/sathittham/factory-health-check/apps/api/services/profile"
@@ -19,10 +21,11 @@ const msgInternalError = "internal error"
 type Handler struct {
 	resultSvc  *result.Service
 	profileSvc *profile.Service
+	authClient *firebaseAuth.Client
 }
 
-func NewHandler(resultSvc *result.Service, profileSvc *profile.Service) *Handler {
-	return &Handler{resultSvc: resultSvc, profileSvc: profileSvc}
+func NewHandler(resultSvc *result.Service, profileSvc *profile.Service, authClient *firebaseAuth.Client) *Handler {
+	return &Handler{resultSvc: resultSvc, profileSvc: profileSvc, authClient: authClient}
 }
 
 // Routes registers all admin routes on the given router.
@@ -30,6 +33,8 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Get("/assessments", h.ListAssessments)
 	r.Get("/assessments/{assessmentId}", h.GetAssessment)
 	r.Get("/export", h.ExportCSV)
+	r.Get("/users", h.ListUsers)
+	r.Put("/users/{uid}/role", h.SetUserRole)
 }
 
 // enrichedAssessment extends Assessment with profile data for admin views.
@@ -197,4 +202,63 @@ func (h *Handler) ExportCSV(w http.ResponseWriter, r *http.Request) {
 			a.SubmittedAt,
 		})
 	}
+}
+
+// ListUsers returns all registered user profiles.
+func (h *Handler) ListUsers(w http.ResponseWriter, r *http.Request) {
+	limit := 200
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	profiles, err := h.profileSvc.ListProfiles(r.Context(), limit)
+	if err != nil {
+		slog.Error("list users failed", "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+	if profiles == nil {
+		profiles = []*profile.Profile{}
+	}
+	pkg.RespondList(w, profiles, len(profiles))
+}
+
+// setRoleRequest is the payload for role changes.
+type setRoleRequest struct {
+	Role string `json:"role"`
+}
+
+// SetUserRole updates a user's role in both Firestore and Firebase custom claims.
+func (h *Handler) SetUserRole(w http.ResponseWriter, r *http.Request) {
+	uid := chi.URLParam(r, "uid")
+
+	var req setRoleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		pkg.RespondError(w, http.StatusBadRequest, "BAD_REQUEST", "invalid request body")
+		return
+	}
+	if req.Role != "admin" && req.Role != "user" {
+		pkg.RespondError(w, http.StatusBadRequest, "BAD_REQUEST", "role must be 'admin' or 'user'")
+		return
+	}
+
+	// Update Firestore profile
+	if err := h.profileSvc.SetRole(r.Context(), uid, req.Role); err != nil {
+		slog.Error("set role in firestore failed", "uid", uid, "role", req.Role, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+
+	// Update Firebase custom claims (authoritative source)
+	claims := map[string]interface{}{"role": req.Role}
+	if err := h.authClient.SetCustomUserClaims(r.Context(), uid, claims); err != nil {
+		slog.Error("set firebase custom claims failed", "uid", uid, "role", req.Role, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+
+	slog.Info("user role updated", "uid", uid, "role", req.Role)
+	pkg.RespondJSON(w, http.StatusOK, map[string]string{"uid": uid, "role": req.Role})
 }

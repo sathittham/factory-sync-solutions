@@ -8,7 +8,7 @@ import { setProfile, type Profile } from "@/store/authSlice";
 import { useLocale } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import { Select } from "@/components/form/native-select";
 
 const schema = z.object({
 	companyName: z.string().min(1, "register.companyNameError"),
@@ -72,7 +72,7 @@ export function ProfilePage() {
 	return (
 		<div className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center p-4 sm:p-6">
 			<div className="w-full max-w-lg animate-fade-up">
-				<div className="bg-white rounded-lg border p-6 sm:p-8">
+				<div className="bg-card rounded-lg border p-6 sm:p-8">
 					<div className="flex items-start gap-3 mb-6">
 						<div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
 							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-primary">

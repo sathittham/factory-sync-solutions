@@ -27,10 +27,10 @@ const SKELETON_DIMS = Array.from({ length: 8 }, (_, i) => `dim-skel-${i}`);
 const SKELETON_QUESTIONS = Array.from({ length: 6 }, (_, i) => `q-skel-${i}`);
 
 const diagnosisConfig: Record<string, { color: string; bg: string; border: string; label: Record<string, string> }> = {
-	Beginning: { color: "text-red-700", bg: "bg-red-50", border: "border-red-200", label: { th: "เริ่มต้น", en: "Beginning" } },
-	Developing: { color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200", label: { th: "กำลังพัฒนา", en: "Developing" } },
-	Established: { color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200", label: { th: "มั่นคง", en: "Established" } },
-	Advanced: { color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", label: { th: "ก้าวหน้า", en: "Advanced" } },
+	Beginning: { color: "text-red-700 dark:text-red-400", bg: "bg-red-50 dark:bg-red-950/30", border: "border-red-200 dark:border-red-800", label: { th: "เริ่มต้น", en: "Beginning" } },
+	Developing: { color: "text-amber-700 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/30", border: "border-amber-200 dark:border-amber-800", label: { th: "กำลังพัฒนา", en: "Developing" } },
+	Established: { color: "text-blue-700 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/30", border: "border-blue-200 dark:border-blue-800", label: { th: "มั่นคง", en: "Established" } },
+	Advanced: { color: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/30", border: "border-emerald-200 dark:border-emerald-800", label: { th: "ก้าวหน้า", en: "Advanced" } },
 };
 
 function MiniScoreRing({ score, size = 80 }: Readonly<{ score: number; size?: number }>) {
@@ -42,10 +42,10 @@ function MiniScoreRing({ score, size = 80 }: Readonly<{ score: number; size?: nu
 
 	return (
 		<svg width={size} height={size} className="transform -rotate-90">
-			<circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(220 14% 93%)" strokeWidth={strokeW} />
+			<circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--border))" strokeWidth={strokeW} />
 			<circle
 				cx={size / 2} cy={size / 2} r={r} fill="none"
-				stroke="hsl(220 65% 48%)" strokeWidth={strokeW} strokeLinecap="round"
+				stroke="hsl(var(--primary))" strokeWidth={strokeW} strokeLinecap="round"
 				strokeDasharray={circumference} strokeDashoffset={offset}
 				className="transition-all duration-1000 ease-out"
 			/>
@@ -106,7 +106,7 @@ function CompletedDashboard({ onRetake }: Readonly<{ onRetake: () => void }>) {
 						<button
 							type="button"
 							onClick={() => navigate("/results")}
-							className="w-full group bg-white rounded-xl border p-6 text-left hover:border-primary/30 hover:shadow-md transition-all duration-200"
+							className="w-full group bg-card rounded-xl border p-6 text-left hover:border-primary/30 hover:shadow-md transition-all duration-200"
 						>
 							<div className="h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
 								<svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-primary">
@@ -133,9 +133,9 @@ function CompletedDashboard({ onRetake }: Readonly<{ onRetake: () => void }>) {
 						<button
 							type="button"
 							onClick={onRetake}
-							className="w-full group bg-white rounded-xl border p-6 text-left hover:border-primary/30 hover:shadow-md transition-all duration-200"
+							className="w-full group bg-card rounded-xl border p-6 text-left hover:border-primary/30 hover:shadow-md transition-all duration-200"
 						>
-							<div className="h-11 w-11 rounded-lg bg-amber-50 flex items-center justify-center mb-4 group-hover:bg-amber-100/70 transition-colors">
+							<div className="h-11 w-11 rounded-lg bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mb-4 group-hover:bg-amber-100/70 dark:group-hover:bg-amber-900/30 transition-colors">
 								<svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-amber-600">
 									<path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
 									<path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -183,7 +183,7 @@ function ScoreCard({ assessment, diag, topScores, locale }: Readonly<{
 }>) {
 	return (
 		<ScaleIn delay={0.1}>
-			<div className="bg-white rounded-xl border p-6 sm:p-8">
+			<div className="bg-card rounded-xl border p-6 sm:p-8">
 				<div className="flex flex-col sm:flex-row items-center gap-6">
 					<div className="relative flex-shrink-0">
 						<MiniScoreRing score={assessment.overallScore} size={120} />
@@ -244,7 +244,7 @@ function ScoreCard({ assessment, diag, topScores, locale }: Readonly<{
 
 function ScoreCardSkeleton() {
 	return (
-		<div className="bg-white rounded-xl border p-8">
+		<div className="bg-card rounded-xl border p-8">
 			<div className="flex items-center gap-6">
 				<Skeleton className="h-[120px] w-[120px] rounded-full flex-shrink-0" />
 				<div className="flex-1 space-y-3">
@@ -260,8 +260,8 @@ function ScoreCardSkeleton() {
 
 function getDimTabClass(isCurrent: boolean, isComplete: boolean): string {
 	if (isCurrent) return "bg-primary text-white";
-	if (isComplete) return "bg-emerald-50 text-emerald-700 border border-emerald-200";
-	return "bg-white text-muted-foreground border hover:text-foreground";
+	if (isComplete) return "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800";
+	return "bg-card text-muted-foreground border hover:text-foreground";
 }
 
 function DimensionTabs({ dimensions, questions, answers, currentStep, locale, onStepChange }: Readonly<{
@@ -319,7 +319,7 @@ function QuestionCard({ q, qNum, isAnswered, selectedValue, locale, idx, onAnswe
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.35, delay: idx * 0.06, ease: [0.21, 0.47, 0.32, 0.98] }}
 			data-testid="quiz-question-card"
-			className={`bg-white rounded-lg border p-5 transition-colors ${isAnswered ? "border-primary/20" : ""}`}
+			className={`bg-card rounded-lg border p-5 transition-colors ${isAnswered ? "border-primary/20" : ""}`}
 		>
 			<div className="mb-4">
 				<div className="flex items-start gap-3">
@@ -352,7 +352,7 @@ function QuestionCard({ q, qNum, isAnswered, selectedValue, locale, idx, onAnswe
 								}`}
 							>
 								<span className={`flex-shrink-0 h-6 w-6 rounded-full text-xs font-bold flex items-center justify-center mt-0.5 ${
-									isSelected ? "bg-white/20 text-white" : "bg-white text-muted-foreground border"
+									isSelected ? "bg-white/20 text-white" : "bg-card text-muted-foreground border"
 								}`}>
 									{val}
 								</span>

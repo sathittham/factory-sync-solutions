@@ -9,7 +9,7 @@ import { useLocale } from "@/lib/i18n";
 import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import { Select } from "@/components/form/native-select";
 import {
 	Dialog,
 	DialogContent,

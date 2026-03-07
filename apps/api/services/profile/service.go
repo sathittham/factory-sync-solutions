@@ -98,6 +98,21 @@ func (s *Service) GetProfilesByUIDs(ctx context.Context, uids []string) (map[str
 	return profiles, nil
 }
 
+// ListProfiles returns all user profiles (admin use).
+func (s *Service) ListProfiles(ctx context.Context, limit int) ([]*Profile, error) {
+	return s.repo.ListAll(ctx, limit)
+}
+
+// SetRole updates the role field on a user's profile.
+func (s *Service) SetRole(ctx context.Context, uid, role string) error {
+	now := time.Now().UTC().Format(time.RFC3339)
+	updates := []firestore.Update{
+		{Path: "role", Value: role},
+		{Path: "updatedAt", Value: now},
+	}
+	return s.repo.Update(ctx, uid, updates)
+}
+
 func (s *Service) UpdateProfile(ctx context.Context, uid string, req *UpdateProfileRequest) (*Profile, error) {
 	existing, err := s.repo.GetByUID(ctx, uid)
 	if err != nil {

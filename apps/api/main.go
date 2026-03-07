@@ -92,7 +92,7 @@ func main() {
 	quizHandler := quiz.NewHandler(quizSvc, profileAdapter)
 
 	// Admin
-	adminHandler := admin.NewHandler(resultSvc, profileSvc)
+	adminHandler := admin.NewHandler(resultSvc, profileSvc, authClient)
 
 	// DBD
 	dbdSvc := dbd.NewDefaultService()

@@ -14,6 +14,7 @@ type RepositoryInterface interface {
 	GetByUID(ctx context.Context, uid string) (*Profile, error)
 	GetByUIDs(ctx context.Context, uids []string) (map[string]*Profile, error)
 	GetByRegID(ctx context.Context, regID string) (*Profile, error)
+	ListAll(ctx context.Context, limit int) ([]*Profile, error)
 	Create(ctx context.Context, profile *Profile) error
 	Update(ctx context.Context, uid string, updates []firestore.Update) error
 }
@@ -72,6 +73,28 @@ func (r *Repository) GetByUIDs(ctx context.Context, uids []string) (map[string]*
 		// if the uid field wasn't stored in the document data.
 		p.UID = doc.Ref.ID
 		profiles[doc.Ref.ID] = &p
+	}
+	return profiles, nil
+}
+
+func (r *Repository) ListAll(ctx context.Context, limit int) ([]*Profile, error) {
+	query := r.client.Collection("users").OrderBy("createdAt", firestore.Desc)
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("firestore list all: %w", err)
+	}
+
+	profiles := make([]*Profile, 0, len(docs))
+	for _, doc := range docs {
+		var p Profile
+		if err := doc.DataTo(&p); err != nil {
+			continue
+		}
+		p.UID = doc.Ref.ID
+		profiles = append(profiles, &p)
 	}
 	return profiles, nil
 }

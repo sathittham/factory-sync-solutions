@@ -129,7 +129,7 @@ const STEPS_EN = [
 function TestimonialsSection({ locale }: Readonly<{ locale: string }>) {
 	const testimonials = locale === "th" ? TESTIMONIALS_TH : TESTIMONIALS_EN;
 	return (
-		<section className="py-16 sm:py-20 bg-white">
+		<section className="py-16 sm:py-20 bg-background">
 			<div className="max-w-6xl mx-auto px-4 sm:px-6">
 				<FadeIn>
 					<h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-10 text-center">
@@ -266,7 +266,7 @@ function BottomCtaSection({ locale, onCtaClick, ctaLabel }: Readonly<{
 	ctaLabel: string;
 }>) {
 	return (
-		<section className="py-16 sm:py-20 bg-white">
+		<section className="py-16 sm:py-20 bg-background">
 			<div className="max-w-xl mx-auto px-4 sm:px-6 text-center animate-fade-up">
 				<h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
 					{locale === "th" ? "พร้อมประเมินโรงงานของคุณแล้วหรือยัง?" : "Ready to assess your factory?"}
@@ -382,7 +382,7 @@ export function LandingPage() {
 			</section>
 
 			{/* How It Works */}
-			<section className="py-16 sm:py-20 bg-white">
+			<section className="py-16 sm:py-20 bg-background">
 				<div className="max-w-6xl mx-auto px-4 sm:px-6">
 					<FadeIn>
 						<h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-10 text-center">
@@ -419,7 +419,7 @@ export function LandingPage() {
 						{FEATURES.map((feat) => (
 							<StaggerItem
 								key={feat.key}
-								className="group relative bg-white rounded-lg border overflow-hidden hover:shadow-md transition-shadow"
+								className="group relative bg-card rounded-lg border overflow-hidden hover:shadow-md transition-shadow"
 							>
 								<div className="h-32 overflow-hidden">
 									<img
