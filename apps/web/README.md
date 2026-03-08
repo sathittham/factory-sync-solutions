@@ -125,7 +125,59 @@ Output goes to `dist/`.
 | `npm test` | Run unit tests (Vitest) |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with coverage |
-| `npm run test:e2e` | Run E2E tests (Playwright) |
+| `npm run test:e2e` | Run E2E tests (Playwright, headless) |
+| `npm run test:e2e:headed` | Run E2E tests with visible browser |
+| `npm run test:e2e:debug` | Run E2E tests with Playwright inspector |
+
+## Testing
+
+### Unit Tests (Vitest)
+
+```bash
+npm test                  # run once
+npm run test:watch        # watch mode
+npm run test:coverage     # with coverage report
+```
+
+Unit tests use Vitest + React Testing Library + jsdom. Test files live alongside source files (`*.test.ts`).
+
+### E2E Tests (Playwright)
+
+**First-time setup:**
+
+```bash
+npx playwright install    # download Chromium, Firefox, WebKit
+```
+
+**Run tests:**
+
+```bash
+npm run test:e2e          # headless (all browsers)
+npm run test:e2e:headed   # with visible browser
+npm run test:e2e:debug    # with Playwright inspector
+```
+
+E2E tests live in the `e2e/` directory. Components expose `data-testid` attributes for stable selectors:
+
+| Test ID | Component |
+|---|---|
+| `hero-cta-btn` | Landing page hero CTA |
+| `signin-google-btn` | Google sign-in button |
+| `bottom-cta-btn` | Landing page bottom CTA |
+| `line-cta-btn` | LINE contact button |
+| `cookie-settings-btn` | Cookie consent settings |
+| `cookie-accept-all-btn` | Cookie accept all |
+| `cookie-confirm-btn` | Cookie confirm selection |
+| `reg-company-id-input` | Registration company ID |
+| `reg-dbd-lookup-btn` | DBD lookup button |
+| `admin-export-csv-btn` | Admin CSV export |
+| `admin-filter-industry` | Admin industry filter |
+| `admin-filter-size` | Admin company size filter |
+| `admin-filter-role` | Admin role filter |
+| `admin-assessment-table` | Admin assessment table |
+| `admin-users-table` | Admin users table |
+| `admin-role-confirm-btn` | Admin role change confirm |
+| `admin-role-cancel-btn` | Admin role change cancel |
 
 ## Theme System
 
