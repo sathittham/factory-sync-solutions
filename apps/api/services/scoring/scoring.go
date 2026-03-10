@@ -22,6 +22,40 @@ func LoadQuestions(path string) (*QuizConfig, error) {
 	return &config, nil
 }
 
+// QuizRegistry holds all available quiz configs keyed by quiz ID.
+type QuizRegistry struct {
+	quizzes map[string]*QuizConfig
+	// ordered list of quiz IDs for listing
+	order []string
+}
+
+// NewQuizRegistry creates an empty registry.
+func NewQuizRegistry() *QuizRegistry {
+	return &QuizRegistry{
+		quizzes: make(map[string]*QuizConfig),
+	}
+}
+
+// Register adds a quiz config to the registry.
+func (r *QuizRegistry) Register(config *QuizConfig) {
+	r.quizzes[config.ID] = config
+	r.order = append(r.order, config.ID)
+}
+
+// Get returns a quiz config by ID. Returns nil if not found.
+func (r *QuizRegistry) Get(id string) *QuizConfig {
+	return r.quizzes[id]
+}
+
+// List returns all available quiz configs in registration order.
+func (r *QuizRegistry) List() []*QuizConfig {
+	result := make([]*QuizConfig, 0, len(r.order))
+	for _, id := range r.order {
+		result = append(result, r.quizzes[id])
+	}
+	return result
+}
+
 // ComputeScores calculates dimension scores, overall score, strengths,
 // weaknesses, and diagnosis from quiz answers.
 func ComputeScores(questions []Question, dimensions []Dimension, answers []QuizAnswer) *ScoringResult {
@@ -135,7 +169,7 @@ func sortDimensionScores(scores []DimensionScore, questions []Question) {
 		}
 	}
 
-	// Simple insertion sort (only 7 elements)
+	// Simple insertion sort (only 7-8 elements)
 	for i := 1; i < len(scores); i++ {
 		for j := i; j > 0 && order[scores[j].DimensionID] < order[scores[j-1].DimensionID]; j-- {
 			scores[j], scores[j-1] = scores[j-1], scores[j]

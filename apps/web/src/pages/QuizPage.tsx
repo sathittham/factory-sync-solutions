@@ -12,251 +12,26 @@ import {
 } from "@/store/quizSlice";
 import {
 	setAssessment,
-	setAssessments,
-	setLoading as setResultLoading,
 } from "@/store/resultSlice";
 import { setHasCompletedQuiz } from "@/store/authSlice";
 import { useLocale } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import type { Assessment } from "@/store/resultSlice";
-import { FadeIn, StaggerChildren, StaggerItem, ScaleIn, AnimatePresence, motion } from "@/components/motion";
+import { AnimatePresence, motion } from "@/components/motion";
 
 const SKELETON_DIMS = Array.from({ length: 8 }, (_, i) => `dim-skel-${i}`);
 const SKELETON_QUESTIONS = Array.from({ length: 6 }, (_, i) => `q-skel-${i}`);
 
-const diagnosisConfig: Record<string, { color: string; bg: string; border: string; label: Record<string, string> }> = {
-	Beginning: { color: "text-red-700 dark:text-red-400", bg: "bg-red-50 dark:bg-red-950/30", border: "border-red-200 dark:border-red-800", label: { th: "เริ่มต้น", en: "Beginning" } },
-	Developing: { color: "text-amber-700 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/30", border: "border-amber-200 dark:border-amber-800", label: { th: "กำลังพัฒนา", en: "Developing" } },
-	Established: { color: "text-blue-700 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/30", border: "border-blue-200 dark:border-blue-800", label: { th: "มั่นคง", en: "Established" } },
-	Advanced: { color: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/30", border: "border-emerald-200 dark:border-emerald-800", label: { th: "ก้าวหน้า", en: "Advanced" } },
-};
-
-function MiniScoreRing({ score, size = 80 }: Readonly<{ score: number; size?: number }>) {
-	const pct = (score / 5) * 100;
-	const strokeW = 7;
-	const r = (size - strokeW) / 2;
-	const circumference = 2 * Math.PI * r;
-	const offset = circumference - (pct / 100) * circumference;
-
-	return (
-		<svg width={size} height={size} className="transform -rotate-90">
-			<circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--border))" strokeWidth={strokeW} />
-			<circle
-				cx={size / 2} cy={size / 2} r={r} fill="none"
-				stroke="hsl(var(--primary))" strokeWidth={strokeW} strokeLinecap="round"
-				strokeDasharray={circumference} strokeDashoffset={offset}
-				className="transition-all duration-1000 ease-out"
-			/>
-		</svg>
-	);
-}
-
-function CompletedDashboard({ onRetake }: Readonly<{ onRetake: () => void }>) {
-	const navigate = useNavigate();
-	const dispatch = useAppDispatch();
-	const { profile } = useAppSelector((s) => s.auth);
-	const { assessment, assessments, loading: resultLoading } = useAppSelector((s) => s.result);
-	const { locale, t } = useLocale();
-
-	useEffect(() => {
-		if (!assessment && !resultLoading) {
-			dispatch(setResultLoading(true));
-			api
-				.get<Assessment[]>("/results")
-				.then((data) => {
-					dispatch(setAssessments(data));
-					if (data.length > 0) dispatch(setAssessment(data[0]));
-				})
-				.catch(() => {})
-				.finally(() => dispatch(setResultLoading(false)));
-		}
-	}, [assessment, resultLoading, dispatch]);
-
-	const diag = assessment ? (diagnosisConfig[assessment.diagnosis] || diagnosisConfig.Beginning) : null;
-	const topScores = assessment?.scores
-		?.slice()
-		.sort((a, b) => b.score - a.score)
-		.slice(0, 3) ?? [];
-
-	return (
-		<div className="min-h-[calc(100vh-7rem)]">
-			<div className="bg-gradient-to-b from-primary/[0.04] to-transparent border-b">
-				<div className="container max-w-4xl py-8 sm:py-10 px-4 sm:px-6">
-					<FadeIn>
-						<p className="text-base text-muted-foreground mb-1">
-							{locale === "th" ? "ยินดีต้อนรับกลับ" : "Welcome back"},
-						</p>
-						<h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-							{profile?.companyName ?? (locale === "th" ? "บริษัทของคุณ" : "Your Company")}
-						</h1>
-					</FadeIn>
-				</div>
-			</div>
-
-			<div className="container max-w-4xl py-6 sm:py-8 px-4 sm:px-6 space-y-5">
-				{assessment && (
-					<ScoreCard assessment={assessment} diag={diag} topScores={topScores} locale={locale} />
-				)}
-				{!assessment && resultLoading && <ScoreCardSkeleton />}
-
-				<StaggerChildren className="grid grid-cols-1 sm:grid-cols-2 gap-4" stagger={0.1}>
-					<StaggerItem>
-						<button
-							type="button"
-							onClick={() => navigate("/results")}
-							className="w-full group bg-card rounded-xl border p-6 text-left hover:border-primary/30 hover:shadow-md transition-all duration-200"
-						>
-							<div className="h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
-								<svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-primary">
-									<path d="M16 8v8M12 11v5M8 14v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-									<rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.8" />
-								</svg>
-							</div>
-							<h3 className="text-lg font-bold text-foreground mb-1">{t("quiz.viewResults")}</h3>
-							<p className="text-sm text-muted-foreground leading-relaxed">
-								{locale === "th"
-									? "ดูผลวิเคราะห์เชิงลึก กราฟเรดาร์ จุดแข็ง และข้อเสนอแนะ"
-									: "View detailed analysis, radar chart, strengths & recommendations"}
-							</p>
-							<div className="flex items-center gap-1 mt-3 text-sm font-medium text-primary">
-								{locale === "th" ? "ดูผลลัพธ์" : "View results"}
-								<svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="group-hover:translate-x-0.5 transition-transform">
-									<path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-								</svg>
-							</div>
-						</button>
-					</StaggerItem>
-
-					<StaggerItem>
-						<button
-							type="button"
-							onClick={onRetake}
-							className="w-full group bg-card rounded-xl border p-6 text-left hover:border-primary/30 hover:shadow-md transition-all duration-200"
-						>
-							<div className="h-11 w-11 rounded-lg bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mb-4 group-hover:bg-amber-100/70 dark:group-hover:bg-amber-900/30 transition-colors">
-								<svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-amber-600">
-									<path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-									<path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-								</svg>
-							</div>
-							<h3 className="text-lg font-bold text-foreground mb-1">{t("quiz.retake")}</h3>
-							<p className="text-sm text-muted-foreground leading-relaxed">
-								{locale === "th"
-									? "ทำแบบประเมินใหม่อีกครั้งเพื่อเปรียบเทียบกับผลลัพธ์ก่อนหน้า"
-									: "Take the assessment again and compare with your previous results"}
-							</p>
-							<div className="flex items-center gap-1 mt-3 text-sm font-medium text-amber-600">
-								{locale === "th" ? "เริ่มทำใหม่" : "Start over"}
-								<svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="group-hover:translate-x-0.5 transition-transform">
-									<path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-								</svg>
-							</div>
-						</button>
-					</StaggerItem>
-				</StaggerChildren>
-
-				{assessments.length > 1 && (
-					<FadeIn delay={0.3}>
-						<div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
-								<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
-								<path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-							</svg>
-							{locale === "th"
-								? `คุณมีผลประเมินทั้งหมด ${assessments.length} ครั้ง`
-								: `You have ${assessments.length} assessments total`}
-						</div>
-					</FadeIn>
-				)}
-			</div>
-		</div>
-	);
-}
-
-function ScoreCard({ assessment, diag, topScores, locale }: Readonly<{
-	assessment: Assessment;
-	diag: (typeof diagnosisConfig)[string] | null;
-	topScores: Assessment["scores"];
-	locale: string;
-}>) {
-	return (
-		<ScaleIn delay={0.1}>
-			<div className="bg-card rounded-xl border p-6 sm:p-8">
-				<div className="flex flex-col sm:flex-row items-center gap-6">
-					<div className="relative flex-shrink-0">
-						<MiniScoreRing score={assessment.overallScore} size={120} />
-						<div className="absolute inset-0 flex flex-col items-center justify-center">
-							<span className="text-2xl font-bold tabular-nums tracking-tight">
-								{assessment.overallScore.toFixed(2)}
-							</span>
-							<span className="text-xs text-muted-foreground font-mono">/5.00</span>
-						</div>
-					</div>
-					<div className="flex-1 text-center sm:text-left">
-						<div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
-							<h2 className="text-lg font-bold">
-								{locale === "th" ? "คะแนนล่าสุด" : "Latest Score"}
-							</h2>
-							{diag && (
-								<Badge className={`text-sm px-2.5 py-0.5 ${diag.bg} ${diag.color} ${diag.border} border font-medium`}>
-									{diag.label[locale]}
-								</Badge>
-							)}
-						</div>
-						{topScores.length > 0 && (
-							<div className="space-y-2 mt-3">
-								{topScores.map((s) => (
-									<div key={s.dimensionId} className="flex items-center gap-3">
-										<span className="text-sm text-muted-foreground w-32 sm:w-40 truncate text-left">
-											{s.dimensionName}
-										</span>
-										<div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
-											<div
-												className="h-full rounded-full bg-primary/70 animate-score-fill"
-												style={{ width: `${(s.score / 5) * 100}%` }}
-											/>
-										</div>
-										<span className="text-sm font-mono font-semibold tabular-nums w-10 text-right">
-											{s.score.toFixed(1)}
-										</span>
-									</div>
-								))}
-							</div>
-						)}
-						{assessment.submittedAt && (
-							<p className="text-sm text-muted-foreground mt-3">
-								{locale === "th" ? "ประเมินเมื่อ " : "Assessed on "}
-								<span className="font-mono">
-									{new Date(assessment.submittedAt).toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
-										year: "numeric", month: "short", day: "numeric",
-									})}
-								</span>
-							</p>
-						)}
-					</div>
-				</div>
-			</div>
-		</ScaleIn>
-	);
-}
-
-function ScoreCardSkeleton() {
-	return (
-		<div className="bg-card rounded-xl border p-8">
-			<div className="flex items-center gap-6">
-				<Skeleton className="h-[120px] w-[120px] rounded-full flex-shrink-0" />
-				<div className="flex-1 space-y-3">
-					<Skeleton className="h-6 w-48" />
-					<Skeleton className="h-2 w-full" />
-					<Skeleton className="h-2 w-3/4" />
-					<Skeleton className="h-2 w-1/2" />
-				</div>
-			</div>
-		</div>
-	);
-}
+const GRADE_LABELS: Record<number, string> = { 5: "A", 4: "B", 3: "C", 2: "D", 1: "F" };
 
 function getDimTabClass(isCurrent: boolean, isComplete: boolean): string {
 	if (isCurrent) return "bg-primary text-white";
@@ -299,18 +74,22 @@ function DimensionTabs({ dimensions, questions, answers, currentStep, locale, on
 	);
 }
 
-function QuestionCard({ q, qNum, isAnswered, selectedValue, locale, idx, onAnswer }: Readonly<{
-	q: { id: string; textTh: string; textEn: string; rubric?: Record<string, { th: string; en: string }> };
+function QuestionCard({ q, qNum, isAnswered, selectedValue, locale, idx, useGradeLabels, onAnswer }: Readonly<{
+	q: { id: string; textTh: string; textEn: string; descriptionTh?: string; descriptionEn?: string; rubric?: Record<string, { th: string; en: string }> };
 	qNum: number;
 	isAnswered: boolean;
 	selectedValue: number | undefined;
 	locale: string;
 	idx: number;
+	useGradeLabels: boolean;
 	onAnswer: (questionId: string, value: number) => void;
 }>) {
 	const questionText = locale === "th" ? q.textTh : q.textEn;
 	const secondaryText = locale === "th" ? q.textEn : q.textTh;
+	const descriptionText = locale === "th" ? q.descriptionTh : q.descriptionEn;
 	const hasRubric = q.rubric && Object.keys(q.rubric).length > 0;
+	// For factory quiz: render from 5 (A) to 1 (F) — best to worst
+	const rubricOrder = useGradeLabels ? [5, 4, 3, 2, 1] : [1, 2, 3, 4, 5];
 
 	return (
 		<motion.div
@@ -331,15 +110,21 @@ function QuestionCard({ q, qNum, isAnswered, selectedValue, locale, idx, onAnswe
 					<div className="flex-1 min-w-0">
 						<p className="font-medium text-foreground leading-snug text-[15px]">{questionText}</p>
 						<p className="text-[13px] text-muted-foreground mt-0.5 leading-snug">{secondaryText}</p>
+						{descriptionText && (
+							<p className="text-[13px] text-foreground/70 mt-2 leading-relaxed bg-muted/40 rounded-md px-3 py-2">
+								{descriptionText}
+							</p>
+						)}
 					</div>
 				</div>
 			</div>
 			{hasRubric ? (
 				<div className="space-y-1.5 ml-10">
-					{[1, 2, 3, 4, 5].map((val) => {
+					{rubricOrder.map((val) => {
 						const isSelected = selectedValue === val;
 						const rubricText = q.rubric?.[String(val)];
 						const label = rubricText ? (locale === "th" ? rubricText.th : rubricText.en) : "";
+						const displayLabel = useGradeLabels ? GRADE_LABELS[val] : String(val);
 						return (
 							<button
 								key={val}
@@ -354,7 +139,7 @@ function QuestionCard({ q, qNum, isAnswered, selectedValue, locale, idx, onAnswe
 								<span className={`flex-shrink-0 h-6 w-6 rounded-full text-xs font-bold flex items-center justify-center mt-0.5 ${
 									isSelected ? "bg-white/20 text-white" : "bg-card text-muted-foreground border"
 								}`}>
-									{val}
+									{displayLabel}
 								</span>
 								<span className={`text-[13px] sm:text-sm leading-snug ${
 									isSelected ? "text-white/90" : "text-foreground/80"
@@ -485,30 +270,25 @@ function QuizNavigation({ currentStep, totalSteps, allAnswered, isSubmitting, on
 export function QuizPage() {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	const { questions, dimensions, answers, currentStep, isSubmitting, questionsLoaded } =
+	const { quizId, questions, dimensions, answers, currentStep, isSubmitting, questionsLoaded } =
 		useAppSelector((s) => s.quiz);
-	const { hasCompletedQuiz } = useAppSelector((s) => s.auth);
 	const { locale, t } = useLocale();
 	const [error, setError] = useState<string | null>(null);
-	const [startRetake, setStartRetake] = useState(false);
+	const [showExitDialog, setShowExitDialog] = useState(false);
 
-	const shouldLoadQuestions = !hasCompletedQuiz || startRetake;
+	const useGradeLabels = quizId === "factory";
 
 	useEffect(() => {
-		if (shouldLoadQuestions && !questionsLoaded) {
+		if (!questionsLoaded) {
 			api
 				.get<{
 					questions: typeof questions;
 					dimensions: typeof dimensions;
-				}>("/quiz/questions")
+				}>(`/quiz/questions?quizId=${quizId}`)
 				.then((data) => dispatch(setQuestions(data)))
 				.catch(() => setError(t("quiz.loadError")));
 		}
-	}, [shouldLoadQuestions, questionsLoaded, dispatch]);
-
-	if (hasCompletedQuiz && !startRetake) {
-		return <CompletedDashboard onRetake={() => setStartRetake(true)} />;
-	}
+	}, [questionsLoaded, quizId, dispatch]);
 
 	if (!questionsLoaded) {
 		return (
@@ -558,22 +338,28 @@ export function QuizPage() {
 		}
 	};
 
+	const handleExit = () => {
+		dispatch(resetQuiz());
+		navigate("/");
+	};
+
 	const handleSubmit = async () => {
 		dispatch(setSubmitting(true));
 		setError(null);
-		trackEvent("quiz_submit", { total_questions: questions.length, answered: answeredCount });
+		trackEvent("quiz_submit", { quiz_id: quizId, total_questions: questions.length, answered: answeredCount });
 		try {
 			const payload = Object.entries(answers).map(([questionId, value]) => ({
 				questionId,
 				value,
 			}));
 			const result = await api.post<Assessment>("/quiz/submit", {
+				quizId,
 				answers: payload,
 			});
 			dispatch(setAssessment(result));
 			dispatch(setHasCompletedQuiz(true));
 			dispatch(resetQuiz());
-			trackEvent("quiz_complete", { overall_score: result.overallScore, diagnosis: result.diagnosis });
+			trackEvent("quiz_complete", { quiz_id: quizId, overall_score: result.overallScore, diagnosis: result.diagnosis });
 			navigate("/results");
 		} catch {
 			trackEvent("quiz_submit_error");
@@ -590,9 +376,22 @@ export function QuizPage() {
 				<div className="mb-6">
 					<div className="flex items-end justify-between mb-3">
 						<h1 className="text-2xl font-bold">{t("quiz.title")}</h1>
-						<span className="text-sm font-mono text-primary tabular-nums">
-							{answeredCount}<span className="text-muted-foreground">/{questions.length}</span>
-						</span>
+						<div className="flex items-center gap-3">
+							<span className="text-sm font-mono text-primary tabular-nums">
+								{answeredCount}<span className="text-muted-foreground">/{questions.length}</span>
+							</span>
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={() => setShowExitDialog(true)}
+								className="text-muted-foreground hover:text-foreground gap-1.5 h-8 px-2"
+							>
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+									<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+								</svg>
+								{t("quiz.exit")}
+							</Button>
+						</div>
 					</div>
 					<div className="relative h-2 bg-secondary rounded-full overflow-hidden">
 						<div
@@ -637,6 +436,7 @@ export function QuizPage() {
 							selectedValue={answers[q.id]}
 							locale={locale}
 							idx={idx}
+							useGradeLabels={useGradeLabels}
 							onAnswer={(questionId, value) => dispatch(setAnswer({ questionId, value }))}
 						/>
 					))}
@@ -660,6 +460,23 @@ export function QuizPage() {
 					onSubmit={handleSubmit}
 				/>
 			</div>
+
+			<Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+				<DialogContent className="sm:max-w-sm">
+					<DialogHeader>
+						<DialogTitle>{t("quiz.exitConfirm.title")}</DialogTitle>
+						<DialogDescription>{t("quiz.exitConfirm.desc")}</DialogDescription>
+					</DialogHeader>
+					<DialogFooter className="gap-2 sm:gap-0">
+						<Button variant="outline" onClick={() => setShowExitDialog(false)}>
+							{t("quiz.exitConfirm.stay")}
+						</Button>
+						<Button variant="destructive" onClick={handleExit}>
+							{t("quiz.exitConfirm.leave")}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

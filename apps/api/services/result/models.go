@@ -6,6 +6,7 @@ import "github.com/sathittham/factory-health-check/apps/api/services/scoring"
 type Assessment struct {
 	ID          string                  `json:"id" firestore:"id"`
 	UID         string                  `json:"uid" firestore:"uid"`
+	QuizID      string                  `json:"quizId" firestore:"quizId"`
 	Answers     []scoring.QuizAnswer    `json:"answers" firestore:"answers"`
 	Scores      []scoring.DimensionScore `json:"scores" firestore:"scores"`
 	OverallScore float64                `json:"overallScore" firestore:"overallScore"`
@@ -19,6 +20,7 @@ type Assessment struct {
 type AssessmentSummary struct {
 	ID           string  `json:"id"`
 	UID          string  `json:"uid"`
+	QuizID       string  `json:"quizId"`
 	OverallScore float64 `json:"overallScore"`
 	Diagnosis    string  `json:"diagnosis"`
 	SubmittedAt  string  `json:"submittedAt"`

@@ -14,40 +14,56 @@ import (
 )
 
 var (
-	ErrIncompleteAnswers = errors.New("all 35 questions must be answered")
+	ErrIncompleteAnswers = errors.New("all questions must be answered")
 	ErrInvalidAnswer     = errors.New("invalid answer: value must be 1-5")
+	ErrQuizNotFound      = errors.New("quiz not found")
 )
 
 type Service struct {
-	quizConfig   *scoring.QuizConfig
-	resultSvc    *result.Service
-	notifSvc     *notification.Service
+	registry  *scoring.QuizRegistry
+	resultSvc *result.Service
+	notifSvc  *notification.Service
 }
 
-func NewService(quizConfig *scoring.QuizConfig, resultSvc *result.Service, notifSvc *notification.Service) *Service {
+func NewService(registry *scoring.QuizRegistry, resultSvc *result.Service, notifSvc *notification.Service) *Service {
 	return &Service{
-		quizConfig: quizConfig,
-		resultSvc:  resultSvc,
-		notifSvc:   notifSvc,
+		registry:  registry,
+		resultSvc: resultSvc,
+		notifSvc:  notifSvc,
 	}
 }
 
-// GetQuestions returns the quiz configuration (questions + dimensions).
-func (s *Service) GetQuestions() *scoring.QuizConfig {
-	return s.quizConfig
+// GetQuestions returns the quiz configuration for a specific quiz ID.
+func (s *Service) GetQuestions(quizID string) *scoring.QuizConfig {
+	return s.registry.Get(quizID)
+}
+
+// ListQuizzes returns lightweight summaries of all available quizzes.
+func (s *Service) ListQuizzes() []QuizListItem {
+	configs := s.registry.List()
+	items := make([]QuizListItem, 0, len(configs))
+	for _, c := range configs {
+		items = append(items, QuizListItem{ID: c.ID, NameTh: c.NameTh, NameEn: c.NameEn})
+	}
+	return items
 }
 
 // SubmitQuiz validates answers, computes scores, stores the result,
 // and triggers notifications.
-func (s *Service) SubmitQuiz(ctx context.Context, uid, contactEmail, contactName, companyName string, answers []scoring.QuizAnswer) (*result.Assessment, error) {
+func (s *Service) SubmitQuiz(ctx context.Context, uid, contactEmail, contactName, companyName, quizID string, answers []scoring.QuizAnswer) (*result.Assessment, error) {
+	quizConfig := s.registry.Get(quizID)
+	if quizConfig == nil {
+		return nil, ErrQuizNotFound
+	}
+
 	// Validate answer count
-	if len(answers) != len(s.quizConfig.Questions) {
+	if len(answers) != len(quizConfig.Questions) {
 		return nil, ErrIncompleteAnswers
 	}
 
 	// Validate each answer references a valid question and has valid value
-	validQuestions := make(map[string]bool, len(s.quizConfig.Questions))
-	for _, q := range s.quizConfig.Questions {
+	validQuestions := make(map[string]bool, len(quizConfig.Questions))
+	for _, q := range quizConfig.Questions {
 		validQuestions[q.ID] = true
 	}
 	for _, a := range answers {
@@ -60,13 +76,14 @@ func (s *Service) SubmitQuiz(ctx context.Context, uid, contactEmail, contactName
 	}
 
 	// Compute scores
-	scoringResult := scoring.ComputeScores(s.quizConfig.Questions, s.quizConfig.Dimensions, answers)
+	scoringResult := scoring.ComputeScores(quizConfig.Questions, quizConfig.Dimensions, answers)
 
 	// Build assessment
 	now := time.Now().UTC().Format(time.RFC3339)
 	assessment := &result.Assessment{
 		ID:           uuid.New().String(),
 		UID:          uid,
+		QuizID:       quizID,
 		Answers:      answers,
 		Scores:       scoringResult.DimensionScores,
 		OverallScore: scoringResult.OverallScore,

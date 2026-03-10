@@ -27,7 +27,7 @@ func NewService(email *EmailClient, slack *SlackClient, fsClient *firestore.Clie
 
 // NotifyRegistration sends a Slack notification for a new registration.
 func (s *Service) NotifyRegistration(ctx context.Context, companyName, contactName, industryType string) {
-	webhookURL := os.Getenv("SLACK_WEBHOOK_REGISTRATIONS")
+	webhookURL := os.Getenv("SLACK_WEBHOOK_REGISTRATION")
 	if err := s.slack.SendRegistration(ctx, webhookURL, companyName, contactName, industryType); err != nil {
 		slog.Error("slack registration notification failed", "error", err.Error())
 	}
@@ -66,7 +66,7 @@ func (s *Service) NotifyQuizResult(ctx context.Context, assessment *result.Asses
 	}
 
 	// Send Slack notification
-	webhookURL := os.Getenv("SLACK_WEBHOOK_QUIZ_RESULTS")
+	webhookURL := os.Getenv("SLACK_WEBHOOK_QUIZ_RESULT")
 	if err := s.slack.SendQuizResult(ctx, webhookURL, companyName, assessment.OverallScore, assessment.Diagnosis); err != nil {
 		slog.Error("slack quiz result notification failed", "error", err.Error())
 	}

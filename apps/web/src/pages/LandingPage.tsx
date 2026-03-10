@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Navigate } from "react-router";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { useAppSelector } from "@/store";
@@ -14,6 +14,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion";
+import { DashboardPage } from "@/pages/DashboardPage";
 
 const HERO_IMG =
 	"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1200&q=80&auto=format&fit=crop";
@@ -292,27 +293,8 @@ function BottomCtaSection({ locale, onCtaClick, ctaLabel }: Readonly<{
 	);
 }
 
-function useRedirectIfAuthenticated() {
-	const { isAuthenticated, isRegistered, hasCompletedQuiz } = useAppSelector((s) => s.auth);
-	const navigate = useNavigate();
-
-	if (isAuthenticated && isRegistered && hasCompletedQuiz) {
-		navigate("/results", { replace: true });
-		return true;
-	}
-	if (isAuthenticated && isRegistered) {
-		navigate("/quiz", { replace: true });
-		return true;
-	}
-	if (isAuthenticated && !isRegistered) {
-		navigate("/register", { replace: true });
-		return true;
-	}
-	return false;
-}
-
 export function LandingPage() {
-	const redirected = useRedirectIfAuthenticated();
+	const { isAuthenticated, isRegistered, loading } = useAppSelector((s) => s.auth);
 	const { locale, t } = useLocale();
 	const [showDialog, setShowDialog] = useState(false);
 
@@ -326,8 +308,26 @@ export function LandingPage() {
 		}
 	};
 
-	if (redirected) return null;
+	// Show spinner while auth is loading
+	if (loading) {
+		return (
+			<div className="flex min-h-screen items-center justify-center">
+				<div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+			</div>
+		);
+	}
 
+	// Authenticated + registered → show dashboard
+	if (isAuthenticated && isRegistered) {
+		return <DashboardPage />;
+	}
+
+	// Authenticated but not registered → redirect to register
+	if (isAuthenticated && !isRegistered) {
+		return <Navigate to="/register" replace />;
+	}
+
+	// Not authenticated → show marketing landing page
 	const steps = locale === "th" ? STEPS_TH : STEPS_EN;
 
 	return (

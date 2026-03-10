@@ -28,6 +28,7 @@ interface DimensionScore {
 interface AdminAssessment {
 	id: string;
 	uid: string;
+	quizId?: string;
 	companyName?: string;
 	industryType?: string;
 	companySize?: string;
@@ -393,6 +394,7 @@ function QuizTab() {
 								<tr className="border-b bg-muted/30">
 									<th className="text-left py-3 px-3 sm:px-5 text-xs font-medium text-muted-foreground hidden sm:table-cell">{t("admin.id")}</th>
 									<th className="text-left py-3 px-3 sm:px-5 text-xs font-medium text-muted-foreground">{t("admin.company")}</th>
+									<th className="text-left py-3 px-3 sm:px-5 text-xs font-medium text-muted-foreground hidden sm:table-cell">{t("admin.tabQuiz")}</th>
 									<th className="text-left py-3 px-3 sm:px-5 text-xs font-medium text-muted-foreground">{t("admin.score")}</th>
 									<th className="text-left py-3 px-3 sm:px-5 text-xs font-medium text-muted-foreground">{t("admin.diagnosis")}</th>
 									<th className="text-left py-3 px-3 sm:px-5 text-xs font-medium text-muted-foreground hidden sm:table-cell">{t("admin.date")}</th>
@@ -417,6 +419,11 @@ function QuizTab() {
 												<div className="text-sm font-medium">{a.companyName || "--"}</div>
 												<div className="text-[11px] text-muted-foreground sm:hidden mt-0.5">{formatDateTime(a.submittedAt, locale)}</div>
 											</td>
+											<td className="py-3 px-3 sm:px-5 hidden sm:table-cell">
+												<Badge className="text-[10px] border bg-muted text-muted-foreground border-border">
+													{a.quizId || "shindan"}
+												</Badge>
+											</td>
 											<td className="py-3 px-3 sm:px-5">
 												<div className="flex items-center gap-2">
 													<span className="font-semibold font-mono tabular-nums text-sm">{a.overallScore.toFixed(2)}</span>
@@ -440,7 +447,7 @@ function QuizTab() {
 										</tr>
 										{selectedId === a.id && (
 											<tr key={`${a.id}-detail`}>
-												<td colSpan={5} className="p-0">
+												<td colSpan={6} className="p-0">
 													<div className="border-t bg-muted/10 p-5 animate-fade-up" style={{ animationDelay: "0s" }}>
 														{renderDetailContent()}
 													</div>
@@ -451,7 +458,7 @@ function QuizTab() {
 								))}
 								{assessments.length === 0 && (
 									<tr>
-										<td colSpan={5} className="py-16 text-center">
+										<td colSpan={6} className="py-16 text-center">
 											<div className="flex flex-col items-center gap-2">
 												<div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
 													<svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-muted-foreground">

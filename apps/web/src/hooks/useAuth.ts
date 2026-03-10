@@ -38,15 +38,20 @@ export function useAuth() {
 					} catch {
 						dispatch(setHasCompletedQuiz(false));
 					}
+					dispatch(setLoading(false));
 				} catch (err) {
 					if (err instanceof ApiError && err.status === 404) {
+						// User is authenticated but has no profile yet → needs to register
 						dispatch(setProfile(null));
+						dispatch(setLoading(false));
 					}
+					// For other errors (500, network), keep loading=true so
+					// the UI doesn't wrongly redirect to /register.
 				}
 			} else {
 				dispatch(logout());
+				dispatch(setLoading(false));
 			}
-			dispatch(setLoading(false));
 		});
 
 		return unsubscribe;

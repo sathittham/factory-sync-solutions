@@ -579,7 +579,7 @@ function FooterLinks({ t, setLegalModal, setCookieOpen, setCookieSettings }: Rea
 				{t("footer.cookies")}
 			</button>
 			{separator}
-			<span className="font-mono text-[10px]">v0.1.0</span>
+			<span className="font-mono text-[10px]">{__APP_VERSION__}</span>
 		</div>
 	);
 }

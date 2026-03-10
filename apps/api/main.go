@@ -68,25 +68,38 @@ func main() {
 	// Initialize Turnstile client
 	turnstileClient := pkg.NewTurnstileClient(os.Getenv("CF_TURNSTILE_SECRET"))
 
-	// Load quiz questions from static config
-	quizConfig, err := scoring.LoadQuestions("config/questions.json")
+	// Load quiz configurations
+	quizRegistry := scoring.NewQuizRegistry()
+
+	shindanConfig, err := scoring.LoadQuestions("config/questions.json")
 	if err != nil {
-		log.Fatalf("load questions: %v", err)
+		log.Fatalf("load shindan questions: %v", err)
 	}
-	slog.Info("quiz config loaded", "questions", len(quizConfig.Questions), "dimensions", len(quizConfig.Dimensions))
+	quizRegistry.Register(shindanConfig)
+	slog.Info("quiz config loaded", "id", shindanConfig.ID, "questions", len(shindanConfig.Questions), "dimensions", len(shindanConfig.Dimensions))
+
+	factoryConfig, err := scoring.LoadQuestions("config/questions-factory.json")
+	if err != nil {
+		log.Fatalf("load factory questions: %v", err)
+	}
+	quizRegistry.Register(factoryConfig)
+	slog.Info("quiz config loaded", "id", factoryConfig.ID, "questions", len(factoryConfig.Questions), "dimensions", len(factoryConfig.Dimensions))
+
+	leanConfig, err := scoring.LoadQuestions("config/questions-lean.json")
+	if err != nil {
+		log.Fatalf("load lean questions: %v", err)
+	}
+	quizRegistry.Register(leanConfig)
+	slog.Info("quiz config loaded", "id", leanConfig.ID, "questions", len(leanConfig.Questions), "dimensions", len(leanConfig.Dimensions))
+
+	cyberConfig, err := scoring.LoadQuestions("config/questions-cybersecurity.json")
+	if err != nil {
+		log.Fatalf("load cybersecurity questions: %v", err)
+	}
+	quizRegistry.Register(cyberConfig)
+	slog.Info("quiz config loaded", "id", cyberConfig.ID, "questions", len(cyberConfig.Questions), "dimensions", len(cyberConfig.Dimensions))
 
 	// --- Wire up repositories, services, and handlers ---
-
-	// Profile
-	profileRepo := profile.NewRepository(firestoreClient)
-	profileSvc := profile.NewService(profileRepo, turnstileClient)
-	profileHandler := profile.NewHandler(profileSvc)
-	profileAdapter := profile.NewProfileDataAdapter(profileSvc)
-
-	// Result
-	resultRepo := result.NewRepository(firestoreClient)
-	resultSvc := result.NewService(resultRepo)
-	resultHandler := result.NewHandler(resultSvc)
 
 	// Notification
 	var emailClient *notification.EmailClient
@@ -96,8 +109,19 @@ func main() {
 	slackClient := notification.NewSlackClient()
 	notifSvc := notification.NewService(emailClient, slackClient, firestoreClient)
 
+	// Profile
+	profileRepo := profile.NewRepository(firestoreClient)
+	profileSvc := profile.NewService(profileRepo, turnstileClient)
+	profileHandler := profile.NewHandler(profileSvc, notifSvc)
+	profileAdapter := profile.NewProfileDataAdapter(profileSvc)
+
+	// Result
+	resultRepo := result.NewRepository(firestoreClient)
+	resultSvc := result.NewService(resultRepo)
+	resultHandler := result.NewHandler(resultSvc)
+
 	// Quiz
-	quizSvc := quiz.NewService(quizConfig, resultSvc, notifSvc)
+	quizSvc := quiz.NewService(quizRegistry, resultSvc, notifSvc)
 	quizHandler := quiz.NewHandler(quizSvc, profileAdapter)
 
 	// Admin

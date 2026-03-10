@@ -11,6 +11,7 @@ interface DimensionScore {
 interface Assessment {
 	id: string;
 	uid: string;
+	quizId: string;
 	scores: DimensionScore[];
 	overallScore: number;
 	strengths: string[];

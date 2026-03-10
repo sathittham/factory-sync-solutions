@@ -10,6 +10,8 @@ interface QuizQuestion {
 	dimensionId: string;
 	textTh: string;
 	textEn: string;
+	descriptionTh?: string;
+	descriptionEn?: string;
 	rubric?: Record<string, RubricLevel>;
 }
 
@@ -20,28 +22,41 @@ interface QuizDimension {
 	weight: number;
 }
 
+interface QuizListItem {
+	id: string;
+	nameTh: string;
+	nameEn: string;
+}
+
 interface QuizState {
+	quizId: string;
 	questions: QuizQuestion[];
 	dimensions: QuizDimension[];
 	answers: Record<string, number>;
 	currentStep: number;
 	isSubmitting: boolean;
 	questionsLoaded: boolean;
+	availableQuizzes: QuizListItem[];
 }
 
 const initialState: QuizState = {
+	quizId: "shindan",
 	questions: [],
 	dimensions: [],
 	answers: {},
 	currentStep: 0,
 	isSubmitting: false,
 	questionsLoaded: false,
+	availableQuizzes: [],
 };
 
 const quizSlice = createSlice({
 	name: "quiz",
 	initialState,
 	reducers: {
+		setQuizId(state, action: PayloadAction<string>) {
+			state.quizId = action.payload;
+		},
 		setQuestions(
 			state,
 			action: PayloadAction<{
@@ -52,6 +67,9 @@ const quizSlice = createSlice({
 			state.questions = action.payload.questions;
 			state.dimensions = action.payload.dimensions;
 			state.questionsLoaded = true;
+		},
+		setAvailableQuizzes(state, action: PayloadAction<QuizListItem[]>) {
+			state.availableQuizzes = action.payload;
 		},
 		setAnswer(
 			state,
@@ -69,11 +87,12 @@ const quizSlice = createSlice({
 			state.answers = {};
 			state.currentStep = 0;
 			state.isSubmitting = false;
+			state.questionsLoaded = false;
 		},
 	},
 });
 
-export const { setQuestions, setAnswer, setCurrentStep, setSubmitting, resetQuiz } =
+export const { setQuizId, setQuestions, setAvailableQuizzes, setAnswer, setCurrentStep, setSubmitting, resetQuiz } =
 	quizSlice.actions;
 export default quizSlice.reducer;
-export type { QuizQuestion, QuizDimension };
+export type { QuizQuestion, QuizDimension, QuizListItem };

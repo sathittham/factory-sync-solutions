@@ -44,7 +44,7 @@ func TestHandler_GetProfile_Success(t *testing.T) {
 		},
 	}
 	svc := NewService(mock, nil)
-	handler := NewHandler(svc)
+	handler := NewHandler(svc, nil)
 
 	req := httptest.NewRequest("GET", "/", nil)
 	req = withAuth(req, "uid-123", "test@test.com", "Test")
@@ -68,7 +68,7 @@ func TestHandler_GetProfile_NotFound(t *testing.T) {
 		},
 	}
 	svc := NewService(mock, nil)
-	handler := NewHandler(svc)
+	handler := NewHandler(svc, nil)
 
 	req := httptest.NewRequest("GET", "/", nil)
 	req = withAuth(req, "uid-123", "", "")
@@ -91,7 +91,7 @@ func TestHandler_CreateProfile_Success(t *testing.T) {
 		},
 	}
 	svc := NewService(mock, nil)
-	handler := NewHandler(svc)
+	handler := NewHandler(svc, nil)
 
 	body := `{
 		"companyName":"ABC Factory",
@@ -117,7 +117,7 @@ func TestHandler_CreateProfile_Success(t *testing.T) {
 
 func TestHandler_CreateProfile_InvalidBody(t *testing.T) {
 	svc := NewService(&MockRepository{}, nil)
-	handler := NewHandler(svc)
+	handler := NewHandler(svc, nil)
 
 	req := httptest.NewRequest("POST", "/", strings.NewReader("not json"))
 	req.Header.Set("Content-Type", "application/json")
@@ -133,7 +133,7 @@ func TestHandler_CreateProfile_InvalidBody(t *testing.T) {
 
 func TestHandler_CreateProfile_ValidationError(t *testing.T) {
 	svc := NewService(&MockRepository{}, nil)
-	handler := NewHandler(svc)
+	handler := NewHandler(svc, nil)
 
 	body := `{"companyName":""}` // missing required fields
 	req := httptest.NewRequest("POST", "/", strings.NewReader(body))
@@ -155,7 +155,7 @@ func TestHandler_CreateProfile_AlreadyRegistered(t *testing.T) {
 		},
 	}
 	svc := NewService(mock, nil)
-	handler := NewHandler(svc)
+	handler := NewHandler(svc, nil)
 
 	body := `{
 		"companyName":"ABC Factory",
@@ -189,7 +189,7 @@ func TestHandler_UpdateProfile_Success(t *testing.T) {
 		},
 	}
 	svc := NewService(mock, nil)
-	handler := NewHandler(svc)
+	handler := NewHandler(svc, nil)
 
 	body := `{"companyName":"New Name"}`
 	req := httptest.NewRequest("PUT", "/", strings.NewReader(body))
@@ -211,7 +211,7 @@ func TestHandler_UpdateProfile_NotFound(t *testing.T) {
 		},
 	}
 	svc := NewService(mock, nil)
-	handler := NewHandler(svc)
+	handler := NewHandler(svc, nil)
 
 	body := `{"companyName":"New Name"}`
 	req := httptest.NewRequest("PUT", "/", strings.NewReader(body))
@@ -233,7 +233,7 @@ func TestHandler_Routes(t *testing.T) {
 		},
 	}
 	svc := NewService(mock, nil)
-	handler := NewHandler(svc)
+	handler := NewHandler(svc, nil)
 
 	r := chi.NewRouter()
 	r.Use(func(next http.Handler) http.Handler {

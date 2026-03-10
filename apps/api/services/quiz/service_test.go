@@ -50,6 +50,13 @@ func buildTestConfig() *scoring.QuizConfig {
 	return config
 }
 
+func buildTestRegistry() *scoring.QuizRegistry {
+	config := buildTestConfig()
+	registry := scoring.NewQuizRegistry()
+	registry.Register(config)
+	return registry
+}
+
 func allThrees(config *scoring.QuizConfig) []scoring.QuizAnswer {
 	answers := make([]scoring.QuizAnswer, len(config.Questions))
 	for i, q := range config.Questions {
@@ -60,17 +67,21 @@ func allThrees(config *scoring.QuizConfig) []scoring.QuizAnswer {
 
 func TestSubmitQuiz_Success(t *testing.T) {
 	config := buildTestConfig()
+	registry := buildTestRegistry()
 	resultRepo := &mockResultRepo{}
 	resultSvc := result.NewService(resultRepo)
-	svc := NewService(config, resultSvc, nil)
+	svc := NewService(registry, resultSvc, nil)
 
 	answers := allThrees(config)
-	assessment, err := svc.SubmitQuiz(context.Background(), "u-1", "test@example.com", "Test", "TestCo", answers)
+	assessment, err := svc.SubmitQuiz(context.Background(), "u-1", "test@example.com", "Test", "TestCo", "shindan", answers)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if assessment.UID != "u-1" {
 		t.Errorf("uid = %s, want u-1", assessment.UID)
+	}
+	if assessment.QuizID != "shindan" {
+		t.Errorf("quizId = %s, want shindan", assessment.QuizID)
 	}
 	if assessment.OverallScore != 3.0 {
 		t.Errorf("overallScore = %v, want 3.0", assessment.OverallScore)
@@ -84,12 +95,12 @@ func TestSubmitQuiz_Success(t *testing.T) {
 }
 
 func TestSubmitQuiz_IncompleteAnswers(t *testing.T) {
-	config := buildTestConfig()
+	registry := buildTestRegistry()
 	resultSvc := result.NewService(&mockResultRepo{})
-	svc := NewService(config, resultSvc, nil)
+	svc := NewService(registry, resultSvc, nil)
 
 	answers := []scoring.QuizAnswer{{QuestionID: "q1", Value: 3}}
-	_, err := svc.SubmitQuiz(context.Background(), "u-1", "", "", "", answers)
+	_, err := svc.SubmitQuiz(context.Background(), "u-1", "", "", "", "shindan", answers)
 	if !errors.Is(err, ErrIncompleteAnswers) {
 		t.Fatalf("error = %v, want ErrIncompleteAnswers", err)
 	}
@@ -97,12 +108,13 @@ func TestSubmitQuiz_IncompleteAnswers(t *testing.T) {
 
 func TestSubmitQuiz_InvalidAnswerValue(t *testing.T) {
 	config := buildTestConfig()
+	registry := buildTestRegistry()
 	resultSvc := result.NewService(&mockResultRepo{})
-	svc := NewService(config, resultSvc, nil)
+	svc := NewService(registry, resultSvc, nil)
 
 	answers := allThrees(config)
 	answers[0].Value = 6 // invalid
-	_, err := svc.SubmitQuiz(context.Background(), "u-1", "", "", "", answers)
+	_, err := svc.SubmitQuiz(context.Background(), "u-1", "", "", "", "shindan", answers)
 	if !errors.Is(err, ErrInvalidAnswer) {
 		t.Fatalf("error = %v, want ErrInvalidAnswer", err)
 	}
@@ -110,12 +122,13 @@ func TestSubmitQuiz_InvalidAnswerValue(t *testing.T) {
 
 func TestSubmitQuiz_InvalidQuestionID(t *testing.T) {
 	config := buildTestConfig()
+	registry := buildTestRegistry()
 	resultSvc := result.NewService(&mockResultRepo{})
-	svc := NewService(config, resultSvc, nil)
+	svc := NewService(registry, resultSvc, nil)
 
 	answers := allThrees(config)
 	answers[0].QuestionID = "nonexistent"
-	_, err := svc.SubmitQuiz(context.Background(), "u-1", "", "", "", answers)
+	_, err := svc.SubmitQuiz(context.Background(), "u-1", "", "", "", "shindan", answers)
 	if !errors.Is(err, ErrInvalidAnswer) {
 		t.Fatalf("error = %v, want ErrInvalidAnswer", err)
 	}
@@ -123,16 +136,17 @@ func TestSubmitQuiz_InvalidQuestionID(t *testing.T) {
 
 func TestSubmitQuiz_StoreError(t *testing.T) {
 	config := buildTestConfig()
+	registry := buildTestRegistry()
 	resultRepo := &mockResultRepo{
 		CreateFunc: func(_ context.Context, _ *result.Assessment) error {
 			return errors.New("firestore down")
 		},
 	}
 	resultSvc := result.NewService(resultRepo)
-	svc := NewService(config, resultSvc, nil)
+	svc := NewService(registry, resultSvc, nil)
 
 	answers := allThrees(config)
-	_, err := svc.SubmitQuiz(context.Background(), "u-1", "", "", "", answers)
+	_, err := svc.SubmitQuiz(context.Background(), "u-1", "", "", "", "shindan", answers)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -140,13 +154,14 @@ func TestSubmitQuiz_StoreError(t *testing.T) {
 
 func TestSubmitQuiz_WithNotificationService(t *testing.T) {
 	config := buildTestConfig()
+	registry := buildTestRegistry()
 	resultRepo := &mockResultRepo{}
 	resultSvc := result.NewService(resultRepo)
 	notifSvc := notification.NewService(nil, nil, nil)
-	svc := NewService(config, resultSvc, notifSvc)
+	svc := NewService(registry, resultSvc, notifSvc)
 
 	answers := allThrees(config)
-	assessment, err := svc.SubmitQuiz(context.Background(), "u-1", "test@example.com", "Test", "TestCo", answers)
+	assessment, err := svc.SubmitQuiz(context.Background(), "u-1", "test@example.com", "Test", "TestCo", "shindan", answers)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -155,11 +170,23 @@ func TestSubmitQuiz_WithNotificationService(t *testing.T) {
 	}
 }
 
-func TestGetQuestions(t *testing.T) {
-	config := buildTestConfig()
-	svc := NewService(config, nil, nil)
+func TestSubmitQuiz_QuizNotFound(t *testing.T) {
+	registry := buildTestRegistry()
+	resultSvc := result.NewService(&mockResultRepo{})
+	svc := NewService(registry, resultSvc, nil)
 
-	q := svc.GetQuestions()
+	answers := []scoring.QuizAnswer{{QuestionID: "q1", Value: 3}}
+	_, err := svc.SubmitQuiz(context.Background(), "u-1", "", "", "", "nonexistent", answers)
+	if !errors.Is(err, ErrQuizNotFound) {
+		t.Fatalf("error = %v, want ErrQuizNotFound", err)
+	}
+}
+
+func TestGetQuestions(t *testing.T) {
+	registry := buildTestRegistry()
+	svc := NewService(registry, nil, nil)
+
+	q := svc.GetQuestions("shindan")
 	if q == nil {
 		t.Fatal("expected non-nil quiz config")
 	}
@@ -168,5 +195,28 @@ func TestGetQuestions(t *testing.T) {
 	}
 	if len(q.Dimensions) != 8 {
 		t.Errorf("dimensions = %d, want 8", len(q.Dimensions))
+	}
+}
+
+func TestGetQuestions_NotFound(t *testing.T) {
+	registry := buildTestRegistry()
+	svc := NewService(registry, nil, nil)
+
+	q := svc.GetQuestions("nonexistent")
+	if q != nil {
+		t.Error("expected nil for nonexistent quiz")
+	}
+}
+
+func TestListQuizzes(t *testing.T) {
+	registry := buildTestRegistry()
+	svc := NewService(registry, nil, nil)
+
+	quizzes := svc.ListQuizzes()
+	if len(quizzes) != 1 {
+		t.Errorf("quizzes = %d, want 1", len(quizzes))
+	}
+	if quizzes[0].ID != "shindan" {
+		t.Errorf("quiz id = %s, want shindan", quizzes[0].ID)
 	}
 }

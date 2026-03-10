@@ -9,6 +9,7 @@ import resultReducer, {
 const mockAssessment: Assessment = {
 	id: "a-1",
 	uid: "u-1",
+	quizId: "shindan",
 	scores: [
 		{ dimensionId: "d1", dimensionName: "Strategy", dimensionNameTh: "กลยุทธ์", score: 4.0, maxScore: 5 },
 	],

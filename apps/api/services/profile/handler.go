@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -12,12 +13,18 @@ import (
 	"github.com/sathittham/factory-health-check/apps/api/pkg"
 )
 
-type Handler struct {
-	service *Service
+// NotificationService defines the interface for sending notifications.
+type NotificationService interface {
+	NotifyRegistration(ctx context.Context, companyName, contactName, industryType string)
 }
 
-func NewHandler(svc *Service) *Handler {
-	return &Handler{service: svc}
+type Handler struct {
+	service  *Service
+	notifSvc NotificationService
+}
+
+func NewHandler(svc *Service, notifSvc NotificationService) *Handler {
+	return &Handler{service: svc, notifSvc: notifSvc}
 }
 
 // Routes registers all profile routes on the given router.
@@ -85,6 +92,11 @@ func (h *Handler) CreateProfile(w http.ResponseWriter, r *http.Request) {
 		handleError(w, r, err)
 		return
 	}
+
+	if h.notifSvc != nil {
+		go h.notifSvc.NotifyRegistration(context.Background(), profile.CompanyName, profile.ContactName, profile.IndustryType)
+	}
+
 	pkg.RespondJSON(w, http.StatusCreated, profile)
 }
 

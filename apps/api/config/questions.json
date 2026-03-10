@@ -1,5 +1,8 @@
 {
+  "id": "shindan",
   "version": "2.0.0",
+  "nameTh": "แบบประเมินสุขภาพโรงงาน (ชินดัน)",
+  "nameEn": "Factory Health Check (Shindan)",
   "dimensions": [
     { "id": "basic-management", "nameTh": "การจัดการงานเบื้องต้น", "nameEn": "Basic Management", "weight": 1.0 },
     { "id": "work-improvement", "nameTh": "การปรับปรุงการทำงาน", "nameEn": "Work Improvement", "weight": 1.0 },

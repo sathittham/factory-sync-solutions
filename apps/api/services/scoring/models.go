@@ -2,7 +2,10 @@ package scoring
 
 // QuizConfig represents the quiz configuration loaded from questions.json.
 type QuizConfig struct {
+	ID         string      `json:"id"`
 	Version    string      `json:"version"`
+	NameTh     string      `json:"nameTh"`
+	NameEn     string      `json:"nameEn"`
 	Dimensions []Dimension `json:"dimensions"`
 	Questions  []Question  `json:"questions"`
 }
@@ -20,12 +23,14 @@ type RubricLevel struct {
 }
 
 type Question struct {
-	ID          string                    `json:"id"`
-	DimensionID string                    `json:"dimensionId"`
-	TextTh      string                    `json:"textTh"`
-	TextEn      string                    `json:"textEn"`
-	Weight      float64                   `json:"weight"`
-	Rubric      map[string]RubricLevel    `json:"rubric,omitempty"`
+	ID            string                 `json:"id"`
+	DimensionID   string                 `json:"dimensionId"`
+	TextTh        string                 `json:"textTh"`
+	TextEn        string                 `json:"textEn"`
+	DescriptionTh string                 `json:"descriptionTh,omitempty"`
+	DescriptionEn string                 `json:"descriptionEn,omitempty"`
+	Weight        float64                `json:"weight"`
+	Rubric        map[string]RubricLevel `json:"rubric,omitempty"`
 }
 
 // QuizAnswer represents a single user answer.

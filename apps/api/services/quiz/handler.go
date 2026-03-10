@@ -28,8 +28,22 @@ func NewHandler(svc *Service, profileSvc profileGetter) *Handler {
 
 // Routes registers all quiz routes on the given router.
 func (h *Handler) Routes(r chi.Router) {
+	r.Get("/quizzes", h.ListQuizzes)
 	r.Get("/questions", h.GetQuestions)
 	r.Post("/submit", h.SubmitQuiz)
+}
+
+// ListQuizzes godoc
+// @Summary      List available quizzes
+// @Description  Returns a list of all available quizzes
+// @Tags         Quiz
+// @Produce      json
+// @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
+// @Success      200  {object}  map[string]any
+// @Security     BearerAuth
+// @Router       /api/v1/quiz/quizzes [get]
+func (h *Handler) ListQuizzes(w http.ResponseWriter, r *http.Request) {
+	pkg.RespondJSON(w, http.StatusOK, h.service.ListQuizzes())
 }
 
 // GetQuestions godoc
@@ -38,12 +52,24 @@ func (h *Handler) Routes(r chi.Router) {
 // @Tags         Quiz
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
+// @Param        quizId         query   string  false "Quiz ID (default: shindan)"
 // @Success      200  {object}  map[string]any
 // @Failure      401  {object}  map[string]any
+// @Failure      404  {object}  map[string]any
 // @Security     BearerAuth
 // @Router       /api/v1/quiz/questions [get]
 func (h *Handler) GetQuestions(w http.ResponseWriter, r *http.Request) {
-	pkg.RespondJSON(w, http.StatusOK, h.service.GetQuestions())
+	quizID := r.URL.Query().Get("quizId")
+	if quizID == "" {
+		quizID = "shindan"
+	}
+
+	config := h.service.GetQuestions(quizID)
+	if config == nil {
+		pkg.RespondError(w, http.StatusNotFound, "NOT_FOUND", "quiz not found")
+		return
+	}
+	pkg.RespondJSON(w, http.StatusOK, config)
 }
 
 // SubmitQuiz godoc
@@ -84,7 +110,7 @@ func (h *Handler) SubmitQuiz(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	assessment, err := h.service.SubmitQuiz(r.Context(), uid, contactEmail, contactName, companyName, req.Answers)
+	assessment, err := h.service.SubmitQuiz(r.Context(), uid, contactEmail, contactName, companyName, req.QuizID, req.Answers)
 	if err != nil {
 		handleError(w, r, err)
 		return
@@ -99,6 +125,8 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
 	case errors.Is(err, ErrInvalidAnswer):
 		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+	case errors.Is(err, ErrQuizNotFound):
+		pkg.RespondError(w, http.StatusNotFound, "NOT_FOUND", err.Error())
 	default:
 		slog.Error("unexpected error",
 			"error", err.Error(),
