@@ -1,24 +1,24 @@
 ---
-version: 1.3.0
-lastUpdated: 2026-03-08
+version: 1.4.0
+lastUpdated: 2026-06-04
 author: Sathittham Sangthong
 ---
 
-# Factory Health Check
+# FactorySync Solutions
 
-A Makefile-managed monorepo containing a React SPA frontend and Go backend API for evaluating factory health through a guided quiz. Users register, answer a series of questions, and receive a diagnosis with a spider chart visualization, key strengths/weaknesses, and an email copy of their results.
+A Makefile-managed monorepo containing a React SPA frontend and Go backend API for evaluating factory operational maturity through a guided assessment. Users register, answer a series of questions, and receive a diagnosis with a spider chart visualization, key strengths/weaknesses, and an email copy of their results.
 
 ## Prerequisites
 
 - Node.js >= 20
 - npm >= 10
-- Go >= 1.25 (backend API)
+- Go >= 1.26.4 (backend API)
 - Make (included on macOS/Linux)
 
 ## Monorepo Structure
 
 ```
-factory-health-check/
+factory-sync-solutions/
 ├── apps/
 │   ├── web/                # React + Vite SPA (frontend)
 │   └── api/                # Go Cloud Run service (backend API)
@@ -136,7 +136,7 @@ Root-level commands run across all packages via Makefile:
 - **Animations**: motion (v12+) — page transitions, staggered reveals, scroll-triggered entrances
 - **Auth**: Firebase Authentication (Google Sign-In)
 - **Database**: Firestore
-- **Backend**: Go 1.25.x on Google Cloud Run
+- **Backend**: Go 1.26.4 on Google Cloud Run
 - **Hosting**: Cloudflare Pages
 - **Email**: Resend
 - **Analytics**: Google Analytics 4 + Google Tag Manager
@@ -154,7 +154,7 @@ Root-level commands run across all packages via Makefile:
 1. Land on marketing page
 2. Sign in with Google (avatar + name from Google account)
 3. Complete registration (contact person + company info)
-4. Take factory health check quiz (animated step transitions)
+4. Take factory assessment quiz (animated step transitions)
 5. View diagnosis: summary, spider chart, strengths/weaknesses (animated sections)
 6. Receive result email
 7. Edit profile via dialog (user account read-only from Google, editable contact + company sections)
@@ -172,29 +172,51 @@ Root-level commands run across all packages via Makefile:
 
 ## Documentation
 
+See [docs/README.md](docs/README.md) for the full index.
+
+**API**
 | Document | Description |
 |----------|-------------|
-| [Architecture](docs/architecture.md) | Infrastructure, microservices, architecture diagram |
-| [Database](docs/database.md) | Firestore schema, security rules, quiz structure, scoring |
-| [Testing](docs/testing.md) | Testing strategy, Vitest, Playwright, CI/CD |
-| [Development](docs/development.md) | Workflow, error handling, performance, deployment, monitoring |
-| [Decisions](docs/decisions.md) | Architecture Decision Records (ADRs) |
-| [Go Patterns](docs/go-patterns.md) | Chi router, Firestore repo, handler/service/repo layers |
-| [API Conventions](docs/api-conventions.md) | Response format, error codes, naming, validation |
-| [Error Handling](docs/error-handling.md) | Sentinel errors, handler error mapping, Firestore errors |
-| [Security Guide](docs/security-guide.md) | Firebase auth, CORS, rate limiting, Turnstile, secrets |
-| [Code Quality](docs/code-quality.md) | Biome, golangci-lint, import ordering, complexity |
-| [Code Review Checklist](docs/code-review-checklist.md) | Pre-merge checklist for security, API, performance |
-| [Logging & Monitoring](docs/logging-monitoring.md) | Cloud Logging, Cloud Monitoring, Slack alerts |
-| [Swagger/OpenAPI](docs/swagger-openapi.md) | swaggo setup, handler annotations, Swagger UI |
-| [Go Testing Guide](docs/testing-guide.md) | Go backend test patterns, mocks, table-driven tests |
-| [Quiz Design](docs/quiz-design.md) | Dimensions, questions, scoring algorithm, thresholds |
-| [UI Wireframes](docs/ui-wireframes.md) | Screen layouts for all pages |
-| [User Flow](docs/user-flow.md) | User journey diagram with decision points |
-| [Locale & Date/Time](docs/locale-guide.md) | UTC storage, Thai locale, Buddhist Era, formatting |
-| [Environment Variables](docs/env-variables.md) | All required env vars and secrets per environment |
-| [Deployment Guide](docs/deployment-guide.md) | Cloud Run, Cloudflare Pages, CI/CD pipelines |
-| [Implementation Plan](docs/implementation-plan.md) | Phased roadmap with milestones |
+| [User API](docs/api/user.md) | All user-facing endpoints with request/response shapes |
+| [Admin API](docs/api/admin.md) | Admin endpoints + audit event reference |
+| [API Conventions](docs/api/conventions.md) | Response format, error codes, naming, validation |
+| [Swagger/OpenAPI](docs/api/swagger.md) | swaggo setup, handler annotations, Swagger UI |
+
+**Architecture**
+| Document | Description |
+|----------|-------------|
+| [Architecture](docs/architecture/overview.md) | Infrastructure, microservices, architecture diagram |
+| [Database](docs/architecture/database.md) | Firestore schema, security rules, quiz structure, scoring |
+| [Quiz Design](docs/architecture/quiz-design.md) | Dimensions, questions, scoring algorithm, thresholds |
+| [Decisions](docs/architecture/decisions.md) | Architecture Decision Records (ADRs) |
+
+**Development**
+| Document | Description |
+|----------|-------------|
+| [Dev Setup](docs/development/setup.md) | Workflow, error handling, performance, deployment, monitoring |
+| [Go Patterns](docs/development/go-patterns.md) | Chi router, Firestore repo, handler/service/repo layers |
+| [Error Handling](docs/development/error-handling.md) | Sentinel errors, handler error mapping, Firestore errors |
+| [Code Quality](docs/development/code-quality.md) | Biome, golangci-lint, import ordering, complexity |
+| [Code Review](docs/development/code-review-checklist.md) | Pre-merge checklist for security, API, performance |
+| [Testing](docs/development/testing.md) | Testing strategy, Vitest, Playwright, CI/CD |
+| [Go Testing Guide](docs/development/testing-guide.md) | Go backend test patterns, mocks, table-driven tests |
+| [Locale & Date/Time](docs/development/locale-guide.md) | UTC storage, Thai locale, Buddhist Era, formatting |
+
+**Operations**
+| Document | Description |
+|----------|-------------|
+| [Deployment](docs/operations/deployment.md) | Cloud Run, Cloudflare Pages, CI/CD pipelines |
+| [Environment Variables](docs/operations/env-variables.md) | All required env vars and secrets per environment |
+| [Security](docs/operations/security.md) | Firebase auth, CORS, rate limiting, Turnstile, secrets |
+| [Monitoring](docs/operations/monitoring.md) | Cloud Logging, Cloud Monitoring, Slack alerts |
+
+**Product**
+| Document | Description |
+|----------|-------------|
+| [User Flow](docs/product/user-flow.md) | User journey diagram with decision points |
+| [UI Wireframes](docs/product/wireframes.md) | Screen layouts for all pages |
+| [Roadmap](docs/product/roadmap.md) | Phased roadmap with milestones |
+
 | [Contributing](CONTRIBUTING.md) | Git workflow, coding standards |
 
 ## License
@@ -215,3 +237,4 @@ Active development — core user flow implemented (auth, registration, quiz, res
 | 1.1.0 | 2026-03-07 | Turborepo → Makefile, Cloud Functions → Cloud Run, fixed env vars, routes, Swagger status, added missing doc links |
 | 1.2.0 | 2026-03-07 | Profile dialog (3 sections: account/contact/company), Google avatar in navbar, motion animations (quiz + results), SonarQube fixes, analytics events, data-testid attributes |
 | 1.3.0 | 2026-03-08 | Theme system (light/dark/system) with FOUC prevention, dark mode fixes across all pages, Layout refactoring for SonarQube compliance, admin user management API, app READMEs |
+| 1.4.0 | 2026-06-04 | Rebranded to FactorySync Solutions — updated brand name, abbreviation (FS), localStorage prefix (fss-), Go module path, email domain, CI/CD service names |

@@ -7,50 +7,50 @@ dev:
 	$(MAKE) dev-api & $(MAKE) dev-web & wait
 
 dev-api:
-	cd apps/api && go run main.go
+	cd apps/fs-backend && go run main.go
 
 dev-web:
-	cd apps/web && npx vite
+	cd apps/fs-app-web && npx vite
 
 # --- Build ---
 
 build: build-api build-web
 
 build-api:
-	cd apps/api && go build ./...
+	cd apps/fs-backend && go build ./...
 
 build-web:
-	cd apps/web && npx tsc -b && npx vite build
+	cd apps/fs-app-web && npx tsc -b && npx vite build
 
 # --- Test ---
 
 test: test-api test-web
 
 test-api:
-	cd apps/api && go test -race -cover ./...
+	cd apps/fs-backend && go test -race -cover ./...
 
 test-web:
-	cd apps/web && npx vitest run
+	cd apps/fs-app-web && npx vitest run
 
 # --- Lint ---
 
 lint: lint-api lint-web
 
 lint-api:
-	cd apps/api && go vet ./...
+	cd apps/fs-backend && go vet ./...
 
 lint-web:
-	cd apps/web && npx biome check .
+	cd apps/fs-app-web && npx biome check .
 
 lint-fix:
-	cd apps/web && npx biome check --fix .
+	cd apps/fs-app-web && npx biome check --fix .
 
 # --- Install ---
 
 install:
-	cd apps/web && npm install
+	cd apps/fs-app-web && npm install
 
 # --- Clean ---
 
 clean:
-	rm -rf apps/web/dist apps/web/node_modules/.vite
+	rm -rf apps/fs-app-web/dist apps/fs-app-web/node_modules/.vite

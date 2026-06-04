@@ -1,0 +1,732 @@
+{
+  "id": "cybersecurity",
+  "version": "1.0",
+  "nameTh": "แบบประเมินความปลอดภัยทางไซเบอร์",
+  "nameEn": "Cybersecurity Assessment",
+  "dimensions": [
+    { "id": "security-management", "nameTh": "การจัดการด้านความปลอดภัย", "nameEn": "Security Management", "weight": 1.0 },
+    { "id": "security-policy", "nameTh": "นโยบายความปลอดภัย", "nameEn": "Security Policy", "weight": 1.0 },
+    { "id": "organizational-security", "nameTh": "ความปลอดภัยระดับองค์กร", "nameEn": "Organizational Security", "weight": 1.0 },
+    { "id": "network-security", "nameTh": "ความปลอดภัยเครือข่าย", "nameEn": "Network Security", "weight": 1.0 },
+    { "id": "access-control", "nameTh": "การควบคุมการเข้าถึง", "nameEn": "Access Control", "weight": 1.0 },
+    { "id": "operations-security", "nameTh": "การจัดการความปลอดภัยด้านปฏิบัติการ", "nameEn": "Operations Security Management", "weight": 1.0 },
+    { "id": "application-security", "nameTh": "ความปลอดภัยของแอปพลิเคชันและการพัฒนา", "nameEn": "Application Security and Development", "weight": 1.0 },
+    { "id": "availability", "nameTh": "ความพร้อมใช้งาน", "nameEn": "Availability", "weight": 1.0 }
+  ],
+  "questions": [
+    {
+      "id": "cyber-q1",
+      "dimensionId": "security-management",
+      "textTh": "องค์กรมีตำแหน่งงานด้านความปลอดภัยของข้อมูลโดยเฉพาะหรือไม่ (เจ้าหน้าที่/ผู้จัดการ)",
+      "textEn": "Does the organization have a dedicated information security position? (Officer/Manager)",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีตำแหน่งหรือบุคลากรที่รับผิดชอบด้านความปลอดภัยของข้อมูล", "en": "No dedicated information security position or personnel" },
+        "2": { "th": "มีบุคลากรที่รับผิดชอบด้านความปลอดภัยของข้อมูลแบบไม่เป็นทางการ หรือเป็นงานรอง", "en": "Information security responsibility is informal or assigned as a secondary duty" },
+        "3": { "th": "มีตำแหน่งด้านความปลอดภัยของข้อมูลที่ได้รับการแต่งตั้งอย่างเป็นทางการ", "en": "A formal information security position has been established" },
+        "4": { "th": "มีทีมงานด้านความปลอดภัยของข้อมูลที่มีโครงสร้างชัดเจนและมีการทบทวนบทบาทเป็นประจำ", "en": "A structured information security team exists with regularly reviewed roles" },
+        "5": { "th": "มีทีมงานด้านความปลอดภัยของข้อมูลระดับสูง มีผู้บริหาร CISO และมีการพัฒนาอย่างต่อเนื่อง", "en": "Mature security team with CISO-level leadership and continuous professional development" }
+      }
+    },
+    {
+      "id": "cyber-q2",
+      "dimensionId": "security-management",
+      "textTh": "องค์กรดำเนินการประเมินความเสี่ยงอย่างน้อยปีละครั้งหรือไม่",
+      "textEn": "Does your organization conduct risk assessments at least annually?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการประเมินความเสี่ยงด้านความปลอดภัยของข้อมูล", "en": "No information security risk assessments are conducted" },
+        "2": { "th": "มีการประเมินความเสี่ยงเฉพาะกิจเมื่อเกิดเหตุการณ์", "en": "Risk assessments are conducted ad-hoc, only when incidents occur" },
+        "3": { "th": "มีการประเมินความเสี่ยงเป็นประจำทุกปีตามกระบวนการที่กำหนด", "en": "Annual risk assessments are conducted following a defined process" },
+        "4": { "th": "มีการประเมินความเสี่ยงเป็นประจำ มีการติดตามผลและปรับปรุงมาตรการอย่างสม่ำเสมอ", "en": "Regular risk assessments with tracked findings and regularly updated controls" },
+        "5": { "th": "มีกระบวนการจัดการความเสี่ยงแบบต่อเนื่อง บูรณาการกับกลยุทธ์องค์กรและเปรียบเทียบกับมาตรฐานอุตสาหกรรม", "en": "Continuous risk management process integrated with business strategy and benchmarked against industry standards" }
+      }
+    },
+    {
+      "id": "cyber-q3",
+      "dimensionId": "security-policy",
+      "textTh": "มีนโยบายความปลอดภัยของข้อมูลที่ได้รับการอนุมัติจากผู้บริหาร และสื่อสารให้พนักงานและผู้มีส่วนได้ส่วนเสียทราบหรือไม่",
+      "textEn": "Is there an information security policy that has been approved by management, communicated to employees and stakeholders?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีนโยบายความปลอดภัยของข้อมูล", "en": "No information security policy exists" },
+        "2": { "th": "มีนโยบายฉบับร่างแต่ยังไม่ได้รับการอนุมัติหรือสื่อสาร", "en": "A draft policy exists but is not yet approved or communicated" },
+        "3": { "th": "มีนโยบายที่ได้รับการอนุมัติจากผู้บริหารและสื่อสารให้พนักงานทราบ", "en": "Policy is approved by management and communicated to employees" },
+        "4": { "th": "มีนโยบายที่ได้รับการอนุมัติ สื่อสารอย่างทั่วถึง และมีการทบทวนเป็นประจำ", "en": "Policy is approved, widely communicated, and regularly reviewed" },
+        "5": { "th": "นโยบายได้รับการอนุมัติ สื่อสารทั่วถึง ทบทวนสม่ำเสมอ และบูรณาการเข้ากับวัฒนธรรมองค์กร", "en": "Policy is approved, universally communicated, regularly reviewed, and embedded in organizational culture" }
+      }
+    },
+    {
+      "id": "cyber-q4",
+      "dimensionId": "security-policy",
+      "textTh": "นโยบายความปลอดภัยของข้อมูลได้รับการทบทวนในช่วง 12 เดือนที่ผ่านมาหรือไม่",
+      "textEn": "Have the information security policies been reviewed in the last 12 months?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่เคยมีการทบทวนนโยบาย", "en": "Policies have never been reviewed" },
+        "2": { "th": "มีการทบทวนนโยบายครั้งล่าสุดเกินกว่า 12 เดือน", "en": "Last policy review was more than 12 months ago" },
+        "3": { "th": "มีการทบทวนนโยบายภายใน 12 เดือนที่ผ่านมา", "en": "Policies were reviewed within the last 12 months" },
+        "4": { "th": "มีการทบทวนนโยบายเป็นประจำทุกปี พร้อมบันทึกการเปลี่ยนแปลงอย่างชัดเจน", "en": "Policies are reviewed annually with documented change history" },
+        "5": { "th": "มีวงจรการทบทวนนโยบายอย่างต่อเนื่อง ปรับปรุงตามภัยคุกคามใหม่และมาตรฐานอุตสาหกรรม", "en": "Continuous policy review cycle, updated based on emerging threats and industry standards" }
+      }
+    },
+    {
+      "id": "cyber-q5",
+      "dimensionId": "security-policy",
+      "textTh": "มีหน่วยงานด้านความปลอดภัยของข้อมูลที่รับผิดชอบริเริ่มโครงการด้านความปลอดภัยภายในองค์กรหรือไม่",
+      "textEn": "Is there an information security function responsible for security initiatives within the organization?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีหน่วยงานหรือฟังก์ชันด้านความปลอดภัยของข้อมูล", "en": "No information security function exists" },
+        "2": { "th": "มีบุคลากรที่ดูแลด้านความปลอดภัยแบบไม่เป็นทางการ", "en": "Security responsibilities are informally assigned to individuals" },
+        "3": { "th": "มีหน่วยงานด้านความปลอดภัยของข้อมูลที่ได้รับการจัดตั้งอย่างเป็นทางการ", "en": "A formal information security function has been established" },
+        "4": { "th": "หน่วยงานด้านความปลอดภัยมีอำนาจหน้าที่ชัดเจน มีงบประมาณ และริเริ่มโครงการอย่างสม่ำเสมอ", "en": "Security function has clear authority, budget, and regularly initiates security projects" },
+        "5": { "th": "หน่วยงานด้านความปลอดภัยเป็นส่วนสำคัญของกลยุทธ์องค์กร มีการรายงานตรงต่อผู้บริหารระดับสูง", "en": "Security function is integral to business strategy with direct reporting to senior leadership" }
+      }
+    },
+    {
+      "id": "cyber-q6",
+      "dimensionId": "security-policy",
+      "textTh": "มีโปรแกรมฝึกอบรมสร้างความตระหนักด้านความปลอดภัยหรือไม่",
+      "textEn": "Is there a security awareness training program?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีโปรแกรมฝึกอบรมด้านความปลอดภัย", "en": "No security awareness training program exists" },
+        "2": { "th": "มีการฝึกอบรมเฉพาะกิจหรือไม่สม่ำเสมอ", "en": "Training is ad-hoc or inconsistent" },
+        "3": { "th": "มีโปรแกรมฝึกอบรมที่จัดขึ้นเป็นประจำสำหรับพนักงาน", "en": "A regular training program is conducted for employees" },
+        "4": { "th": "มีโปรแกรมฝึกอบรมที่ครอบคลุม มีการติดตามผลและวัดประสิทธิภาพ", "en": "Comprehensive training program with tracking and effectiveness measurement" },
+        "5": { "th": "โปรแกรมฝึกอบรมมีความต่อเนื่อง ปรับเนื้อหาตามภัยคุกคามล่าสุด และรวมการจำลองสถานการณ์จริง", "en": "Continuous training program updated for latest threats, including simulated exercises (e.g., phishing simulations)" }
+      }
+    },
+    {
+      "id": "cyber-q7",
+      "dimensionId": "organizational-security",
+      "textTh": "มีการตรวจสอบประวัติพนักงานหรือไม่ เช่น การตรวจสอบประวัติอาชญากรรม",
+      "textEn": "Are background checks conducted for employees? e.g., criminal check, etc.",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการตรวจสอบประวัติพนักงาน", "en": "No background checks are conducted for employees" },
+        "2": { "th": "มีการตรวจสอบประวัติเฉพาะบางตำแหน่งหรือไม่สม่ำเสมอ", "en": "Background checks are performed inconsistently or only for select positions" },
+        "3": { "th": "มีการตรวจสอบประวัติพนักงานใหม่ทุกคนตามนโยบายที่กำหนด", "en": "Background checks are conducted for all new employees per policy" },
+        "4": { "th": "มีการตรวจสอบประวัติอย่างครอบคลุมทั้งพนักงานและผู้รับเหมา รวมถึงการตรวจสอบเป็นระยะ", "en": "Comprehensive background checks for employees and contractors, including periodic re-screening" },
+        "5": { "th": "มีกระบวนการตรวจสอบประวัติแบบครบวงจร ปรับระดับตามความเสี่ยงของตำแหน่ง และบูรณาการกับระบบ HR", "en": "End-to-end screening process, risk-tiered by position sensitivity, integrated with HR systems" }
+      }
+    },
+    {
+      "id": "cyber-q8",
+      "dimensionId": "organizational-security",
+      "textTh": "พนักงานจำเป็นต้องเข้าร่วมการฝึกอบรมด้านความปลอดภัยของข้อมูลภาคบังคับประจำปีหรือไม่",
+      "textEn": "Are employees required to attend mandatory annual information security training?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการฝึกอบรมด้านความปลอดภัยของข้อมูลภาคบังคับ", "en": "No mandatory information security training exists" },
+        "2": { "th": "มีการฝึกอบรมแต่ไม่บังคับหรือจัดไม่สม่ำเสมอ", "en": "Training exists but is not mandatory or is conducted irregularly" },
+        "3": { "th": "มีการฝึกอบรมภาคบังคับประจำปีสำหรับพนักงานทุกคน", "en": "Mandatory annual training is conducted for all employees" },
+        "4": { "th": "มีการฝึกอบรมภาคบังคับประจำปี มีการติดตามอัตราการเข้าร่วมและทดสอบความเข้าใจ", "en": "Mandatory annual training with attendance tracking and comprehension testing" },
+        "5": { "th": "มีการฝึกอบรมต่อเนื่องตลอดปี ปรับเนื้อหาตามบทบาท มีการวัดผลและปรับปรุงอย่างสม่ำเสมอ", "en": "Year-round continuous training, role-specific content, with measured outcomes and regular improvement" }
+      }
+    },
+    {
+      "id": "cyber-q9",
+      "dimensionId": "organizational-security",
+      "textTh": "องค์กรควบคุมการเข้าถึงข้อมูลที่มีความอ่อนไหวโดยผู้รับเหมา/บุคคลภายนอกได้ดีเพียงใด",
+      "textEn": "How well does the organization control third-party access to sensitive data?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการควบคุมการเข้าถึงข้อมูลโดยบุคคลภายนอก", "en": "No controls over third-party access to sensitive data" },
+        "2": { "th": "มีการควบคุมบางส่วนแต่ไม่เป็นทางการ ขาดการตรวจสอบ", "en": "Some informal controls exist but lack monitoring and oversight" },
+        "3": { "th": "มีนโยบายควบคุมการเข้าถึงของบุคคลภายนอก และมีข้อตกลงด้านความปลอดภัยเป็นลายลักษณ์อักษร", "en": "Third-party access policy exists with documented security agreements" },
+        "4": { "th": "มีการควบคุม ตรวจสอบ และทบทวนสิทธิ์การเข้าถึงของบุคคลภายนอกอย่างสม่ำเสมอ", "en": "Third-party access is controlled, monitored, and reviewed regularly" },
+        "5": { "th": "มีกระบวนการจัดการความเสี่ยงบุคคลภายนอกแบบครบวงจร รวมถึงการประเมิน การตรวจสอบต่อเนื่อง และการจำกัดสิทธิ์ขั้นต่ำ", "en": "Comprehensive third-party risk management with assessments, continuous monitoring, and least-privilege access" }
+      }
+    },
+    {
+      "id": "cyber-q10",
+      "dimensionId": "organizational-security",
+      "textTh": "องค์กรจัดเก็บ ส่ง หรือเข้าถึงข้อมูลส่วนบุคคล (PII) หรือไม่",
+      "textEn": "Does your organization store, transmit, or access PII?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่ทราบว่ามีการจัดเก็บหรือใช้ข้อมูลส่วนบุคคลอย่างไร", "en": "No awareness of how PII is stored, transmitted, or accessed" },
+        "2": { "th": "ทราบว่ามีการใช้ข้อมูลส่วนบุคคลแต่ยังไม่มีการจำแนกหรือจัดการอย่างเป็นระบบ", "en": "Aware of PII usage but no systematic classification or management" },
+        "3": { "th": "มีการจำแนกข้อมูลส่วนบุคคลและมีมาตรการป้องกันเบื้องต้น", "en": "PII is classified and basic protection measures are in place" },
+        "4": { "th": "มีการจัดการข้อมูลส่วนบุคคลอย่างเป็นระบบ รวมถึงการเข้ารหัส การควบคุมการเข้าถึง และการปฏิบัติตามกฎหมาย", "en": "Systematic PII management including encryption, access controls, and regulatory compliance" },
+        "5": { "th": "มีโปรแกรมคุ้มครองข้อมูลส่วนบุคคลที่ครบถ้วน สอดคล้องกับมาตรฐานสากล (เช่น PDPA, GDPR) พร้อมการตรวจสอบต่อเนื่อง", "en": "Comprehensive data protection program aligned with international standards (e.g., PDPA, GDPR) with continuous auditing" }
+      }
+    },
+    {
+      "id": "cyber-q11",
+      "dimensionId": "network-security",
+      "textTh": "มีการใช้ไฟร์วอลล์เพื่อแยกระบบที่มีข้อมูลที่มีความอ่อนไหวหรือไม่",
+      "textEn": "Are Firewalls used to isolate systems containing sensitive data?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการใช้ไฟร์วอลล์", "en": "No firewalls are in use" },
+        "2": { "th": "มีไฟร์วอลล์แต่ไม่ได้แยกระบบที่มีข้อมูลสำคัญ", "en": "Firewalls exist but do not isolate systems with sensitive data" },
+        "3": { "th": "มีไฟร์วอลล์ที่แยกระบบที่มีข้อมูลสำคัญออกจากเครือข่ายทั่วไป", "en": "Firewalls isolate sensitive data systems from general network" },
+        "4": { "th": "มีไฟร์วอลล์ที่กำหนดค่าอย่างเหมาะสม มีการทบทวนกฎเป็นประจำ", "en": "Properly configured firewalls with regularly reviewed rules" },
+        "5": { "th": "มีสถาปัตยกรรมไฟร์วอลล์แบบหลายชั้น มีการตรวจสอบและปรับปรุงอย่างต่อเนื่อง รองรับ Zero Trust", "en": "Multi-layered firewall architecture, continuously monitored and improved, supporting Zero Trust principles" }
+      }
+    },
+    {
+      "id": "cyber-q12",
+      "dimensionId": "network-security",
+      "textTh": "องค์กรควบคุมการเข้าถึงข้อมูลที่มีความอ่อนไหวจากอุปกรณ์ส่วนตัวได้ดีเพียงใด",
+      "textEn": "How well does the organization control access to sensitive information from personal devices?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการควบคุมการเข้าถึงจากอุปกรณ์ส่วนตัว", "en": "No controls on access from personal devices" },
+        "2": { "th": "มีแนวทางเบื้องต้นแต่ไม่ได้บังคับใช้อย่างเข้มงวด", "en": "Basic guidelines exist but are not strictly enforced" },
+        "3": { "th": "มีนโยบาย BYOD และมาตรการควบคุมการเข้าถึงจากอุปกรณ์ส่วนตัว", "en": "BYOD policy and access controls for personal devices are in place" },
+        "4": { "th": "มีระบบ MDM/MAM ควบคุมอุปกรณ์ส่วนตัว พร้อมการตรวจสอบและบังคับใช้อย่างสม่ำเสมอ", "en": "MDM/MAM solutions manage personal devices with regular monitoring and enforcement" },
+        "5": { "th": "มีระบบควบคุมอุปกรณ์ครบวงจร แยกข้อมูลองค์กรออกจากข้อมูลส่วนตัว พร้อมการตรวจสอบอย่างต่อเนื่อง", "en": "Comprehensive device management with data containerization, continuous compliance monitoring, and remote wipe capability" }
+      }
+    },
+    {
+      "id": "cyber-q13",
+      "dimensionId": "network-security",
+      "textTh": "มีการใช้ระบบตรวจจับ/ป้องกันการบุกรุก (IDS/IPS) หรือไม่",
+      "textEn": "Are there intrusion detection/prevention systems (IDS/IPS) in use?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีระบบ IDS/IPS", "en": "No IDS/IPS systems are in use" },
+        "2": { "th": "มีระบบ IDS/IPS บางส่วนแต่ไม่ครอบคลุมหรือไม่ได้ตรวจสอบอย่างสม่ำเสมอ", "en": "Partial IDS/IPS deployment with limited coverage or inconsistent monitoring" },
+        "3": { "th": "มีระบบ IDS/IPS ติดตั้งครอบคลุมจุดสำคัญ พร้อมการตรวจสอบเป็นประจำ", "en": "IDS/IPS deployed at critical points with regular monitoring" },
+        "4": { "th": "มีระบบ IDS/IPS ครอบคลุมทั้งเครือข่าย มีการปรับแต่งกฎและตอบสนองต่อเหตุการณ์อย่างเป็นระบบ", "en": "Network-wide IDS/IPS with tuned rules and systematic incident response" },
+        "5": { "th": "มีระบบ IDS/IPS แบบครบวงจร บูรณาการกับ SIEM มีการวิเคราะห์ภัยคุกคามเชิงรุกและปรับปรุงอย่างต่อเนื่อง", "en": "Comprehensive IDS/IPS integrated with SIEM, proactive threat analysis, and continuous improvement" }
+      }
+    },
+    {
+      "id": "cyber-q14",
+      "dimensionId": "network-security",
+      "textTh": "มีการใช้การยืนยันตัวตนแบบหลายปัจจัย (MFA) หรือไม่",
+      "textEn": "Is multifactor authentication used?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการใช้ MFA", "en": "No multifactor authentication is used" },
+        "2": { "th": "มีการใช้ MFA เฉพาะบางระบบหรือบางกลุ่มผู้ใช้", "en": "MFA is used only for select systems or user groups" },
+        "3": { "th": "มีการใช้ MFA สำหรับระบบสำคัญและผู้ใช้ที่มีสิทธิ์สูง", "en": "MFA is deployed for critical systems and privileged users" },
+        "4": { "th": "มีการใช้ MFA อย่างแพร่หลายทั่วทั้งองค์กร พร้อมนโยบายที่ชัดเจน", "en": "MFA is widely deployed across the organization with clear policies" },
+        "5": { "th": "มีการใช้ MFA ครอบคลุมทุกระบบ รองรับหลายวิธียืนยันตัวตน พร้อมปรับปรุงตามมาตรฐานล่าสุด", "en": "Universal MFA deployment supporting multiple authentication methods, continuously updated to latest standards" }
+      }
+    },
+    {
+      "id": "cyber-q15",
+      "dimensionId": "access-control",
+      "textTh": "มีนโยบายการควบคุมการเข้าถึงที่เป็นเอกสารหรือไม่",
+      "textEn": "Is there a documented access control policy?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีนโยบายการควบคุมการเข้าถึง", "en": "No access control policy exists" },
+        "2": { "th": "มีแนวทางควบคุมการเข้าถึงแบบไม่เป็นทางการ", "en": "Informal access control guidelines exist" },
+        "3": { "th": "มีนโยบายการควบคุมการเข้าถึงที่เป็นเอกสารและได้รับการอนุมัติ", "en": "A documented and approved access control policy exists" },
+        "4": { "th": "มีนโยบายที่เป็นเอกสาร บังคับใช้ และทบทวนเป็นประจำ", "en": "Documented policy is enforced and regularly reviewed" },
+        "5": { "th": "นโยบายครอบคลุม บูรณาการกับระบบอัตโนมัติ ทบทวนและปรับปรุงอย่างต่อเนื่องตามมาตรฐานสากล", "en": "Comprehensive policy integrated with automated enforcement, continuously reviewed and aligned with international standards" }
+      }
+    },
+    {
+      "id": "cyber-q16",
+      "dimensionId": "access-control",
+      "textTh": "นโยบายดังกล่าวรับรองหลักการสิทธิ์ขั้นต่ำ (Least Privilege) หรือไม่",
+      "textEn": "Does this policy ensure least privilege?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการนำหลักการสิทธิ์ขั้นต่ำมาใช้", "en": "Least privilege principle is not applied" },
+        "2": { "th": "มีการนำหลักการสิทธิ์ขั้นต่ำมาใช้บางส่วนแต่ไม่สม่ำเสมอ", "en": "Least privilege is partially applied but inconsistently" },
+        "3": { "th": "มีการนำหลักการสิทธิ์ขั้นต่ำมาใช้อย่างเป็นทางการในนโยบาย", "en": "Least privilege is formally incorporated in policy" },
+        "4": { "th": "หลักการสิทธิ์ขั้นต่ำถูกบังคับใช้ทั่วทั้งองค์กร มีการตรวจสอบเป็นประจำ", "en": "Least privilege is enforced organization-wide with regular audits" },
+        "5": { "th": "หลักการสิทธิ์ขั้นต่ำถูกบังคับใช้โดยอัตโนมัติ มีการตรวจสอบต่อเนื่อง และปรับปรุงตามหลัก Zero Trust", "en": "Automated least privilege enforcement with continuous monitoring and Zero Trust alignment" }
+      }
+    },
+    {
+      "id": "cyber-q17",
+      "dimensionId": "access-control",
+      "textTh": "มีการบังคับใช้การควบคุมการเข้าถึงตามบทบาท (RBAC) หรือไม่",
+      "textEn": "Is Role Based Access Control (RBAC) enforced?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการควบคุมการเข้าถึงตามบทบาท", "en": "No RBAC is in place" },
+        "2": { "th": "มี RBAC บางส่วนแต่ไม่ครอบคลุมทุกระบบ", "en": "RBAC is partially implemented but not across all systems" },
+        "3": { "th": "มีการนำ RBAC มาใช้ในระบบหลักพร้อมเอกสารบทบาทที่ชัดเจน", "en": "RBAC is implemented in core systems with documented roles" },
+        "4": { "th": "RBAC ถูกบังคับใช้ทั่วทั้งองค์กร มีการทบทวนบทบาทเป็นประจำ", "en": "RBAC is enforced organization-wide with regular role reviews" },
+        "5": { "th": "RBAC ครบวงจรพร้อมระบบอัตโนมัติ บูรณาการกับ HR และระบบ IT มีการปรับปรุงบทบาทอย่างต่อเนื่อง", "en": "Comprehensive RBAC with automation, HR and IT integration, and continuous role optimization" }
+      }
+    },
+    {
+      "id": "cyber-q18",
+      "dimensionId": "access-control",
+      "textTh": "มีการใช้รหัสผู้ใช้เฉพาะบุคคล (Unique User ID) สำหรับการเข้าถึงหรือไม่",
+      "textEn": "Are unique user IDs used for access?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ใช้บัญชีผู้ใช้ร่วมกัน ไม่มีรหัสผู้ใช้เฉพาะบุคคล", "en": "Shared accounts are used with no unique user IDs" },
+        "2": { "th": "มีรหัสผู้ใช้เฉพาะบุคคลในบางระบบ แต่ยังมีการใช้บัญชีร่วม", "en": "Unique user IDs exist in some systems but shared accounts are still used" },
+        "3": { "th": "มีรหัสผู้ใช้เฉพาะบุคคลสำหรับระบบหลักทุกระบบ", "en": "Unique user IDs are used for all core systems" },
+        "4": { "th": "มีรหัสผู้ใช้เฉพาะบุคคลทุกระบบ พร้อมการจัดการวงจรชีวิตบัญชีผู้ใช้", "en": "Unique user IDs across all systems with user account lifecycle management" },
+        "5": { "th": "รหัสผู้ใช้เฉพาะบุคคลทุกระบบ บูรณาการกับระบบจัดการตัวตน (IdM) พร้อมการตรวจสอบอย่างต่อเนื่อง", "en": "Universal unique user IDs integrated with identity management (IdM) and continuous auditing" }
+      }
+    },
+    {
+      "id": "cyber-q19",
+      "dimensionId": "access-control",
+      "textTh": "มีการใช้งาน Single Sign-On (SSO) / การยืนยันตัวตนร่วม (เช่น SAML, OpenID) หรือไม่",
+      "textEn": "Is single-sign-on (SSO) / shared authentication implemented and available (e.g., SAML, OpenID)?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการใช้ SSO หรือการยืนยันตัวตนร่วม", "en": "No SSO or shared authentication is implemented" },
+        "2": { "th": "มีแผนจะนำ SSO มาใช้หรือมีการทดลองในบางระบบ", "en": "SSO is planned or piloted in a few systems" },
+        "3": { "th": "มีการใช้ SSO ในระบบหลัก", "en": "SSO is implemented for core systems" },
+        "4": { "th": "มีการใช้ SSO อย่างแพร่หลาย ครอบคลุมทั้งแอปพลิเคชันภายในและคลาวด์", "en": "SSO is widely deployed across internal and cloud applications" },
+        "5": { "th": "SSO ครอบคลุมทุกระบบ บูรณาการกับ MFA และระบบจัดการตัวตนแบบรวมศูนย์ พร้อมการตรวจสอบอย่างต่อเนื่อง", "en": "Universal SSO integrated with MFA and centralized identity management, with continuous monitoring" }
+      }
+    },
+    {
+      "id": "cyber-q20",
+      "dimensionId": "access-control",
+      "textTh": "มีการใช้การยืนยันตัวตนแบบหลายปัจจัย (MFA) หรือไม่",
+      "textEn": "Is multi-factor authentication deployed?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการใช้ MFA", "en": "No multi-factor authentication is deployed" },
+        "2": { "th": "มี MFA เฉพาะระบบบางส่วน เช่น VPN หรืออีเมล", "en": "MFA is deployed for limited systems such as VPN or email only" },
+        "3": { "th": "มี MFA สำหรับระบบสำคัญและผู้ดูแลระบบ", "en": "MFA is deployed for critical systems and administrators" },
+        "4": { "th": "มี MFA สำหรับผู้ใช้ส่วนใหญ่ พร้อมนโยบายบังคับใช้ที่ชัดเจน", "en": "MFA is deployed for most users with clear enforcement policies" },
+        "5": { "th": "MFA ครอบคลุมทุกระบบและทุกผู้ใช้ รองรับหลายวิธียืนยันตัวตน และปรับปรุงอย่างต่อเนื่อง", "en": "Universal MFA for all systems and users, supporting multiple methods, and continuously improved" }
+      }
+    },
+    {
+      "id": "cyber-q21",
+      "dimensionId": "access-control",
+      "textTh": "มีการทบทวนสิทธิ์การเข้าถึงของผู้ใช้ที่มีสิทธิ์สูงอย่างน้อยทุกไตรมาสหรือไม่",
+      "textEn": "Are privileged user access rights reviewed at least quarterly?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการทบทวนสิทธิ์การเข้าถึงของผู้ใช้ที่มีสิทธิ์สูง", "en": "No review of privileged user access rights" },
+        "2": { "th": "มีการทบทวนสิทธิ์เฉพาะกิจ ไม่เป็นประจำ", "en": "Access rights are reviewed ad-hoc, not regularly" },
+        "3": { "th": "มีการทบทวนสิทธิ์การเข้าถึงของผู้ใช้ที่มีสิทธิ์สูงเป็นรายไตรมาส", "en": "Privileged access rights are reviewed quarterly" },
+        "4": { "th": "มีการทบทวนสิทธิ์เป็นรายไตรมาส พร้อมเอกสารบันทึกผลและการดำเนินการแก้ไข", "en": "Quarterly reviews with documented findings and remediation actions" },
+        "5": { "th": "มีระบบตรวจสอบสิทธิ์อัตโนมัติ ทำงานอย่างต่อเนื่อง พร้อมแจ้งเตือนและบันทึกการเปลี่ยนแปลงทุกครั้ง", "en": "Automated continuous access monitoring with alerts and full change audit trail" }
+      }
+    },
+    {
+      "id": "cyber-q22",
+      "dimensionId": "access-control",
+      "textTh": "มีการใช้เทคโนโลยีการเชื่อมต่อระยะไกล (เช่น Citrix, SSH, RDP) เพื่อเข้าถึงเครือข่ายหรือไม่",
+      "textEn": "Is remote connection technology (e.g. Citrix, SSH, RDP, etc.) used to access the network?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการควบคุมหรือจัดการการเชื่อมต่อระยะไกล", "en": "No controls or management of remote connections" },
+        "2": { "th": "มีการเชื่อมต่อระยะไกลแต่ขาดมาตรการรักษาความปลอดภัยที่เพียงพอ", "en": "Remote connections exist but lack adequate security measures" },
+        "3": { "th": "มีเทคโนโลยีเชื่อมต่อระยะไกลที่ปลอดภัย พร้อมนโยบายการใช้งาน", "en": "Secure remote connection technology is in place with usage policies" },
+        "4": { "th": "การเชื่อมต่อระยะไกลมีการเข้ารหัส ใช้ MFA และมีการตรวจสอบเป็นประจำ", "en": "Remote connections are encrypted, MFA-enabled, and regularly audited" },
+        "5": { "th": "มีระบบเชื่อมต่อระยะไกลที่ครอบคลุม รองรับ Zero Trust มีการตรวจสอบต่อเนื่องและจำกัดสิทธิ์ขั้นต่ำ", "en": "Comprehensive remote access with Zero Trust architecture, continuous monitoring, and least privilege" }
+      }
+    },
+    {
+      "id": "cyber-q23",
+      "dimensionId": "access-control",
+      "textTh": "มีนโยบายรหัสผ่านที่บังคับใช้ความซับซ้อน ระยะเวลาหมดอายุ ห้ามใช้ซ้ำ เป็นต้นหรือไม่",
+      "textEn": "Do you have a password policy that enforces the use of unique passwords, complexity, expiration, reuse, etc.?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีนโยบายรหัสผ่าน", "en": "No password policy exists" },
+        "2": { "th": "มีแนวทางรหัสผ่านเบื้องต้นแต่ไม่ได้บังคับใช้ทางเทคนิค", "en": "Basic password guidelines exist but are not technically enforced" },
+        "3": { "th": "มีนโยบายรหัสผ่านที่บังคับใช้ทางเทคนิค (ความซับซ้อน หมดอายุ)", "en": "Password policy is technically enforced (complexity, expiration)" },
+        "4": { "th": "มีนโยบายรหัสผ่านครอบคลุม บังคับใช้ทุกระบบ พร้อมการตรวจสอบรหัสผ่านที่ถูกขโมย", "en": "Comprehensive password policy enforced across all systems with compromised password checking" },
+        "5": { "th": "มีนโยบายรหัสผ่านขั้นสูง บูรณาการกับ MFA และระบบจัดการรหัสผ่าน พร้อมปรับปรุงตามแนวทางปฏิบัติล่าสุด", "en": "Advanced password policy integrated with MFA and password management, updated per latest best practices (e.g., NIST)" }
+      }
+    },
+    {
+      "id": "cyber-q24",
+      "dimensionId": "access-control",
+      "textTh": "การเพิกถอนสิทธิ์การเข้าถึงของพนักงานหรือผู้รับเหมาที่สิ้นสุดสัญญาดำเนินการภายในระยะเวลาเท่าใด",
+      "textEn": "What is the time frame that access is revoked for terminated employees or contractors?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีกระบวนการเพิกถอนสิทธิ์ หรือใช้เวลานานกว่า 1 สัปดาห์", "en": "No revocation process exists or it takes more than 1 week" },
+        "2": { "th": "เพิกถอนสิทธิ์ภายในหลายวัน แต่ไม่มีกระบวนการที่ชัดเจน", "en": "Access is revoked within several days but without a clear process" },
+        "3": { "th": "เพิกถอนสิทธิ์ภายใน 24 ชั่วโมงหลังสิ้นสุดสัญญา ตามกระบวนการที่กำหนด", "en": "Access is revoked within 24 hours of termination per defined process" },
+        "4": { "th": "เพิกถอนสิทธิ์ทันทีในวันเดียวกัน มีกระบวนการอัตโนมัติบางส่วน", "en": "Same-day revocation with partially automated process" },
+        "5": { "th": "เพิกถอนสิทธิ์อัตโนมัติทันทีเมื่อสิ้นสุดสัญญา บูรณาการกับระบบ HR และ IdM", "en": "Immediate automated revocation upon termination, integrated with HR and IdM systems" }
+      }
+    },
+    {
+      "id": "cyber-q25",
+      "dimensionId": "operations-security",
+      "textTh": "มีการติดตั้งแอปพลิเคชันป้องกันมัลแวร์ในทุกระบบหรือไม่",
+      "textEn": "Are anti-malware applications installed on all systems?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการติดตั้งแอปพลิเคชันป้องกันมัลแวร์", "en": "No anti-malware applications are installed" },
+        "2": { "th": "มีการติดตั้งป้องกันมัลแวร์ในบางระบบเท่านั้น", "en": "Anti-malware is installed on some systems only" },
+        "3": { "th": "มีการติดตั้งป้องกันมัลแวร์ในระบบทุกระบบ", "en": "Anti-malware is installed on all systems" },
+        "4": { "th": "มีการติดตั้งป้องกันมัลแวร์ทุกระบบ มีการจัดการจากส่วนกลางและตรวจสอบเป็นประจำ", "en": "Anti-malware on all systems with centralized management and regular monitoring" },
+        "5": { "th": "มีระบบป้องกันมัลแวร์ขั้นสูง (EDR/XDR) ทุกระบบ มีการตรวจจับภัยคุกคามเชิงรุกและตอบสนองอัตโนมัติ", "en": "Advanced endpoint protection (EDR/XDR) on all systems with proactive threat detection and automated response" }
+      }
+    },
+    {
+      "id": "cyber-q26",
+      "dimensionId": "operations-security",
+      "textTh": "ไฟล์ลายเซ็นไวรัสได้รับการอัปเดตบ่อยเพียงใด",
+      "textEn": "How frequent are antivirus signature files updated?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการอัปเดตลายเซ็นไวรัส หรืออัปเดตไม่บ่อย (มากกว่า 1 เดือน)", "en": "Antivirus signatures are not updated or updated less than monthly" },
+        "2": { "th": "อัปเดตลายเซ็นไวรัสเป็นรายเดือน", "en": "Antivirus signatures are updated monthly" },
+        "3": { "th": "อัปเดตลายเซ็นไวรัสเป็นรายสัปดาห์", "en": "Antivirus signatures are updated weekly" },
+        "4": { "th": "อัปเดตลายเซ็นไวรัสเป็นรายวันผ่านระบบจัดการจากส่วนกลาง", "en": "Daily antivirus signature updates via centralized management" },
+        "5": { "th": "อัปเดตลายเซ็นไวรัสแบบเรียลไทม์/อัตโนมัติ พร้อมการตรวจจับภัยคุกคามแบบ AI/ML", "en": "Real-time/automatic signature updates with AI/ML-based threat detection" }
+      }
+    },
+    {
+      "id": "cyber-q27",
+      "dimensionId": "operations-security",
+      "textTh": "มีการใช้เครื่องมือป้องกันการรั่วไหลของข้อมูล (DLP) หรือไม่",
+      "textEn": "Is there a data loss prevention (DLP) tool in use?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีเครื่องมือหรือกระบวนการ DLP", "en": "No DLP tool or process exists" },
+        "2": { "th": "มีแนวทาง DLP เบื้องต้นแต่ไม่มีเครื่องมือเฉพาะ", "en": "Basic DLP guidelines exist but no dedicated tool" },
+        "3": { "th": "มีเครื่องมือ DLP ติดตั้งและใช้งานในระบบหลัก", "en": "DLP tool is deployed and in use for core systems" },
+        "4": { "th": "มี DLP ครอบคลุมทั้งเครือข่ายและ endpoint มีการตรวจสอบและปรับแต่งนโยบายเป็นประจำ", "en": "DLP covers network and endpoints with regularly reviewed and tuned policies" },
+        "5": { "th": "มี DLP แบบครบวงจร บูรณาการกับ SIEM และระบบจำแนกข้อมูล พร้อมการตอบสนองอัตโนมัติ", "en": "Comprehensive DLP integrated with SIEM and data classification, with automated response" }
+      }
+    },
+    {
+      "id": "cyber-q28",
+      "dimensionId": "operations-security",
+      "textTh": "มีการสแกนความปลอดภัยของแอปพลิเคชันเพื่อให้มั่นใจในการเขียนโค้ดที่ปลอดภัยหรือไม่",
+      "textEn": "Are application security scans conducted to ensure secure coding?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการสแกนความปลอดภัยของแอปพลิเคชัน", "en": "No application security scans are conducted" },
+        "2": { "th": "มีการสแกนเฉพาะกิจเมื่อมีการร้องขอ", "en": "Scans are conducted ad-hoc when requested" },
+        "3": { "th": "มีการสแกนความปลอดภัยเป็นประจำในกระบวนการพัฒนา", "en": "Regular security scans are part of the development process" },
+        "4": { "th": "มีการสแกนความปลอดภัยอัตโนมัติใน CI/CD pipeline พร้อมการติดตามผลการแก้ไข", "en": "Automated security scans in CI/CD pipeline with tracked remediation" },
+        "5": { "th": "มีการสแกนความปลอดภัยแบบครบวงจร (SAST, DAST, SCA) บูรณาการกับ DevSecOps พร้อมการปรับปรุงอย่างต่อเนื่อง", "en": "Comprehensive security scanning (SAST, DAST, SCA) integrated with DevSecOps and continuously improved" }
+      }
+    },
+    {
+      "id": "cyber-q29",
+      "dimensionId": "operations-security",
+      "textTh": "เครือข่ายไร้สายใช้การเข้ารหัส WPA2 หรือสูงกว่าหรือไม่",
+      "textEn": "Is wireless network implementing WPA2 encryption or higher?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "เครือข่ายไร้สายไม่มีการเข้ารหัส หรือใช้ WEP", "en": "Wireless network has no encryption or uses WEP" },
+        "2": { "th": "เครือข่ายไร้สายบางส่วนใช้ WPA2 แต่ไม่ทั้งหมด", "en": "Some wireless networks use WPA2 but not all" },
+        "3": { "th": "เครือข่ายไร้สายทั้งหมดใช้ WPA2 เป็นอย่างน้อย", "en": "All wireless networks use WPA2 at minimum" },
+        "4": { "th": "ใช้ WPA2/WPA3 ทุกเครือข่าย มีการแยกเครือข่ายแขก และตรวจสอบเป็นประจำ", "en": "WPA2/WPA3 on all networks with guest network segmentation and regular audits" },
+        "5": { "th": "ใช้ WPA3 พร้อมการยืนยันตัวตนระดับองค์กร (802.1X) มีการตรวจจับ Rogue AP และปรับปรุงอย่างต่อเนื่อง", "en": "WPA3 with enterprise authentication (802.1X), rogue AP detection, and continuous improvement" }
+      }
+    },
+    {
+      "id": "cyber-q30",
+      "dimensionId": "operations-security",
+      "textTh": "ข้อมูลระหว่างการส่ง (in transit) ได้รับการเข้ารหัสทั้งหมดหรือไม่",
+      "textEn": "Is all in-transit data encrypted?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการเข้ารหัสข้อมูลระหว่างการส่ง", "en": "No in-transit data encryption" },
+        "2": { "th": "มีการเข้ารหัสข้อมูลระหว่างการส่งบางส่วน (เช่น เฉพาะเว็บ HTTPS)", "en": "Partial in-transit encryption (e.g., HTTPS for web only)" },
+        "3": { "th": "ข้อมูลที่มีความอ่อนไหวทั้งหมดได้รับการเข้ารหัสระหว่างการส่ง", "en": "All sensitive data is encrypted in transit" },
+        "4": { "th": "ข้อมูลทั้งหมดเข้ารหัสระหว่างการส่ง ใช้โปรโตคอล TLS เวอร์ชันล่าสุด พร้อมการตรวจสอบเป็นประจำ", "en": "All data encrypted in transit using latest TLS versions with regular audits" },
+        "5": { "th": "เข้ารหัสข้อมูลทั้งหมดระหว่างการส่ง มีการจัดการใบรับรองอัตโนมัติ และตรวจสอบมาตรฐานการเข้ารหัสอย่างต่อเนื่อง", "en": "Universal in-transit encryption with automated certificate management and continuous cryptographic standards review" }
+      }
+    },
+    {
+      "id": "cyber-q31",
+      "dimensionId": "operations-security",
+      "textTh": "ข้อมูลที่มีความอ่อนไหวได้รับการเข้ารหัสขณะจัดเก็บ (at rest) หรือไม่",
+      "textEn": "Is sensitive data encrypted at rest?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการเข้ารหัสข้อมูลขณะจัดเก็บ", "en": "No data-at-rest encryption" },
+        "2": { "th": "มีการเข้ารหัสข้อมูลขณะจัดเก็บบางส่วน", "en": "Partial data-at-rest encryption" },
+        "3": { "th": "ข้อมูลที่มีความอ่อนไหวทั้งหมดได้รับการเข้ารหัสขณะจัดเก็บ", "en": "All sensitive data is encrypted at rest" },
+        "4": { "th": "เข้ารหัสข้อมูลขณะจัดเก็บทั้งหมด มีการจัดการกุญแจเข้ารหัสอย่างเป็นระบบ", "en": "All data encrypted at rest with systematic key management" },
+        "5": { "th": "เข้ารหัสข้อมูลทั้งหมดขณะจัดเก็บ มีระบบ KMS ขั้นสูง หมุนเวียนกุญแจอัตโนมัติ และตรวจสอบอย่างต่อเนื่อง", "en": "Universal data-at-rest encryption with advanced KMS, automated key rotation, and continuous auditing" }
+      }
+    },
+    {
+      "id": "cyber-q32",
+      "dimensionId": "operations-security",
+      "textTh": "มีการเข้ารหัสเต็มดิสก์ (Full-disk encryption) ในแล็ปท็อปหรือไม่",
+      "textEn": "Is full-disk encryption implemented on laptops?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการเข้ารหัสเต็มดิสก์ในแล็ปท็อป", "en": "No full-disk encryption on laptops" },
+        "2": { "th": "มีการเข้ารหัสเต็มดิสก์ในแล็ปท็อปบางเครื่อง", "en": "Full-disk encryption on some laptops" },
+        "3": { "th": "มีการเข้ารหัสเต็มดิสก์ในแล็ปท็อปทุกเครื่องขององค์กร", "en": "Full-disk encryption on all organization-owned laptops" },
+        "4": { "th": "เข้ารหัสเต็มดิสก์ทุกเครื่อง มีการบังคับใช้ผ่าน MDM และตรวจสอบการปฏิบัติตามเป็นประจำ", "en": "Full-disk encryption on all devices, enforced via MDM with regular compliance checks" },
+        "5": { "th": "เข้ารหัสเต็มดิสก์ทุกอุปกรณ์ บูรณาการกับระบบจัดการอุปกรณ์ มีการตรวจสอบอัตโนมัติและรายงานสถานะต่อเนื่อง", "en": "Universal full-disk encryption integrated with device management, automated compliance monitoring, and continuous reporting" }
+      }
+    },
+    {
+      "id": "cyber-q33",
+      "dimensionId": "operations-security",
+      "textTh": "มีการใช้ไฟร์วอลล์ที่กำหนดค่าอย่างเหมาะสมสำหรับการเชื่อมต่อทั้งภายในและภายนอกหรือไม่",
+      "textEn": "Are firewalls in use and properly configured for both internal and external connections?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีไฟร์วอลล์สำหรับการเชื่อมต่อภายในหรือภายนอก", "en": "No firewalls for internal or external connections" },
+        "2": { "th": "มีไฟร์วอลล์สำหรับการเชื่อมต่อภายนอกเท่านั้น", "en": "Firewalls exist for external connections only" },
+        "3": { "th": "มีไฟร์วอลล์สำหรับทั้งภายในและภายนอก กำหนดค่าตามนโยบาย", "en": "Firewalls for both internal and external connections configured per policy" },
+        "4": { "th": "ไฟร์วอลล์กำหนดค่าครอบคลุม มีการทบทวนกฎเป็นประจำและบันทึก Log", "en": "Comprehensive firewall configuration with regular rule reviews and logging" },
+        "5": { "th": "สถาปัตยกรรมไฟร์วอลล์แบบหลายชั้น มีการวิเคราะห์ Log อัตโนมัติ และปรับปรุงอย่างต่อเนื่องตามหลัก Zero Trust", "en": "Multi-layered firewall architecture with automated log analysis and continuous improvement following Zero Trust" }
+      }
+    },
+    {
+      "id": "cyber-q34",
+      "dimensionId": "operations-security",
+      "textTh": "มีการประเมินช่องโหว่และสแกนทั้งภายในและภายนอกหรือไม่",
+      "textEn": "Are internal and external vulnerability assessments and scans performed?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการประเมินหรือสแกนช่องโหว่", "en": "No vulnerability assessments or scans are performed" },
+        "2": { "th": "มีการสแกนช่องโหว่เฉพาะกิจหรือเฉพาะภายนอก", "en": "Ad-hoc or external-only vulnerability scanning" },
+        "3": { "th": "มีการสแกนช่องโหว่ทั้งภายในและภายนอกเป็นประจำ", "en": "Regular internal and external vulnerability scans are performed" },
+        "4": { "th": "มีการสแกนช่องโหว่อย่างสม่ำเสมอ มีการจัดลำดับความสำคัญและติดตามการแก้ไข", "en": "Regular vulnerability scans with prioritization and tracked remediation" },
+        "5": { "th": "มีการสแกนช่องโหว่อย่างต่อเนื่อง บูรณาการกับระบบจัดการแ��ตช์ มีการวัดผล SLA และปรับปรุงอย่างต่อเนื่อง", "en": "Continuous vulnerability scanning integrated with patch management, SLA metrics, and continuous improvement" }
+      }
+    },
+    {
+      "id": "cyber-q35",
+      "dimensionId": "operations-security",
+      "textTh": "ผลจากการประเมินช่องโหว่และการสแกนได้รับการบันทึกและติดตามจนกว่าจะแก้ไขเสร็จหรือไม่",
+      "textEn": "Are the findings from vulnerability assessments and scans documented and tracked to remediation?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการบันทึกหรือติดตามผลการสแกนช่องโหว่", "en": "No documentation or tracking of vulnerability findings" },
+        "2": { "th": "มีการบันทึกผลบางส่วนแต่ไม่ติดตามจนแก้ไขเสร็จ", "en": "Partial documentation but findings are not tracked to completion" },
+        "3": { "th": "ผลการสแกนช่องโหว่ได้รับการบันทึกและติดตามจนแก้ไขเสร็จ", "en": "Vulnerability findings are documented and tracked to remediation" },
+        "4": { "th": "มีระบบติดตามช่องโหว่ที่ชัดเจน มี SLA สำหรับการแก้ไข และรายงานผู้บริหารเป็นประจำ", "en": "Clear vulnerability tracking system with remediation SLAs and regular management reporting" },
+        "5": { "th": "มีระบบจัดการช่องโหว่แบบอัตโนมัติ บูรณาการกับระบบ ITSM มีการวัดผลและปรับปรุงกระบวนการอย่างต่อเนื่อง", "en": "Automated vulnerability management integrated with ITSM, with metrics and continuous process improvement" }
+      }
+    },
+    {
+      "id": "cyber-q36",
+      "dimensionId": "operations-security",
+      "textTh": "มีโปรแกรมการจัดการแพตช์ด้านความปลอดภัยหรือไม่",
+      "textEn": "Do you have an operational security patching program?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีโปรแกรมจัดการแพตช์", "en": "No security patching program exists" },
+        "2": { "th": "มีการติดตั้งแพตช์เฉพาะกิจโดยไม่มีกระบวนการที่ชัดเจน", "en": "Ad-hoc patching without a clear process" },
+        "3": { "th": "มีโปรแกรมจัดการแพตช์ที่กำหนดไว้ ติดตั้งแพตช์เป็นประจำ", "en": "A defined patching program with regular patch installation" },
+        "4": { "th": "โปรแกรมจัดการแพตช์ครอบคลุม มี SLA และการทดสอบก่อนติดตั้ง", "en": "Comprehensive patching program with SLAs and pre-deployment testing" },
+        "5": { "th": "จัดการแพตช์อัตโนมัติ มีการทดสอบ ติดตั้ง และตรวจสอบอย่างต่อเนื่อง ครอบคลุมทุกระบบรวมถึง zero-day", "en": "Automated patch management with testing, deployment, and continuous verification across all systems including zero-day response" }
+      }
+    },
+    {
+      "id": "cyber-q37",
+      "dimensionId": "operations-security",
+      "textTh": "องค์กรควบคุมการจัดเก็บข้อมูลที่มีความอ่อนไหวในอุปกรณ์ภายในเครื่องหรือสื่อบันทึกข้อมูลแบบถอดได้ดีเพียงใด",
+      "textEn": "How well does the organization control local storage of sensitive data on hard drives or removable media?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการควบคุมการจัดเก็บข้อมูลในอุปกรณ์ภายในเครื่อง", "en": "No controls on local storage of sensitive data" },
+        "2": { "th": "มีแนวทางเบื้องต้นแต่ไม่มีการบังคับใช้ทางเทคนิค", "en": "Basic guidelines exist but no technical enforcement" },
+        "3": { "th": "มีนโยบายห้ามจัดเก็บข้อมูลสำคัญในเครื่องและมีมาตรการควบคุมเบื้องต้น", "en": "Policy prohibits local storage of sensitive data with basic controls" },
+        "4": { "th": "มีการบังคับใช้ทางเทคนิค เช่น ปิดกั้น USB มี DLP และตรวจสอบเป็นประจำ", "en": "Technical enforcement such as USB blocking, DLP, and regular auditing" },
+        "5": { "th": "ควบคุมครบวงจร มีเข้ารหัส DLP ปิดกั้นอุปกรณ์ที่ไม่ได้รับอนุญาต และตรวจสอบอย่างต่อเนื่อง", "en": "Comprehensive controls with encryption, DLP, unauthorized device blocking, and continuous monitoring" }
+      }
+    },
+    {
+      "id": "cyber-q38",
+      "dimensionId": "operations-security",
+      "textTh": "มีการทดสอบเจาะระบบ (Penetration Test) อย่างน้อยปีละครั้งหรือไม่",
+      "textEn": "Are penetration tests conducted at least annually?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่เคยมีการทดสอบเจาะระบบ", "en": "No penetration tests have been conducted" },
+        "2": { "th": "มีการทดสอบเจาะระบบเฉพาะกิจหรือไม่สม่ำเสมอ", "en": "Penetration tests are conducted ad-hoc or irregularly" },
+        "3": { "th": "มีการทดสอบเจาะระบบเป็นประจำอย่างน้อยปีละครั้ง", "en": "Penetration tests are conducted at least annually" },
+        "4": { "th": "มีการทดสอบเจาะระบบเป็นประจำ มีการติดตามผลการแก้ไข และทดสอบซ้ำ", "en": "Regular penetration tests with tracked remediation and re-testing" },
+        "5": { "th": "มีโปรแกรมทดสอบเจาะระบบต่อเนื่อง รวมถึง Red Team exercises และ Bug Bounty พร้อมปรับปรุงอย่างต่อเนื่อง", "en": "Continuous penetration testing program including Red Team exercises and Bug Bounty, with continuous improvement" }
+      }
+    },
+    {
+      "id": "cyber-q39",
+      "dimensionId": "operations-security",
+      "textTh": "มีนโยบายหรือโปรแกรมการจัดการการเปลี่ยนแปลง (Change Management) ที่เป็นเอกสารหรือไม่",
+      "textEn": "Is there a documented change management policy or program?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีนโยบายหรือกระบวนการจัดการการเปลี่ยนแปลง", "en": "No change management policy or process" },
+        "2": { "th": "มีกระบวนการจัดการการเปลี่ยนแปลงแบบไม่เป็นทางการ", "en": "Informal change management process exists" },
+        "3": { "th": "มีนโยบายจัดการการเปลี่ยนแปลงที่เป็นเอกสารและปฏิบัติตาม", "en": "A documented change management policy is followed" },
+        "4": { "th": "มีกระบวนการจัดการการเปลี่ยนแปลงที่ครอบคลุม รวมถึงการอนุมัติ ทดสอบ และบันทึก", "en": "Comprehensive change management with approval, testing, and documentation" },
+        "5": { "th": "จัดการการเปลี่ยนแปลงแบบอัตโนมัติ บูรณาการกับ CI/CD และ ITSM มีการวัดผลและปรับปรุงอย่างต่อเนื่อง", "en": "Automated change management integrated with CI/CD and ITSM, with metrics and continuous improvement" }
+      }
+    },
+    {
+      "id": "cyber-q40",
+      "dimensionId": "operations-security",
+      "textTh": "มีการบันทึก Log ข้อมูลเพียงพอสำหรับการตอบสนองเหตุการณ์และการตรวจสอบทางนิติวิทยาศาสตร์หรือไม่",
+      "textEn": "Do you log sufficient data for incident response and forensic investigation?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการบันทึก Log หรือบันทึกน้อยมาก", "en": "No logging or minimal logging" },
+        "2": { "th": "มีการบันทึก Log บางส่วนแต่ไม่เพียงพอสำหรับการตรวจสอบ", "en": "Some logging exists but insufficient for investigation" },
+        "3": { "th": "มีการบันทึก Log เพียงพอในระบบหลัก สำหรับการตอบสนองเหตุการณ์", "en": "Sufficient logging in core systems for incident response" },
+        "4": { "th": "มีการบันทึก Log ครอบคลุม มีการเก็บรักษาตามนโยบาย และส่งไปยังระบบ SIEM", "en": "Comprehensive logging with retention policies and SIEM integration" },
+        "5": { "th": "มีระบบ Log ครบวงจร ครอบคลุมทุกระบบ มีการวิเคราะห์อัตโนมัติ แจ้งเตือนเชิงรุก และพร้อมสำหรับการตรวจสอบทางนิติวิทยาศาสตร์", "en": "End-to-end logging across all systems with automated analysis, proactive alerting, and forensic readiness" }
+      }
+    },
+    {
+      "id": "cyber-q41",
+      "dimensionId": "application-security",
+      "textTh": "วงจรชีวิตการพัฒนาแอปพลิเคชันที่ปลอดภัย (Secure SDLC) ขององค์กรมีความเป็นผู้ใหญ่เพียงใด",
+      "textEn": "How mature is the organization's secure application development lifecycle?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการพัฒนาแอปพลิเคชัน หรือไม่มีกระบวนการด้านความปลอดภัยในการพัฒนา", "en": "No application development or no security process in development" },
+        "2": { "th": "มีการพัฒนาแอปพลิเคชันแต่ไม่มีกระบวนการด้านความปลอดภัยที่เป็นทางการ", "en": "Application development exists but no formal security process" },
+        "3": { "th": "มีกระบวนการ Secure SDLC เบื้องต้น รวมถึงแนวทางการเขียนโค้ดที่ปลอดภัย", "en": "Basic Secure SDLC process with secure coding guidelines" },
+        "4": { "th": "มี Secure SDLC ที่ครอบคลุม รวมถึง Threat Modeling, Code Review, และการทดสอบความปลอดภัย", "en": "Comprehensive Secure SDLC with threat modeling, code review, and security testing" },
+        "5": { "th": "มี DevSecOps ที่เป็นผู้ใหญ่ บูรณาการความปลอดภัยในทุกขั้นตอน พร้อมการปรับปรุงอย่างต่อเนื่อง", "en": "Mature DevSecOps with security integrated at every stage and continuous improvement" }
+      }
+    },
+    {
+      "id": "cyber-q42",
+      "dimensionId": "application-security",
+      "textTh": "ทีมพัฒนาปฏิบัติตามแนวทางความปลอดภัยของแอปพลิเคชันอย่างเป็นทางการ (เช่น OWASP) หรือไม่",
+      "textEn": "Does your development team adhere to a formal application security methods (e.g. OWASP)?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่ได้ปฏิบัติตามแนวทางความปลอดภัยใด ๆ", "en": "No adherence to any security methodology" },
+        "2": { "th": "ทราบเกี่ยวกับ OWASP หรือแนวทางอื่นแต่ไม่ได้นำมาปฏิบัติอย่างเป็นระบบ", "en": "Aware of OWASP or similar but not systematically applied" },
+        "3": { "th": "ปฏิบัติตามแนวทาง OWASP หรือเทียบเท่าอย่างเป็นทางการ", "en": "Formally adheres to OWASP or equivalent guidelines" },
+        "4": { "th": "ปฏิบัติตามแนวทาง OWASP อย่างเข้มงวด มีการฝึกอบรมนักพัฒนาและตรวจสอบการปฏิบัติตาม", "en": "Strict OWASP adherence with developer training and compliance verification" },
+        "5": { "th": "ปฏิบัติตามมาตรฐานความปลอดภัยหลายแหล่ง มีการปรับปรุงอย่างต่อเนื่อง และร่วมมือกับชุมชนด้านความปลอดภัย", "en": "Multi-source security standards adherence, continuous improvement, and active security community participation" }
+      }
+    },
+    {
+      "id": "cyber-q43",
+      "dimensionId": "application-security",
+      "textTh": "มีการวิเคราะห์โค้ดด้านความปลอดภัยหรือไม่",
+      "textEn": "Is code analysis performed?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการวิเคราะห์โค้ดด้านความปลอดภัย", "en": "No security code analysis is performed" },
+        "2": { "th": "มีการวิเคราะห์โค้ดเฉพาะกิจหรือเมื่อมีปัญหา", "en": "Code analysis is performed ad-hoc or only when issues arise" },
+        "3": { "th": "มีการวิเคราะห์โค้ดเป็นประจำในกระบวนการพัฒนา", "en": "Regular code analysis is part of the development process" },
+        "4": { "th": "มีการวิเคราะห์โค้ดอัตโนมัติใน CI/CD pipeline พร้อมการติดตามผลการแก้ไข", "en": "Automated code analysis in CI/CD pipeline with tracked remediation" },
+        "5": { "th": "มีการวิเคราะห์โค้ดแบบครบวงจร (SAST, DAST, SCA) บูรณาการกับ DevSecOps พร้อมปรับปรุงกฎอย่างต่อเนื่อง", "en": "Comprehensive code analysis (SAST, DAST, SCA) integrated with DevSecOps and continuously updated rules" }
+      }
+    },
+    {
+      "id": "cyber-q44",
+      "dimensionId": "application-security",
+      "textTh": "มีการวิเคราะห์โค้ดแบบ Static (Static Code Analysis) หรือไม่",
+      "textEn": "Is static code analysis performed?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการวิเคราะห์โค้ดแบบ Static", "en": "No static code analysis is performed" },
+        "2": { "th": "มีการวิเคราะห์โค้ดแบบ Static เฉพาะกิจ", "en": "Static code analysis is performed ad-hoc" },
+        "3": { "th": "มีการใช้เครื่องมือ SAST เป็นประจำในกระบวนการพัฒนา", "en": "SAST tools are regularly used in the development process" },
+        "4": { "th": "SAST บูรณาการใน CI/CD pipeline มีการตรวจสอบทุกครั้งที่มีการ commit โค้ด", "en": "SAST integrated in CI/CD pipeline with checks on every code commit" },
+        "5": { "th": "SAST ขั้นสูงบูรณาการกับ IDE และ CI/CD มีกฎที่ปรับแต่งเฉพาะองค์กรและปรับปรุงอย่างต่อเนื่อง", "en": "Advanced SAST integrated with IDE and CI/CD, with custom organization-specific rules and continuous improvement" }
+      }
+    },
+    {
+      "id": "cyber-q45",
+      "dimensionId": "application-security",
+      "textTh": "มีการวิเคราะห์โค้ดแบบ Dynamic (Dynamic Code Analysis) หรือไม่",
+      "textEn": "Is dynamic code analysis performed?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการวิเคราะห์โค้ดแบบ Dynamic", "en": "No dynamic code analysis is performed" },
+        "2": { "th": "มีการวิเคราะห์โค้ดแบบ Dynamic เฉพาะกิจ", "en": "Dynamic code analysis is performed ad-hoc" },
+        "3": { "th": "มีการใช้เครื่องมือ DAST เป็นประจำ", "en": "DAST tools are regularly used" },
+        "4": { "th": "DAST บูรณาการใน CI/CD pipeline มีการทดสอบอัตโนมัติเป็นประจำ", "en": "DAST integrated in CI/CD pipeline with regular automated testing" },
+        "5": { "th": "DAST ขั้นสูง บูรณาการกับ IAST มีการทดสอบต่อเนื่องในสภาพแวดล้อมจริงและปรับปรุงอย่างต่อเนื่อง", "en": "Advanced DAST combined with IAST, continuous testing in production-like environments, and continuous improvement" }
+      }
+    },
+    {
+      "id": "cyber-q46",
+      "dimensionId": "application-security",
+      "textTh": "มีการรับรองผลการวิเคราะห์โค้ดจากบุคคลภายนอก (Third-party Attestation) หรือไม่",
+      "textEn": "Is there a third-party attestation of the code analysis?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการรับรองจากบุคคลภายนอก", "en": "No third-party attestation" },
+        "2": { "th": "มีแผนจะขอการรับรองจากบุคคลภายนอก", "en": "Planning to obtain third-party attestation" },
+        "3": { "th": "มีการรับรองจากบุคคลภายนอกสำหรับระบบบางส่วน", "en": "Third-party attestation exists for some systems" },
+        "4": { "th": "มีการรับรองจากบุคคลภายนอกครอบคลุมระบบสำคัญ พร้อมการทบทวนเป็นประจำ", "en": "Third-party attestation covers critical systems with regular reviews" },
+        "5": { "th": "มีการรับรองจากบุคคลภายนอกครอบคลุมทุกระบบ มีการประเมินอย่างต่อเนื่องจากผู้ให้บริการที่ได้รับการรับรอง", "en": "Comprehensive third-party attestation for all systems with continuous assessment from accredited providers" }
+      }
+    },
+    {
+      "id": "cyber-q47",
+      "dimensionId": "application-security",
+      "textTh": "มีการสแกนความปลอดภัยแบบ Dynamic บนระบบ Production หรือไม่",
+      "textEn": "Is dynamic security scanning performed on production systems?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการสแกนความปลอดภัยบนระบบ Production", "en": "No dynamic security scanning on production systems" },
+        "2": { "th": "มีการสแกนเฉพาะกิจบนระบบ Production", "en": "Ad-hoc scanning on production systems" },
+        "3": { "th": "มีการสแกนความปลอดภัยบนระบบ Production เป็นประจำ", "en": "Regular security scanning on production systems" },
+        "4": { "th": "มีการสแกนอัตโนมัติเป็นประจำบนระบบ Production พร้อมการติดตามและแก้ไขผล", "en": "Regular automated scanning on production with tracked findings and remediation" },
+        "5": { "th": "มีการสแกนต่อเนื่องบนระบบ Production บูรณาการกับ WAF และ SIEM พร้อมตอบสนองอัตโนมัติ", "en": "Continuous production scanning integrated with WAF and SIEM, with automated response" }
+      }
+    },
+    {
+      "id": "cyber-q48",
+      "dimensionId": "application-security",
+      "textTh": "โค้ด API ได้รับการทดสอบความปลอดภัยตาม OWASP Top 10 หรือไม่",
+      "textEn": "Is the API code security tested against OWASP top 10 security issues?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการทดสอบความปลอดภัย API", "en": "No API security testing is performed" },
+        "2": { "th": "มีการทดสอบ API เฉพาะกิจโดยไม่อิงมาตรฐาน", "en": "Ad-hoc API testing without reference to standards" },
+        "3": { "th": "มีการทดสอบ API ตาม OWASP Top 10 เป็นประจำ", "en": "API testing against OWASP Top 10 is performed regularly" },
+        "4": { "th": "มีการทดสอบ API ตาม OWASP Top 10 อัตโนมัติใน CI/CD pipeline พร้อมการติดตามผล", "en": "Automated OWASP Top 10 API testing in CI/CD pipeline with tracked findings" },
+        "5": { "th": "มีการทดสอบ API แบบครบวงจร ครอบคลุม OWASP API Security Top 10 บูรณาการกับ DevSecOps และปรับปรุงอย่างต่อเนื่อง", "en": "Comprehensive API testing covering OWASP API Security Top 10, integrated with DevSecOps, and continuously improved" }
+      }
+    },
+    {
+      "id": "cyber-q49",
+      "dimensionId": "availability",
+      "textTh": "มีแผนการกู้คืนระบบ (Recovery Plan) หรือไม่",
+      "textEn": "Do you have a recovery plan in place?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีแผนการกู้คืนระบบ", "en": "No recovery plan exists" },
+        "2": { "th": "มีแผนการกู้คืนเบื้องต้นแต่ไม่ครอบคลุมหรือไม่เป็นปัจจุบัน", "en": "A basic recovery plan exists but is incomplete or outdated" },
+        "3": { "th": "มีแผนการกู้คืนที่เป็นเอกสาร ครอบคลุมระบบสำคัญ", "en": "A documented recovery plan covering critical systems exists" },
+        "4": { "th": "มีแผนการกู้คืนที่ครอบคลุม ได้รับการทบทวนและทดสอบเป็นประจำ", "en": "Comprehensive recovery plan that is regularly reviewed and tested" },
+        "5": { "th": "มีแผนการกู้คืนระดับองค์กรที่ครบวงจร ทดสอบอย่างต่อเนื่อง พร้อม RTO/RPO ที่ชัดเจนและมีการปรับปรุงอย่างต่อเนื่อง", "en": "Enterprise-wide recovery plan continuously tested with defined RTO/RPO and continuous improvement" }
+      }
+    },
+    {
+      "id": "cyber-q50",
+      "dimensionId": "availability",
+      "textTh": "มีการฝึกซ้อมแผนการกู้คืนระบบภายใน 12 เดือนที่ผ่านมาหรือไม่",
+      "textEn": "Have you conducted a recovery plan exercise within the last 12 months?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่เคยมีการฝึกซ้อมแผนการกู้คืน", "en": "No recovery plan exercise has been conducted" },
+        "2": { "th": "เคยฝึกซ้อมแต่เกินกว่า 12 เดือนที่ผ่านมา", "en": "Exercise was conducted but more than 12 months ago" },
+        "3": { "th": "มีการฝึกซ้อมแผนกู้คืนภายใน 12 เดือนที่ผ่านมา", "en": "Recovery plan exercise was conducted within the last 12 months" },
+        "4": { "th": "มีการฝึกซ้อมเป็นประจำ มีการบันทึกผลและปรับปรุงแผนตามผลลัพธ์", "en": "Regular exercises with documented results and plan improvements" },
+        "5": { "th": "มีการฝึกซ้อมหลายรูปแบบ (Tabletop, Full-scale) อย่างต่อเนื่อง มีการวัดผล RTO/RPO จริงและปรับปรุงอย่างต่อเนื่อง", "en": "Continuous multi-format exercises (tabletop, full-scale) with actual RTO/RPO measurement and continuous improvement" }
+      }
+    },
+    {
+      "id": "cyber-q51",
+      "dimensionId": "availability",
+      "textTh": "การสำรองข้อมูล (Backup) ดำเนินการบ่อยเพียงใด",
+      "textEn": "How frequently are backups conducted?",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการสำรองข้อมูล หรือสำรองไม่สม่ำเสมอ", "en": "No backups or irregular backups" },
+        "2": { "th": "สำรองข้อมูลเป็นรายเดือนหรือน้อยกว่า", "en": "Backups are conducted monthly or less frequently" },
+        "3": { "th": "สำรองข้อมูลเป็นรายสัปดาห์พร้อมจัดเก็บนอกสถานที่", "en": "Weekly backups with offsite storage" },
+        "4": { "th": "สำรองข้อมูลเป็นรายวัน มีการทดสอบการกู้คืนเป็นประจำ", "en": "Daily backups with regular recovery testing" },
+        "5": { "th": "สำรองข้อมูลแบบต่อเนื่อง/เรียลไทม์ มีการจำลองหลายสถานที่ ทดสอบการกู้คืนอัตโนมัติ และมีกลยุทธ์ 3-2-1", "en": "Continuous/real-time backups with multi-site replication, automated recovery testing, and 3-2-1 strategy" }
+      }
+    }
+  ]
+}

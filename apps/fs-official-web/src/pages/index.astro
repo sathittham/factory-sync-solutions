@@ -1,0 +1,11 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { LandingContent } from "../components/landing/LandingContent";
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
+---
+
+<Layout title="FactorySync Solutions — ประเมินสุขภาพโรงงานด้วย AI">
+  <LandingContent client:load appUrl={appUrl} version={version} />
+</Layout>

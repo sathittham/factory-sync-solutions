@@ -1,0 +1,923 @@
+{
+  "id": "lean",
+  "version": "1.0",
+  "nameTh": "แบบประเมินธุรกิจแบบ LEAN",
+  "nameEn": "Lean Business Assessment",
+  "dimensions": [
+    {
+      "id": "communication-cultural",
+      "nameTh": "นโยบายและการสื่อสารนโยบาย",
+      "nameEn": "Communication and Cultural Awareness",
+      "weight": 1.0
+    },
+    {
+      "id": "value",
+      "nameTh": "คุณค่า",
+      "nameEn": "Value",
+      "weight": 1.0
+    },
+    {
+      "id": "visual-control-5s",
+      "nameTh": "การควบคุมด้วยการมอง (5S, VC) และการจัดการสถานที่ทำงาน",
+      "nameEn": "Visual Control (5S, VC) & Workplace Management",
+      "weight": 1.0
+    },
+    {
+      "id": "standard-work",
+      "nameTh": "มาตรฐานในการทำงาน",
+      "nameEn": "Standard Work",
+      "weight": 1.0
+    },
+    {
+      "id": "continuous-improvement",
+      "nameTh": "การปรับปรุงอย่างต่อเนื่อง",
+      "nameEn": "Continuous Improvement",
+      "weight": 1.0
+    },
+    {
+      "id": "operational-flexibility",
+      "nameTh": "ความยืดหยุ่นของกระบวนการ",
+      "nameEn": "Operational Flexibility",
+      "weight": 1.0
+    },
+    {
+      "id": "mistake-proofing",
+      "nameTh": "การป้องกันความผิดพลาด",
+      "nameEn": "Mistake Proofing / Poka-Yoke",
+      "weight": 1.0
+    },
+    {
+      "id": "tpm",
+      "nameTh": "การบำรุงรักษาแบบครบวงจร",
+      "nameEn": "Total Productive Maintenance (TPM)",
+      "weight": 1.0
+    },
+    {
+      "id": "smed",
+      "nameTh": "การปรับแต่งที่รวดเร็ว",
+      "nameEn": "SMED / Quick Changeover",
+      "weight": 1.0
+    },
+    {
+      "id": "pull-system",
+      "nameTh": "ระบบการดึงงาน",
+      "nameEn": "Pull System",
+      "weight": 1.0
+    },
+    {
+      "id": "balanced-production",
+      "nameTh": "การผลิตที่สมดุล",
+      "nameEn": "Balanced Production",
+      "weight": 1.0
+    },
+    {
+      "id": "people-management",
+      "nameTh": "บุคลากร/การบริหารหน้างาน",
+      "nameEn": "People / Shop Floor Management",
+      "weight": 1.0
+    }
+  ],
+  "questions": [
+    {
+      "id": "lean-q1",
+      "dimensionId": "communication-cultural",
+      "textTh": "วิสัยทัศน์และแผนการ",
+      "textEn": "Vision and Planning",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีเป้าหมายระยะยาว 3-5 ปีสำหรับบริษัท",
+          "en": "No long-term goals (3-5 years) for the company"
+        },
+        "2": {
+          "th": "มีเป้าหมายระยะสั้น ไม่มีเป้าหมายระยะกลางและไม่มีเป้าหมายระยะยาว",
+          "en": "Short-term goals only, no medium or long-term goals"
+        },
+        "3": {
+          "th": "มีเป้าหมายระยะสั้น มีเป้าหมายระยะกลางและไม่มีเป้าหมายระยะยาว",
+          "en": "Short and medium-term goals, no long-term goals"
+        },
+        "4": {
+          "th": "มีเป้าหมายระยะสั้น มีเป้าหมายระยะกลางและมีเป้าหมายระยะยาว",
+          "en": "Short, medium, and long-term goals in place"
+        },
+        "5": {
+          "th": "มีเป้าหมายระยะสั้น กลาง ยาวและแผนงานระยะยาวแสดงถึงความท้าทายในการยกระดับสู่ระดับโลก",
+          "en": "All-term goals with long-term plan showing ambition to reach world-class level"
+        }
+      }
+    },
+    {
+      "id": "lean-q2",
+      "dimensionId": "communication-cultural",
+      "textTh": "การแปลงนโยบายสู่การปฏิบัติ",
+      "textEn": "Policy Deployment",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่พบการกระจายนโยบาย",
+          "en": "No policy deployment observed"
+        },
+        "2": {
+          "th": "นโยบายของผู้จัดการโรงงาน รับทราบโดยผู้จัดการแผนกทุกแผนก",
+          "en": "Factory manager's policy known by all department managers"
+        },
+        "3": {
+          "th": "นโยบายและวัตถุประสงค์ได้รับรู้และได้รับการสนับสนุนจากผู้จัดการและหัวหน้าทุกคน",
+          "en": "Policy and objectives known and supported by all managers and supervisors"
+        },
+        "4": {
+          "th": "พนักงานทุกคนเข้าใจบทบาทและสามารถอธิบายบทบาทของตัวเองได้ในการขานรับนโยบาย พนักงานสามารถบอกความแตกต่างระหว่างสภาพปัจจุบันและสิ่งที่กำลังจะเกิดขึ้นได้",
+          "en": "All employees understand their role in supporting the policy and can describe the gap between current and future state"
+        },
+        "5": {
+          "th": "พนักงานหน้างานสามารถระบุจุดที่ต้องปรับปรุงเพื่อให้ได้ตามนโยบาย มีกิจกรรมที่เป็นรูปธรรมจับต้องได้",
+          "en": "Shop floor workers can identify improvement points aligned with policy, with tangible activities"
+        }
+      }
+    },
+    {
+      "id": "lean-q3",
+      "dimensionId": "communication-cultural",
+      "textTh": "นโยบายหรือกลยุทธ์ระบบลีน",
+      "textEn": "Lean Strategy/Policy",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "องค์กรไม่มีกลยุทธ์หรือนโยบายระบบลีน ไม่มีบุคลากรที่รับผิดชอบระบบลีน",
+          "en": "No lean strategy/policy, no personnel responsible for lean"
+        },
+        "2": {
+          "th": "องค์กรมีกลยุทธ์หรือนโยบายระบบลีน ไม่มีบุคลากรที่รับผิดชอบระบบลีนโดยตรง",
+          "en": "Lean strategy exists but no dedicated lean personnel"
+        },
+        "3": {
+          "th": "องค์กรมีกลยุทธ์หรือนโยบายระบบลีน มีบุคลากรที่รับผิดชอบระบบลีนโดยตรง",
+          "en": "Lean strategy with dedicated lean personnel"
+        },
+        "4": {
+          "th": "องค์กรมีกลยุทธ์หรือนโยบายระบบลีน มีบุคลากรที่รับผิดชอบระบบลีนโดยตรงและมีผู้รับผิดชอบในแต่ละแผนก",
+          "en": "Lean strategy with dedicated personnel and lean representatives in each department"
+        },
+        "5": {
+          "th": "มีระดับ 4 มีการกำหนดตัวชี้วัด มีการทบทวนนโยบายอย่างสม่ำเสมอ",
+          "en": "Level 4 plus defined KPIs and regular policy reviews"
+        }
+      }
+    },
+    {
+      "id": "lean-q4",
+      "dimensionId": "communication-cultural",
+      "textTh": "การประเมินความพึงพอใจของพนักงาน",
+      "textEn": "Employee Satisfaction Assessment",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีการประเมินความพึงพอใจ",
+          "en": "No satisfaction assessment"
+        },
+        "2": {
+          "th": "มีการประเมินความพึงพอใจได้คะแนนไม่เกิน 74%",
+          "en": "Satisfaction score ≤ 74%"
+        },
+        "3": {
+          "th": "มีการประเมินความพึงพอใจได้คะแนน 75-84%",
+          "en": "Satisfaction score 75-84%"
+        },
+        "4": {
+          "th": "มีการประเมินความพึงพอใจได้คะแนน 85-95%",
+          "en": "Satisfaction score 85-95%"
+        },
+        "5": {
+          "th": "มีการประเมินความพึงพอใจคะแนนมากกว่า 95%",
+          "en": "Satisfaction score > 95%"
+        }
+      }
+    },
+    {
+      "id": "lean-q5",
+      "dimensionId": "communication-cultural",
+      "textTh": "การสร้างความเข้าใจในการค้นหาและขจัดความสูญเสียทั่วทั้งองค์กร (8 Wastes)",
+      "textEn": "Waste Awareness (8 Wastes)",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "พนักงานหน้างานไม่รู้จักความสูญเปล่า",
+          "en": "Shop floor workers don't know about waste"
+        },
+        "2": {
+          "th": "พนักงานหน้างานรู้จักความสูญเปล่าบางหัวข้อ",
+          "en": "Workers know some types of waste"
+        },
+        "3": {
+          "th": "พนักงานหน้างานรู้จักความสูญเปล่าทุกหัวข้อ",
+          "en": "Workers know all types of waste"
+        },
+        "4": {
+          "th": "พนักงานหน้างานรู้จักความสูญเปล่าทุกหัวข้อ พนักงานหน้างานค้นหาความสูญเปล่าเป็น",
+          "en": "Workers know all waste types and can identify them"
+        },
+        "5": {
+          "th": "มีระดับ 4 พนักงานหน้างานสามารถปรับปรุงแก้ไขได้ มีโครงการที่ทำเป็นรูปธรรม",
+          "en": "Level 4 plus workers can improve and eliminate waste with concrete projects"
+        }
+      }
+    },
+    {
+      "id": "lean-q6",
+      "dimensionId": "value",
+      "textTh": "รายได้",
+      "textEn": "Revenue Growth",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่เติบโต",
+          "en": "No growth"
+        },
+        "2": {
+          "th": "โตขึ้นปีละ 0.1-10%",
+          "en": "0.1-10% annual growth"
+        },
+        "3": {
+          "th": "โตขึ้นปีละ 10.01-20%",
+          "en": "10.01-20% annual growth"
+        },
+        "4": {
+          "th": "โตขึ้นปีละ 20.01-30%",
+          "en": "20.01-30% annual growth"
+        },
+        "5": {
+          "th": "โตขึ้นมากกว่า 30%",
+          "en": "> 30% annual growth"
+        }
+      }
+    },
+    {
+      "id": "lean-q7",
+      "dimensionId": "value",
+      "textTh": "มีผลิตภัณฑ์หรือบริการใหม่",
+      "textEn": "New Product/Service Introduction",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "มีผลิตภัณฑ์หรือบริการใหม่เฉลี่ยมากกว่า 3 ปี ต่อ 1 ผลิตภัณฑ์",
+          "en": "New product/service every 3+ years"
+        },
+        "2": {
+          "th": "มีผลิตภัณฑ์หรือบริการใหม่เฉลี่ย 2 ปี ต่อ 1 ผลิตภัณฑ์",
+          "en": "New product/service every 2 years"
+        },
+        "3": {
+          "th": "มีผลิตภัณฑ์หรือบริการใหม่เฉลี่ย ปีละ 1 ผลิตภัณฑ์",
+          "en": "New product/service every year"
+        },
+        "4": {
+          "th": "มีผลิตภัณฑ์หรือบริการใหม่เฉลี่ย 6 เดือนต่อ 1 ผลิตภัณฑ์",
+          "en": "New product/service every 6 months"
+        },
+        "5": {
+          "th": "มีผลิตภัณฑ์หรือบริการใหม่เฉลี่ย 3 เดือนต่อ 1 ผลิตภัณฑ์",
+          "en": "New product/service every 3 months"
+        }
+      }
+    },
+    {
+      "id": "lean-q8",
+      "dimensionId": "visual-control-5s",
+      "textTh": "ระบบ 5ส",
+      "textEn": "5S System",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ทำระบบ 5ส โดยการปัด กวาด เช็ด ถู",
+          "en": "5S limited to sweeping and cleaning only"
+        },
+        "2": {
+          "th": "ทำระบบ 5ส โดยทำเฉพาะ ส1, ส2, ส3 ไม่เป็นรูปธรรมที่จับต้องได้",
+          "en": "S1-S3 implemented but not tangible"
+        },
+        "3": {
+          "th": "ทำระบบ 5ส โดยทำเฉพาะ ส1, ส2, ส3 เป็นรูปธรรมที่จับต้องได้",
+          "en": "S1-S3 implemented with tangible results"
+        },
+        "4": {
+          "th": "ทำระบบ 5ส โดยทำเฉพาะ ส1, ส2, ส3, ส4 เป็นรูปธรรมที่จับต้องได้",
+          "en": "S1-S4 implemented with tangible results"
+        },
+        "5": {
+          "th": "ทำระบบ 5ส โดยทำ ส1, ส2, ส3, ส4, ส5 เป็นรูปธรรมที่จับต้องได้ ทำทุกคน ทุกที่",
+          "en": "Full 5S (S1-S5) with tangible results, practiced by everyone everywhere"
+        }
+      }
+    },
+    {
+      "id": "lean-q9",
+      "dimensionId": "visual-control-5s",
+      "textTh": "Visual Control, Visual Management",
+      "textEn": "Visual Control & Visual Management",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีบอร์ด Control",
+          "en": "No control boards"
+        },
+        "2": {
+          "th": "มีบอร์ด Control ที่สำนักงานแต่ไม่มีที่หน้างาน",
+          "en": "Control boards in office but not on shop floor"
+        },
+        "3": {
+          "th": "มีบอร์ด Control ที่สำนักงานและมีที่หน้างาน",
+          "en": "Control boards in both office and shop floor"
+        },
+        "4": {
+          "th": "มีบอร์ด Control ที่สำนักงานและมีที่หน้างาน บอร์ด Control มีการบันทึกข้อมูลเป็นปัจจุบัน",
+          "en": "Control boards everywhere with current data"
+        },
+        "5": {
+          "th": "มีข้อ 4 และมีข้อมูลครบถ้วน เช่น นโยบายผู้บริหาร โครงสร้างแผนก กิจกรรมแผนก KPI Skills Matrix",
+          "en": "Level 4 plus complete info: management policy, department structure, activities, KPI, Skills Matrix"
+        }
+      }
+    },
+    {
+      "id": "lean-q10",
+      "dimensionId": "standard-work",
+      "textTh": "มาตรฐานการทำงาน SOP",
+      "textEn": "Standard Operating Procedures (SOP)",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีมาตรฐานการทำงาน",
+          "en": "No work standards"
+        },
+        "2": {
+          "th": "มีมาตรฐานการทำงานแต่ไม่ได้ทำเป็นเอกสาร",
+          "en": "Work standards exist but not documented"
+        },
+        "3": {
+          "th": "มีมาตรฐานการทำงานและทำเป็นเอกสาร",
+          "en": "Documented work standards"
+        },
+        "4": {
+          "th": "มีมาตรฐานการทำงานและทำเป็นเอกสารติดที่หน้างานให้พนักงานสามารถมองเห็น",
+          "en": "Documented and posted at workstations for workers to see"
+        },
+        "5": {
+          "th": "มีข้อ 4 และมีปรับปรุงเอกสารกับการทำงานให้เป็นปัจจุบัน มีการอบรมมาตรฐานการทำงานอย่างสม่ำเสมอ",
+          "en": "Level 4 plus regularly updated documentation and ongoing training"
+        }
+      }
+    },
+    {
+      "id": "lean-q11",
+      "dimensionId": "standard-work",
+      "textTh": "เวลามาตรฐาน (Standard Time)",
+      "textEn": "Standard Time",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีเวลามาตรฐานการทำงาน",
+          "en": "No standard time established"
+        },
+        "2": {
+          "th": "มีเวลามาตรฐานการทำงาน แต่เป็นเวลาจากการประมาณการ",
+          "en": "Standard time based on estimates only"
+        },
+        "3": {
+          "th": "มีเวลามาตรฐานการทำงาน เป็นเวลามาตรฐานจากการจับเวลาการทำงานจริง",
+          "en": "Standard time based on actual time studies"
+        },
+        "4": {
+          "th": "มีข้อ 3 และนำมาใช้ในการวางแผนการทำงาน",
+          "en": "Level 3 plus used for production planning"
+        },
+        "5": {
+          "th": "มีข้อ 4 และมีการปรับปรุงเวลามาตรฐาน อย่างน้อยปีละ 1 ครั้ง",
+          "en": "Level 4 plus standard time reviewed at least annually"
+        }
+      }
+    },
+    {
+      "id": "lean-q12",
+      "dimensionId": "standard-work",
+      "textTh": "TAKT Time",
+      "textEn": "TAKT Time",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่เข้าใจคำว่า TAKT Time",
+          "en": "No understanding of TAKT Time"
+        },
+        "2": {
+          "th": "เข้าใจคำว่า TAKT Time แต่ไม่ได้นำมาใช้",
+          "en": "Understand TAKT Time but not applied"
+        },
+        "3": {
+          "th": "มีการคำนวณ TAKT Time และนำมาใช้ในกระบวนการ ไม่สามารถปรับกระบวนการตาม TAKT Time ได้",
+          "en": "TAKT Time calculated and used but cannot adjust process accordingly"
+        },
+        "4": {
+          "th": "มีข้อ 3 และมีความยืดหยุ่น สามารถปรับเปลี่ยนสายการผลิตได้ตาม TAKT Time แต่ผลลัพธ์อาจจะไม่ได้ตามกำหนด",
+          "en": "Level 3 plus flexible production line adjustment, results may not meet target"
+        },
+        "5": {
+          "th": "มีข้อ 4 และมีความยืดหยุ่น สามารถปรับเปลี่ยนสายการผลิตได้ตาม TAKT Time ได้ผลลัพธ์ตามที่กำหนด",
+          "en": "Level 4 plus flexible adjustment with results meeting targets"
+        }
+      }
+    },
+    {
+      "id": "lean-q13",
+      "dimensionId": "continuous-improvement",
+      "textTh": "ข้อเสนอแนะ (Kaizen Suggestion)",
+      "textEn": "Kaizen Suggestion",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีข้อเสนอแนะการทำงานของพนักงาน",
+          "en": "No employee suggestions"
+        },
+        "2": {
+          "th": "มีข้อเสนอแนะการทำงานของพนักงานด้วยวาจา",
+          "en": "Verbal suggestions only"
+        },
+        "3": {
+          "th": "มีข้อเสนอแนะการทำงานของพนักงานด้วยเอกสาร",
+          "en": "Documented suggestions"
+        },
+        "4": {
+          "th": "มีข้อ 3 และมีการให้รางวัลกับผู้เสนอแนะ",
+          "en": "Level 3 plus rewards for suggestions"
+        },
+        "5": {
+          "th": "มีข้อ 4 และมีการปรับปรุงแก้ไขตามข้อเสนอแนะ",
+          "en": "Level 4 plus improvements implemented from suggestions"
+        }
+      }
+    },
+    {
+      "id": "lean-q14",
+      "dimensionId": "continuous-improvement",
+      "textTh": "การปรับปรุงอย่างต่อเนื่อง Kaizen",
+      "textEn": "Kaizen Activities",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีการทำ Kaizen",
+          "en": "No Kaizen activities"
+        },
+        "2": {
+          "th": "มีการทำ Kaizen เฉพาะหัวหน้า",
+          "en": "Kaizen by supervisors only"
+        },
+        "3": {
+          "th": "มีการทำ Kaizen ในระดับหัวหน้าและเจ้าหน้าที่",
+          "en": "Kaizen by supervisors and officers"
+        },
+        "4": {
+          "th": "มีการทำ Kaizen ในระดับหัวหน้า เจ้าหน้าที่ พนักงานระดับหน้างานทุกคน",
+          "en": "Kaizen by all levels including shop floor workers"
+        },
+        "5": {
+          "th": "มีระดับ 4 มีการประกวดและมีรางวัล",
+          "en": "Level 4 plus competitions and awards"
+        }
+      }
+    },
+    {
+      "id": "lean-q15",
+      "dimensionId": "continuous-improvement",
+      "textTh": "การประเมิน Value Stream ของกระบวนการ",
+      "textEn": "Value Stream Mapping",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีการทำ Value Stream",
+          "en": "No Value Stream Mapping"
+        },
+        "2": {
+          "th": "มีการทำ Value Stream บางกลุ่มผลิตภัณฑ์",
+          "en": "VSM for some product families"
+        },
+        "3": {
+          "th": "มีการทำ Value Stream ทุกกลุ่มผลิตภัณฑ์หลัก",
+          "en": "VSM for all main product families"
+        },
+        "4": {
+          "th": "มีข้อ 3 และมีการปรับปรุงอย่างต่อเนื่อง",
+          "en": "Level 3 plus continuous improvement"
+        },
+        "5": {
+          "th": "มีข้อ 4 และมีติดไว้ที่บอร์ดหน้างาน",
+          "en": "Level 4 plus displayed on shop floor boards"
+        }
+      }
+    },
+    {
+      "id": "lean-q16",
+      "dimensionId": "operational-flexibility",
+      "textTh": "การปรับเปลี่ยนแผนการผลิต",
+      "textEn": "Production Plan Flexibility",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ปรับเปลี่ยนแผนได้ต้องแจ้งก่อน 7 วัน",
+          "en": "Plan changes require 7 days notice"
+        },
+        "2": {
+          "th": "ปรับเปลี่ยนแผนได้ต้องแจ้งก่อน 5 วัน",
+          "en": "Plan changes require 5 days notice"
+        },
+        "3": {
+          "th": "ปรับเปลี่ยนแผนได้ต้องแจ้งก่อน 3 วัน",
+          "en": "Plan changes require 3 days notice"
+        },
+        "4": {
+          "th": "ปรับเปลี่ยนแผนได้ภายใน 2 วัน",
+          "en": "Plan changes within 2 days"
+        },
+        "5": {
+          "th": "ปรับเปลี่ยนแผนได้ภายใน 1 วัน",
+          "en": "Plan changes within 1 day"
+        }
+      }
+    },
+    {
+      "id": "lean-q17",
+      "dimensionId": "operational-flexibility",
+      "textTh": "Layout การผลิต",
+      "textEn": "Production Layout",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "วาง Layout ตามหน้าที่",
+          "en": "Functional layout"
+        },
+        "2": {
+          "th": "วาง Layout ให้เป็น I Line",
+          "en": "I-Line layout"
+        },
+        "3": {
+          "th": "วาง Layout ให้เป็น I Line หนึ่งคนทำงาน 2 หน้าที่ หรือคุมเครื่อง 2 เครื่อง",
+          "en": "I-Line, 1 person handles 2 tasks or 2 machines"
+        },
+        "4": {
+          "th": "วาง Layout ให้เป็น U Line โดย 1 คน ทำงานมากกว่า 3-4 หน้าที่ หรือคุมมากกว่า 3-4 เครื่อง",
+          "en": "U-Line, 1 person handles 3-4 tasks or machines"
+        },
+        "5": {
+          "th": "วาง Layout ให้เป็น U Line โดย 1 คน ทำงาน 5 หน้าที่ขึ้นไป หรือคุม 5 เครื่องขึ้นไป",
+          "en": "U-Line, 1 person handles 5+ tasks or machines"
+        }
+      }
+    },
+    {
+      "id": "lean-q18",
+      "dimensionId": "operational-flexibility",
+      "textTh": "ไลน์การผลิต",
+      "textEn": "Production Line Versatility",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "1 ไลน์ ผลิตได้ 1 Product",
+          "en": "1 line produces 1 product"
+        },
+        "2": {
+          "th": "1 ไลน์ ผลิตได้ 2-3 Product",
+          "en": "1 line produces 2-3 products"
+        },
+        "3": {
+          "th": "1 ไลน์ ผลิตได้ 4-5 Product",
+          "en": "1 line produces 4-5 products"
+        },
+        "4": {
+          "th": "1 ไลน์ ผลิตได้ 6-7 Product",
+          "en": "1 line produces 6-7 products"
+        },
+        "5": {
+          "th": "1 ไลน์ ผลิตได้มากกว่า 7 Product",
+          "en": "1 line produces 7+ products"
+        }
+      }
+    },
+    {
+      "id": "lean-q19",
+      "dimensionId": "mistake-proofing",
+      "textTh": "การนำระบบป้องกันความผิดพลาดมาใช้งาน",
+      "textEn": "Mistake-Proofing Implementation",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่ได้นำหลักการป้องกันความผิดพลาดมาใช้",
+          "en": "No mistake-proofing applied"
+        },
+        "2": {
+          "th": "มีการนำหลักการป้องกันความผิดพลาดมาใช้บางจุด",
+          "en": "Applied in some areas"
+        },
+        "3": {
+          "th": "มีการนำหลักการป้องกันความผิดพลาดมาใช้ทุกพื้นที่",
+          "en": "Applied in all areas"
+        },
+        "4": {
+          "th": "มีการนำหลักการป้องกันความผิดพลาดมาใช้ทุกพื้นที่ และมีการปรับปรุงเพิ่มขึ้นทุกปี",
+          "en": "All areas with annual improvements"
+        },
+        "5": {
+          "th": "มีการนำหลักการป้องกันความผิดพลาดมาใช้ทุกพื้นที่ และมีการปรับปรุงเพิ่มขึ้นทุก 6 เดือน",
+          "en": "All areas with improvements every 6 months"
+        }
+      }
+    },
+    {
+      "id": "lean-q20",
+      "dimensionId": "tpm",
+      "textTh": "แผนการทำ PM, AM",
+      "textEn": "PM/AM Planning",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีแผน",
+          "en": "No plan"
+        },
+        "2": {
+          "th": "มีแผนบางเครื่องจักร แต่ไม่ได้ทำตามแผน",
+          "en": "Plan for some machines, not followed"
+        },
+        "3": {
+          "th": "มีแผนบางเครื่องจักร ทำตามแผน",
+          "en": "Plan for some machines, followed"
+        },
+        "4": {
+          "th": "มีแผนทุกเครื่องจักร ไม่ทำตามแผน",
+          "en": "Plan for all machines, not fully followed"
+        },
+        "5": {
+          "th": "มีแผนทุกเครื่องจักร ทำตามแผน %Breakdown ลดลง",
+          "en": "Plan for all machines, followed, breakdown % decreasing"
+        }
+      }
+    },
+    {
+      "id": "lean-q21",
+      "dimensionId": "tpm",
+      "textTh": "TPM, Total Productive Maintenance",
+      "textEn": "TPM Implementation",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีความรู้ TPM",
+          "en": "No TPM knowledge"
+        },
+        "2": {
+          "th": "มีความรู้เฉพาะระดับหัวหน้าเท่านั้น ยังไม่ได้นำมาใช้งาน",
+          "en": "TPM knowledge at supervisor level only, not applied"
+        },
+        "3": {
+          "th": "มีความรู้ทุกระดับแต่ไม่ได้นำมาใช้",
+          "en": "TPM knowledge at all levels but not applied"
+        },
+        "4": {
+          "th": "มีความรู้ทุกระดับและนำมาใช้งานบางเสา",
+          "en": "TPM knowledge at all levels, applied to some pillars"
+        },
+        "5": {
+          "th": "มีความรู้ทุกระดับและนำมาใช้งานทุกเสา",
+          "en": "TPM knowledge at all levels, applied to all pillars"
+        }
+      }
+    },
+    {
+      "id": "lean-q22",
+      "dimensionId": "smed",
+      "textTh": "ความรู้ด้านการปรับแต่งที่รวดเร็ว",
+      "textEn": "Quick Changeover Knowledge",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "พนักงานทุกระดับไม่มีความรู้",
+          "en": "No knowledge at any level"
+        },
+        "2": {
+          "th": "หัวหน้างานมีความรู้ เจ้าหน้าที่และพนักงานหน้างานไม่มีความรู้",
+          "en": "Supervisors have knowledge, officers and workers don't"
+        },
+        "3": {
+          "th": "หัวหน้างานและเจ้าหน้าที่มีความรู้ พนักงานหน้างานไม่มีความรู้",
+          "en": "Supervisors and officers have knowledge, workers don't"
+        },
+        "4": {
+          "th": "หัวหน้างาน เจ้าหน้าที่ และพนักงานหน้างานมีความรู้",
+          "en": "All levels have knowledge"
+        },
+        "5": {
+          "th": "มีระดับ 4 สามารถนำความรู้มาใช้ในการทำงานที่เป็นรูปธรรมได้",
+          "en": "Level 4 plus knowledge applied with tangible results"
+        }
+      }
+    },
+    {
+      "id": "lean-q23",
+      "dimensionId": "smed",
+      "textTh": "คู่มือขั้นตอนการปรับแต่ง",
+      "textEn": "Changeover Procedure Manual",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีคู่มือขั้นตอนการปรับแต่ง",
+          "en": "No changeover manual"
+        },
+        "2": {
+          "th": "มีคู่มือขั้นตอนการปรับแต่งบางเครื่อง",
+          "en": "Manual for some machines"
+        },
+        "3": {
+          "th": "มีคู่มือขั้นตอนการปรับแต่งทุกเครื่อง",
+          "en": "Manual for all machines"
+        },
+        "4": {
+          "th": "มีข้อ 3 และคู่มืออยู่หน้างานพนักงานหน้างานสามารถมองเห็นได้",
+          "en": "Level 3 plus posted at workstations"
+        },
+        "5": {
+          "th": "มีข้อ 4 คู่มือมีการปรับปรุงอย่างน้อยปีละ 1 ครั้ง",
+          "en": "Level 4 plus manual reviewed at least annually"
+        }
+      }
+    },
+    {
+      "id": "lean-q24",
+      "dimensionId": "smed",
+      "textTh": "Set Up เครื่องจักร",
+      "textEn": "Machine Setup Time",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ใช้เวลามากกว่า 121 นาที",
+          "en": "> 121 minutes"
+        },
+        "2": {
+          "th": "ใช้เวลา 61-120 นาที",
+          "en": "61-120 minutes"
+        },
+        "3": {
+          "th": "ใช้เวลา 21-60 นาที",
+          "en": "21-60 minutes"
+        },
+        "4": {
+          "th": "ใช้เวลา 10-20 นาที",
+          "en": "10-20 minutes"
+        },
+        "5": {
+          "th": "ใช้เวลาน้อยกว่า 10 นาที",
+          "en": "< 10 minutes"
+        }
+      }
+    },
+    {
+      "id": "lean-q25",
+      "dimensionId": "pull-system",
+      "textTh": "การใช้ Kanban",
+      "textEn": "Kanban Usage",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีการใช้ Kanban",
+          "en": "No Kanban usage"
+        },
+        "2": {
+          "th": "มีการใช้ระบบ Kanban บางผลิตภัณฑ์หลัก",
+          "en": "Kanban for some main products"
+        },
+        "3": {
+          "th": "มีการใช้ระบบ Kanban ทุกผลิตภัณฑ์หลัก",
+          "en": "Kanban for all main products"
+        },
+        "4": {
+          "th": "มีการใช้ระบบ Kanban ทุกผลิตภัณฑ์หลัก สามารถลด Kanban ลงได้",
+          "en": "Kanban for all main products with ability to reduce"
+        },
+        "5": {
+          "th": "มีข้อ 4 และสามารถคำนวณ Stock Day ได้น้อยกว่า 2 วัน",
+          "en": "Level 4 plus stock days < 2 days"
+        }
+      }
+    },
+    {
+      "id": "lean-q26",
+      "dimensionId": "pull-system",
+      "textTh": "เป้าหมายการทำงาน",
+      "textEn": "Production Targets",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ในสายการผลิตไม่มีการกำหนดเป้าหมายจำนวนงานที่ผลิตได้ในแต่ละชั่วโมง เป้าหมายต่อกะ และที่ผลิตได้จริง",
+          "en": "No hourly/shift production targets defined"
+        },
+        "2": {
+          "th": "มีการบันทึกในกระดาษ",
+          "en": "Targets recorded on paper"
+        },
+        "3": {
+          "th": "มีการบันทึกในกระดานหรือบอร์ด LED",
+          "en": "Targets displayed on boards or LED"
+        },
+        "4": {
+          "th": "จากข้อ 3 ผลิตได้จริงไม่ได้ตามเป้าหมาย",
+          "en": "Level 3 but actual production doesn't meet targets"
+        },
+        "5": {
+          "th": "จากข้อ 3 ผลิตได้จริงได้ตามเป้าหมายและมีการปรับปรุงอย่างต่อเนื่อง",
+          "en": "Level 3 with targets met and continuous improvement"
+        }
+      }
+    },
+    {
+      "id": "lean-q28",
+      "dimensionId": "balanced-production",
+      "textTh": "ประสิทธิภาพในกระบวนการผลิตสินค้าหลัก",
+      "textEn": "Main Product Production Efficiency",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ประสิทธิภาพกระบวนการผลิตได้น้อยกว่า 50%",
+          "en": "Production efficiency < 50%"
+        },
+        "2": {
+          "th": "ประสิทธิภาพกระบวนการผลิตได้ 50-70%",
+          "en": "Production efficiency 50-70%"
+        },
+        "3": {
+          "th": "ประสิทธิภาพกระบวนการผลิตได้ 71-90%",
+          "en": "Production efficiency 71-90%"
+        },
+        "4": {
+          "th": "ประสิทธิภาพกระบวนการผลิตได้ 91-95%",
+          "en": "Production efficiency 91-95%"
+        },
+        "5": {
+          "th": "ประสิทธิภาพกระบวนการผลิตได้มากกว่า 95%",
+          "en": "Production efficiency > 95%"
+        }
+      }
+    },
+    {
+      "id": "lean-q29",
+      "dimensionId": "people-management",
+      "textTh": "ทักษะการทำงาน Skill Matrix",
+      "textEn": "Skills Matrix",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีการทำ Skill Matrix",
+          "en": "No Skills Matrix"
+        },
+        "2": {
+          "th": "มีการจัดทำ Skills Matrix สำหรับพนักงานหน้างานบางตำแหน่ง",
+          "en": "Skills Matrix for some shop floor positions"
+        },
+        "3": {
+          "th": "มีการจัดทำ Skills Matrix สำหรับพนักงานหน้างานบางตำแหน่ง และมีแผนการพัฒนาพนักงานแต่ละคนบางตำแหน่ง",
+          "en": "Skills Matrix for some positions with individual development plans"
+        },
+        "4": {
+          "th": "มีการจัดทำ Skills Matrix สำหรับพนักงานหน้างานทุกตำแหน่ง และมีแผนการพัฒนาพนักงานแต่ละคนบางตำแหน่ง",
+          "en": "Skills Matrix for all positions with some individual development plans"
+        },
+        "5": {
+          "th": "จัดทำ Skills Matrix ครบทุกคน 100% มีการประเมินทักษะครบ 100% ทุกตำแหน่ง มีการพัฒนาส่งเสริมทักษะอย่างต่อเนื่อง ผลตอบแทนมีความสัมพันธ์กับทักษะที่เพิ่มขึ้น",
+          "en": "100% Skills Matrix with full assessment, continuous development, and skill-based compensation"
+        }
+      }
+    },
+    {
+      "id": "lean-q30",
+      "dimensionId": "people-management",
+      "textTh": "โครงสร้างตำแหน่ง",
+      "textEn": "Career Structure",
+      "weight": 1.0,
+      "rubric": {
+        "1": {
+          "th": "ไม่มีโครงสร้างตำแหน่งหน้าที่",
+          "en": "No career structure"
+        },
+        "2": {
+          "th": "มีโครงสร้างการพัฒนาสำหรับผู้จัดการ",
+          "en": "Development structure for managers only"
+        },
+        "3": {
+          "th": "ระบบการพัฒนาความก้าวหน้าในอาชีพมีพื้นฐานจากแผนความสามารถเชิงสมรรถนะและบทบาทหน้าที่ แผน 3 ปี",
+          "en": "Competency-based career development with 3-year plan"
+        },
+        "4": {
+          "th": "พนักงานแต่ละคนในแต่ละปีมีการพัฒนาความสามารถเชิงสมรรถนะ โอกาสในการพัฒนา และสิ่งที่พนักงานคาดหวัง",
+          "en": "Annual individual competency development with expectations"
+        },
+        "5": {
+          "th": "ทุกปีมีการวิเคราะห์การพัฒนาความก้าวหน้าในอาชีพของแต่ละคน พนักงานทุกคนมีโอกาสที่จะเปลี่ยนตำแหน่งหน้าที่ทุกๆ 5 ปี",
+          "en": "Annual career development analysis, all employees can change positions every 5 years"
+        }
+      }
+    }
+  ]
+}

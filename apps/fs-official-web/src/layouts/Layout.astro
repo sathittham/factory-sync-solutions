@@ -1,0 +1,47 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = "FactorySync Solutions — ยกระดับโรงงานของคุณด้วยระบบประเมินสุขภาพที่ชาญฉลาด",
+} = Astro.props;
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+---
+
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai+Looped:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+  </head>
+  <body class="bg-background text-foreground">
+    <script is:inline>
+      // Apply theme before React hydrates to avoid flash
+      (function () {
+        try {
+          var t = localStorage.getItem("fss-theme");
+          var dark = t === "dark" || (!t && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  @import "../styles/globals.css";
+</style>

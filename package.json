@@ -1,5 +1,5 @@
 {
-  "name": "factory-health-check",
+  "name": "factory-sync-solutions",
   "private": true,
   "license": "MIT",
   "author": "Sathittham Sangthong",
@@ -7,7 +7,13 @@
     "dev": "make dev",
     "build": "make build",
     "lint": "make lint",
-    "test": "make test"
+    "test": "make test",
+    "deploy:app-web:staging": "cd apps/fs-app-web && npm run deploy:staging",
+    "deploy:app-web:prod": "cd apps/fs-app-web && npm run deploy:prod",
+    "deploy:official-web:staging": "cd apps/fs-official-web && npm run deploy:staging",
+    "deploy:official-web:prod": "cd apps/fs-official-web && npm run deploy:prod",
+    "deploy:staging": "npm run deploy:app-web:staging && npm run deploy:official-web:staging",
+    "deploy:prod": "npm run deploy:app-web:prod && npm run deploy:official-web:prod"
   },
   "engines": {
     "node": ">=20"

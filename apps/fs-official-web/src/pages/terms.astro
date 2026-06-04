@@ -1,0 +1,11 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { LegalContent } from "../components/legal/LegalContent";
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
+---
+
+<Layout title="FactorySync Solutions">
+  <LegalContent client:load page="terms" appUrl={appUrl} version={version} />
+</Layout>
