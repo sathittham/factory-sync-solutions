@@ -1,12 +1,12 @@
 ---
-version: 1.4.0
-lastUpdated: 2026-06-04
+version: 1.5.0
+lastUpdated: 2026-06-09
 author: Sathittham Sangthong
 ---
 
 # FactorySync Solutions
 
-A Makefile-managed monorepo containing a React SPA frontend and Go backend API for evaluating factory operational maturity through a guided assessment. Users register, answer a series of questions, and receive a diagnosis with a spider chart visualization, key strengths/weaknesses, and an email copy of their results.
+A Makefile-managed monorepo containing a React SPA app, an Astro public marketing site, and a Go backend API for evaluating factory operational maturity through a guided assessment. Users register, answer a series of questions, and receive a diagnosis with a spider chart visualization, key strengths/weaknesses, and an email copy of their results.
 
 ## Prerequisites
 
@@ -18,10 +18,12 @@ A Makefile-managed monorepo containing a React SPA frontend and Go backend API f
 ## Monorepo Structure
 
 ```
-factory-sync-solutions/
+factory-health-check/
 ├── apps/
-│   ├── web/                # React + Vite SPA (frontend)
-│   └── api/                # Go Cloud Run service (backend API)
+│   ├── fs-app-web/         # React + Vite SPA (authenticated app)
+│   ├── fs-official-web/    # Astro 6 + React islands (public marketing site)
+│   └── fs-backend/         # Go Cloud Run service (backend API)
+├── packages/               # Shared scripts/assets
 ├── Makefile                # Monorepo task runner
 ├── package.json            # Root workspace config
 └── docs/                   # Project documentation
@@ -30,7 +32,8 @@ factory-sync-solutions/
 ## Quick Start
 
 ```bash
-# Install frontend dependencies
+# Install app (fs-app-web) dependencies
+# Note: fs-official-web deps are installed separately — `cd apps/fs-official-web && npm install`
 make install
 
 # Start all apps in dev mode (API + Web in parallel)
@@ -48,11 +51,12 @@ make dev-api
 Copy `.env.example` files and fill in values:
 
 ```bash
-cp apps/web/.env.example apps/web/.env
-cp apps/api/.env.example apps/api/.env.development
+cp apps/fs-app-web/.env.example apps/fs-app-web/.env
+cp apps/fs-official-web/.env.example apps/fs-official-web/.env
+cp apps/fs-backend/.env.example apps/fs-backend/.env.development
 ```
 
-### Frontend (`apps/web/.env`)
+### Frontend (`apps/fs-app-web/.env`)
 
 ```bash
 # Firebase (public config — get from Firebase Console > Project Settings)
@@ -76,7 +80,17 @@ VITE_GTM_ID=
 VITE_GA_MEASUREMENT_ID=
 ```
 
-### Backend (`apps/api/.env.development`)
+### Public Site (`apps/fs-official-web/.env`)
+
+```bash
+# URL of the authenticated app (sign-in / CTA links point here)
+PUBLIC_APP_URL=https://app.factorysyncsolutions.com
+
+# Build version shown in the site footer
+PUBLIC_APP_VERSION=v0.0.0
+```
+
+### Backend (`apps/fs-backend/.env.development`)
 
 ```bash
 GCP_PROJECT_ID=
@@ -103,7 +117,7 @@ Root-level commands run across all packages via Makefile:
 | `make lint` | Lint all packages (Biome + go vet) |
 | `make test` | Run all tests (Vitest + go test) |
 
-### Frontend (`apps/web`)
+### App (`apps/fs-app-web`)
 
 | Command | Description |
 |---------|-------------|
@@ -118,17 +132,31 @@ Root-level commands run across all packages via Makefile:
 | `npm run test:e2e` | Run E2E tests (Playwright) |
 | `npm run test:e2e:headed` | Run E2E tests with browser UI |
 
-### Backend (`apps/api`)
+### Official Site (`apps/fs-official-web`)
 
 | Command | Description |
 |---------|-------------|
-| `go run .` | Start local dev server |
+| `npm run dev` | Start Astro dev server |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Lint and format check (Biome) |
+| `npm run lint:fix` | Auto-fix lint and format issues |
+| `npm run test` | Run unit tests (Vitest) |
+| `npm run deploy:staging` | Build + deploy to Cloudflare Pages (staging) |
+| `npm run deploy:prod` | Build + deploy to Cloudflare Pages (production) |
+
+### Backend (`apps/fs-backend`)
+
+| Command | Description |
+|---------|-------------|
+| `go run main.go` | Start local dev server |
 | `go test ./...` | Run all Go tests |
 | `go test -cover ./...` | Run tests with coverage |
 
 ## Tech Stack
 
-- **Frontend**: React + Vite + TypeScript
+- **App frontend**: React + Vite + TypeScript
+- **Public site**: Astro 6 + React islands
 - **Styling**: Tailwind CSS + shadcn/ui
 - **State**: Redux Toolkit
 - **Forms**: react-hook-form + zod
@@ -217,7 +245,9 @@ See [docs/README.md](docs/README.md) for the full index.
 | [UI Wireframes](docs/product/wireframes.md) | Screen layouts for all pages |
 | [Roadmap](docs/product/roadmap.md) | Phased roadmap with milestones |
 
-| [Contributing](CONTRIBUTING.md) | Git workflow, coding standards |
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the Git workflow and coding standards.
 
 ## License
 
@@ -238,3 +268,4 @@ Active development — core user flow implemented (auth, registration, quiz, res
 | 1.2.0 | 2026-03-07 | Profile dialog (3 sections: account/contact/company), Google avatar in navbar, motion animations (quiz + results), SonarQube fixes, analytics events, data-testid attributes |
 | 1.3.0 | 2026-03-08 | Theme system (light/dark/system) with FOUC prevention, dark mode fixes across all pages, Layout refactoring for SonarQube compliance, admin user management API, app READMEs |
 | 1.4.0 | 2026-06-04 | Rebranded to FactorySync Solutions — updated brand name, abbreviation (FS), localStorage prefix (fss-), Go module path, email domain, CI/CD service names |
+| 1.5.0 | 2026-06-09 | Synced README with actual monorepo layout — corrected app dir names (`apps/web`→`apps/fs-app-web`, `apps/api`→`apps/fs-backend`), documented the Astro `fs-official-web` public site (structure, tech stack, scripts), fixed env-setup paths and backend dev command |

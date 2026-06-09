@@ -108,7 +108,7 @@ function goPrompt(app, dir) {
 
 4. SECURITY SCAN (project conventions — see .claude/rules/go.md)
    a. grep -rn "GetUID\\|r.Body\\|uid.*:=.*body\\|userID.*:=.*req\\." ${dir}/services --include="*.go" | grep -i "body\\|request\\.\\|payload" | head
-      → UID must come from middleware.GetUID(r.Context()), NEVER from request body. Flag any UID/userID read from the request body.
+      → UID must come from middleware.GetUID(r), NEVER from request body. Flag any UID/userID read from the request body.
    b. grep -rn "json.NewEncoder\\|w.Write(\\|http.Error(" ${dir}/services --include="*.go" | head
       → handlers must use pkg.RespondJSON / pkg.RespondList / pkg.RespondError, not raw JSON encoding. Flag raw writes in handlers.
    c. grep -rniE "api[_-]?key|secret|password|firebase-sa|BEGIN PRIVATE KEY" ${dir} --include="*.go" | grep -v "_test.go\\|os.Getenv\\|// " | head

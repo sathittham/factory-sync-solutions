@@ -7,9 +7,9 @@ Multi-quiz factory health assessment platform. Go + Chi + Firestore backend, Rea
 ## Non-Negotiable Rules
 
 1. **Response helpers** — always `pkg.RespondJSON`, `pkg.RespondList`, `pkg.RespondError`. Never write raw JSON.
-2. **UID from context only** — `middleware.GetUID(r.Context())`. Never read the user ID from the request body or path.
+2. **UID from context only** — `middleware.GetUID(r)` (extracts the verified UID from the request context). Never read the user ID from the request body or path.
 3. **Wrap every error** — `fmt.Errorf("context: %w", err)`. Check with `errors.Is`, never type assertion.
-4. **Sentinel errors** — `ErrNotFound`, `ErrConflict`, `ErrForbidden` defined in the service package.
+4. **Sentinel errors** — domain-specific per service (`ErrProfileNotFound`, `ErrAlreadyRegistered`, `ErrResultNotFound`, `ErrQuizNotFound`, …), not generic `ErrNotFound`.
 5. **shadcn/ui only** — never native `<select>`, `<dialog>`, or `window.confirm()`. Use the components in `components/ui/`.
 6. **i18n everywhere** — all UI text via `useLocale()`. No hardcoded strings (TH/EN).
 7. **Dates via `formatDateTime()`** from `@/lib/dayjs` — never raw `toLocaleDateString()`. Thai locale uses Buddhist Era (พ.ศ.).
@@ -39,7 +39,7 @@ factory-health-check/
 fs-backend/
 ├── main.go               # Chi router + entrypoint
 ├── config/               # questions*.json (quiz configs), other config
-├── middleware/           # FirebaseAuth middleware (GetUID)
+├── middleware/           # auth (FirebaseAuth/GetUID), cors, ratelimit, security
 ├── pkg/                  # response.go, firestore.go, validator.go, turnstile.go
 └── services/<name>/      # handler.go + service.go + models.go + service_test.go
     ├── admin/  audit/  dbd/  notification/
@@ -106,92 +106,21 @@ Invoke with `/skill-name` in Claude Code.
 
 ---
 
-## Development Commands
+## Commands
 
-```bash
-make dev            # API + web in parallel
-make dev-api        # backend only (go run main.go)
-make dev-web        # app web only (vite)
-make build          # build backend + web
-make test           # go test -race -cover ./...  +  vitest run
-make test-api       # backend tests only
-make test-web       # frontend tests only
-make lint           # go vet  +  biome check
-make lint-fix       # biome check --fix
-make install        # npm install (fs-app-web)
-make clean          # remove dist + vite cache
-```
+`make dev` (API + web parallel) · `dev-api` · `dev-web` · `build` · `test` · `test-api` · `test-web` · `lint` · `lint-fix` · `install` · `clean`. Per-app: `cd apps/<app> && npm run <dev|build|lint|test|test:e2e>`. Full list in the [Makefile](Makefile).
 
-Per-app scripts (run inside `apps/<app>/`): `npm run dev`, `build`, `lint`, `test`, `test:e2e` (Playwright, app only).
+## Git & Releases
 
----
+Full detail in `.claude/rules/git.md` (always loaded). Essentials:
 
-## Git Workflow
-
-See `.claude/rules/git.md` for full detail.
-
-| Branch type | Format |
-|-------------|--------|
-| Feature | `feature/short-description` |
-| Bug fix | `bugfix/short-description` |
-| Hotfix | `hotfix/short-description` |
-| Chore | `chore/short-description` |
-
-Commit format: `<type>(<scope>): description` (≤72 chars, imperative, no trailing period).
-Scopes: `quiz`, `scoring`, `admin`, `profile`, `result`, `dbd`, `audit`, `notification`, `web`.
-
-| Source → Target | Method |
-|-----------------|--------|
-| `feature/*` / `bugfix/*` → `develop` | Squash Merge (or fast-forward) |
-| `develop` → `staging` | Fast-forward |
-| `staging` → `main` | Fast-forward / Merge (protected) |
-| `hotfix/*` → `main` | Merge Commit |
-
-Never commit directly to `main`. Never force-push `main`.
-
----
+- **Commit**: `<type>(<scope>): description` — ≤72 chars, imperative, no trailing period. Scopes: `quiz scoring admin profile result dbd audit notification web`.
+- **Branch flow**: `feature/*` · `bugfix/*` → `develop` → `staging` → `main`. Never commit directly to or force-push `main`.
+- **Deploys**: frontend → Cloudflare Pages via `npm run deploy:staging` / `deploy:prod`. Releases via git tags through GitHub Actions: `v*-staging` → staging, `v*.*.*` → production. Verify staging before tagging production.
 
 ## Quiz / Scoring Domain
 
-- **8-dimension Shindan rubric-based assessment** — multi-quiz.
-- Quiz configs: `apps/fs-backend/config/questions*.json` — one per variant (`questions.json`, `questions-factory.json`, `questions-cybersecurity.json`, `questions-lean.json`).
-- Scoring logic: `apps/fs-backend/services/scoring/`.
-- Results stored per-user in Firestore.
+8-dimension Shindan rubric-based assessment, multi-quiz. Configs: `apps/fs-backend/config/questions*.json` (one per variant). Scoring: `apps/fs-backend/services/scoring/`. Results stored per-user in Firestore. Detail in `.claude/rules/dev-process.md`.
 
----
+<!-- Version: 1.2.0 · Last updated: 09 June 2026 -->
 
-## Deployment
-
-Frontend deploys to **Cloudflare Pages** via Wrangler. Backend + release deploys are driven by **git tags** through GitHub Actions.
-
-```bash
-# Frontend (Cloudflare Pages)
-npm run deploy:staging        # app-web + official-web → staging projects
-npm run deploy:prod           # app-web + official-web → production projects
-
-# Tag-driven release (GitHub Actions)
-git tag v1.2.3-staging && git push origin v1.2.3-staging   # → staging deploy
-git tag v1.2.3 && git push origin v1.2.3                   # → production deploy
-```
-
-Always verify on staging before tagging production.
-
----
-
-## Compact Instructions
-
-Preserve when compacting:
-- Response helpers `pkg.RespondJSON/RespondList/RespondError` — never raw JSON
-- UID only from `middleware.GetUID(r.Context())` — never request body
-- Wrap errors `fmt.Errorf("ctx: %w", err)`; check with `errors.Is`; sentinels `ErrNotFound/ErrConflict/ErrForbidden`
-- shadcn/ui only · `useLocale()` for all text · `formatDateTime()` for dates (Buddhist Era for TH)
-- camelCase IDs (`userID`, `quizID`) · `Is*`/`Has*` booleans
-- Commit: `<type>(<scope>): description` · branches `feature/*` → `develop` → `staging` → `main`
-- Tags: `v*-staging` → staging, `v*.*.*` → production · frontend via Cloudflare Pages (Wrangler)
-- Never commit `.env*`, `firebase-sa.json`, credentials
-- Quiz: 8-dimension Shindan rubric, multi-quiz configs in `apps/fs-backend/config/questions*.json`
-
----
-
-*Version: 1.0.0*
-*Last updated: 09 June 2026*

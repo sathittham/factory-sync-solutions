@@ -1,8 +1,7 @@
 ---
-name: commit
+description: Stage, commit with project convention, and push to remote — groups files logically, enforces commit message format
 disable-model-invocation: true
 allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(git branch:*), Bash(git log:*), Bash(git fetch:*), Bash(grep:*), Bash(ls:*), Read, TodoWrite
-description: Stage, commit with project convention, and push to remote — groups files logically, enforces commit message format
 ---
 
 # Commit Skill

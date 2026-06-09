@@ -19,7 +19,7 @@ Apply the 5-point checklist in priority order:
 ### Backend (Go)
 - IDs in camelCase: `userID`, `quizID`, `assessmentID`
 - Boolean fields: `IsActive`, `HasCompleted` — `is*`/`has*` prefix
-- Error sentinels: `ErrNotFound`, `ErrConflict`, `ErrForbidden` in service package
+- Error sentinels: domain-specific per service (`ErrProfileNotFound`, `ErrAlreadyRegistered`, `ErrResultNotFound`, `ErrQuizNotFound`, …) — not generic `ErrNotFound`
 
 ### Frontend (TypeScript/React)
 - Components: `PascalCase` (`QuizCard`, `ResultPage`)
@@ -64,5 +64,5 @@ When modifying API endpoints:
 - Update swagger annotations in handler.go
 - Update the relevant `.claude/rules/` file when adding new conventions
 
-*Version: 1.0.0*
-*Last updated: 04 June 2026*
+*Version: 1.1.0*
+*Last updated: 09 June 2026*

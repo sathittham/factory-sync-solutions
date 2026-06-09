@@ -61,9 +61,9 @@ Error codes: `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `VALIDATION_E
 ```go
 import "github.com/sathittham/factory-sync-solutions/apps/fs-backend/middleware"
 
-uid := middleware.GetUID(r.Context())
-email := middleware.GetEmail(r.Context())
-displayName := middleware.GetDisplayName(r.Context())
+uid := middleware.GetUID(r)
+email := middleware.GetEmail(r)
+displayName := middleware.GetDisplayName(r)
 
 if uid == "" {
     pkg.RespondError(w, http.StatusUnauthorized, "UNAUTHORIZED", "authentication required")
@@ -93,7 +93,7 @@ func RegisterRoutes(r chi.Router, authClient *firebaseAuth.Client, firestoreClie
 // Get by ID
 doc, err := s.db.Collection("assessments").Doc(id).Get(ctx)
 if status.Code(err) == codes.NotFound {
-    return nil, ErrNotFound
+    return nil, ErrResultNotFound
 }
 if err != nil {
     return nil, fmt.Errorf("get assessment %s: %w", id, err)
@@ -120,23 +120,23 @@ docs, err := s.db.Collection("assessments").
 ## Error Handling
 
 ```go
-// Sentinel errors in service.go
+// Domain-specific sentinel errors in service.go — named for the entity/condition
 var (
-    ErrNotFound  = errors.New("not found")
-    ErrConflict  = errors.New("already exists")
-    ErrForbidden = errors.New("forbidden")
+    ErrResultNotFound    = errors.New("result not found")
+    ErrProfileNotFound   = errors.New("profile not found")
+    ErrAlreadyRegistered = errors.New("user already registered")
 )
 
 // Wrap with context — never bare return err
 return nil, fmt.Errorf("get quiz result for user %s: %w", userID, err)
 
 // Check in handler
-if errors.Is(err, service.ErrNotFound) {
+if errors.Is(err, service.ErrResultNotFound) {
     pkg.RespondError(w, http.StatusNotFound, "NOT_FOUND", "resource not found")
     return
 }
-if errors.Is(err, service.ErrForbidden) {
-    pkg.RespondError(w, http.StatusForbidden, "FORBIDDEN", "access denied")
+if errors.Is(err, service.ErrAlreadyRegistered) {
+    pkg.RespondError(w, http.StatusConflict, "CONFLICT", "user already registered")
     return
 }
 ```
@@ -151,7 +151,7 @@ func TestServiceGetResult(t *testing.T) {
         wantErr error
     }{
         {name: "success", userID: "user-123"},
-        {name: "not found returns ErrNotFound", userID: "missing", wantErr: ErrNotFound},
+        {name: "not found returns ErrResultNotFound", userID: "missing", wantErr: ErrResultNotFound},
     }
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {

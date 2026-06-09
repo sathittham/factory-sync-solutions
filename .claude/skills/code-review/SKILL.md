@@ -1,7 +1,6 @@
 ---
-name: code-review
-allowed-tools: Bash(git fetch:*), Bash(git diff:*), Bash(git log:*), Bash(git branch:*), Bash(git status:*), Bash(grep:*), Bash(find:*), Bash(make:*), Bash(ls:*), Read, Agent, TodoWrite
 description: Review Go and React code changes for security, correctness, performance, and maintainability against project conventions
+allowed-tools: Bash(git fetch:*), Bash(git diff:*), Bash(git log:*), Bash(git branch:*), Bash(git status:*), Bash(grep:*), Bash(find:*), Bash(make:*), Bash(ls:*), Read, Agent, TodoWrite
 ---
 
 # Code Review Skill
@@ -81,7 +80,7 @@ git diff origin/main...HEAD -- <file> 2>/dev/null || git diff HEAD -- <file>
 ### [S] Security
 
 **Authentication**
-- [ ] Every protected handler calls `middleware.GetUID(r.Context())` and returns 401 if empty
+- [ ] Every protected handler calls `middleware.GetUID(r)` and returns 401 if empty
 - [ ] UID never accepted from request body, path params, or query params — always from context
 - [ ] Admin-only endpoints verify Firebase custom claims (admin role) — not just any authenticated user
 - [ ] No sensitive data logged: Firebase tokens, emails, user IDs in plain log messages
@@ -112,7 +111,7 @@ git diff origin/main...HEAD -- <file> 2>/dev/null || git diff HEAD -- <file>
 - [ ] Error codes from the approved set: `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `VALIDATION_ERROR`, `INTERNAL_ERROR`
 
 **Go Error Handling**
-- [ ] Sentinel errors defined per service: `ErrNotFound`, `ErrConflict`, `ErrForbidden`
+- [ ] Sentinel errors defined per service, domain-specific: `ErrProfileNotFound`, `ErrAlreadyRegistered`, `ErrResultNotFound`, … — not generic `ErrNotFound`
 - [ ] All errors wrapped: `fmt.Errorf("context: %w", err)`
 - [ ] `errors.Is` for error checking — not `==` or type assertion
 
@@ -210,7 +209,7 @@ doc, _ := s.db.Collection("results").Doc(userID).Get(ctx)
 
 **After:**
 ```go
-userID := middleware.GetUID(r.Context())
+userID := middleware.GetUID(r)
 doc, _ := s.db.Collection("results").Doc(userID).Get(ctx)
 ```
 ```

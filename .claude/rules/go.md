@@ -47,9 +47,9 @@ Error codes: `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `VALIDATION_E
 Extract from request context (set by `middleware.FirebaseAuth`):
 
 ```go
-uid := middleware.GetUID(r.Context())           // Firebase UID
-email := middleware.GetEmail(r.Context())       // user email
-display := middleware.GetDisplayName(r.Context()) // display name
+uid := middleware.GetUID(r)           // Firebase UID
+email := middleware.GetEmail(r)       // user email
+display := middleware.GetDisplayName(r) // display name
 
 if uid == "" {
     pkg.RespondError(w, http.StatusUnauthorized, "UNAUTHORIZED", "authentication required")
@@ -87,7 +87,7 @@ No separate repository layer needed for Firestore — keep Firestore calls in se
 // Get document
 doc, err := firestoreClient.Collection("assessments").Doc(id).Get(ctx)
 if status.Code(err) == codes.NotFound {
-    return nil, ErrNotFound
+    return nil, ErrResultNotFound
 }
 if err != nil {
     return nil, fmt.Errorf("get assessment %s: %w", id, err)
@@ -110,18 +110,20 @@ docs, err := firestoreClient.Collection("assessments").
 ## Error Handling
 
 ```go
-// Sentinel errors in service
+// Domain-specific sentinel errors — defined per service, named for the entity/condition
 var (
-    ErrNotFound = errors.New("not found")
-    ErrConflict = errors.New("already exists")
-    ErrForbidden = errors.New("forbidden")
+    ErrResultNotFound    = errors.New("result not found")     // result service
+    ErrQuizNotFound      = errors.New("quiz not found")       // quiz service
+    ErrIncompleteAnswers = errors.New("all questions must be answered")
+    ErrProfileNotFound   = errors.New("profile not found")    // profile service
+    ErrAlreadyRegistered = errors.New("user already registered")
 )
 
 // Wrap errors with context
 return nil, fmt.Errorf("get quiz result for user %s: %w", userID, err)
 
 // Check sentinel in handler
-if errors.Is(err, service.ErrNotFound) {
+if errors.Is(err, service.ErrResultNotFound) {
     pkg.RespondError(w, http.StatusNotFound, "NOT_FOUND", "resource not found")
     return
 }
@@ -149,8 +151,8 @@ cd apps/fs-backend && go test -v -race -cover ./services/quiz/...
 - NEVER read UID/email from request body — always from context set by `middleware.FirebaseAuth`
 - NEVER hardcode credentials — use environment variables loaded by `godotenv`
 - ALWAYS wrap errors with `fmt.Errorf("context: %w", err)`
-- ALWAYS define sentinel errors for domain error types
+- ALWAYS define domain-specific sentinel errors per service (`ErrProfileNotFound`, `ErrAlreadyRegistered`, …) — not generic `ErrNotFound`
 - Use `errors.Is` for error checks, never type assertion `err.(*T)`
 
-*Version: 1.0.0*
-*Last updated: 04 June 2026*
+*Version: 1.1.0*
+*Last updated: 09 June 2026*

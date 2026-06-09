@@ -1,6 +1,16 @@
+---
+description: How rules work and how to add new ones — meta-guide for the rules/ directory
+paths:
+  - ".claude/rules/**/*.md"
+---
+
 # Rules
 
 Rules are coding standards that Claude Code loads automatically based on what you're editing.
+
+> This README is itself path-gated (see frontmatter above) so it loads only when
+> you edit a rule file — not into every session. Any bare `.md` placed directly
+> under `rules/` without `paths:` becomes an always-on rule. Always gate docs.
 
 ## How Rules Work
 
@@ -32,9 +42,9 @@ If no `paths` field is present, the rules load in every conversation (always-on)
 
 ### Go (`go.md`)
 - Always use `pkg.RespondJSON`, `pkg.RespondList`, `pkg.RespondError` — never raw JSON
-- UID always from `middleware.GetUID(r.Context())` — never from request body
+- UID always from `middleware.GetUID(r)` — never from request body
 - Wrap all errors: `fmt.Errorf("context: %w", err)`
-- Sentinel errors: `ErrNotFound`, `ErrConflict`, `ErrForbidden`
+- Sentinel errors: domain-specific per service (`ErrProfileNotFound`, `ErrAlreadyRegistered`, …) — not generic `ErrNotFound`
 - `errors.Is` for checks — never type assertion
 
 ### React (`react.md`)

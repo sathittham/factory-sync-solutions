@@ -69,7 +69,7 @@ const DIMENSIONS = [
   {
     key: 'security',
     agentType: 'backend-dev',
-    prompt: `SECURITY review. Check for: exposed secrets/credentials; auth bypass or missing Firebase auth checks on protected endpoints; UID taken from request body instead of middleware.GetUID(r.Context()); user-controlled IDs used without ownership checks; Turnstile bypass; Firestore rules gaps; tokens in localStorage on the frontend; hardcoded API URLs. Cite file:line for each.`,
+    prompt: `SECURITY review. Check for: exposed secrets/credentials; auth bypass or missing Firebase auth checks on protected endpoints; UID taken from request body instead of middleware.GetUID(r); user-controlled IDs used without ownership checks; Turnstile bypass; Firestore rules gaps; tokens in localStorage on the frontend; hardcoded API URLs. Cite file:line for each.`,
   },
   {
     key: 'best-practice',

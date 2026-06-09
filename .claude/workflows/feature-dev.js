@@ -135,8 +135,8 @@ ${refBlock}
 
 Build in this order, matching the reference services:
 1. models.go — request/response/domain structs. IDs in camelCase (userID, quizID, assessmentID); booleans IsActive/HasCompleted.
-2. service.go — business logic. Wrap every error: fmt.Errorf("context: %w", err). Use sentinel errors (ErrNotFound, ErrConflict, ErrForbidden). NEVER read UID from input — it comes from the handler via middleware.GetUID.
-3. handler.go — Chi handlers. Get UID from middleware.GetUID(r.Context()). Respond ONLY with pkg.RespondJSON / pkg.RespondList / pkg.RespondError. Add/After-update swagger annotations. Register routes where existing services register theirs.
+2. service.go — business logic. Wrap every error: fmt.Errorf("context: %w", err). Use domain-specific sentinel errors per service (ErrProfileNotFound, ErrAlreadyRegistered, ErrResultNotFound, …) — not generic ErrNotFound. NEVER read UID from input — it comes from the handler via middleware.GetUID.
+3. handler.go — Chi handlers. Get UID from middleware.GetUID(r). Respond ONLY with pkg.RespondJSON / pkg.RespondList / pkg.RespondError. Add/After-update swagger annotations. Register routes where existing services register theirs.
 4. service_test.go — table-driven tests for the service logic, including edge cases.
 
 Run \`make build-api\` before finishing. If it fails to compile, fix it.
