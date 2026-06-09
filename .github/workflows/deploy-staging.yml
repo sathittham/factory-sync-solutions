@@ -83,3 +83,35 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy apps/fs-app-web/dist --project-name=factory-sync-solutions-staging --branch=staging
+
+  deploy-official:
+    name: Deploy Official Site to Staging
+    needs: test
+    runs-on: ubuntu-latest
+    environment: staging
+    defaults:
+      run:
+        working-directory: apps/fs-official-web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: apps/fs-official-web/package-lock.json
+
+      - name: Install and build
+        run: |
+          npm ci
+          npm run build:staging
+        env:
+          PUBLIC_APP_URL: https://staging.factorysyncsolutions.com
+          PUBLIC_APP_VERSION: ${{ github.ref_name }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/fs-official-web/dist --project-name=factory-sync-solutions-official-staging --branch=staging
