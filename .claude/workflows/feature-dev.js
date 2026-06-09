@@ -139,7 +139,7 @@ Build in this order, matching the reference services:
 3. handler.go — Chi handlers. Get UID from middleware.GetUID(r.Context()). Respond ONLY with pkg.RespondJSON / pkg.RespondList / pkg.RespondError. Add/After-update swagger annotations. Register routes where existing services register theirs.
 4. service_test.go — table-driven tests for the service logic, including edge cases.
 
-Run \`cd apps/fs-backend && go build ./...\` before finishing. If it fails to compile, fix it.
+Run \`make build-api\` before finishing. If it fails to compile, fix it.
 Set blocked=true with blockReason ONLY if a decision genuinely cannot be made from the patterns.`,
     { label: 'backend', phase: 'Backend', agentType: 'backend-dev', schema: BUILD_SCHEMA }
   )
@@ -173,7 +173,7 @@ Build in this order, matching existing pages/slices:
 5. i18n — add TH + EN keys to src/lib/i18n.tsx and use useLocale() for ALL text. Dates via formatDateTime() from @/lib/dayjs (Buddhist Era for TH).
 6. Routes — register the page in src/router.tsx.
 
-Run \`cd apps/fs-app-web && npx tsc -b --noEmit\` before finishing and fix type errors.
+Run \`cd apps/fs-app-web && npx tsc -b --noEmit\` (or \`make build-web\`) before finishing and fix type errors.
 Set blocked=true with blockReason only if truly stuck.`,
     { label: 'frontend', phase: 'Frontend', agentType: 'frontend-dev', schema: BUILD_SCHEMA }
   )
@@ -196,12 +196,12 @@ const verify = await agent(
   `Verify the feature compiles and tests pass, then fix anything that breaks. Run only the checks relevant to what changed (scope: ${scope}).
 
 ${doBackend ? `BACKEND (from repo root):
-  cd apps/fs-backend && go vet ./... 2>&1 | head -40        → goVetPassed
-  cd apps/fs-backend && go test -race -cover ./... 2>&1 | tail -40   → goTestPassed
+  make lint-api 2>&1 | head -40        → goVetPassed   (go vet ./... in apps/fs-backend)
+  make test-api 2>&1 | tail -40        → goTestPassed  (go test -race -cover ./... in apps/fs-backend)
 ` : ''}${doFrontend ? `FRONTEND (from repo root):
   cd apps/fs-app-web && npx tsc -b --noEmit 2>&1 | head -50   → tscPassed
-  cd apps/fs-app-web && npx biome check . 2>&1 | tail -40      → biomePassed (run \`npx biome check --fix .\` to auto-fix, then re-check)
-  cd apps/fs-app-web && npx vitest run 2>&1 | tail -30         → vitestPassed
+  make lint-web 2>&1 | tail -40        → biomePassed (run \`make lint-fix\` to auto-fix, then re-check)
+  make test-web 2>&1 | tail -30        → vitestPassed
 ` : ''}
 Fix failures you can clearly resolve (type errors, lint, import paths, obvious test breaks). Re-run after fixing.
 fixesApplied = what you changed. remaining = anything still red and why.

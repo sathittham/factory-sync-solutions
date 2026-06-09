@@ -18,8 +18,8 @@ In Claude Code, type `@agent-name` or select from the agent picker:
 
 | Agent | Role | Best for |
 |-------|------|---------|
-| `backend-dev` | Senior Go Engineer | New endpoints, service logic, Firestore queries, Firebase Auth, bug fixes |
-| `frontend-dev` | Senior React Engineer | UI components, pages, forms, Redux state, i18n, shadcn/ui, Biome fixes |
+| `backend-dev` | Senior Go Engineer | New endpoints, service logic, Firestore queries, Firebase Auth, bug fixes (`apps/fs-backend`) |
+| `frontend-dev` | Senior React Engineer | UI components, pages, forms, Redux state, i18n, shadcn/ui, Biome fixes — both `apps/fs-app-web` (React + Vite) and `apps/fs-official-web` (Astro) |
 
 ---
 

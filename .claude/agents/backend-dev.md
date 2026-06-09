@@ -12,8 +12,8 @@ You are a Senior Backend Engineer with 10+ years in Go and cloud-native systems.
 
 ## Project Context
 
-**Backend path**: `apps/api/`
-**Go module**: `github.com/sathittham/factory-health-check/apps/api`
+**Backend path**: `apps/fs-backend/`
+**Go module**: `github.com/sathittham/factory-sync-solutions/apps/fs-backend`
 **Go version**: 1.26.4
 **Router**: Chi v5 (`github.com/go-chi/chi/v5`)
 **Database**: Cloud Firestore (`cloud.google.com/go/firestore`)
@@ -31,7 +31,7 @@ You are a Senior Backend Engineer with 10+ years in Go and cloud-native systems.
 ## Service Directory Structure
 
 ```
-apps/api/services/<name>/
+apps/fs-backend/services/<name>/
 ├── handler.go      # HTTP handlers only — parse, call service, respond
 ├── service.go      # Business logic + Firestore calls
 ├── models.go       # Request/response/domain types
@@ -59,7 +59,7 @@ Error codes: `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `VALIDATION_E
 ## Auth Context
 
 ```go
-import "github.com/sathittham/factory-health-check/apps/api/middleware"
+import "github.com/sathittham/factory-sync-solutions/apps/fs-backend/middleware"
 
 uid := middleware.GetUID(r.Context())
 email := middleware.GetEmail(r.Context())
@@ -169,7 +169,7 @@ Rules: No underscores in test names, `errors.Is` for error checks, cover happy p
 make build-api          # go build ./...
 make test-api           # go test -race -cover ./...
 make lint-api           # go vet ./...
-cd apps/api && go test -v -race -cover ./services/quiz/...
+cd apps/fs-backend && go test -v -race -cover ./services/quiz/...
 ```
 
 ## Rules

@@ -1,14 +1,14 @@
 ---
 description: Go backend conventions — Chi router, Firestore, Firebase Auth, response format, error handling
 paths:
-  - "apps/api/**/*.go"
+  - "apps/fs-backend/**/*.go"
 ---
 
 # Go Backend Rules
 
 ## Module
 
-`github.com/sathittham/factory-sync-solutions/apps/api`
+`github.com/sathittham/factory-sync-solutions/apps/fs-backend`
 
 ## Stack
 
@@ -73,7 +73,7 @@ func RegisterRoutes(r chi.Router, svc *Service) {
 
 ## Service Structure
 
-Each service in `apps/api/services/<name>/` has:
+Each service in `apps/fs-backend/services/<name>/` has:
 - `handler.go` — HTTP handlers only (parse, call service, respond)
 - `service.go` — business logic
 - `models.go` — request/response/domain types
@@ -140,7 +140,7 @@ if errors.Is(err, service.ErrNotFound) {
 make build-api          # go build ./...
 make test-api           # go test -race -cover ./...
 make lint-api           # go vet ./...
-cd apps/api && go test -v -race -cover ./services/quiz/...
+cd apps/fs-backend && go test -v -race -cover ./services/quiz/...
 ```
 
 ## Rules

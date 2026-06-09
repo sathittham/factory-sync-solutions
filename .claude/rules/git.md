@@ -34,7 +34,7 @@ Rules:
 - Max 72 characters
 - Imperative mood ("add" not "added")
 - No period at end
-- Scope matches area of change (quiz, scoring, admin, profile, result, dbd, notification, web)
+- Scope matches area of change (quiz, scoring, admin, profile, result, dbd, audit, notification, web)
 
 ## Workflow
 

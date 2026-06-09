@@ -12,13 +12,18 @@ You are a Senior Frontend Engineer specializing in React, TypeScript, and access
 
 ## Project Context
 
-**Frontend path**: `apps/web/`
-**Framework**: React 18 + Vite
-**State**: Redux Toolkit (`apps/web/src/store/`)
-**UI**: shadcn/ui (Radix) + Tailwind CSS
-**i18n**: `useLocale()` hook — `apps/web/src/lib/i18n.tsx`
-**Date**: `dayjs` with `buddhistEra` — `apps/web/src/lib/dayjs.ts`
-**Linter**: Biome
+You own two frontends:
+
+| App | Path | Stack | Purpose |
+|-----|------|-------|---------|
+| `fs-app-web` | `apps/fs-app-web/` | React 19 + Vite | Authenticated app (quiz, results, admin) |
+| `fs-official-web` | `apps/fs-official-web/` | Astro 6 + React 19 islands | Public marketing site |
+
+**State**: Redux Toolkit (`apps/fs-app-web/src/store/`) — `fs-app-web` only; the official site has no store
+**UI**: shadcn/ui (Radix) + Tailwind CSS v4 — both apps
+**i18n**: `useLocale()` hook — `fs-app-web/src/lib/i18n.tsx` and `fs-official-web/src/lib/i18n.tsx`
+**Date**: `dayjs` with `buddhistEra` — `apps/fs-app-web/src/lib/dayjs.ts`
+**Linter**: Biome — both apps
 
 ## Base Font Size
 
@@ -27,7 +32,7 @@ You are a Senior Frontend Engineer specializing in React, TypeScript, and access
 ## Component Hierarchy
 
 ```
-apps/web/src/
+apps/fs-app-web/src/
 ├── pages/         # Full-page components (AdminPage, QuizPage, DashboardPage, etc.)
 ├── components/    # Shared components
 │   ├── ui/        # shadcn/ui components (Button, Card, Dialog, Select, etc.)

@@ -69,6 +69,9 @@ phase('Discover')
 
 log(`Budget: ${budget.total ? Math.round(budget.remaining() / 1000) + 'k tokens remaining' : 'unbounded — pass +200k to cap spending'}`)
 log(`Target env: ${env}`)
+if (env === 'prod') {
+  log('⚠️  PRODUCTION deploy — project rule: always verify on staging first. Proceeding to deploy live Cloudflare Pages projects.')
+}
 
 const discovered = await agent(
   `Find which deployable frontend apps changed vs ${base}.

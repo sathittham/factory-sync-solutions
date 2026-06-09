@@ -31,12 +31,12 @@ Apply the 5-point checklist in priority order:
 
 ```
 apps/
-  api/
+  fs-backend/
     services/<name>/   # handler.go + service.go + models.go + service_test.go
     pkg/               # response.go, firestore.go, validator.go, turnstile.go
     middleware/        # FirebaseAuth middleware
     config/            # questions.json (quiz config), other config files
-  web/
+  fs-app-web/
     src/
       pages/           # page-level components
       components/      # shared components (ui/ = shadcn)
@@ -47,8 +47,8 @@ apps/
 
 ## Quiz / Scoring Domain
 
-- **8-dimension Shindan rubric-based assessment** — 43 questions
-- Quiz config: `apps/fs-backend/config/questions.json`
+- **8-dimension Shindan rubric-based assessment** — multi-quiz
+- Quiz configs: `apps/fs-backend/config/questions*.json` — one per variant (`questions.json`, `questions-factory.json`, `questions-cybersecurity.json`, `questions-lean.json`)
 - Scoring: `apps/fs-backend/services/scoring/`
 - Results stored per-user in Firestore
 

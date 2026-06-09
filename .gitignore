@@ -27,11 +27,14 @@ firebase-sa.json
 # IDE
 .idea/
 .vscode/
-# Ignore .claude/ by default, but track shared team config (workflows, rules, agents).
+# Ignore .claude/ by default, but track shared team config (skills, workflows, rules, agents, hooks).
+# settings.json / settings.local.json stay ignored — they hold local/secret values.
 .claude/*
+!.claude/skills/
 !.claude/workflows/
 !.claude/rules/
 !.claude/agents/
+!.claude/hooks/
 *.swp
 *.swo
 *~

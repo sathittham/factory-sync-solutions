@@ -1,19 +1,27 @@
 ---
 description: React frontend conventions — shadcn/ui, Redux Toolkit, i18n, dayjs, Tailwind, accessibility
 paths:
-  - "apps/web/**/*.tsx"
-  - "apps/web/**/*.ts"
+  - "apps/fs-app-web/**/*.tsx"
+  - "apps/fs-app-web/**/*.ts"
+  - "apps/fs-official-web/**/*.tsx"
+  - "apps/fs-official-web/**/*.ts"
+  - "apps/fs-official-web/**/*.astro"
 ---
 
 # React Frontend Rules
 
+> Applies to both frontends: `fs-app-web` (React 19 + Vite, the authenticated app) and
+> `fs-official-web` (Astro 6 + React 19 islands, the marketing site). shadcn/ui, `useLocale()`,
+> Biome, and the no-nested-ternary rule apply to both. Redux Toolkit / RTK Query apply to
+> `fs-app-web` only — the official site has no store.
+
 ## Stack
 
-- **Framework**: React 18 + Vite
+- **Framework**: React 19 + Vite (`fs-app-web`) · Astro 6 + React 19 islands (`fs-official-web`)
 - **State**: Redux Toolkit
 - **UI**: shadcn/ui (Radix-based) + Tailwind CSS
-- **i18n**: custom `useLocale()` hook — TH/EN in `apps/web/src/lib/i18n.tsx`
-- **Date**: `dayjs` with `buddhistEra` plugin — utility at `apps/web/src/lib/dayjs.ts`
+- **i18n**: custom `useLocale()` hook — TH/EN in `apps/fs-app-web/src/lib/i18n.tsx`
+- **Date**: `dayjs` with `buddhistEra` plugin — utility at `apps/fs-app-web/src/lib/dayjs.ts`
 - **Linter**: Biome
 
 ## Base Font Size
@@ -35,8 +43,8 @@ import { NativeSelect } from "@/components/ui/native-select"
 ```
 
 Component paths:
-- `apps/web/src/components/ui/select.tsx` — Radix-based shadcn Select
-- `apps/web/src/components/ui/native-select.tsx` — Native `<select>` wrapper (react-hook-form only)
+- `apps/fs-app-web/src/components/ui/select.tsx` — Radix-based shadcn Select
+- `apps/fs-app-web/src/components/ui/native-select.tsx` — Native `<select>` wrapper (react-hook-form only)
 
 ## i18n
 
@@ -50,7 +58,7 @@ function MyComponent() {
 ```
 
 - All user-visible strings go through `t()` — never hardcode Thai or English text in JSX
-- Add translations to both `th` and `en` objects in `apps/web/src/lib/i18n.tsx`
+- Add translations to both `th` and `en` objects in `apps/fs-app-web/src/lib/i18n.tsx`
 
 ## Date / Time
 
@@ -72,7 +80,7 @@ date.toLocaleDateString("th-TH")
 import { useDispatch, useSelector } from "react-redux"
 import { selectQuizStatus } from "@/store/quizSlice"
 
-// Slices in apps/web/src/store/
+// Slices in apps/fs-app-web/src/store/
 // Use RTK Query for API calls — not raw fetch in components
 ```
 
