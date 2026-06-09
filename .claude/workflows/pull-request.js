@@ -5,7 +5,7 @@ export const meta = {
     { title: 'Preflight', detail: 'Check branch state, uncommitted changes, push if needed' },
     { title: 'Create PR', detail: 'Build title/description from commits and open PR via gh' },
     { title: 'Merge',     detail: 'Squash merge into develop and remove source branch' },
-    { title: 'Cleanup',   detail: 'Switch to develop, pull, delete local branch, prune' },
+    { title: 'Cleanup',   detail: 'Switch to develop, pull, delete local + remote feature branch, verify, prune' },
   ],
 }
 
@@ -179,19 +179,31 @@ phase('Cleanup')
 const cleanup = await agent(
   `Clean up after merging branch "${branch}" into ${base} in the factory-health-check repo.
 
+  The feature branch must be fully removed — locally AND on ${remote} — after the merge.
+  Never delete protected branches (main, staging, develop): if "${branch}" is one of those, SKIP all branch-deletion steps and report it in steps.
+
   Run these steps in order:
   1. git checkout ${base}
   2. git fetch ${remote} ${base}
      Verify the squash commit appears before pulling (retry up to 3 times with a short delay if not yet visible).
   3. git pull ${remote} ${base}
-  4. git branch -D ${branch}
+  4. Delete the LOCAL feature branch: git branch -D ${branch}
      (squash merges always require -D because the tip is unreachable from ${base})
-  5. git fetch ${remote} --prune
-  6. git log --oneline -3
+  5. Delete the REMOTE feature branch as a fallback (gh's --delete-branch may have already removed it):
+     run "git push ${remote} --delete ${branch}".
+     If it fails because the remote ref is already gone (e.g. "remote ref does not exist"),
+     treat that as SUCCESS — the branch is already deleted, not an error.
+  6. git fetch ${remote} --prune
+  7. VERIFY cleanup: run "git branch -a | grep ${branch}".
+     The branch must appear in NEITHER the local list NOR as ${remote}/${branch}.
+     If either still exists, set success=false and report which ref remains.
+  8. git log --oneline -3
 
   Return JSON:
   {
     "success": true/false,
+    "localDeleted": true/false,
+    "remoteDeleted": true/false,
     "steps": ["list of completed steps"],
     "finalLog": ["last 3 commits on ${base}"]
   }`,
@@ -201,19 +213,22 @@ const cleanup = await agent(
     schema: {
       type: 'object',
       properties: {
-        success:  { type: 'boolean' },
-        steps:    { type: 'array', items: { type: 'string' } },
-        finalLog: { type: 'array', items: { type: 'string' } },
+        success:       { type: 'boolean' },
+        localDeleted:  { type: 'boolean' },
+        remoteDeleted: { type: 'boolean' },
+        steps:         { type: 'array', items: { type: 'string' } },
+        finalLog:      { type: 'array', items: { type: 'string' } },
       },
-      required: ['success', 'steps', 'finalLog'],
+      required: ['success', 'localDeleted', 'remoteDeleted', 'steps', 'finalLog'],
     },
   }
 )
 
 if (cleanup.success) {
-  log(`Cleanup done — now on ${base}`)
+  log(`Cleanup done — ${branch} removed (local + ${remote}), now on ${base}`)
 } else {
-  log('Cleanup warning: some steps may not have completed. Check repo state manually.')
+  const remain = [!cleanup.localDeleted && 'local', !cleanup.remoteDeleted && `${remote}`].filter(Boolean).join(' + ')
+  log(`Cleanup warning: feature branch may still exist (${remain || 'unknown'}). Check repo state manually.`)
 }
 
 return {
@@ -223,5 +238,7 @@ return {
   prUrl: prCreated.prUrl,
   title: prCreated.title,
   merged: true,
+  localDeleted: cleanup.localDeleted,
+  remoteDeleted: cleanup.remoteDeleted,
   cleanup: cleanup.steps,
 }
