@@ -51,11 +51,14 @@ rest are still open actions.
   values is still a Phase 6 action.)*
 - [x] **Remove the stale `cloudfunctions.net` note** in Phase 7. *(pre-verified from repo,
   2026-06-10 — runbook patched; `grep cloudfunctions docs/operations/migrate-*.md` = 0 hits.)*
-- [ ] **Staging Cloud Run service does not exist.** `gcloud run services list` shows only the prod
-  `factory-sync-solutions-api` (asia-southeast3) — no staging service. `apps/fs-app-web/.env.staging`
-  is now pre-filled with the *predicted* deterministic URL
-  (`…api-staging-241196731341.asia-southeast3.run.app/api/v1`), but it resolves only after the staging
-  service is deployed (Phase 8). Also set `vars.VITE_API_BASE_URL` (staging) in GitHub for the CI build.
+- [x] **Staging API deployed & verified** *(2026-06-09)*. Staging runs in its **own GCP project**
+  `factory-sync-solutions-staging` (project number `738710072389`), region `asia-southeast3` — separate
+  from the prod project `factory-sync-solutions` (`241196731341`). Service
+  `factory-sync-solutions-api-staging` serves the app (JSON 401 on protected routes). Canonical URL
+  `https://factory-sync-solutions-api-staging-738710072389.asia-southeast3.run.app/api/v1` is set in
+  `apps/fs-app-web/.env.staging`. Deployed via the new `workflow_dispatch` force path on
+  `deploy-staging.yml`. ⏳ Still set `vars.VITE_API_BASE_URL` (staging) in GitHub so the CI **web** build
+  points at it (the frontend wasn't deployed in this dispatch — `deploy_web=false`).
 - [ ] **No `firebase.json` / `.firebaserc` in the repo.** Phase 4's
   `firebase deploy --only firestore:rules,firestore:indexes` (and any `firebase use`) will fail
   without a Firebase config. Run `firebase init firestore` (pointing at the existing

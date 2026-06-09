@@ -42,9 +42,10 @@ new project **`factory-sync-solutions`**.
   serving in `asia-southeast3` (verified — protected routes return the app's JSON 401). Its legacy
   hostname `…-lumldnu3vq-eu.a.run.app` is **not** europe-west — it's the old-style alias of the same
   asia-southeast3 service; `.env.production` now uses the region-explicit canonical URL
-  `https://factory-sync-solutions-api-241196731341.asia-southeast3.run.app/api/v1`. **Staging has no
-  Cloud Run service yet** — it must be deployed (Phase 8) before `factory-sync-solutions-api-staging`
-  resolves.
+  `https://factory-sync-solutions-api-241196731341.asia-southeast3.run.app/api/v1`. **Staging runs in a
+  separate GCP project** `factory-sync-solutions-staging` (project number `738710072389`, also
+  `asia-southeast3`); its API is deployed and verified at
+  `https://factory-sync-solutions-api-staging-738710072389.asia-southeast3.run.app/api/v1`.
 - Cloud Run service names: `factory-sync-solutions-api`, `factory-sync-solutions-api-staging` (already brand-named)
 - Artifact Registry repo: `cloud-run`
 - Cloudflare Pages projects (4): `factory-sync-solutions`, `factory-sync-solutions-staging`,
