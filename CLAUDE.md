@@ -99,6 +99,8 @@ Invoke with `/skill-name` in Claude Code.
 |----------|---------|
 | `feature-dev.js` | End-to-end feature: backend service → React frontend → review → verify |
 | `feature-review.js` | Review a feature across the 5-point checklist, write `REVIEW.md` |
+| `pull-request.js` | Full PR lifecycle: preflight → open PR (`gh`) → squash-merge into `develop` → cleanup |
+| `branch-cleanup.js` | Prune stale refs; delete merged + gone branches (protects `main`/`staging`/`develop`) |
 | `pre-release-audit.js` | Audit changed apps before a release tag (Go vet + race tests; Biome + tsc + Vitest + security scan) |
 | `deploy-smoke-test.js` | Deploy changed frontend apps to Cloudflare Pages and verify each URL returns 200 |
 

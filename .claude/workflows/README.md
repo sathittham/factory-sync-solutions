@@ -106,10 +106,46 @@ Use when: After pushing changes, to confirm the deploy is live and healthy.
 
 ---
 
+### `pull-request`
+**File**: `pull-request.js`
+
+Full PR lifecycle for a feature/bugfix branch: preflight (refuses protected branches and uncommitted changes, pushes if needed) → derive a conventional title + body from the commits and open the PR with `gh` → **squash** merge into `develop` and delete the source branch → checkout `develop`, pull, prune. Matches the `feature/* → develop` squash-merge rule in `.claude/rules/git.md`.
+
+```javascript
+Workflow({ name: 'pull-request', args: {
+  ticket: 'FHC-123',     // optional — auto-extracted from branch/commits otherwise
+  title:  'custom title', // optional — overrides the derived title
+  base:   'develop',      // optional — target branch (default: develop)
+  remote: 'origin',       // optional (default: origin)
+}})
+```
+
+Use when: A feature/bugfix branch is ready to integrate into `develop`.
+
+---
+
+### `branch-cleanup`
+**File**: `branch-cleanup.js`
+
+Prunes stale tracking refs and deletes branches already merged into `develop` plus local branches whose remote is gone. **Never** deletes `main`, `staging`, `develop`, or the current branch. Shows planned deletions before executing (remote deletes are irreversible).
+
+```javascript
+Workflow({ name: 'branch-cleanup', args: {
+  base:   'develop',  // optional — merge-base to test against (default: develop)
+  remote: 'origin',   // optional (default: origin)
+}})
+```
+
+Use when: Periodic housekeeping after merges pile up stale branches.
+
+---
+
 ## Recommended Flow
 
 ```
-feature-dev (per feature) → feature-review → pre-release-audit → deploy-smoke-test
+feature-dev (per feature) → feature-review → pull-request → pre-release-audit → deploy-smoke-test
+                                                  ↓
+                                          branch-cleanup (housekeeping)
 ```
 
 ---
