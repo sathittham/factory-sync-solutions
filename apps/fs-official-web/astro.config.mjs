@@ -1,11 +1,14 @@
-import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
-import tailwind from "@astrojs/tailwind";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "astro/config";
 
 export default defineConfig({
-  integrations: [
-    react(),
-    tailwind({ applyBaseStyles: false }),
-  ],
-  output: "static",
+	integrations: [react()],
+	output: "static",
+	vite: {
+		plugins: [tailwindcss()],
+		optimizeDeps: {
+			include: ["react", "react-dom", "react-dom/client"],
+		},
+	},
 });

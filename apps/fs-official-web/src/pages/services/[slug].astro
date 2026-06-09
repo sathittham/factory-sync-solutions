@@ -1,0 +1,20 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import {
+  ServiceContent,
+  SERVICE_ORDER,
+  type ServiceSlug,
+} from "../../components/services/ServiceContent";
+
+export function getStaticPaths() {
+  return SERVICE_ORDER.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
+---
+
+<Layout title="FactorySync Solutions">
+  <ServiceContent client:load slug={slug as ServiceSlug} appUrl={appUrl} version={version} />
+</Layout>

@@ -1,125 +1,113 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { LocaleProvider, useLocale, type Locale } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
+import {
+	LocaleSwitcher,
+	LogoIcon,
+	type ResolvedTheme,
+	type Theme,
+	ThemeSwitcher,
+	useTheme,
+} from "@/components/site/chrome";
 import { buttonVariants } from "@/components/ui/button";
+import { type Locale, LocaleProvider, useLocale } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+import { Fragment } from "react";
 
 // ---------------------------------------------------------------------------
-// Theme (same as LandingContent)
+// NavBar — shares the logo, switchers and theme with the landing page
 // ---------------------------------------------------------------------------
 
-type Theme = "light" | "dark";
-
-function getInitialTheme(): Theme {
-	try {
-		const stored = localStorage.getItem("fss-theme");
-		if (stored === "dark" || stored === "light") return stored;
-		return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-	} catch {
-		return "light";
-	}
-}
-
-function useTheme() {
-	const [theme, setThemeState] = useState<Theme>(getInitialTheme);
-	const setTheme = useCallback((t: Theme) => {
-		setThemeState(t);
-		try {
-			localStorage.setItem("fss-theme", t);
-			document.documentElement.classList.toggle("dark", t === "dark");
-		} catch {}
-	}, []);
-	useEffect(() => {
-		document.documentElement.classList.toggle("dark", theme === "dark");
-	}, [theme]);
-	return { theme, setTheme };
-}
-
-// ---------------------------------------------------------------------------
-// Nav (shared with LandingContent)
-// ---------------------------------------------------------------------------
-
-function SunIcon() {
+function NavBar({
+	appUrl,
+	theme,
+	setTheme,
+	resolvedTheme,
+}: {
+	appUrl: string;
+	theme: Theme;
+	setTheme: (t: Theme) => void;
+	resolvedTheme: ResolvedTheme;
+}) {
+	const { t } = useLocale();
 	return (
-		<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-			<circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-		</svg>
-	);
-}
-
-function MoonIcon() {
-	return (
-		<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-			<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-		</svg>
-	);
-}
-
-function NavBar({ appUrl, theme, setTheme }: { appUrl: string; theme: Theme; setTheme: (t: Theme) => void }) {
-	const { locale, setLocale, t } = useLocale();
-	return (
-		<header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur-sm">
-			<div className="max-w-6xl mx-auto px-4 sm:px-6 flex h-14 items-center justify-between gap-4">
-				<a href="/" className="flex items-center gap-2 font-bold text-foreground shrink-0">
-					<div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center">
-						<svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="text-primary-foreground" aria-hidden="true">
-							<path d="M2 14V6l6-4 6 4v8H2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-							<path d="M6 14v-4h4v4" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-						</svg>
-					</div>
-					<span className="hidden sm:inline">FactorySync Solutions</span>
-					<span className="sm:hidden">FS</span>
+		<header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 text-slate-950 backdrop-blur-sm dark:border-cyan-300/10 dark:bg-[#041225]/95 dark:text-white">
+			<div className="mx-auto flex h-14 max-w-[1180px] items-center justify-between gap-4 px-4 sm:px-6">
+				<a
+					href="/"
+					className="flex items-center gap-2 font-bold text-slate-950 shrink-0 dark:text-white"
+				>
+					<LogoIcon theme={resolvedTheme} />
+					<span className="hidden text-lg leading-tight sm:inline">
+						FactorySync
+						<span className="block text-sm font-extrabold text-cyan-400 -mt-1">Solutions</span>
+					</span>
+					<span className="font-bold text-slate-950 sm:hidden dark:text-white">FS</span>
 				</a>
-				<div className="flex items-center gap-2">
-					<div className="flex rounded-md border bg-background overflow-hidden text-xs font-medium">
-						<button type="button" onClick={() => setLocale("th")} className={cn("px-3 py-1.5 transition-colors", locale === "th" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}>TH</button>
-						<button type="button" onClick={() => setLocale("en")} className={cn("px-3 py-1.5 transition-colors", locale === "en" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}>EN</button>
-					</div>
-					<button type="button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Toggle theme" className="h-8 w-8 flex items-center justify-center rounded-md border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
-						{theme === "dark" ? <SunIcon /> : <MoonIcon />}
-					</button>
-					<a href={appUrl} className={cn(buttonVariants({ size: "sm" }), "text-xs h-8 px-4")}>{t("nav.signIn")}</a>
+				<div className="flex items-center gap-2 shrink-0">
+					<LocaleSwitcher />
+					<ThemeSwitcher theme={theme} setTheme={setTheme} />
+					<a
+						href={appUrl}
+						className={cn(
+							buttonVariants({ size: "sm" }),
+							"rounded-md bg-blue-600 px-4 text-xs text-white shadow-[0_0_24px_rgba(37,99,235,0.35)] hover:bg-blue-500 xl:px-7 xl:text-sm"
+						)}
+					>
+						{t("nav.signIn")}
+					</a>
 				</div>
 			</div>
 		</header>
 	);
 }
 
-const LINE_ICON = (
-	<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-[#06C755] flex-shrink-0" aria-hidden="true">
-		<path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
-	</svg>
-);
+const SEP = <span className="text-slate-300 dark:text-slate-600">|</span>;
 
-const SEP = <span className="text-border">|</span>;
-
-function Footer({ version }: { version: string }) {
+function Footer({ version, resolvedTheme }: { version: string; resolvedTheme: ResolvedTheme }) {
 	const { t } = useLocale();
+	const year = new Date().getFullYear();
+
+	const legalLinks = [
+		{ href: "/privacy", label: t("footer.privacy") },
+		{ href: "/terms", label: t("footer.terms") },
+		{ href: "/cookies", label: t("footer.cookiePolicy") },
+		{ href: "/marketing", label: t("footer.marketing") },
+		{ href: "/cookie-settings", label: t("footer.cookies") },
+	];
+
 	return (
-		<footer className="border-t py-5">
-			<div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col items-center gap-3 text-xs text-muted-foreground">
-				<div className="flex items-center gap-2">
-					<span>{t("footer.contact")}:</span>
-					<a href="https://lin.ee/rWwdF9q" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary transition-colors">
-						{LINE_ICON} Line @STM23
-					</a>
-				</div>
-				<div className="flex flex-col sm:flex-row items-center justify-between w-full gap-2">
-					<span>{t("footer.copyright")}</span>
-					<div className="flex items-center gap-2 flex-wrap justify-center">
-						<a href="/terms" className="hover:text-foreground transition-colors">{t("footer.terms")}</a>
-						{SEP}
-						<a href="/privacy" className="hover:text-foreground transition-colors">{t("footer.privacy")}</a>
-						{SEP}
-						<a href="/cookies" className="hover:text-foreground transition-colors">{t("footer.cookiePolicy")}</a>
-						{SEP}
-						<a href="/marketing" className="hover:text-foreground transition-colors">{t("footer.marketing")}</a>
-						{SEP}
-						<a href="/cookie-settings" className="hover:text-foreground transition-colors">{t("footer.cookies")}</a>
-						{SEP}
-						<span className="font-mono text-[10px]">{version}</span>
+		<footer className="border-t border-slate-200 bg-white py-6 text-slate-500 dark:border-cyan-300/15 dark:bg-[#041225] dark:text-slate-400">
+			<div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 sm:px-6 md:flex-row md:items-center md:justify-between">
+				{/* Brand */}
+				<div className="flex items-center gap-3">
+					<LogoIcon theme={resolvedTheme} />
+					<div>
+						<p className="text-sm font-semibold text-slate-900 dark:text-white">
+							FactorySync Solutions Co., Ltd.
+						</p>
+						<p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{t("footer.desc")}</p>
 					</div>
+				</div>
+
+				{/* Legal links + copyright */}
+				<div className="flex flex-col gap-2 text-xs md:items-end">
+					<div className="flex flex-wrap items-center gap-x-2 gap-y-1 md:justify-end">
+						{legalLinks.map((link, index) => (
+							<Fragment key={link.href}>
+								<a
+									href={link.href}
+									className="transition-colors hover:text-blue-700 dark:hover:text-cyan-300"
+								>
+									{link.label}
+								</a>
+								{index < legalLinks.length - 1 && SEP}
+							</Fragment>
+						))}
+					</div>
+					<p className="text-slate-400 dark:text-slate-500">
+						© {year} {t("footer.copyright")}
+						<span className="ml-2 font-mono text-[10px] opacity-60">{version}</span>
+					</p>
 				</div>
 			</div>
 		</footer>
@@ -139,9 +127,15 @@ function TermsTh() {
 	return (
 		<div className={prose}>
 			<h2 className={h2Class}>1. การยอมรับข้อกำหนด</h2>
-			<p>การเข้าใช้งานระบบ FactorySync Solutions ("บริการ") ถือว่าท่านยอมรับข้อกำหนดและเงื่อนไขเหล่านี้ทั้งหมด หากท่านไม่ยอมรับข้อกำหนดเหล่านี้ กรุณาอย่าใช้บริการ</p>
+			<p>
+				การเข้าใช้งานระบบ FactorySync Solutions ("บริการ") ถือว่าท่านยอมรับข้อกำหนดและเงื่อนไขเหล่านี้ทั้งหมด
+				หากท่านไม่ยอมรับข้อกำหนดเหล่านี้ กรุณาอย่าใช้บริการ
+			</p>
 			<h2 className={h2Class}>2. คำอธิบายบริการ</h2>
-			<p>FactorySync Solutions เป็นเครื่องมือประเมินความพร้อมด้านการดำเนินงานของโรงงานอุตสาหกรรม ครอบคลุม 8 มิติหลัก</p>
+			<p>
+				FactorySync Solutions เป็นเครื่องมือประเมินความพร้อมด้านการดำเนินงานของโรงงานอุตสาหกรรม ครอบคลุม 8
+				มิติหลัก
+			</p>
 			<h2 className={h2Class}>3. บัญชีผู้ใช้</h2>
 			<ul className={ulClass}>
 				<li>ท่านต้องลงชื่อเข้าใช้ผ่านบัญชี Google เพื่อเข้าถึงบริการ</li>
@@ -156,7 +150,10 @@ function TermsTh() {
 				<li>ไม่ใช้บริการในทางที่ผิดกฎหมายหรือขัดต่อข้อกำหนดนี้</li>
 			</ul>
 			<h2 className={h2Class}>5. ทรัพย์สินทางปัญญา</h2>
-			<p>เนื้อหา คำถาม เกณฑ์การประเมิน และซอฟต์แวร์ของ FactorySync Solutions เป็นทรัพย์สินของผู้ให้บริการ ท่านไม่มีสิทธิ์ทำซ้ำ แจกจ่าย หรือสร้างผลงานดัดแปลงจากบริการนี้</p>
+			<p>
+				เนื้อหา คำถาม เกณฑ์การประเมิน และซอฟต์แวร์ของ FactorySync Solutions เป็นทรัพย์สินของผู้ให้บริการ
+				ท่านไม่มีสิทธิ์ทำซ้ำ แจกจ่าย หรือสร้างผลงานดัดแปลงจากบริการนี้
+			</p>
 			<h2 className={h2Class}>6. ผลการประเมิน</h2>
 			<ul className={ulClass}>
 				<li>ผลการประเมินเป็นเพียงข้อมูลอ้างอิงเท่านั้น ไม่ถือเป็นคำแนะนำจากผู้เชี่ยวชาญ</li>
@@ -164,15 +161,26 @@ function TermsTh() {
 				<li>การตัดสินใจดำเนินการใดๆ ตามผลประเมิน เป็นความรับผิดชอบของท่านเอง</li>
 			</ul>
 			<h2 className={h2Class}>7. การจำกัดความรับผิด</h2>
-			<p>บริการนี้ให้ "ตามสภาพ" (as is) โดยไม่มีการรับประกันใดๆ ผู้ให้บริการจะไม่รับผิดชอบต่อความเสียหายใดๆ ที่เกิดจากการใช้บริการ</p>
+			<p>
+				บริการนี้ให้ "ตามสภาพ" (as is) โดยไม่มีการรับประกันใดๆ ผู้ให้บริการจะไม่รับผิดชอบต่อความเสียหายใดๆ
+				ที่เกิดจากการใช้บริการ
+			</p>
 			<h2 className={h2Class}>8. การระงับหรือยกเลิกบริการ</h2>
 			<p>ผู้ให้บริการสงวนสิทธิ์ในการระงับหรือยกเลิกการเข้าถึงบริการของท่านได้ทุกเมื่อ หากพบว่ามีการละเมิดข้อกำหนดเหล่านี้</p>
 			<h2 className={h2Class}>9. การเปลี่ยนแปลงข้อกำหนด</h2>
-			<p>ผู้ให้บริการสงวนสิทธิ์ในการแก้ไขข้อกำหนดเหล่านี้ได้ทุกเมื่อ การใช้งานบริการต่อหลังจากมีการเปลี่ยนแปลง ถือว่าท่านยอมรับข้อกำหนดใหม่</p>
+			<p>
+				ผู้ให้บริการสงวนสิทธิ์ในการแก้ไขข้อกำหนดเหล่านี้ได้ทุกเมื่อ การใช้งานบริการต่อหลังจากมีการเปลี่ยนแปลง
+				ถือว่าท่านยอมรับข้อกำหนดใหม่
+			</p>
 			<h2 className={h2Class}>10. กฎหมายที่ใช้บังคับ</h2>
 			<p>ข้อกำหนดเหล่านี้อยู่ภายใต้กฎหมายแห่งราชอาณาจักรไทย</p>
 			<h2 className={h2Class}>11. ติดต่อเรา</h2>
-			<p>หากท่านมีคำถาม กรุณาติดต่อ: <a href="mailto:support@stm23.me" className="text-primary hover:underline">support@stm23.me</a></p>
+			<p>
+				หากท่านมีคำถาม กรุณาติดต่อ:{" "}
+				<a href="mailto:info@factorysyncsolutions.com" className="text-primary hover:underline">
+					info@factorysyncsolutions.com
+				</a>
+			</p>
 		</div>
 	);
 }
@@ -181,9 +189,15 @@ function TermsEn() {
 	return (
 		<div className={prose}>
 			<h2 className={h2Class}>1. Acceptance of Terms</h2>
-			<p>By accessing and using FactorySync Solutions ("Service"), you agree to be bound by these Terms and Conditions. If you do not agree, please do not use the Service.</p>
+			<p>
+				By accessing and using FactorySync Solutions ("Service"), you agree to be bound by these
+				Terms and Conditions. If you do not agree, please do not use the Service.
+			</p>
 			<h2 className={h2Class}>2. Description of Service</h2>
-			<p>FactorySync Solutions is an online assessment tool that evaluates factory operational maturity across 8 key dimensions.</p>
+			<p>
+				FactorySync Solutions is an online assessment tool that evaluates factory operational
+				maturity across 8 key dimensions.
+			</p>
 			<h2 className={h2Class}>3. User Accounts</h2>
 			<ul className={ulClass}>
 				<li>You must sign in with a Google account to access the Service.</li>
@@ -198,23 +212,44 @@ function TermsEn() {
 				<li>Do not use the Service for any unlawful purpose.</li>
 			</ul>
 			<h2 className={h2Class}>5. Intellectual Property</h2>
-			<p>All content, questions, assessment criteria, and software of FactorySync Solutions are the property of the Service provider. You may not reproduce, distribute, or create derivative works from this Service.</p>
+			<p>
+				All content, questions, assessment criteria, and software of FactorySync Solutions are the
+				property of the Service provider. You may not reproduce, distribute, or create derivative
+				works from this Service.
+			</p>
 			<h2 className={h2Class}>6. Assessment Results</h2>
 			<ul className={ulClass}>
-				<li>Assessment results are for reference purposes only and do not constitute professional advice.</li>
+				<li>
+					Assessment results are for reference purposes only and do not constitute professional
+					advice.
+				</li>
 				<li>The Service provider does not guarantee the completeness or accuracy of results.</li>
 				<li>Any decisions made based on assessment results are your own responsibility.</li>
 			</ul>
 			<h2 className={h2Class}>7. Limitation of Liability</h2>
-			<p>The Service is provided "as is" without warranties of any kind. The Service provider shall not be liable for any damages arising from the use of the Service.</p>
+			<p>
+				The Service is provided "as is" without warranties of any kind. The Service provider shall
+				not be liable for any damages arising from the use of the Service.
+			</p>
 			<h2 className={h2Class}>8. Suspension or Termination</h2>
-			<p>The Service provider reserves the right to suspend or terminate your access at any time if these Terms are violated.</p>
+			<p>
+				The Service provider reserves the right to suspend or terminate your access at any time if
+				these Terms are violated.
+			</p>
 			<h2 className={h2Class}>9. Changes to Terms</h2>
-			<p>The Service provider reserves the right to modify these Terms at any time. Continued use after changes constitutes acceptance of the new Terms.</p>
+			<p>
+				The Service provider reserves the right to modify these Terms at any time. Continued use
+				after changes constitutes acceptance of the new Terms.
+			</p>
 			<h2 className={h2Class}>10. Governing Law</h2>
 			<p>These Terms are governed by the laws of the Kingdom of Thailand.</p>
 			<h2 className={h2Class}>11. Contact</h2>
-			<p>If you have questions about these Terms, please contact: <a href="mailto:support@stm23.me" className="text-primary hover:underline">support@stm23.me</a></p>
+			<p>
+				If you have questions about these Terms, please contact:{" "}
+				<a href="mailto:info@factorysyncsolutions.com" className="text-primary hover:underline">
+					info@factorysyncsolutions.com
+				</a>
+			</p>
 		</div>
 	);
 }
@@ -222,15 +257,36 @@ function TermsEn() {
 function PrivacyTh() {
 	return (
 		<div className={prose}>
-			<p>FactorySync Solutions ("บริการ") ให้ความสำคัญกับการคุ้มครองข้อมูลส่วนบุคคลของท่าน นโยบายนี้อธิบายวิธีการเก็บรวบรวม ใช้ และปกป้องข้อมูลของท่าน สอดคล้องกับพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA)</p>
+			<p>
+				FactorySync Solutions ("บริการ") ให้ความสำคัญกับการคุ้มครองข้อมูลส่วนบุคคลของท่าน
+				นโยบายนี้อธิบายวิธีการเก็บรวบรวม ใช้ และปกป้องข้อมูลของท่าน สอดคล้องกับพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ.
+				2562 (PDPA)
+			</p>
 			<h2 className={h2Class}>1. ข้อมูลที่เราเก็บรวบรวม</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">ข้อมูลบัญชี:</strong> ชื่อ อีเมล และรูปโปรไฟล์จากบัญชี Google ของท่าน</li>
-				<li><strong className="text-foreground">ข้อมูลบริษัท:</strong> ชื่อบริษัท เลขทะเบียนนิติบุคคล ประเภทอุตสาหกรรม ขนาดบริษัท</li>
-				<li><strong className="text-foreground">ข้อมูลผู้ติดต่อ:</strong> ชื่อผู้ติดต่อ อีเมล เบอร์โทรศัพท์</li>
-				<li><strong className="text-foreground">ข้อมูลการประเมิน:</strong> คำตอบแบบประเมิน คะแนน และผลวิเคราะห์</li>
-				<li><strong className="text-foreground">ข้อมูลการใช้งาน:</strong> หน้าที่เยี่ยมชม การกระทำต่างๆ บนเว็บไซต์ ผ่าน Google Analytics</li>
-				<li><strong className="text-foreground">ข้อมูลทางเทคนิค:</strong> IP address ประเภทเบราว์เซอร์ ระบบปฏิบัติการ ผ่านคุกกี้</li>
+				<li>
+					<strong className="text-foreground">ข้อมูลบัญชี:</strong> ชื่อ อีเมล และรูปโปรไฟล์จากบัญชี Google
+					ของท่าน
+				</li>
+				<li>
+					<strong className="text-foreground">ข้อมูลบริษัท:</strong> ชื่อบริษัท เลขทะเบียนนิติบุคคล
+					ประเภทอุตสาหกรรม ขนาดบริษัท
+				</li>
+				<li>
+					<strong className="text-foreground">ข้อมูลผู้ติดต่อ:</strong> ชื่อผู้ติดต่อ อีเมล เบอร์โทรศัพท์
+				</li>
+				<li>
+					<strong className="text-foreground">ข้อมูลการประเมิน:</strong> คำตอบแบบประเมิน คะแนน
+					และผลวิเคราะห์
+				</li>
+				<li>
+					<strong className="text-foreground">ข้อมูลการใช้งาน:</strong> หน้าที่เยี่ยมชม การกระทำต่างๆ
+					บนเว็บไซต์ ผ่าน Google Analytics
+				</li>
+				<li>
+					<strong className="text-foreground">ข้อมูลทางเทคนิค:</strong> IP address ประเภทเบราว์เซอร์
+					ระบบปฏิบัติการ ผ่านคุกกี้
+				</li>
 			</ul>
 			<h2 className={h2Class}>2. วัตถุประสงค์ในการใช้ข้อมูล</h2>
 			<ul className={ulClass}>
@@ -243,35 +299,67 @@ function PrivacyTh() {
 			</ul>
 			<h2 className={h2Class}>3. ฐานทางกฎหมาย</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">ความยินยอม:</strong> การลงทะเบียนและทำแบบประเมิน</li>
-				<li><strong className="text-foreground">สัญญา:</strong> การให้บริการประเมินตามที่ท่านร้องขอ</li>
-				<li><strong className="text-foreground">ประโยชน์โดยชอบด้วยกฎหมาย:</strong> การวิเคราะห์และปรับปรุงบริการ</li>
+				<li>
+					<strong className="text-foreground">ความยินยอม:</strong> การลงทะเบียนและทำแบบประเมิน
+				</li>
+				<li>
+					<strong className="text-foreground">สัญญา:</strong> การให้บริการประเมินตามที่ท่านร้องขอ
+				</li>
+				<li>
+					<strong className="text-foreground">ประโยชน์โดยชอบด้วยกฎหมาย:</strong>{" "}
+					การวิเคราะห์และปรับปรุงบริการ
+				</li>
 			</ul>
 			<h2 className={h2Class}>4. การแบ่งปันข้อมูล</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Google (Firebase):</strong> สำหรับการยืนยันตัวตน</li>
-				<li><strong className="text-foreground">Google (Analytics):</strong> สำหรับวิเคราะห์การใช้งาน</li>
-				<li><strong className="text-foreground">Cloudflare:</strong> สำหรับการรักษาความปลอดภัยและ CDN</li>
-				<li><strong className="text-foreground">Google Cloud Platform:</strong> สำหรับจัดเก็บข้อมูลและประมวลผล</li>
+				<li>
+					<strong className="text-foreground">Google (Firebase):</strong> สำหรับการยืนยันตัวตน
+				</li>
+				<li>
+					<strong className="text-foreground">Google (Analytics):</strong> สำหรับวิเคราะห์การใช้งาน
+				</li>
+				<li>
+					<strong className="text-foreground">Cloudflare:</strong> สำหรับการรักษาความปลอดภัยและ CDN
+				</li>
+				<li>
+					<strong className="text-foreground">Google Cloud Platform:</strong>{" "}
+					สำหรับจัดเก็บข้อมูลและประมวลผล
+				</li>
 			</ul>
 			<p>เราจะไม่ขายข้อมูลส่วนบุคคลของท่านให้แก่บุคคลที่สาม</p>
 			<h2 className={h2Class}>5. คุกกี้และเทคโนโลยีการติดตาม</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">คุกกี้ที่จำเป็น:</strong> การยืนยันตัวตน การตั้งค่าภาษา</li>
-				<li><strong className="text-foreground">คุกกี้วิเคราะห์:</strong> Google Analytics</li>
-				<li><strong className="text-foreground">คุกกี้ความปลอดภัย:</strong> Cloudflare Turnstile</li>
+				<li>
+					<strong className="text-foreground">คุกกี้ที่จำเป็น:</strong> การยืนยันตัวตน การตั้งค่าภาษา
+				</li>
+				<li>
+					<strong className="text-foreground">คุกกี้วิเคราะห์:</strong> Google Analytics
+				</li>
+				<li>
+					<strong className="text-foreground">คุกกี้ความปลอดภัย:</strong> Cloudflare Turnstile
+				</li>
 			</ul>
 			<h2 className={h2Class}>6. การเก็บรักษาข้อมูล</h2>
 			<p>เราจะเก็บรักษาข้อมูลของท่านตราบเท่าที่จำเป็นสำหรับวัตถุประสงค์ที่ระบุไว้ หรือตามที่กฎหมายกำหนด</p>
 			<h2 className={h2Class}>7. สิทธิของเจ้าของข้อมูล</h2>
 			<p>ภายใต้ PDPA ท่านมีสิทธิ: เข้าถึง แก้ไข ลบ คัดค้าน โอนย้ายข้อมูล และเพิกถอนความยินยอม</p>
-			<p>ติดต่อ: <a href="mailto:support@stm23.me" className="text-primary hover:underline">support@stm23.me</a></p>
+			<p>
+				ติดต่อ:{" "}
+				<a href="mailto:info@factorysyncsolutions.com" className="text-primary hover:underline">
+					info@factorysyncsolutions.com
+				</a>
+			</p>
 			<h2 className={h2Class}>8. ความปลอดภัยของข้อมูล</h2>
 			<p>เราใช้มาตรการรักษาความปลอดภัยที่เหมาะสม รวมถึงการเข้ารหัส HTTPS และการควบคุมการเข้าถึง</p>
 			<h2 className={h2Class}>9. การเปลี่ยนแปลงนโยบาย</h2>
 			<p>เราอาจปรับปรุงนโยบายนี้เป็นครั้งคราว โดยจะแจ้งการเปลี่ยนแปลงที่สำคัญผ่านทางบริการ</p>
 			<h2 className={h2Class}>10. ติดต่อเรา</h2>
-			<p>ติดต่อ: <a href="mailto:support@stm23.me" className="text-primary hover:underline">support@stm23.me</a></p>
+			<p>
+				ติดต่อ:{" "}
+				<a href="mailto:info@factorysyncsolutions.com" className="text-primary hover:underline">
+					info@factorysyncsolutions.com
+				</a>
+			</p>
 		</div>
 	);
 }
@@ -279,15 +367,37 @@ function PrivacyTh() {
 function PrivacyEn() {
 	return (
 		<div className={prose}>
-			<p>FactorySync Solutions ("Service") is committed to protecting your personal data. This policy explains how we collect, use, and protect your information, in compliance with Thailand's Personal Data Protection Act (PDPA).</p>
+			<p>
+				FactorySync Solutions ("Service") is committed to protecting your personal data. This policy
+				explains how we collect, use, and protect your information, in compliance with Thailand's
+				Personal Data Protection Act (PDPA).
+			</p>
 			<h2 className={h2Class}>1. Information We Collect</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Account data:</strong> Name, email, and profile picture from your Google account.</li>
-				<li><strong className="text-foreground">Company data:</strong> Company name, registration ID, industry type, and company size.</li>
-				<li><strong className="text-foreground">Contact data:</strong> Contact name, email, and phone number.</li>
-				<li><strong className="text-foreground">Assessment data:</strong> Quiz answers, scores, and analysis results.</li>
-				<li><strong className="text-foreground">Usage data:</strong> Pages visited and actions taken, collected via Google Analytics.</li>
-				<li><strong className="text-foreground">Technical data:</strong> IP address, browser type, OS, collected via cookies.</li>
+				<li>
+					<strong className="text-foreground">Account data:</strong> Name, email, and profile
+					picture from your Google account.
+				</li>
+				<li>
+					<strong className="text-foreground">Company data:</strong> Company name, registration ID,
+					industry type, and company size.
+				</li>
+				<li>
+					<strong className="text-foreground">Contact data:</strong> Contact name, email, and phone
+					number.
+				</li>
+				<li>
+					<strong className="text-foreground">Assessment data:</strong> Quiz answers, scores, and
+					analysis results.
+				</li>
+				<li>
+					<strong className="text-foreground">Usage data:</strong> Pages visited and actions taken,
+					collected via Google Analytics.
+				</li>
+				<li>
+					<strong className="text-foreground">Technical data:</strong> IP address, browser type, OS,
+					collected via cookies.
+				</li>
 			</ul>
 			<h2 className={h2Class}>2. How We Use Your Data</h2>
 			<ul className={ulClass}>
@@ -300,35 +410,77 @@ function PrivacyEn() {
 			</ul>
 			<h2 className={h2Class}>3. Legal Basis</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Consent:</strong> Registration and taking assessments.</li>
-				<li><strong className="text-foreground">Contract:</strong> Providing assessment services as requested.</li>
-				<li><strong className="text-foreground">Legitimate interest:</strong> Service analytics and improvement.</li>
+				<li>
+					<strong className="text-foreground">Consent:</strong> Registration and taking assessments.
+				</li>
+				<li>
+					<strong className="text-foreground">Contract:</strong> Providing assessment services as
+					requested.
+				</li>
+				<li>
+					<strong className="text-foreground">Legitimate interest:</strong> Service analytics and
+					improvement.
+				</li>
 			</ul>
 			<h2 className={h2Class}>4. Data Sharing</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Google (Firebase):</strong> For user authentication.</li>
-				<li><strong className="text-foreground">Google (Analytics):</strong> For usage analytics.</li>
-				<li><strong className="text-foreground">Cloudflare:</strong> For security and CDN.</li>
-				<li><strong className="text-foreground">Google Cloud Platform:</strong> For data storage and processing.</li>
+				<li>
+					<strong className="text-foreground">Google (Firebase):</strong> For user authentication.
+				</li>
+				<li>
+					<strong className="text-foreground">Google (Analytics):</strong> For usage analytics.
+				</li>
+				<li>
+					<strong className="text-foreground">Cloudflare:</strong> For security and CDN.
+				</li>
+				<li>
+					<strong className="text-foreground">Google Cloud Platform:</strong> For data storage and
+					processing.
+				</li>
 			</ul>
 			<p>We will never sell your personal data to third parties.</p>
 			<h2 className={h2Class}>5. Cookies and Tracking</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Essential cookies:</strong> Authentication, language preferences.</li>
-				<li><strong className="text-foreground">Analytics cookies:</strong> Google Analytics.</li>
-				<li><strong className="text-foreground">Security cookies:</strong> Cloudflare Turnstile.</li>
+				<li>
+					<strong className="text-foreground">Essential cookies:</strong> Authentication, language
+					preferences.
+				</li>
+				<li>
+					<strong className="text-foreground">Analytics cookies:</strong> Google Analytics.
+				</li>
+				<li>
+					<strong className="text-foreground">Security cookies:</strong> Cloudflare Turnstile.
+				</li>
 			</ul>
 			<h2 className={h2Class}>6. Data Retention</h2>
-			<p>We retain your data for as long as necessary for the stated purposes, or as required by law.</p>
+			<p>
+				We retain your data for as long as necessary for the stated purposes, or as required by law.
+			</p>
 			<h2 className={h2Class}>7. Your Rights</h2>
-			<p>Under the PDPA, you have the right to: access, rectify, delete, object, port your data, and withdraw consent.</p>
-			<p>Contact: <a href="mailto:support@stm23.me" className="text-primary hover:underline">support@stm23.me</a></p>
+			<p>
+				Under the PDPA, you have the right to: access, rectify, delete, object, port your data, and
+				withdraw consent.
+			</p>
+			<p>
+				Contact:{" "}
+				<a href="mailto:info@factorysyncsolutions.com" className="text-primary hover:underline">
+					info@factorysyncsolutions.com
+				</a>
+			</p>
 			<h2 className={h2Class}>8. Data Security</h2>
 			<p>We implement HTTPS encryption, Google Cloud Platform storage, and access controls.</p>
 			<h2 className={h2Class}>9. Changes to This Policy</h2>
-			<p>We may update this policy from time to time. Significant changes will be communicated through the Service.</p>
+			<p>
+				We may update this policy from time to time. Significant changes will be communicated
+				through the Service.
+			</p>
 			<h2 className={h2Class}>10. Contact</h2>
-			<p>Contact: <a href="mailto:support@stm23.me" className="text-primary hover:underline">support@stm23.me</a></p>
+			<p>
+				Contact:{" "}
+				<a href="mailto:info@factorysyncsolutions.com" className="text-primary hover:underline">
+					info@factorysyncsolutions.com
+				</a>
+			</p>
 		</div>
 	);
 }
@@ -336,43 +488,85 @@ function PrivacyEn() {
 function CookiesTh() {
 	return (
 		<div className={prose}>
-			<p>FactorySync Solutions ("บริการ") ใช้คุกกี้และเทคโนโลยีที่คล้ายกันเพื่อให้บริการทำงานได้อย่างถูกต้อง ปรับปรุงประสบการณ์การใช้งาน และวิเคราะห์การเข้าชมเว็บไซต์</p>
+			<p>
+				FactorySync Solutions ("บริการ") ใช้คุกกี้และเทคโนโลยีที่คล้ายกันเพื่อให้บริการทำงานได้อย่างถูกต้อง
+				ปรับปรุงประสบการณ์การใช้งาน และวิเคราะห์การเข้าชมเว็บไซต์
+			</p>
 			<h2 className={h2Class}>1. คุกกี้คืออะไร</h2>
-			<p>คุกกี้คือไฟล์ข้อมูลขนาดเล็กที่จัดเก็บบนอุปกรณ์ของท่านเมื่อเข้าชมเว็บไซต์ คุกกี้ช่วยให้เว็บไซต์จดจำการตั้งค่าของท่าน เช่น ภาษา</p>
+			<p>
+				คุกกี้คือไฟล์ข้อมูลขนาดเล็กที่จัดเก็บบนอุปกรณ์ของท่านเมื่อเข้าชมเว็บไซต์ คุกกี้ช่วยให้เว็บไซต์จดจำการตั้งค่าของท่าน เช่น
+				ภาษา
+			</p>
 			<h2 className={h2Class}>2. ประเภทคุกกี้ที่เราใช้</h2>
 			<h3 className={h3Class}>2.1 คุกกี้ที่จำเป็น (Essential Cookies)</h3>
 			<p>คุกกี้เหล่านี้จำเป็นต่อการทำงานของเว็บไซต์ ไม่สามารถปิดได้</p>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Firebase Authentication:</strong> จัดเก็บสถานะการเข้าสู่ระบบ</li>
-				<li><strong className="text-foreground">การตั้งค่าภาษา (fss-locale):</strong> จดจำภาษาที่ท่านเลือก</li>
-				<li><strong className="text-foreground">การตั้งค่าคุกกี้ (fss-cookie-consent):</strong> จดจำการยินยอม</li>
+				<li>
+					<strong className="text-foreground">Firebase Authentication:</strong>{" "}
+					จัดเก็บสถานะการเข้าสู่ระบบ
+				</li>
+				<li>
+					<strong className="text-foreground">การตั้งค่าภาษา (fss-locale):</strong> จดจำภาษาที่ท่านเลือก
+				</li>
+				<li>
+					<strong className="text-foreground">การตั้งค่าคุกกี้ (fss-cookie-consent):</strong> จดจำการยินยอม
+				</li>
 			</ul>
 			<h3 className={h3Class}>2.2 คุกกี้ความปลอดภัย</h3>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Cloudflare Turnstile:</strong> ตรวจสอบว่าท่านเป็นบุคคลจริง ไม่ใช่บอท</li>
-				<li><strong className="text-foreground">Cloudflare CDN:</strong> ส่งเนื้อหาอย่างปลอดภัย</li>
+				<li>
+					<strong className="text-foreground">Cloudflare Turnstile:</strong> ตรวจสอบว่าท่านเป็นบุคคลจริง
+					ไม่ใช่บอท
+				</li>
+				<li>
+					<strong className="text-foreground">Cloudflare CDN:</strong> ส่งเนื้อหาอย่างปลอดภัย
+				</li>
 			</ul>
 			<h3 className={h3Class}>2.3 คุกกี้วิเคราะห์</h3>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Google Analytics 4:</strong> วิเคราะห์การเข้าชมและพฤติกรรมการใช้งาน</li>
-				<li><strong className="text-foreground">Google Tag Manager:</strong> จัดการแท็กวิเคราะห์</li>
+				<li>
+					<strong className="text-foreground">Google Analytics 4:</strong>{" "}
+					วิเคราะห์การเข้าชมและพฤติกรรมการใช้งาน
+				</li>
+				<li>
+					<strong className="text-foreground">Google Tag Manager:</strong> จัดการแท็กวิเคราะห์
+				</li>
 			</ul>
 			<h3 className={h3Class}>2.4 คุกกี้ทางการตลาด</h3>
-			<p>ทำงานเฉพาะเมื่อท่านให้ความยินยอม (opt-in) เท่านั้น สามารถเพิกถอนได้ผ่าน <a href="/cookie-settings" className="text-primary hover:underline">ตั้งค่าคุกกี้</a></p>
+			<p>
+				ทำงานเฉพาะเมื่อท่านให้ความยินยอม (opt-in) เท่านั้น สามารถเพิกถอนได้ผ่าน{" "}
+				<a href="/cookie-settings" className="text-primary hover:underline">
+					ตั้งค่าคุกกี้
+				</a>
+			</p>
 			<h2 className={h2Class}>3. การจัดการคุกกี้</h2>
 			<ul className={ulClass}>
-				<li>ผ่าน <a href="/cookie-settings" className="text-primary hover:underline">หน้าตั้งค่าคุกกี้</a></li>
+				<li>
+					ผ่าน{" "}
+					<a href="/cookie-settings" className="text-primary hover:underline">
+						หน้าตั้งค่าคุกกี้
+					</a>
+				</li>
 				<li>ผ่านการตั้งค่าเบราว์เซอร์ของท่าน</li>
 			</ul>
 			<h2 className={h2Class}>4. ระยะเวลาการจัดเก็บ</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">คุกกี้เซสชัน:</strong> ลบเมื่อปิดเบราว์เซอร์</li>
-				<li><strong className="text-foreground">คุกกี้ถาวร:</strong> สูงสุด 2 ปี</li>
+				<li>
+					<strong className="text-foreground">คุกกี้เซสชัน:</strong> ลบเมื่อปิดเบราว์เซอร์
+				</li>
+				<li>
+					<strong className="text-foreground">คุกกี้ถาวร:</strong> สูงสุด 2 ปี
+				</li>
 			</ul>
 			<h2 className={h2Class}>5. การเปลี่ยนแปลงนโยบาย</h2>
 			<p>เราอาจปรับปรุงนโยบายคุกกี้นี้เป็นครั้งคราว</p>
 			<h2 className={h2Class}>6. ติดต่อเรา</h2>
-			<p>ติดต่อ: <a href="mailto:support@stm23.me" className="text-primary hover:underline">support@stm23.me</a></p>
+			<p>
+				ติดต่อ:{" "}
+				<a href="mailto:info@factorysyncsolutions.com" className="text-primary hover:underline">
+					info@factorysyncsolutions.com
+				</a>
+			</p>
 		</div>
 	);
 }
@@ -380,43 +574,91 @@ function CookiesTh() {
 function CookiesEn() {
 	return (
 		<div className={prose}>
-			<p>FactorySync Solutions ("Service") uses cookies and similar technologies to ensure the Service functions correctly, improve your experience, and analyze website traffic.</p>
+			<p>
+				FactorySync Solutions ("Service") uses cookies and similar technologies to ensure the
+				Service functions correctly, improve your experience, and analyze website traffic.
+			</p>
 			<h2 className={h2Class}>1. What Are Cookies</h2>
-			<p>Cookies are small data files stored on your device when you visit a website. They help the website remember your preferences, such as language settings.</p>
+			<p>
+				Cookies are small data files stored on your device when you visit a website. They help the
+				website remember your preferences, such as language settings.
+			</p>
 			<h2 className={h2Class}>2. Types of Cookies We Use</h2>
 			<h3 className={h3Class}>2.1 Essential Cookies</h3>
 			<p>Required for the website to function and cannot be disabled.</p>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Firebase Authentication:</strong> Stores login state and session data.</li>
-				<li><strong className="text-foreground">Language preference (fss-locale):</strong> Remembers your chosen language.</li>
-				<li><strong className="text-foreground">Cookie consent (fss-cookie-consent):</strong> Remembers your cookie preferences.</li>
+				<li>
+					<strong className="text-foreground">Firebase Authentication:</strong> Stores login state
+					and session data.
+				</li>
+				<li>
+					<strong className="text-foreground">Language preference (fss-locale):</strong> Remembers
+					your chosen language.
+				</li>
+				<li>
+					<strong className="text-foreground">Cookie consent (fss-cookie-consent):</strong>{" "}
+					Remembers your cookie preferences.
+				</li>
 			</ul>
 			<h3 className={h3Class}>2.2 Security Cookies</h3>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Cloudflare Turnstile:</strong> Verifies you are a real person, not a bot.</li>
-				<li><strong className="text-foreground">Cloudflare CDN:</strong> Secure content delivery and threat protection.</li>
+				<li>
+					<strong className="text-foreground">Cloudflare Turnstile:</strong> Verifies you are a real
+					person, not a bot.
+				</li>
+				<li>
+					<strong className="text-foreground">Cloudflare CDN:</strong> Secure content delivery and
+					threat protection.
+				</li>
 			</ul>
 			<h3 className={h3Class}>2.3 Analytics Cookies</h3>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Google Analytics 4:</strong> Analyzes traffic, behavior, and page performance.</li>
-				<li><strong className="text-foreground">Google Tag Manager:</strong> Manages analytics tags.</li>
+				<li>
+					<strong className="text-foreground">Google Analytics 4:</strong> Analyzes traffic,
+					behavior, and page performance.
+				</li>
+				<li>
+					<strong className="text-foreground">Google Tag Manager:</strong> Manages analytics tags.
+				</li>
 			</ul>
 			<h3 className={h3Class}>2.4 Marketing Cookies</h3>
-			<p>Only activated with explicit consent (opt-in). Withdraw via <a href="/cookie-settings" className="text-primary hover:underline">Cookie Settings</a>.</p>
+			<p>
+				Only activated with explicit consent (opt-in). Withdraw via{" "}
+				<a href="/cookie-settings" className="text-primary hover:underline">
+					Cookie Settings
+				</a>
+				.
+			</p>
 			<h2 className={h2Class}>3. Managing Cookies</h2>
 			<ul className={ulClass}>
-				<li>Via the <a href="/cookie-settings" className="text-primary hover:underline">Cookie Settings page</a>.</li>
+				<li>
+					Via the{" "}
+					<a href="/cookie-settings" className="text-primary hover:underline">
+						Cookie Settings page
+					</a>
+					.
+				</li>
 				<li>Via your browser settings.</li>
 			</ul>
 			<h2 className={h2Class}>4. Retention Period</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Session cookies:</strong> Deleted when you close your browser.</li>
-				<li><strong className="text-foreground">Persistent cookies:</strong> Up to 2 years.</li>
+				<li>
+					<strong className="text-foreground">Session cookies:</strong> Deleted when you close your
+					browser.
+				</li>
+				<li>
+					<strong className="text-foreground">Persistent cookies:</strong> Up to 2 years.
+				</li>
 			</ul>
 			<h2 className={h2Class}>5. Changes to This Policy</h2>
 			<p>We may update this Cookie Policy from time to time.</p>
 			<h2 className={h2Class}>6. Contact</h2>
-			<p>Contact: <a href="mailto:support@stm23.me" className="text-primary hover:underline">support@stm23.me</a></p>
+			<p>
+				Contact:{" "}
+				<a href="mailto:info@factorysyncsolutions.com" className="text-primary hover:underline">
+					info@factorysyncsolutions.com
+				</a>
+			</p>
 		</div>
 	);
 }
@@ -424,12 +666,22 @@ function CookiesEn() {
 function MarketingTh() {
 	return (
 		<div className={prose}>
-			<p>นโยบายฉบับนี้อธิบายวิธีการที่ FactorySync Solutions ("บริการ") เก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลเพื่อวัตถุประสงค์ทางการตลาด สอดคล้องกับ PDPA</p>
+			<p>
+				นโยบายฉบับนี้อธิบายวิธีการที่ FactorySync Solutions ("บริการ") เก็บรวบรวม ใช้
+				และเปิดเผยข้อมูลส่วนบุคคลเพื่อวัตถุประสงค์ทางการตลาด สอดคล้องกับ PDPA
+			</p>
 			<h2 className={h2Class}>1. ข้อมูลที่ใช้เพื่อการตลาด</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">ข้อมูลติดต่อ:</strong> ชื่อ อีเมล เบอร์โทรศัพท์</li>
-				<li><strong className="text-foreground">ข้อมูลบริษัท:</strong> ชื่อบริษัท ประเภทอุตสาหกรรม ขนาดบริษัท</li>
-				<li><strong className="text-foreground">ข้อมูลการใช้งาน:</strong> ผลการประเมิน คะแนน และพฤติกรรมการใช้งาน</li>
+				<li>
+					<strong className="text-foreground">ข้อมูลติดต่อ:</strong> ชื่อ อีเมล เบอร์โทรศัพท์
+				</li>
+				<li>
+					<strong className="text-foreground">ข้อมูลบริษัท:</strong> ชื่อบริษัท ประเภทอุตสาหกรรม ขนาดบริษัท
+				</li>
+				<li>
+					<strong className="text-foreground">ข้อมูลการใช้งาน:</strong> ผลการประเมิน คะแนน
+					และพฤติกรรมการใช้งาน
+				</li>
 			</ul>
 			<h2 className={h2Class}>2. วัตถุประสงค์ทางการตลาด</h2>
 			<ul className={ulClass}>
@@ -440,20 +692,34 @@ function MarketingTh() {
 				<li>ทำแบบสำรวจความพึงพอใจหรือวิจัยตลาด</li>
 			</ul>
 			<h2 className={h2Class}>3. ฐานทางกฎหมาย</h2>
-			<p>ดำเนินการบนฐาน <strong className="text-foreground">ความยินยอม</strong> ของท่านเท่านั้น ท่านสามารถให้หรือไม่ให้ความยินยอมได้โดยไม่กระทบการใช้บริการหลัก</p>
+			<p>
+				ดำเนินการบนฐาน <strong className="text-foreground">ความยินยอม</strong> ของท่านเท่านั้น
+				ท่านสามารถให้หรือไม่ให้ความยินยอมได้โดยไม่กระทบการใช้บริการหลัก
+			</p>
 			<h2 className={h2Class}>4. ช่องทางการสื่อสาร</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">อีเมล:</strong> จดหมายข่าว อัปเดต ข้อเสนอพิเศษ</li>
-				<li><strong className="text-foreground">การแจ้งเตือนบนเว็บไซต์:</strong> ฟีเจอร์ใหม่หรือการปรับปรุงบริการ</li>
+				<li>
+					<strong className="text-foreground">อีเมล:</strong> จดหมายข่าว อัปเดต ข้อเสนอพิเศษ
+				</li>
+				<li>
+					<strong className="text-foreground">การแจ้งเตือนบนเว็บไซต์:</strong> ฟีเจอร์ใหม่หรือการปรับปรุงบริการ
+				</li>
 			</ul>
 			<h2 className={h2Class}>5. การให้และเพิกถอนความยินยอม</h2>
 			<ul className={ulClass}>
-				<li>ให้ความยินยอมผ่าน <a href="/cookie-settings" className="text-primary hover:underline">ตั้งค่าคุกกี้</a></li>
-				<li>เพิกถอนได้ทุกเมื่อผ่านตั้งค่าคุกกี้ หรือลิงก์ยกเลิกในอีเมล หรือติดต่อ support@stm23.me</li>
+				<li>
+					ให้ความยินยอมผ่าน{" "}
+					<a href="/cookie-settings" className="text-primary hover:underline">
+						ตั้งค่าคุกกี้
+					</a>
+				</li>
+				<li>เพิกถอนได้ทุกเมื่อผ่านตั้งค่าคุกกี้ หรือลิงก์ยกเลิกในอีเมล หรือติดต่อ info@factorysyncsolutions.com</li>
 			</ul>
 			<h2 className={h2Class}>6. การแบ่งปันข้อมูล</h2>
 			<ul className={ulClass}>
-				<li>เราจะ <strong className="text-foreground">ไม่ขาย</strong> ข้อมูลส่วนบุคคลให้แก่บุคคลที่สาม</li>
+				<li>
+					เราจะ <strong className="text-foreground">ไม่ขาย</strong> ข้อมูลส่วนบุคคลให้แก่บุคคลที่สาม
+				</li>
 				<li>อาจใช้ Google Analytics เพื่อวิเคราะห์แคมเปญ</li>
 			</ul>
 			<h2 className={h2Class}>7. ระยะเวลาการเก็บรักษา</h2>
@@ -467,7 +733,12 @@ function MarketingTh() {
 			<h2 className={h2Class}>9. การเปลี่ยนแปลงนโยบาย</h2>
 			<p>เราอาจปรับปรุงนโยบายนี้เป็นครั้งคราว</p>
 			<h2 className={h2Class}>10. ติดต่อเรา</h2>
-			<p>ติดต่อ: <a href="mailto:support@stm23.me" className="text-primary hover:underline">support@stm23.me</a></p>
+			<p>
+				ติดต่อ:{" "}
+				<a href="mailto:info@factorysyncsolutions.com" className="text-primary hover:underline">
+					info@factorysyncsolutions.com
+				</a>
+			</p>
 		</div>
 	);
 }
@@ -475,12 +746,23 @@ function MarketingTh() {
 function MarketingEn() {
 	return (
 		<div className={prose}>
-			<p>This policy explains how FactorySync Solutions ("Service") collects, uses, and discloses your personal data for marketing purposes, in compliance with Thailand's PDPA.</p>
+			<p>
+				This policy explains how FactorySync Solutions ("Service") collects, uses, and discloses
+				your personal data for marketing purposes, in compliance with Thailand's PDPA.
+			</p>
 			<h2 className={h2Class}>1. Data Used for Marketing</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Contact data:</strong> Name, email, phone number.</li>
-				<li><strong className="text-foreground">Company data:</strong> Company name, industry type, company size.</li>
-				<li><strong className="text-foreground">Usage data:</strong> Assessment results, scores, and website behavior.</li>
+				<li>
+					<strong className="text-foreground">Contact data:</strong> Name, email, phone number.
+				</li>
+				<li>
+					<strong className="text-foreground">Company data:</strong> Company name, industry type,
+					company size.
+				</li>
+				<li>
+					<strong className="text-foreground">Usage data:</strong> Assessment results, scores, and
+					website behavior.
+				</li>
 			</ul>
 			<h2 className={h2Class}>2. Marketing Purposes</h2>
 			<ul className={ulClass}>
@@ -491,20 +773,39 @@ function MarketingEn() {
 				<li>Conduct satisfaction surveys or market research.</li>
 			</ul>
 			<h2 className={h2Class}>3. Legal Basis</h2>
-			<p>Processing is based solely on your <strong className="text-foreground">Consent</strong>. You may freely give or withhold consent without affecting your use of the core Service.</p>
+			<p>
+				Processing is based solely on your <strong className="text-foreground">Consent</strong>. You
+				may freely give or withhold consent without affecting your use of the core Service.
+			</p>
 			<h2 className={h2Class}>4. Communication Channels</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Email:</strong> Newsletters, updates, special offers.</li>
-				<li><strong className="text-foreground">Website notifications:</strong> New features or improvements.</li>
+				<li>
+					<strong className="text-foreground">Email:</strong> Newsletters, updates, special offers.
+				</li>
+				<li>
+					<strong className="text-foreground">Website notifications:</strong> New features or
+					improvements.
+				</li>
 			</ul>
 			<h2 className={h2Class}>5. Giving and Withdrawing Consent</h2>
 			<ul className={ulClass}>
-				<li>Give consent via <a href="/cookie-settings" className="text-primary hover:underline">Cookie Settings</a>.</li>
-				<li>Withdraw at any time via Cookie Settings, email unsubscribe link, or contact support@stm23.me.</li>
+				<li>
+					Give consent via{" "}
+					<a href="/cookie-settings" className="text-primary hover:underline">
+						Cookie Settings
+					</a>
+					.
+				</li>
+				<li>
+					Withdraw at any time via Cookie Settings, email unsubscribe link, or contact
+					info@factorysyncsolutions.com.
+				</li>
 			</ul>
 			<h2 className={h2Class}>6. Data Sharing</h2>
 			<ul className={ulClass}>
-				<li>We will <strong className="text-foreground">never sell</strong> your personal data.</li>
+				<li>
+					We will <strong className="text-foreground">never sell</strong> your personal data.
+				</li>
 				<li>We may use Google Analytics to analyze campaign performance.</li>
 			</ul>
 			<h2 className={h2Class}>7. Retention Period</h2>
@@ -518,7 +819,12 @@ function MarketingEn() {
 			<h2 className={h2Class}>9. Changes to This Policy</h2>
 			<p>We may update this Marketing Policy from time to time.</p>
 			<h2 className={h2Class}>10. Contact</h2>
-			<p>Contact: <a href="mailto:support@stm23.me" className="text-primary hover:underline">support@stm23.me</a></p>
+			<p>
+				Contact:{" "}
+				<a href="mailto:info@factorysyncsolutions.com" className="text-primary hover:underline">
+					info@factorysyncsolutions.com
+				</a>
+			</p>
 		</div>
 	);
 }
@@ -528,18 +834,35 @@ function CookieSettingsTh() {
 		<div className={prose}>
 			<p>ท่านสามารถจัดการความยินยอมคุกกี้สำหรับเว็บไซต์ FactorySync Solutions ได้ผ่านวิธีการต่อไปนี้</p>
 			<h2 className={h2Class}>คุกกี้ที่จำเป็น</h2>
-			<p>คุกกี้เหล่านี้ไม่สามารถปิดได้ เนื่องจากจำเป็นต่อการทำงานของเว็บไซต์ ได้แก่ การยืนยันตัวตน การตั้งค่าภาษา และการจดจำการตั้งค่าคุกกี้</p>
+			<p>
+				คุกกี้เหล่านี้ไม่สามารถปิดได้ เนื่องจากจำเป็นต่อการทำงานของเว็บไซต์ ได้แก่ การยืนยันตัวตน การตั้งค่าภาษา
+				และการจดจำการตั้งค่าคุกกี้
+			</p>
 			<h2 className={h2Class}>คุกกี้วิเคราะห์และการตลาด</h2>
 			<p>สำหรับคุกกี้วิเคราะห์ (Google Analytics) และคุกกี้การตลาด ท่านสามารถจัดการได้ผ่านการตั้งค่าเบราว์เซอร์</p>
 			<h2 className={h2Class}>วิธีจัดการคุกกี้ผ่านเบราว์เซอร์</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Chrome:</strong> การตั้งค่า → ความเป็นส่วนตัวและความปลอดภัย → คุกกี้</li>
-				<li><strong className="text-foreground">Firefox:</strong> การตั้งค่า → ความเป็นส่วนตัวและความปลอดภัย</li>
-				<li><strong className="text-foreground">Safari:</strong> การตั้งค่า → ความเป็นส่วนตัว</li>
-				<li><strong className="text-foreground">Edge:</strong> การตั้งค่า → คุกกี้และการอนุญาตไซต์</li>
+				<li>
+					<strong className="text-foreground">Chrome:</strong> การตั้งค่า → ความเป็นส่วนตัวและความปลอดภัย →
+					คุกกี้
+				</li>
+				<li>
+					<strong className="text-foreground">Firefox:</strong> การตั้งค่า → ความเป็นส่วนตัวและความปลอดภัย
+				</li>
+				<li>
+					<strong className="text-foreground">Safari:</strong> การตั้งค่า → ความเป็นส่วนตัว
+				</li>
+				<li>
+					<strong className="text-foreground">Edge:</strong> การตั้งค่า → คุกกี้และการอนุญาตไซต์
+				</li>
 			</ul>
 			<h2 className={h2Class}>ติดต่อเรา</h2>
-			<p>หากมีคำถามเกี่ยวกับคุกกี้ กรุณาติดต่อ: <a href="mailto:support@stm23.me" className="text-primary hover:underline">support@stm23.me</a></p>
+			<p>
+				หากมีคำถามเกี่ยวกับคุกกี้ กรุณาติดต่อ:{" "}
+				<a href="mailto:info@factorysyncsolutions.com" className="text-primary hover:underline">
+					info@factorysyncsolutions.com
+				</a>
+			</p>
 		</div>
 	);
 }
@@ -547,20 +870,43 @@ function CookieSettingsTh() {
 function CookieSettingsEn() {
 	return (
 		<div className={prose}>
-			<p>You can manage cookie consent for the FactorySync Solutions website through the following methods.</p>
+			<p>
+				You can manage cookie consent for the FactorySync Solutions website through the following
+				methods.
+			</p>
 			<h2 className={h2Class}>Essential Cookies</h2>
-			<p>These cookies cannot be disabled as they are required for the website to function: authentication, language preferences, and consent tracking.</p>
+			<p>
+				These cookies cannot be disabled as they are required for the website to function:
+				authentication, language preferences, and consent tracking.
+			</p>
 			<h2 className={h2Class}>Analytics and Marketing Cookies</h2>
-			<p>For analytics (Google Analytics) and marketing cookies, you can manage them through your browser settings.</p>
+			<p>
+				For analytics (Google Analytics) and marketing cookies, you can manage them through your
+				browser settings.
+			</p>
 			<h2 className={h2Class}>Managing Cookies via Browser</h2>
 			<ul className={ulClass}>
-				<li><strong className="text-foreground">Chrome:</strong> Settings → Privacy and Security → Cookies</li>
-				<li><strong className="text-foreground">Firefox:</strong> Settings → Privacy & Security</li>
-				<li><strong className="text-foreground">Safari:</strong> Preferences → Privacy</li>
-				<li><strong className="text-foreground">Edge:</strong> Settings → Cookies and site permissions</li>
+				<li>
+					<strong className="text-foreground">Chrome:</strong> Settings → Privacy and Security →
+					Cookies
+				</li>
+				<li>
+					<strong className="text-foreground">Firefox:</strong> Settings → Privacy & Security
+				</li>
+				<li>
+					<strong className="text-foreground">Safari:</strong> Preferences → Privacy
+				</li>
+				<li>
+					<strong className="text-foreground">Edge:</strong> Settings → Cookies and site permissions
+				</li>
 			</ul>
 			<h2 className={h2Class}>Contact Us</h2>
-			<p>If you have questions about cookies, contact: <a href="mailto:support@stm23.me" className="text-primary hover:underline">support@stm23.me</a></p>
+			<p>
+				If you have questions about cookies, contact:{" "}
+				<a href="mailto:info@factorysyncsolutions.com" className="text-primary hover:underline">
+					info@factorysyncsolutions.com
+				</a>
+			</p>
 		</div>
 	);
 }
@@ -588,32 +934,103 @@ const CONTENT_MAP: Record<LegalPageType, Record<Locale, React.ReactNode>> = {
 };
 
 // ---------------------------------------------------------------------------
+// Sidebar
+// ---------------------------------------------------------------------------
+
+const LEGAL_NAV: LegalPageType[] = ["terms", "privacy", "cookies", "marketing", "cookie-settings"];
+
+function LegalSidebar({ page }: { page: LegalPageType }) {
+	const { locale, t } = useLocale();
+
+	return (
+		<aside className="w-full shrink-0 md:w-64">
+			<div className="overflow-hidden rounded-xl border border-sky-200 bg-white p-2 shadow-xs md:sticky md:top-20 dark:border-cyan-300/15 dark:bg-[#06172d]">
+				<a
+					href="/"
+					className="block rounded-md px-3 py-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+				>
+					{t("nav.home")}
+				</a>
+				<nav className="mt-1 flex flex-col gap-0.5" aria-label="Legal pages">
+					{LEGAL_NAV.map((p) => {
+						const active = p === page;
+						return (
+							<a
+								key={p}
+								href={`/${p}`}
+								aria-current={active ? "page" : undefined}
+								className={cn(
+									"flex items-center justify-between gap-2 rounded-md px-3 py-2.5 text-sm leading-snug transition-colors",
+									active
+										? "border-l-[3px] border-blue-600 bg-blue-50 font-semibold text-blue-700 dark:border-cyan-300 dark:bg-cyan-300/10 dark:text-cyan-300"
+										: "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
+								)}
+							>
+								<span>{PAGE_TITLES[p][locale]}</span>
+								{active && (
+									<span aria-hidden="true" className="shrink-0">
+										→
+									</span>
+								)}
+							</a>
+						);
+					})}
+				</nav>
+			</div>
+		</aside>
+	);
+}
+
+// ---------------------------------------------------------------------------
 // Inner + root
 // ---------------------------------------------------------------------------
 
-function LegalInner({ page, appUrl, version }: { page: LegalPageType; appUrl: string; version: string }) {
-	const { locale } = useLocale();
-	const { theme, setTheme } = useTheme();
+function LegalInner({
+	page,
+	appUrl,
+	version,
+}: { page: LegalPageType; appUrl: string; version: string }) {
+	const { locale, t } = useLocale();
+	const { theme, resolvedTheme, setTheme } = useTheme();
 	const title = PAGE_TITLES[page][locale];
 
 	return (
-		<div className="min-h-screen flex flex-col bg-background text-foreground">
-			<NavBar appUrl={appUrl} theme={theme} setTheme={setTheme} />
+		<div className="min-h-screen flex flex-col bg-white text-slate-900 dark:bg-[#041225] dark:text-slate-100">
+			<NavBar appUrl={appUrl} theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
 			<main className="flex-1">
-				<div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
-					<div className="mb-2">
-						<a href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">← {locale === "th" ? "กลับหน้าหลัก" : "Back to home"}</a>
-					</div>
-					<h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">{title}</h1>
-					<p className="text-sm text-muted-foreground mb-8">
+				<div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+					{/* Breadcrumb */}
+					<nav
+						className="mb-3 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
+						aria-label="Breadcrumb"
+					>
+						<a
+							href="/"
+							className="transition-colors hover:text-slate-900 dark:hover:text-white"
+						>
+							{t("nav.home")}
+						</a>
+						<span aria-hidden="true">/</span>
+						<span className="text-slate-700 dark:text-slate-200">{title}</span>
+					</nav>
+
+					<h1 className="text-2xl sm:text-3xl font-bold text-slate-950 mb-1 dark:text-white">
+						{title}
+					</h1>
+					<p className="text-sm text-slate-500 mb-6 dark:text-slate-400">
 						{locale === "th" ? "แก้ไขล่าสุด: 7 มีนาคม 2568" : "Last updated: March 7, 2025"}
 					</p>
-					<div className="bg-card border rounded-xl p-6 sm:p-8">
-						{CONTENT_MAP[page][locale]}
+
+					{/* Sidebar + content */}
+					<div className="flex flex-col gap-6 md:flex-row md:items-start">
+						<LegalSidebar page={page} />
+						<div className="min-w-0 flex-1 rounded-xl border border-sky-200 bg-white p-6 sm:p-8 shadow-xs dark:border-cyan-300/15 dark:bg-[#06172d]">
+							{CONTENT_MAP[page][locale]}
+						</div>
 					</div>
 				</div>
 			</main>
-			<Footer version={version} />
+			<Footer version={version} resolvedTheme={resolvedTheme} />
 		</div>
 	);
 }

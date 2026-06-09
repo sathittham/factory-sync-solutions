@@ -1,79 +1,50 @@
-import { motion, useInView } from "motion/react";
-import { useRef, type ReactNode } from "react";
+import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
+
+const DELAY_CLASS: Record<number, string> = {
+	0: "",
+	1: "fade-in-d1",
+	2: "fade-in-d2",
+	3: "fade-in-d3",
+	4: "fade-in-d4",
+	5: "fade-in-d5",
+};
+
+function delayClass(delay: number): string {
+	const key = Math.round(delay / 0.08);
+	return DELAY_CLASS[key] ?? "";
+}
 
 export function FadeIn({
-  children,
-  delay = 0,
-  y = 24,
-  className,
+	children,
+	delay = 0,
+	className,
 }: {
-  children: ReactNode;
-  delay?: number;
-  y?: number;
-  className?: string;
+	children: ReactNode;
+	delay?: number;
+	y?: number;
+	className?: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y }}
-      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y }}
-      transition={{ duration: 0.5, delay, ease: [0.21, 0.47, 0.32, 0.98] }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
+	return <div className={cn("fade-in", delayClass(delay), className)}>{children}</div>;
 }
 
 export function StaggerChildren({
-  children,
-  stagger = 0.08,
-  className,
+	children,
+	className,
 }: {
-  children: ReactNode;
-  stagger?: number;
-  className?: string;
+	children: ReactNode;
+	stagger?: number;
+	className?: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-40px" });
-  return (
-    <motion.div
-      ref={ref}
-      initial="hidden"
-      animate={inView ? "show" : "hidden"}
-      variants={{
-        hidden: {},
-        show: { transition: { staggerChildren: stagger } },
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
+	return <div className={className}>{children}</div>;
 }
 
 export function StaggerItem({
-  children,
-  className,
+	children,
+	className,
 }: {
-  children: ReactNode;
-  className?: string;
+	children: ReactNode;
+	className?: string;
 }) {
-  return (
-    <motion.div
-      variants={{
-        hidden: { opacity: 0, y: 20 },
-        show: {
-          opacity: 1,
-          y: 0,
-          transition: { duration: 0.45, ease: [0.21, 0.47, 0.32, 0.98] },
-        },
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
+	return <div className={cn("stagger-item", className)}>{children}</div>;
 }

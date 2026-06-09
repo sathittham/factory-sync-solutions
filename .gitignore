@@ -49,3 +49,6 @@ apps/api/docs/          # auto-generated Swagger docs
 # Logs
 *.log
 npm-debug.log*
+
+# Playwright MCP output
+.playwright-mcp/
