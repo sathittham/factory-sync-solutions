@@ -50,8 +50,14 @@ git push -u origin feature/short-description
 ## Branch Strategy
 
 ```
-main     → Production (protected, requires PR)
+feature/* → develop   (squash/ff)   day-to-day work integrates here
+develop   → staging   (fast-forward) promote a release candidate
+staging   → main       (merge)       promote to production (protected)
 ```
+
+- `develop` — active integration branch; all feature/bugfix branches land here first
+- `staging` — release candidate; tagged `v*-staging` to deploy & verify on staging
+- `main` — production (protected); tagged `v*.*.*` to deploy to production
 
 ## Deployment (via tags)
 
@@ -60,12 +66,41 @@ v*-staging   → staging environment (GitHub Actions)
 v*.*.*       → production environment (GitHub Actions)
 ```
 
+## Release Promotion
+
+Promote a release through staging before production. Bump the minor for
+features, patch for fixes (latest tag wins — check `git tag --sort=-creatordate`).
+
+```bash
+# 1. Promote develop → staging (fast-forward) and deploy to staging
+git checkout staging && git merge --ff-only develop
+git push origin staging
+git tag -a vX.Y.Z-staging -m "Release vX.Y.Z to staging: <summary>"
+git push origin vX.Y.Z-staging        # → triggers staging deploy
+
+# 2. VERIFY on staging (smoke test the deployed URLs) before continuing.
+
+# 3. Promote staging → main and deploy to production
+git checkout main && git merge --ff-only staging   # or open a PR if main is protected
+git push origin main
+git tag -a vX.Y.Z -m "Release vX.Y.Z: <summary>"
+git push origin vX.Y.Z                 # → triggers production deploy
+```
+
+> If `main` has diverged and its commits are superseded (e.g. a structural
+> rebrand on `develop`), reconcile so the new tree wins while keeping main's
+> history: branch off the release tip, `git merge -s ours main`, then
+> fast-forward `main` to it. Verify `git diff --stat develop main` is empty
+> before pushing.
+
 ## Merge Strategy
 
 | Source → Target | Method |
 |-----------------|--------|
-| `feature/*` → `main` | Squash Merge |
-| `bugfix/*` → `main` | Squash Merge |
+| `feature/*` → `develop` | Squash Merge (or fast-forward) |
+| `bugfix/*` → `develop` | Squash Merge |
+| `develop` → `staging` | Fast-forward |
+| `staging` → `main` | Fast-forward / Merge |
 | `hotfix/*` → `main` | Merge Commit |
 
 ## Rules
@@ -73,8 +108,9 @@ v*.*.*       → production environment (GitHub Actions)
 - Check current branch before making changes
 - Never force push to `main`
 - Create feature branches for all code changes — never commit directly to `main`
+- Promote releases through `staging` and verify before tagging `main` for production
 - Delete branches after merge
 - Never commit `.env*`, `firebase-sa.json`, or any credentials
 
-*Version: 1.0.0*
-*Last updated: 04 June 2026*
+*Version: 1.1.0*
+*Last updated: 09 June 2026*
