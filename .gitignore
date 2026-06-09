@@ -69,3 +69,6 @@ npm-debug.log*
 
 # Playwright MCP output
 .playwright-mcp/
+
+# Local symlink to shared personal tooling (points outside the repo)
+.claude/skills/shadcn
