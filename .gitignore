@@ -27,7 +27,11 @@ firebase-sa.json
 # IDE
 .idea/
 .vscode/
-.claude/
+# Ignore .claude/ by default, but track shared team config (workflows, rules, agents).
+.claude/*
+!.claude/workflows/
+!.claude/rules/
+!.claude/agents/
 *.swp
 *.swo
 *~
