@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     env:
-      GCP_PROJECT_ID: factory-health-check
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -26,19 +26,19 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Docker for GCR
-        run: gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
+        run: gcloud auth configure-docker asia-southeast3-docker.pkg.dev --quiet
 
       - name: Build and push Docker image
         run: |
-          IMAGE=asia-southeast1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run/factory-sync-solutions-api-staging:${{ github.sha }}
+          IMAGE=asia-southeast3-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run/factory-sync-solutions-api-staging:${{ github.sha }}
           docker build -t $IMAGE apps/fs-backend
           docker push $IMAGE
 
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy factory-sync-solutions-api-staging \
-            --image=asia-southeast1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run/factory-sync-solutions-api-staging:${{ github.sha }} \
-            --region=asia-southeast1 \
+            --image=asia-southeast3-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run/factory-sync-solutions-api-staging:${{ github.sha }} \
+            --region=asia-southeast3 \
             --platform=managed \
             --allow-unauthenticated \
             --set-env-vars="ENVIRONMENT=staging,RESEND_API_KEY=${{ secrets.RESEND_API_KEY }},CF_TURNSTILE_SECRET=${{ secrets.CF_TURNSTILE_SECRET }},SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }},SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }},ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }}"

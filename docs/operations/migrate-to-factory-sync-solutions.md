@@ -27,7 +27,7 @@ new project **`factory-sync-solutions`**, then rename the repo to match.
 
 ## Identifiers NOT changing (do not touch)
 
-- Region: `asia-southeast1`
+- Region: `asia-southeast3`
 - Cloud Run service names: `factory-sync-solutions-api`, `factory-sync-solutions-api-staging` (already brand-named)
 - Artifact Registry repo: `cloud-run`
 - Cloudflare Pages projects: `factory-sync-solutions`, `factory-sync-solutions-staging`
@@ -63,7 +63,7 @@ gcloud services enable \
 
 # Artifact Registry repo (matches the docker.pkg.dev/<proj>/cloud-run/... path in workflows)
 gcloud artifacts repositories create cloud-run \
-  --repository-format=docker --location=asia-southeast1 \
+  --repository-format=docker --location=asia-southeast3 \
   --project=factory-sync-solutions
 ```
 
@@ -75,7 +75,7 @@ gcloud artifacts repositories create cloud-run \
 3. **Project settings → Your apps → Web app** → register a web app → copy the config:
    `apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId`.
    These feed the new `apps/fs-app-web/.env.*` (Phase 7).
-4. **Firestore** → create database in `asia-southeast1` (match the old location/mode).
+4. **Firestore** → create database in `asia-southeast3` (match the old location/mode).
 
 ## Phase 3 — Service account 👤
 
@@ -102,7 +102,7 @@ gcloud iam service-accounts keys create firebase-sa.json \
 
 ```bash
 # 1. Export from OLD project to a GCS bucket
-gsutil mb -l asia-southeast1 gs://fhc-migration-export
+gsutil mb -l asia-southeast3 gs://fhc-migration-export
 gcloud firestore export gs://fhc-migration-export \
   --project=factory-health-check
 
