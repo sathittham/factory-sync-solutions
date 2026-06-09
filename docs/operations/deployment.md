@@ -65,7 +65,7 @@ gcloud services enable firestore.googleapis.com
 | Setting | Value |
 |---------|-------|
 | Runtime | Docker (Go binary) |
-| Region | `asia-southeast1` |
+| Region | `asia-southeast3` |
 | Allow unauthenticated | Yes (API handles auth internally) |
 
 ### Manual Deployment
@@ -74,14 +74,14 @@ gcloud services enable firestore.googleapis.com
 cd apps/api
 
 # Build and push Docker image
-IMAGE=asia-southeast1-docker.pkg.dev/<PROJECT_ID>/cloud-run/factory-sync-solutions-api:latest
+IMAGE=asia-southeast3-docker.pkg.dev/<PROJECT_ID>/cloud-run/factory-sync-solutions-api:latest
 docker build -t $IMAGE .
 docker push $IMAGE
 
 # Deploy to Cloud Run
 gcloud run deploy factory-sync-solutions-api \
   --image=$IMAGE \
-  --region=asia-southeast1 \
+  --region=asia-southeast3 \
   --platform=managed \
   --allow-unauthenticated \
   --set-env-vars="ENVIRONMENT=staging,ALLOWED_ORIGINS=https://factory-sync-solutions-staging.pages.dev"
@@ -136,17 +136,17 @@ deploy-backend:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
     - uses: google-github-actions/setup-gcloud@v2
     - name: Configure Docker for Artifact Registry
-      run: gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
+      run: gcloud auth configure-docker asia-southeast3-docker.pkg.dev --quiet
     - name: Build and push Docker image
       run: |
-        IMAGE=asia-southeast1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID || 'factory-health-check' }}/cloud-run/factory-sync-solutions-api:${{ github.sha }}
+        IMAGE=asia-southeast3-docker.pkg.dev/${{ vars.GCP_PROJECT_ID || 'factory-sync-solutions' }}/cloud-run/factory-sync-solutions-api:${{ github.sha }}
         docker build -t $IMAGE apps/api
         docker push $IMAGE
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy factory-sync-solutions-api \
-          --image=asia-southeast1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID || 'factory-health-check' }}/cloud-run/factory-sync-solutions-api:${{ github.sha }} \
-          --region=asia-southeast1 \
+          --image=asia-southeast3-docker.pkg.dev/${{ vars.GCP_PROJECT_ID || 'factory-sync-solutions' }}/cloud-run/factory-sync-solutions-api:${{ github.sha }} \
+          --region=asia-southeast3 \
           --platform=managed \
           --allow-unauthenticated \
           --set-env-vars="ENVIRONMENT=production,RESEND_API_KEY=${{ secrets.RESEND_API_KEY }},..."
@@ -188,7 +188,7 @@ After deploying to any environment:
 1. **Health check**: `curl https://<API_URL>/healthz`
 2. **Smoke test**: Sign in with Google -> register -> submit quiz -> view result
 3. **Check Slack**: Verify notifications arrive in `#registrations` and `#quiz-results`
-4. **Check logs**: `gcloud run services logs read factory-sync-solutions-api --region=asia-southeast1`
+4. **Check logs**: `gcloud run services logs read factory-sync-solutions-api --region=asia-southeast3`
 
 ## Rollback
 
@@ -200,12 +200,12 @@ Cloudflare Pages supports instant rollback to any previous deployment from the d
 
 ```bash
 # List Cloud Run revisions
-gcloud run revisions list --service=factory-sync-solutions-api --region=asia-southeast1
+gcloud run revisions list --service=factory-sync-solutions-api --region=asia-southeast3
 
 # Route traffic to a previous revision
 gcloud run services update-traffic factory-sync-solutions-api \
   --to-revisions=<REVISION_NAME>=100 \
-  --region=asia-southeast1
+  --region=asia-southeast3
 ```
 
 ## Monitoring After Deploy
