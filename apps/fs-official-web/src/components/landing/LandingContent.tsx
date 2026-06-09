@@ -5,9 +5,9 @@ import { buttonVariants } from "@/components/ui/button";
 import heroBackground from "@/fs-bg.png";
 import { type Locale, LocaleProvider, useLocale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import fsDarkLogo from "@shared/brand/fs-dark.png";
+import fsLightLogo from "@shared/brand/fs-light.png";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import fsDarkLogo from "../../../fs-dark.png";
-import fsLightLogo from "../../../fs-light.png";
 
 // ---------------------------------------------------------------------------
 // Theme

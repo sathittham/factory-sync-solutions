@@ -4,8 +4,9 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"dev": "astro dev",
-		"build": "astro build",
+		"sync:favicon": "node ../../packages/shared/scripts/copy-favicon.mjs public",
+		"dev": "npm run sync:favicon && astro dev",
+		"build": "npm run sync:favicon && astro build",
 		"preview": "astro preview",
 		"astro": "astro",
 		"lint": "biome check .",
@@ -13,7 +14,7 @@
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",
-		"build:staging": "astro build --mode staging",
+		"build:staging": "npm run sync:favicon && astro build --mode staging",
 		"deploy:staging": "npm run build:staging && npx wrangler pages deploy dist --project-name=factory-sync-solutions-official-staging --branch=staging",
 		"deploy:prod": "npm run build && npx wrangler pages deploy dist --project-name=factory-sync-solutions-official --branch=main"
 	},

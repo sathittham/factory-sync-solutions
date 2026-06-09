@@ -4,8 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "sync:favicon": "node ../../packages/shared/scripts/copy-favicon.mjs public",
+    "dev": "npm run sync:favicon && vite",
+    "build": "npm run sync:favicon && tsc -b && vite build",
     "preview": "vite preview",
     "lint": "biome check .",
     "lint:fix": "biome check --fix .",
@@ -15,7 +16,7 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
-    "build:staging": "tsc -b && vite build --mode staging",
+    "build:staging": "npm run sync:favicon && tsc -b && vite build --mode staging",
     "deploy:staging": "npm run build:staging && npx wrangler pages deploy dist --project-name=factory-sync-solutions-staging --branch=staging",
     "deploy:prod": "npm run build && npx wrangler pages deploy dist --project-name=factory-sync-solutions --branch=main"
   },

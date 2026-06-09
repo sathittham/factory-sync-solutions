@@ -39,6 +39,16 @@ firebase-sa.json
 *.swo
 *~
 
+# Favicons synced into each app's public/ from packages/shared/favicon
+# at build/dev time (see sync:favicon). Edit the shared source, not these.
+apps/*/public/favicon.ico
+apps/*/public/favicon-16x16.png
+apps/*/public/favicon-32x32.png
+apps/*/public/apple-touch-icon.png
+apps/*/public/android-chrome-192x192.png
+apps/*/public/android-chrome-512x512.png
+apps/*/public/site.webmanifest
+
 # OS
 .DS_Store
 Thumbs.db
