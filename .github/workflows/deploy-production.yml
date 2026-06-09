@@ -153,3 +153,90 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy apps/fs-official-web/dist --project-name=factory-sync-solutions-official --branch=main
+
+  notify:
+    name: Notify Slack
+    needs: [test, changes, deploy-backend, deploy-frontend, deploy-official]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send deploy summary to Slack
+        env:
+          SLACK_WEBHOOK_DEPLOY: ${{ secrets.SLACK_WEBHOOK_DEPLOY }}
+          ENVIRONMENT: production
+          TEST_RESULT: ${{ needs.test.result }}
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          BACKEND_RESULT: ${{ needs.deploy-backend.result }}
+          FRONTEND_RESULT: ${{ needs.deploy-frontend.result }}
+          OFFICIAL_RESULT: ${{ needs.deploy-official.result }}
+          TAG: ${{ github.ref_name }}
+          ACTOR: ${{ github.actor }}
+          SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          SERVER_URL: ${{ github.server_url }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_DEPLOY" ]; then
+            echo "SLACK_WEBHOOK_DEPLOY not set — skipping Slack notification."
+            exit 0
+          fi
+
+          status_label() {
+            case "$1" in
+              success)    echo "✅ deployed" ;;
+              failure)    echo "❌ failed" ;;
+              cancelled)  echo "🚫 cancelled" ;;
+              skipped|"") echo "⏭️ no changes" ;;
+              *)          echo "❔ $1" ;;
+            esac
+          }
+
+          # Overall outcome: failure if any required job failed or was cancelled.
+          OVERALL="success"
+          for r in "$TEST_RESULT" "$CHANGES_RESULT" "$BACKEND_RESULT" "$FRONTEND_RESULT" "$OFFICIAL_RESULT"; do
+            if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then OVERALL="failure"; fi
+          done
+
+          if [ "$OVERALL" = "success" ]; then
+            HEADER="✅ Production deploy succeeded — ${TAG}"
+          else
+            HEADER="❌ Production deploy failed — ${TAG}"
+          fi
+
+          RUN_URL="${SERVER_URL}/${REPO}/actions/runs/${RUN_ID}"
+          SHORT_SHA="${SHA:0:7}"
+
+          PAYLOAD=$(jq -n \
+            --arg header "$HEADER" \
+            --arg env "$ENVIRONMENT" \
+            --arg tag "$TAG" \
+            --arg sha "$SHORT_SHA" \
+            --arg actor "$ACTOR" \
+            --arg test "$(status_label "$TEST_RESULT")" \
+            --arg backend "$(status_label "$BACKEND_RESULT")" \
+            --arg frontend "$(status_label "$FRONTEND_RESULT")" \
+            --arg official "$(status_label "$OFFICIAL_RESULT")" \
+            --arg run_url "$RUN_URL" \
+            '{
+              blocks: [
+                { type: "header", text: { type: "plain_text", text: $header, emoji: true } },
+                { type: "section", fields: [
+                  { type: "mrkdwn", text: "*Environment:*\n\($env)" },
+                  { type: "mrkdwn", text: "*Tag:*\n\($tag)" },
+                  { type: "mrkdwn", text: "*Commit:*\n`\($sha)`" },
+                  { type: "mrkdwn", text: "*Triggered by:*\n\($actor)" }
+                ]},
+                { type: "section", fields: [
+                  { type: "mrkdwn", text: "*Tests:*\n\($test)" },
+                  { type: "mrkdwn", text: "*Backend:*\n\($backend)" },
+                  { type: "mrkdwn", text: "*App Web:*\n\($frontend)" },
+                  { type: "mrkdwn", text: "*Official Web:*\n\($official)" }
+                ]},
+                { type: "actions", elements: [
+                  { type: "button", text: { type: "plain_text", text: "View workflow run", emoji: true }, url: $run_url }
+                ]}
+              ]
+            }')
+
+          curl -sf -X POST -H 'Content-type: application/json' \
+            --data "$PAYLOAD" "$SLACK_WEBHOOK_DEPLOY"
