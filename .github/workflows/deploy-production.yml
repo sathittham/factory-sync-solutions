@@ -10,9 +10,44 @@ jobs:
   test:
     uses: ./.github/workflows/test.yml
 
+  changes:
+    name: Detect Changed Apps
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.detect.outputs.api }}
+      web: ${{ steps.detect.outputs.web }}
+      official: ${{ steps.detect.outputs.official }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Detect changed apps since previous production tag
+        id: detect
+        run: |
+          CURRENT="${GITHUB_REF_NAME}"
+          # Previous production tag = latest plain semver tag (vN.N.N, no pre-release suffix)
+          PREV=$(git tag -l 'v*.*.*' --sort=-creatordate | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -vx "$CURRENT" | head -1)
+          if [ -z "$PREV" ]; then
+            echo "No previous production tag — deploying all apps."
+            { echo "api=true"; echo "web=true"; echo "official=true"; } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Diffing $PREV..$CURRENT"
+          CHANGED=$(git diff --name-only "$PREV" "$CURRENT")
+          echo "Changed files:"; echo "$CHANGED"
+          api=false; web=false; official=false
+          if echo "$CHANGED" | grep -q '^apps/fs-backend/';      then api=true;      fi
+          if echo "$CHANGED" | grep -q '^apps/fs-app-web/';      then web=true;      fi
+          if echo "$CHANGED" | grep -q '^apps/fs-official-web/'; then official=true; fi
+          echo "Deploy → api=$api web=$web official=$official"
+          { echo "api=$api"; echo "web=$web"; echo "official=$official"; } >> "$GITHUB_OUTPUT"
+
   deploy-backend:
     name: Deploy Backend to Production
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     environment: production
     env:
@@ -47,7 +82,8 @@ jobs:
 
   deploy-frontend:
     name: Deploy Frontend to Production
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     environment: production
     defaults:
@@ -87,7 +123,8 @@ jobs:
 
   deploy-official:
     name: Deploy Official Site to Production
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.official == 'true'
     runs-on: ubuntu-latest
     environment: production
     defaults:
