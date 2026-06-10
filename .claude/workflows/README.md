@@ -184,5 +184,5 @@ Built-in helpers: `Explore`, `feature-dev:code-explorer`, `feature-dev:code-arch
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 09 June 2026*
+*Version: 1.1.0*
+*Last updated: 10 June 2026*

@@ -16,7 +16,7 @@ const base   = args?.base   || 'develop'
 phase('Scan')
 
 const scanResult = await agent(
-  `Scan for branches to clean up in the factory-health-check repo (GitHub).
+  `Scan for branches to clean up in the factory-sync-solutions repo (GitHub).
 
   Run these commands and report the results:
   1. git fetch ${remote} --prune
@@ -74,7 +74,7 @@ if (scanResult.goneLocal?.length > 0) {
 phase('Cleanup')
 
 const cleanupResult = await agent(
-  `Clean up branches in the factory-health-check repo (GitHub, remote: ${remote}).
+  `Clean up branches in the factory-sync-solutions repo (GitHub, remote: ${remote}).
 
   Branches to delete:
   - Merged local: ${JSON.stringify(scanResult.mergedLocal)}

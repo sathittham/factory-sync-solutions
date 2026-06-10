@@ -18,7 +18,7 @@ const remote = args?.remote || 'origin'
 phase('Preflight')
 
 const preflight = await agent(
-  `Check the current git state and prepare for a pull request in the factory-health-check repo (GitHub).
+  `Check the current git state and prepare for a pull request in the factory-sync-solutions repo (GitHub).
 
   Run these commands and report results:
   1. git branch --show-current
@@ -70,7 +70,7 @@ log(`Branch: ${branch} | Ticket: ${ticket} | ${preflight.commitsAhead.length} co
 phase('Create PR')
 
 const prCreated = await agent(
-  `Create a GitHub pull request for the factory-health-check repo.
+  `Create a GitHub pull request for the factory-sync-solutions repo.
 
   Branch: ${branch}
   Base branch: ${base}
@@ -135,7 +135,7 @@ log(`PR #${prCreated.prNumber} created: ${prCreated.title}`)
 phase('Merge')
 
 const merged = await agent(
-  `Squash-merge GitHub PR #${prCreated.prNumber} in the factory-health-check repo.
+  `Squash-merge GitHub PR #${prCreated.prNumber} in the factory-sync-solutions repo.
 
   Per project rules, feature/bugfix branches merge into ${base} via SQUASH merge.
 
@@ -177,7 +177,7 @@ log(`PR #${prCreated.prNumber} squash-merged into ${base}`)
 phase('Cleanup')
 
 const cleanup = await agent(
-  `Clean up after merging branch "${branch}" into ${base} in the factory-health-check repo.
+  `Clean up after merging branch "${branch}" into ${base} in the factory-sync-solutions repo.
 
   The feature branch must be fully removed — locally AND on ${remote} — after the merge.
   Never delete protected branches (main, staging, develop): if "${branch}" is one of those, SKIP all branch-deletion steps and report it in steps.
