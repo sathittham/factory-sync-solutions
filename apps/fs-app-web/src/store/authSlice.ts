@@ -19,6 +19,7 @@ interface Profile {
 	contactEmail: string;
 	contactPhone: string;
 	role: string;
+	emailNotifications?: boolean;
 }
 
 interface AuthState {

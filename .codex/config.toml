@@ -1,0 +1,10 @@
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+web_search = "cached"
+model_reasoning_effort = "high"
+personality = "pragmatic"
+project_doc_max_bytes = 65536
+
+[features]
+hooks = true
+shell_snapshot = true

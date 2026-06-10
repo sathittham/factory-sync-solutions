@@ -61,6 +61,7 @@ const translations: Record<Locale, Record<string, string>> = {
   th: {
     // Layout / Nav
     'nav.appName': 'FactorySync Solutions',
+    'nav.dashboard': 'แดชบอร์ด',
     'nav.quiz': 'แบบประเมิน',
     'nav.results': 'ผลลัพธ์',
     'nav.admin': 'แอดมิน',
@@ -82,6 +83,13 @@ const translations: Record<Locale, Record<string, string>> = {
     'landing.dim.cost': 'การควบคุมต้นทุน',
     'landing.signIn': 'เข้าสู่ระบบด้วย Google',
     'landing.cta': 'เริ่มตรวจสุขภาพโรงงานฟรี!',
+
+    // Sign In page
+    'signin.title': 'ยินดีต้อนรับกลับมา',
+    'signin.subtitle': 'เข้าสู่ระบบเพื่อดูผลการประเมินสุขภาพโรงงานของคุณ',
+    'signin.free': 'ฟรี ไม่มีค่าใช้จ่าย',
+    'signin.termsPrefix': 'การเข้าสู่ระบบถือว่าคุณยอมรับ',
+    'signin.brandingQuote': 'ประเมินความพร้อมโรงงานใน 8 มิติหลัก รับข้อมูลเชิงลึกและคำแนะนำที่ตรงจุด',
     'landing.ctaBottom': 'เริ่มประเมินฟรีเลย',
     'nav.login': 'เข้าสู่ระบบ',
 
@@ -176,6 +184,8 @@ const translations: Record<Locale, Record<string, string>> = {
     'quiz.exitConfirm.desc': 'คำตอบที่ทำไว้จะไม่ถูกบันทึก คุณแน่ใจหรือไม่?',
     'quiz.exitConfirm.stay': 'ทำต่อ',
     'quiz.exitConfirm.leave': 'ออก',
+    'quiz.noResults.title': 'ยังไม่มีผลประเมิน',
+    'quiz.noResults.desc': 'เริ่มทำแบบประเมินเพื่อตรวจสุขภาพโรงงานของคุณ',
 
     // Results
     'result.overallScore': 'คะแนนรวม',
@@ -249,6 +259,9 @@ const translations: Record<Locale, Record<string, string>> = {
     'profile.companySection': 'ข้อมูลบริษัท',
     'profile.email': 'อีเมลบัญชี',
     'profile.regId': 'เลขทะเบียนนิติบุคคล',
+    'profile.preferencesSection': 'การตั้งค่า',
+    'profile.emailNotifications': 'รับการแจ้งเตือนทางอีเมล',
+    'profile.emailNotificationsDesc': 'รับผลการประเมินและข่าวสารทางอีเมล',
     'profile.save': 'บันทึกการเปลี่ยนแปลง',
     'profile.saving': 'กำลังบันทึก...',
     'profile.saved': 'บันทึกเรียบร้อยแล้ว',
@@ -271,6 +284,14 @@ const translations: Record<Locale, Record<string, string>> = {
     'footer.marketing': 'นโยบายการตลาด',
     'footer.contact': 'ติดต่อเรา',
 
+    // Export
+    'export.error': 'ส่งออกข้อมูลไม่สำเร็จ กรุณาลองอีกครั้ง',
+
+    // Locale
+    'locale.label': 'ภาษา',
+    'locale.th': 'ภาษาไทย',
+    'locale.en': 'English',
+
     // 404
     'notFound.title': 'ไม่พบหน้าที่ค้นหา',
     'notFound.goHome': 'กลับหน้าหลัก',
@@ -279,6 +300,7 @@ const translations: Record<Locale, Record<string, string>> = {
   en: {
     // Layout / Nav
     'nav.appName': 'FactorySync Solutions',
+    'nav.dashboard': 'Dashboard',
     'nav.quiz': 'Quiz',
     'nav.results': 'Results',
     'nav.admin': 'Admin',
@@ -300,6 +322,13 @@ const translations: Record<Locale, Record<string, string>> = {
     'landing.dim.cost': 'Cost Control',
     'landing.signIn': 'Sign in with Google',
     'landing.cta': 'Start Free Assessment!',
+
+    // Sign In page
+    'signin.title': 'Welcome back',
+    'signin.subtitle': 'Sign in to view your factory health assessment results',
+    'signin.free': 'Free, no cost involved',
+    'signin.termsPrefix': 'By continuing, you agree to our',
+    'signin.brandingQuote': 'Assess your factory across 8 key dimensions. Get targeted insights and actionable recommendations.',
     'landing.ctaBottom': 'Start Free Assessment',
     'nav.login': 'Sign In',
 
@@ -395,6 +424,8 @@ const translations: Record<Locale, Record<string, string>> = {
     'quiz.exitConfirm.desc': 'Your answers will not be saved. Are you sure?',
     'quiz.exitConfirm.stay': 'Continue',
     'quiz.exitConfirm.leave': 'Exit',
+    'quiz.noResults.title': 'No assessments yet',
+    'quiz.noResults.desc': 'Start an assessment to check your factory health',
 
     // Results
     'result.overallScore': 'Overall Score',
@@ -469,6 +500,9 @@ const translations: Record<Locale, Record<string, string>> = {
     'profile.companySection': 'Company',
     'profile.email': 'Account Email',
     'profile.regId': 'Registration ID',
+    'profile.preferencesSection': 'Preferences',
+    'profile.emailNotifications': 'Receive email notifications',
+    'profile.emailNotificationsDesc': 'Receive assessment results and updates by email',
     'profile.save': 'Save Changes',
     'profile.saving': 'Saving...',
     'profile.saved': 'Changes saved successfully.',
@@ -490,6 +524,14 @@ const translations: Record<Locale, Record<string, string>> = {
     'footer.cookiePolicy': 'Cookie Policy',
     'footer.marketing': 'Marketing Policy',
     'footer.contact': 'Contact Us',
+
+    // Export
+    'export.error': 'Export failed. Please try again.',
+
+    // Locale
+    'locale.label': 'Language',
+    'locale.th': 'Thai',
+    'locale.en': 'English',
 
     // 404
     'notFound.title': 'Page not found',

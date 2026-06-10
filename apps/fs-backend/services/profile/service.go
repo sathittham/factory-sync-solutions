@@ -123,7 +123,7 @@ func (s *Service) SetRole(ctx context.Context, uid, role string) error {
 		{Path: "updatedAt", Value: now},
 	}
 	if err := s.repo.Update(ctx, uid, updates); err != nil {
-		return err
+		return fmt.Errorf("set role for uid %s: %w", uid, err)
 	}
 	s.logAudit(ctx, uid, audit.EventUserRoleChanged, "profile", uid, map[string]any{"role": role})
 	return nil

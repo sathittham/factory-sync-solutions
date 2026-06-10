@@ -118,6 +118,27 @@ const translations: Record<Locale, Record<string, string>> = {
 		"theme.light": "สว่าง",
 		"theme.system": "ระบบ",
 		"footer.desc": "ผู้ให้บริการตรวจสอบสุขภาพโรงงานโดยทีมวุฒิวิศวกรครบวงจร",
+		// --- hero title line 2 parts ---
+		"landing.hero.title2.prefix": "ด้วย",
+		"landing.hero.title2.connector": "และ",
+		"landing.hero.title2.engineers": "วุฒิวิศวกร",
+		// --- dimensions heading ---
+		"landing.dims.heading.highlight": "8 มิติ",
+		"landing.dims.heading.suffix": "การตรวจสุขภาพโรงงาน",
+		// --- expert heading ---
+		"landing.expert.heading.main": "เชี่ยวชาญงานวิศวกรรม",
+		"landing.expert.heading.level": "ระดับวุฒิวิศวกร",
+		// --- process report caption ---
+		"landing.process.reportCaption": "รายงานเชิงลึก พร้อมแผนปรับปรุง",
+		// --- radar chart axis labels ---
+		"landing.radar.axis.basic": "ง.เบื้องต้น",
+		"landing.radar.axis.improve": "ปรับปรุง",
+		"landing.radar.axis.coord": "ประสานงาน",
+		"landing.radar.axis.maint": "บำรุงรักษา",
+		"landing.radar.axis.quality": "คุณภาพ",
+		"landing.radar.axis.prod": "การผลิต",
+		"landing.radar.axis.mat": "วัสดุ",
+		"landing.radar.axis.cost": "ต้นทุน",
 	},
 	en: {
 		// --- existing keys ---
@@ -217,6 +238,27 @@ const translations: Record<Locale, Record<string, string>> = {
 		"theme.light": "Light",
 		"theme.system": "System",
 		"footer.desc": "Full-service factory health check by licensed engineers",
+		// --- hero title line 2 parts ---
+		"landing.hero.title2.prefix": "with",
+		"landing.hero.title2.connector": "&",
+		"landing.hero.title2.engineers": "Certified Engineers",
+		// --- dimensions heading ---
+		"landing.dims.heading.highlight": "8 Dimensions",
+		"landing.dims.heading.suffix": "of Factory Health Check",
+		// --- expert heading ---
+		"landing.expert.heading.main": "Engineering Expertise",
+		"landing.expert.heading.level": "Certified Engineer Level",
+		// --- process report caption ---
+		"landing.process.reportCaption": "In-Depth Report + Action Plan",
+		// --- radar chart axis labels ---
+		"landing.radar.axis.basic": "Basic",
+		"landing.radar.axis.improve": "Improve",
+		"landing.radar.axis.coord": "Coordination",
+		"landing.radar.axis.maint": "Maintenance",
+		"landing.radar.axis.quality": "Quality",
+		"landing.radar.axis.prod": "Production",
+		"landing.radar.axis.mat": "Materials",
+		"landing.radar.axis.cost": "Cost",
 	},
 };
 

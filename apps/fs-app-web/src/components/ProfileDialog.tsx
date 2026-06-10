@@ -1,4 +1,4 @@
-import { Select } from '@/components/form/native-select';
+import { SelectField } from '@/components/form/select-field';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -8,6 +8,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { trackEvent } from '@/lib/analytics';
 import { ApiError, api } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
@@ -15,7 +17,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { type Profile, setProfile } from '@/store/authSlice';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -25,6 +27,7 @@ const schema = z.object({
   contactName: z.string().min(1, 'register.contactNameError'),
   contactEmail: z.string().email('register.contactEmailError'),
   contactPhone: z.string().min(9, 'register.contactPhoneError'),
+  emailNotifications: z.boolean().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -64,6 +67,7 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting, isDirty },
@@ -76,6 +80,7 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
       contactName: profile?.contactName || '',
       contactEmail: profile?.contactEmail || '',
       contactPhone: profile?.contactPhone || '',
+      emailNotifications: profile?.emailNotifications ?? false,
     },
   });
 
@@ -89,6 +94,7 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
         contactName: profile.contactName || '',
         contactEmail: profile.contactEmail || '',
         contactPhone: profile.contactPhone || '',
+        emailNotifications: profile.emailNotifications ?? false,
       });
       setError(null);
       setSuccess(false);
@@ -251,14 +257,24 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
                   <label htmlFor="pd-industryType" className="text-sm font-medium">
                     {t('register.industryType')}
                   </label>
-                  <Select id="pd-industryType" {...register('industryType')}>
-                    <option value="">{t('register.select')}</option>
-                    {industryKeys.map((key) => (
-                      <option key={key} value={key}>
-                        {t(`industry.${key}`)}
-                      </option>
-                    ))}
-                  </Select>
+                  <Controller
+                    name="industryType"
+                    control={control}
+                    render={({ field }) => (
+                      <SelectField
+                        id="pd-industryType"
+                        value={field.value}
+                        placeholder={t('register.select')}
+                        options={industryKeys.map((key) => ({
+                          value: key,
+                          label: t(`industry.${key}`),
+                        }))}
+                        onValueChange={field.onChange}
+                        onBlur={field.onBlur}
+                        isInvalid={!!errors.industryType}
+                      />
+                    )}
+                  />
                   {errors.industryType && (
                     <p className="text-xs text-destructive">
                       {t(errors.industryType.message || '')}
@@ -269,14 +285,24 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
                   <label htmlFor="pd-companySize" className="text-sm font-medium">
                     {t('register.companySize')}
                   </label>
-                  <Select id="pd-companySize" {...register('companySize')}>
-                    <option value="">{t('register.select')}</option>
-                    {sizeKeys.map((key) => (
-                      <option key={key} value={key}>
-                        {t(`size.${key}`)}
-                      </option>
-                    ))}
-                  </Select>
+                  <Controller
+                    name="companySize"
+                    control={control}
+                    render={({ field }) => (
+                      <SelectField
+                        id="pd-companySize"
+                        value={field.value}
+                        placeholder={t('register.select')}
+                        options={sizeKeys.map((key) => ({
+                          value: key,
+                          label: t(`size.${key}`),
+                        }))}
+                        onValueChange={field.onChange}
+                        onBlur={field.onBlur}
+                        isInvalid={!!errors.companySize}
+                      />
+                    )}
+                  />
                   {errors.companySize && (
                     <p className="text-xs text-destructive">
                       {t(errors.companySize.message || '')}
@@ -284,6 +310,42 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Section 4: Preferences */}
+          <div className="mb-5">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="h-px flex-1 bg-border" />
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                {t('profile.preferencesSection')}
+              </p>
+              <span className="h-px flex-1 bg-border" />
+            </div>
+
+            <div className="flex items-center justify-between gap-4 rounded-md border bg-muted/30 p-4">
+              <div className="space-y-0.5">
+                <Label
+                  htmlFor="pd-emailNotifications"
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  {t('profile.emailNotifications')}
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  {t('profile.emailNotificationsDesc')}
+                </p>
+              </div>
+              <Controller
+                name="emailNotifications"
+                control={control}
+                render={({ field }) => (
+                  <Switch
+                    id="pd-emailNotifications"
+                    checked={field.value ?? false}
+                    onCheckedChange={field.onChange}
+                  />
+                )}
+              />
             </div>
           </div>
 

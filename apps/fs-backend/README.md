@@ -138,11 +138,15 @@ All API routes are under `/api/v1`. Authenticated routes require a `Authorizatio
 
 | Method | Path | Description |
 |---|---|---|
-| `GET/PUT` | `/api/v1/profile` | Get or update user profile |
+| `GET` | `/api/v1/profile` | Get user profile |
 | `POST` | `/api/v1/profile` | Create profile (with Turnstile) |
+| `PUT` | `/api/v1/profile` | Update user profile |
+| `GET` | `/api/v1/profile/check/{regId}` | Check if registration ID is already taken |
+| `GET` | `/api/v1/quiz/quizzes` | List available quizzes |
 | `GET` | `/api/v1/quiz/questions` | Get quiz questions |
 | `POST` | `/api/v1/quiz/submit` | Submit quiz answers |
-| `GET` | `/api/v1/results` | Get assessment results |
+| `GET` | `/api/v1/results` | Get all assessment results for user |
+| `GET` | `/api/v1/results/{assessmentId}` | Get single assessment result |
 | `GET` | `/api/v1/dbd/*` | DBD company lookup |
 
 ### Admin (requires `admin` role)

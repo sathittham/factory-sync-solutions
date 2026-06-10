@@ -45,6 +45,18 @@ func (s *Service) GetUserResults(ctx context.Context, uid string) ([]Assessment,
 	return results, nil
 }
 
+// GetResultByID returns a single assessment by ID regardless of owner (admin use).
+func (s *Service) GetResultByID(ctx context.Context, assessmentID string) (*Assessment, error) {
+	a, err := s.repo.GetByID(ctx, assessmentID)
+	if err != nil {
+		return nil, fmt.Errorf("get result by id %s: %w", assessmentID, err)
+	}
+	if a == nil {
+		return nil, ErrResultNotFound
+	}
+	return a, nil
+}
+
 // ListResults returns all assessments (admin use).
 func (s *Service) ListResults(ctx context.Context, filters map[string]string, limit int) ([]Assessment, error) {
 	results, err := s.repo.ListAll(ctx, filters, limit)

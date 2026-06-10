@@ -76,8 +76,21 @@ func (r *Repository) GetByUID(ctx context.Context, uid string) ([]Assessment, er
 	return results, nil
 }
 
+// assessmentFilterFields is the set of field names that exist on the
+// assessment document and may be pushed down to Firestore as Where clauses.
+var assessmentFilterFields = map[string]bool{
+	"uid":    true,
+	"quizId": true,
+}
+
 func (r *Repository) ListAll(ctx context.Context, filters map[string]string, limit int) ([]Assessment, error) {
 	query := r.client.Collection("assessments").OrderBy("submittedAt", firestore.Desc)
+
+	for key, val := range filters {
+		if assessmentFilterFields[key] {
+			query = query.Where(key, "==", val)
+		}
+	}
 
 	if limit > 0 {
 		query = query.Limit(limit)
