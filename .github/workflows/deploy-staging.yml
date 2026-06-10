@@ -163,7 +163,7 @@ jobs:
           npm ci
           npm run build:staging
         env:
-          PUBLIC_APP_URL: https://staging.factorysyncsolutions.com
+          PUBLIC_APP_URL: https://app-staging.factorysyncsolutions.com
           PUBLIC_APP_VERSION: ${{ github.ref_name }}
 
       - name: Deploy to Cloudflare Pages

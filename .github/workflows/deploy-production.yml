@@ -144,7 +144,7 @@ jobs:
           npm ci
           npm run build
         env:
-          PUBLIC_APP_URL: https://factorysyncsolutions.com
+          PUBLIC_APP_URL: https://app.factorysyncsolutions.com
           PUBLIC_APP_VERSION: ${{ github.ref_name }}
           PUBLIC_GTM_ID: ${{ vars.PUBLIC_GTM_ID }}
 
