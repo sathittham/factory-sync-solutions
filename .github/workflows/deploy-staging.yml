@@ -158,13 +158,19 @@ jobs:
           cache: "npm"
           cache-dependency-path: apps/fs-official-web/package-lock.json
 
+      - name: Compute version
+        id: version
+        run: |
+          BASE=$(echo "$GITHUB_REF_NAME" | sed 's/-staging.*$//')
+          echo "version=${BASE}-${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
       - name: Install and build
         run: |
           npm ci
           npm run build:staging
         env:
           PUBLIC_APP_URL: https://app-staging.factorysyncsolutions.com
-          PUBLIC_APP_VERSION: ${{ github.ref_name }}
+          PUBLIC_APP_VERSION: ${{ steps.version.outputs.version }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3

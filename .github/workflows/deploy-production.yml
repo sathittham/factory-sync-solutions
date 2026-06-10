@@ -139,13 +139,17 @@ jobs:
           cache: "npm"
           cache-dependency-path: apps/fs-official-web/package-lock.json
 
+      - name: Compute version
+        id: version
+        run: echo "version=${{ github.ref_name }}-${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
       - name: Install and build
         run: |
           npm ci
           npm run build
         env:
           PUBLIC_APP_URL: https://app.factorysyncsolutions.com
-          PUBLIC_APP_VERSION: ${{ github.ref_name }}
+          PUBLIC_APP_VERSION: ${{ steps.version.outputs.version }}
           PUBLIC_GTM_ID: ${{ vars.PUBLIC_GTM_ID }}
 
       - name: Deploy to Cloudflare Pages
