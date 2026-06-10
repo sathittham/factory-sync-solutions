@@ -1,4 +1,7 @@
 ---
+import { AppHandoff } from "../components/AppHandoff";
+import { CookieConsent } from "../components/CookieConsent";
+
 interface Props {
   title: string;
   description?: string;
@@ -10,6 +13,7 @@ const {
 } = Astro.props;
 
 const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const gtmId = import.meta.env.PUBLIC_GTM_ID ?? "";
 ---
 
 <!doctype html>
@@ -17,6 +21,57 @@ const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script is:inline define:vars={{ gtmId }}>
+      // Google Consent Mode v2 (advanced) + GTM bootstrap. Order matters:
+      // consent defaults MUST be set before the GTM script is appended.
+      (function () {
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+        window.gtag = gtag;
+
+        // Deny all gated signals before any tag loads — Google tags then
+        // send only cookieless pings until the user grants consent.
+        gtag("consent", "default", {
+          ad_storage: "denied",
+          ad_user_data: "denied",
+          ad_personalization: "denied",
+          analytics_storage: "denied",
+          functionality_storage: "granted",
+          security_storage: "granted",
+          wait_for_update: 500,
+        });
+
+        // Replay a prior choice immediately so a returning visitor's
+        // first hit is not sent as denied.
+        try {
+          var a = localStorage.getItem("fss-analytics-consent") === "true";
+          var m = localStorage.getItem("fss-marketing-consent") === "true";
+          if (localStorage.getItem("fss-cookie-consent")) {
+            gtag("consent", "update", {
+              analytics_storage: a ? "granted" : "denied",
+              ad_storage: m ? "granted" : "denied",
+              ad_user_data: m ? "granted" : "denied",
+              ad_personalization: m ? "granted" : "denied",
+            });
+          }
+        } catch (e) {
+          /* localStorage blocked — keep defaults (denied) */
+        }
+
+        if (!gtmId) return; // no container in this environment (e.g. staging)
+        (function (w, d, s, l, i) {
+          w[l] = w[l] || [];
+          w[l].push({ "gtm.start": +new Date(), event: "gtm.js" });
+          var f = d.getElementsByTagName(s)[0];
+          var j = d.createElement(s);
+          j.async = true;
+          j.src = "https://www.googletagmanager.com/gtm.js?id=" + encodeURIComponent(i);
+          f.parentNode.insertBefore(j, f);
+        })(window, document, "script", "dataLayer", gtmId);
+      })();
+    </script>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -32,6 +87,13 @@ const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
     <title>{title}</title>
   </head>
   <body class="bg-background text-foreground">
+    {
+      gtmId && (
+        <noscript
+          set:html={`<iframe src="https://www.googletagmanager.com/ns.html?id=${encodeURIComponent(gtmId)}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`}
+        />
+      )
+    }
     <script is:inline>
       // Apply theme before React hydrates to avoid flash
       (function () {
@@ -43,6 +105,8 @@ const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
       })();
     </script>
     <slot />
+    <CookieConsent client:idle />
+    <AppHandoff client:idle appUrl={appUrl} />
   </body>
 </html>
 

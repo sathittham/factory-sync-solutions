@@ -1,0 +1,340 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { updateConsentMode } from "@/lib/consent";
+import { LocaleProvider, useLocale } from "@/lib/i18n";
+import { useEffect, useState } from "react";
+
+export const CONSENT_KEY = "fss-cookie-consent";
+const MARKETING_KEY = "fss-marketing-consent";
+const ANALYTICS_KEY = "fss-analytics-consent";
+
+// Custom event the footer "Cookie Settings" link can dispatch to reopen the panel.
+export const OPEN_SETTINGS_EVENT = "fss:open-cookie-settings";
+
+function getStored(key: string, fallback: boolean): boolean {
+	try {
+		const v = localStorage.getItem(key);
+		if (v === "true") return true;
+		if (v === "false") return false;
+	} catch {
+		/* ignore */
+	}
+	return fallback;
+}
+
+function hasConsent(): boolean {
+	try {
+		return !!localStorage.getItem(CONSENT_KEY);
+	} catch {
+		return false;
+	}
+}
+
+function saveConsent(analytics: boolean, marketing: boolean) {
+	const consent = analytics || marketing ? "partial" : "essential";
+	try {
+		localStorage.setItem(CONSENT_KEY, analytics && marketing ? "all" : consent);
+		localStorage.setItem(ANALYTICS_KEY, String(analytics));
+		localStorage.setItem(MARKETING_KEY, String(marketing));
+	} catch {
+		/* ignore */
+	}
+}
+
+// --- Toggle Switch ---
+
+function Toggle({
+	checked,
+	onChange,
+}: { readonly checked: boolean; readonly onChange: () => void }) {
+	return (
+		<button
+			type="button"
+			role="switch"
+			aria-checked={checked}
+			onClick={onChange}
+			className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+				checked ? "bg-primary" : "bg-muted"
+			}`}
+		>
+			<span
+				className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+					checked ? "translate-x-6" : "translate-x-1"
+				}`}
+			/>
+		</button>
+	);
+}
+
+// --- Category Row ---
+
+function CategoryRow({
+	title,
+	description,
+	detailLabel,
+	control,
+}: {
+	readonly title: string;
+	readonly description: string;
+	readonly detailLabel: string;
+	readonly control: React.ReactNode;
+}) {
+	return (
+		<div className="px-6 py-4">
+			<div className="mb-2 flex items-center justify-between">
+				<h3 className="text-sm font-semibold">{title}</h3>
+				{control}
+			</div>
+			<p className="text-xs leading-relaxed text-muted-foreground">{description}</p>
+			<a
+				href="/cookies"
+				className="mt-1.5 inline-block text-xs font-medium text-primary hover:underline"
+			>
+				{detailLabel}
+			</a>
+		</div>
+	);
+}
+
+// --- Banner ---
+
+function CookieBanner({
+	isTh,
+	onSettings,
+	onAcceptAll,
+}: {
+	readonly isTh: boolean;
+	readonly onSettings: () => void;
+	readonly onAcceptAll: () => void;
+}) {
+	return (
+		<div className="animate-fade-up fixed bottom-0 left-0 right-0 z-50 p-4">
+			<div className="container mx-auto max-w-3xl">
+				<div className="space-y-3 rounded-lg border bg-card p-4 shadow-lg sm:p-5">
+					<p className="text-sm font-semibold">
+						{isTh ? "เว็บไซต์นี้ใช้คุกกี้" : "This website uses cookies"}
+					</p>
+					<p className="text-sm leading-relaxed text-muted-foreground">
+						{isTh
+							? 'เราใช้คุกกี้เพื่อเพิ่มประสบการณ์ที่ดีในการใช้เว็บไซต์ แสดงเนื้อหาและโฆษณาให้ตรงกับความสนใจ รวมถึงเพื่อวิเคราะห์การเข้าชมเว็บไซต์และทำความเข้าใจผู้ใช้งาน คุณสามารถเลือกตั้งค่าความยินยอมการใช้คุกกี้ได้ โดยคลิก "การตั้งค่าคุกกี้" '
+							: 'We use cookies to improve your experience, display relevant content, and analyze website traffic. You can manage your cookie preferences by clicking "Cookie Settings". '}
+						<a href="/privacy" className="font-medium text-primary hover:underline">
+							{isTh ? "นโยบายความเป็นส่วนตัว" : "Privacy Policy"}
+						</a>
+					</p>
+					<div className="flex items-center justify-end gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={onSettings}
+							className="text-xs"
+							data-testid="cookie-settings-btn"
+						>
+							{isTh ? "การตั้งค่าคุกกี้" : "Cookie Settings"}
+						</Button>
+						<Button
+							size="sm"
+							onClick={onAcceptAll}
+							className="text-xs"
+							data-testid="cookie-accept-all-btn"
+						>
+							{isTh ? "ยอมรับทั้งหมด" : "Accept All"}
+						</Button>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+// --- Modal shell (no shadcn Dialog on the official site) ---
+
+function Modal({
+	onClose,
+	children,
+}: { readonly onClose: () => void; readonly children: React.ReactNode }) {
+	useEffect(() => {
+		const handleKey = (e: KeyboardEvent) => {
+			if (e.key === "Escape") onClose();
+		};
+		document.addEventListener("keydown", handleKey);
+		return () => document.removeEventListener("keydown", handleKey);
+	}, [onClose]);
+
+	return (
+		<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+			<button
+				type="button"
+				aria-label="Close"
+				onClick={onClose}
+				className="absolute inset-0 bg-black/50"
+			/>
+			{/* biome-ignore lint/a11y/useSemanticElements: native <dialog> is disallowed by project UI rules */}
+			<div
+				role="dialog"
+				aria-modal="true"
+				className="relative z-10 max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg border bg-card text-card-foreground shadow-lg"
+			>
+				{children}
+			</div>
+		</div>
+	);
+}
+
+// --- Settings Panel ---
+
+function CookieSettings({
+	isTh,
+	analytics,
+	marketing,
+	onAnalyticsChange,
+	onMarketingChange,
+	onAcceptAll,
+	onConfirm,
+}: {
+	readonly isTh: boolean;
+	readonly analytics: boolean;
+	readonly marketing: boolean;
+	readonly onAnalyticsChange: () => void;
+	readonly onMarketingChange: () => void;
+	readonly onAcceptAll: () => void;
+	readonly onConfirm: () => void;
+}) {
+	const detailLabel = isTh ? "รายละเอียดคุกกี้" : "Cookie Details";
+
+	return (
+		<>
+			<div className="flex items-center justify-between px-6 pb-4 pt-6">
+				<h2 className="text-lg font-semibold">
+					{isTh ? "การตั้งค่าความเป็นส่วนตัว" : "Privacy Settings"}
+				</h2>
+				<Button size="sm" onClick={onAcceptAll} className="text-xs">
+					{isTh ? "ยอมรับทั้งหมด" : "Accept All"}
+				</Button>
+			</div>
+
+			<div className="divide-y">
+				<CategoryRow
+					title={isTh ? "คุกกี้พื้นฐานที่จำเป็น" : "Essential Cookies"}
+					description={
+						isTh
+							? "คุกกี้พื้นฐานที่จำเป็น เพื่อช่วยให้การทำงานหลักของเว็บไซต์ใช้งานได้ รวมถึงการเข้าถึงพื้นที่ปลอดภัยต่างๆ หากไม่มีคุกกี้นี้เว็บไซต์จะไม่สามารถทำงานได้อย่างเหมาะสม"
+							: "Essential cookies are required for the website to function properly, including access to secure areas. Without these cookies, the website cannot operate correctly."
+					}
+					detailLabel={detailLabel}
+					control={
+						<span className="text-xs font-medium text-primary">
+							{isTh ? "เปิดใช้งานตลอดเวลา" : "Always Active"}
+						</span>
+					}
+				/>
+				<CategoryRow
+					title={isTh ? "คุกกี้ในส่วนวิเคราะห์" : "Analytics Cookies"}
+					description={
+						isTh
+							? "คุกกี้ในส่วนวิเคราะห์ จะช่วยให้เว็บไซต์เข้าใจรูปแบบการใช้งานของผู้เข้าชมและจะช่วยปรับปรุงประสบการณ์การใช้งาน โดยการเก็บรวบรวมข้อมูลและรายงานผลการใช้งานของผู้ใช้งาน"
+							: "Analytics cookies help us understand how visitors use the website and improve the user experience by collecting and reporting usage data."
+					}
+					detailLabel={detailLabel}
+					control={<Toggle checked={analytics} onChange={onAnalyticsChange} />}
+				/>
+				<CategoryRow
+					title={isTh ? "คุกกี้ในส่วนการตลาด" : "Marketing Cookies"}
+					description={
+						isTh
+							? "คุกกี้ในส่วนการตลาด ใช้เพื่อติดตามพฤติกรรมผู้เข้าชมเว็บไซต์เพื่อแสดงโฆษณาที่เหมาะสมสำหรับผู้ใช้งานแต่ละรายและเพื่อเพิ่มประสิทธิผลการโฆษณาสำหรับผู้เผยแพร่และผู้โฆษณาสำหรับบุคคลที่สาม"
+							: "Marketing cookies are used to track visitor behavior to display relevant advertisements for each user and to increase advertising effectiveness for publishers and third-party advertisers."
+					}
+					detailLabel={detailLabel}
+					control={<Toggle checked={marketing} onChange={onMarketingChange} />}
+				/>
+			</div>
+
+			<div className="border-t px-6 py-4">
+				<Button onClick={onConfirm} className="w-full" data-testid="cookie-confirm-btn">
+					{isTh ? "ยืนยันตัวเลือกของฉัน" : "Confirm My Selection"}
+				</Button>
+			</div>
+		</>
+	);
+}
+
+// --- Inner (consumes locale) ---
+
+function CookieConsentInner() {
+	const { locale } = useLocale();
+	const isTh = locale === "th";
+	const [open, setOpen] = useState(false);
+	const [settingsOpen, setSettingsOpen] = useState(false);
+	const [analytics, setAnalytics] = useState(() => getStored(ANALYTICS_KEY, false));
+	const [marketing, setMarketing] = useState(() => getStored(MARKETING_KEY, false));
+
+	// Decide visibility after mount to avoid SSR/localStorage mismatches.
+	useEffect(() => {
+		if (!hasConsent()) setOpen(true);
+	}, []);
+
+	// Allow the footer "Cookie Settings" link to reopen the panel.
+	useEffect(() => {
+		const handler = () => {
+			setAnalytics(getStored(ANALYTICS_KEY, false));
+			setMarketing(getStored(MARKETING_KEY, false));
+			setSettingsOpen(true);
+		};
+		window.addEventListener(OPEN_SETTINGS_EVENT, handler);
+		return () => window.removeEventListener(OPEN_SETTINGS_EVENT, handler);
+	}, []);
+
+	const handleAcceptAll = () => {
+		setAnalytics(true);
+		setMarketing(true);
+		saveConsent(true, true);
+		updateConsentMode(true, true);
+		setSettingsOpen(false);
+		setOpen(false);
+	};
+
+	const handleConfirm = () => {
+		saveConsent(analytics, marketing);
+		updateConsentMode(analytics, marketing);
+		setSettingsOpen(false);
+		setOpen(false);
+	};
+
+	if (settingsOpen) {
+		return (
+			<Modal onClose={() => setSettingsOpen(false)}>
+				<CookieSettings
+					isTh={isTh}
+					analytics={analytics}
+					marketing={marketing}
+					onAnalyticsChange={() => setAnalytics((v) => !v)}
+					onMarketingChange={() => setMarketing((v) => !v)}
+					onAcceptAll={handleAcceptAll}
+					onConfirm={handleConfirm}
+				/>
+			</Modal>
+		);
+	}
+
+	if (!open) return null;
+
+	return (
+		<CookieBanner
+			isTh={isTh}
+			onSettings={() => setSettingsOpen(true)}
+			onAcceptAll={handleAcceptAll}
+		/>
+	);
+}
+
+// --- Root (self-contained island) ---
+
+export function CookieConsent() {
+	return (
+		<LocaleProvider>
+			<CookieConsentInner />
+		</LocaleProvider>
+	);
+}

@@ -1218,7 +1218,7 @@ function NavBar({
 	setTheme: (theme: Theme) => void;
 	resolvedTheme: ResolvedTheme;
 }) {
-	const { locale, t } = useLocale();
+	const { t } = useLocale();
 	const [mobileOpen, setMobileOpen] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
 
@@ -1286,7 +1286,7 @@ function NavBar({
 							"hidden rounded-md bg-blue-600 px-4 text-xs text-white shadow-[0_0_24px_rgba(37,99,235,0.35)] hover:bg-blue-500 sm:inline-flex xl:px-7 xl:text-sm"
 						)}
 					>
-						{locale === "th" ? "เริ่มประเมินฟรี" : t("landing.ctaBottom")}
+						{t("nav.signIn")}
 					</a>
 
 					{/* Hamburger */}

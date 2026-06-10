@@ -8,9 +8,9 @@ React SPA for the FactorySync Solutions assessment platform. Factory operators c
 |---|---|
 | Framework | React 19 + TypeScript |
 | Build | Vite 7 |
-| Routing | React Router 7 |
+| Routing | React Router 7 (`react-router`) |
 | State | Redux Toolkit |
-| Styling | Tailwind CSS 3 + shadcn/ui (Radix primitives) |
+| Styling | Tailwind CSS 4 (CSS-config) + shadcn/ui (Radix primitives) |
 | Forms | React Hook Form + Zod |
 | Charts | Recharts |
 | Animation | Motion |
@@ -28,9 +28,10 @@ apps/fs-app-web/
 └── src/
     ├── components/
     │   ├── ui/            # shadcn/ui primitives (Button, Card, Dialog, etc.)
-    │   ├── form/          # Custom form components (native-select)
+    │   ├── form/          # native-select.tsx (react-hook-form register() wrapper)
     │   ├── guards/        # Route guards (AuthGuard, RegisterGuard, AdminGuard)
     │   ├── Layout.tsx     # App shell: header, nav, footer, theme/locale switchers
+    │   ├── motion.tsx     # Motion animation wrappers
     │   ├── CookieConsent.tsx
     │   ├── LegalModal.tsx
     │   ├── ProfileDialog.tsx
@@ -40,13 +41,13 @@ apps/fs-app-web/
     ├── lib/
     │   ├── api.ts         # HTTP client
     │   ├── analytics.ts   # GTM/GA4 event tracking
-    │   ├── dayjs.ts       # Date formatting
+    │   ├── dayjs.ts       # Date formatting (Buddhist Era for Thai)
     │   ├── firebase.ts    # Firebase config
     │   ├── i18n.tsx       # Locale provider (TH/EN)
     │   ├── theme.tsx      # Theme provider (light/dark/system)
     │   └── utils.ts       # cn() merge helper
     ├── pages/
-    │   ├── SignInPage.tsx
+    │   ├── SignInPage.tsx     # index route (sign-in / landing)
     │   ├── RegisterPage.tsx
     │   ├── DashboardPage.tsx
     │   ├── QuizPage.tsx
@@ -59,11 +60,14 @@ apps/fs-app-web/
     │   ├── authSlice.ts
     │   ├── quizSlice.ts
     │   └── resultSlice.ts
+    ├── test/setup.ts      # Vitest + Testing Library setup
     ├── router.tsx
     ├── App.tsx
     ├── main.tsx
-    └── index.css          # Tailwind base + CSS theme variables
+    └── index.css          # Tailwind 4 base + CSS theme variables
 ```
+
+> Unit tests live alongside their source (`*.test.ts`) — e.g. `store/quizSlice.test.ts`, `lib/utils.test.ts`.
 
 ## Getting Started
 
@@ -119,9 +123,12 @@ Output goes to `dist/`.
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start dev server |
-| `npm run build` | Type-check + production build |
+| `npm run dev` | Sync favicon, then start dev server |
+| `npm run build` | Type-check (`tsc -b`) + production build |
+| `npm run build:staging` | Type-check + build with `--mode staging` |
 | `npm run preview` | Preview production build locally |
+| `npm run deploy:staging` | Build (staging) + deploy to Cloudflare Pages (`factory-sync-solutions-staging`) |
+| `npm run deploy:prod` | Build + deploy to Cloudflare Pages (`factory-sync-solutions`) |
 | `npm run lint` | Lint with Biome |
 | `npm run lint:fix` | Auto-fix lint issues |
 | `npm test` | Run unit tests (Vitest) |
@@ -130,6 +137,7 @@ Output goes to `dist/`.
 | `npm run test:e2e` | Run E2E tests (Playwright, headless) |
 | `npm run test:e2e:headed` | Run E2E tests with visible browser |
 | `npm run test:e2e:debug` | Run E2E tests with Playwright inspector |
+| `npm run sync:favicon` | Copy shared favicon into `public/` |
 
 ## Testing
 
@@ -159,20 +167,24 @@ npm run test:e2e:headed   # with visible browser
 npm run test:e2e:debug    # with Playwright inspector
 ```
 
-E2E tests live in the `e2e/` directory. Components expose `data-testid` attributes for stable selectors:
+E2E specs live in the `e2e/` directory: `a11y.spec.ts`, `cookie-consent.spec.ts`, `landing.spec.ts`, `navigation.spec.ts`, `theme.spec.ts`. Components expose `data-testid` attributes for stable selectors:
 
 | Test ID | Component |
 |---|---|
-| `hero-cta-btn` | Landing page hero CTA |
 | `signin-google-btn` | Google sign-in button |
-| `bottom-cta-btn` | Landing page bottom CTA |
-| `line-cta-btn` | LINE contact button |
 | `cookie-settings-btn` | Cookie consent settings |
 | `cookie-accept-all-btn` | Cookie accept all |
 | `cookie-confirm-btn` | Cookie confirm selection |
+| `nav-profile-btn` / `nav-profile-link` / `nav-profile-summary` | Header profile nav |
+| `registration-form` / `registration-submit-btn` | Registration form |
 | `reg-company-id-input` | Registration company ID |
 | `reg-dbd-lookup-btn` | DBD lookup button |
-| `admin-export-csv-btn` | Admin CSV export |
+| `profile-dialog` / `profile-form` / `profile-submit-btn` | Profile dialog |
+| `quiz-stepper` / `quiz-question-card` | Quiz progress & question |
+| `quiz-prev-btn` / `quiz-next-btn` / `quiz-submit-btn` | Quiz navigation |
+| `result-summary` / `result-spider-chart` | Result summary & chart |
+| `result-strengths-panel` / `result-weaknesses-panel` | Result strengths / weaknesses |
+| `admin-export-csv-btn` (+ `-mobile`) | Admin CSV export |
 | `admin-filter-industry` | Admin industry filter |
 | `admin-filter-size` | Admin company size filter |
 | `admin-filter-role` | Admin role filter |
@@ -197,10 +209,15 @@ Built-in Thai (default) and English support via `LocaleProvider`. Use the `t()` 
 
 ## Routes
 
+Defined in [`src/router.tsx`](src/router.tsx):
+
 | Path | Page | Guard |
 |---|---|---|
-| `/` | Landing | Public |
+| `/` | Sign-in / landing | Public |
 | `/register` | Registration | Auth |
 | `/quiz` | Assessment quiz | Auth + Registered |
 | `/results` | Score & recommendations | Auth + Registered |
 | `/admin` | Admin dashboard | Auth + Admin role |
+| `*` | Not found | Public |
+
+> Profile is presented as a dialog (`ProfileDialog`) rather than a standalone route.
