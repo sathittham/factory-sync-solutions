@@ -4,7 +4,6 @@
 // See docs/product/cookie-consent/feature-spec.md.
 
 declare global {
-	// biome-ignore lint/style/noVar: globalThis augmentation requires var
 	var gtag: ((...args: unknown[]) => void) | undefined;
 }
 

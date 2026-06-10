@@ -125,6 +125,9 @@ export function DashboardPage() {
   const completedQuizIds = new Set(assessments.map((a) => a.quizId || 'shindan'));
   const uncompletedQuizzes = availableQuizzes.filter((q) => !completedQuizIds.has(q.id));
 
+  // Most recent assessment's quizId, falling back to 'shindan'
+  const lastQuizId = assessments.length > 0 ? (assessments[0].quizId || 'shindan') : 'shindan';
+
   const handleStartQuiz = (quizId: string) => {
     dispatch(resetQuiz());
     dispatch(setQuizId(quizId));
@@ -275,7 +278,7 @@ export function DashboardPage() {
           <StaggerItem>
             <button
               type="button"
-              onClick={() => handleStartQuiz('shindan')}
+              onClick={() => handleStartQuiz(lastQuizId)}
               className="w-full group bg-card rounded-xl border p-6 text-left hover:border-primary/30 hover:shadow-md transition-all duration-200"
             >
               <div className="h-11 w-11 rounded-lg bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mb-4 group-hover:bg-amber-100/70 dark:group-hover:bg-amber-900/30 transition-colors">
@@ -420,12 +423,10 @@ export function DashboardPage() {
                 </svg>
               </div>
               <p className="text-lg font-bold mb-1">
-                {locale === 'th' ? 'ยังไม่มีผลประเมิน' : 'No assessments yet'}
+                {t('quiz.noResults.title')}
               </p>
               <p className="text-sm text-muted-foreground mb-6">
-                {locale === 'th'
-                  ? 'เริ่มทำแบบประเมินเพื่อตรวจสุขภาพโรงงานของคุณ'
-                  : 'Start an assessment to check your factory health'}
+                {t('quiz.noResults.desc')}
               </p>
             </div>
           </ScaleIn>

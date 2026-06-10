@@ -3,13 +3,13 @@ import { AppHandoff } from "../components/AppHandoff";
 import { CookieConsent } from "../components/CookieConsent";
 
 interface Props {
-  title: string;
-  description?: string;
+	title: string;
+	description?: string;
 }
 
 const {
-  title,
-  description = "FactorySync Solutions — ยกระดับโรงงานของคุณด้วยระบบประเมินสุขภาพที่ชาญฉลาด",
+	title,
+	description = "FactorySync Solutions — ยกระดับโรงงานของคุณด้วยระบบประเมินสุขภาพที่ชาญฉลาด",
 } = Astro.props;
 
 const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";

@@ -1,4 +1,4 @@
-import { Select } from '@/components/form/native-select';
+import { SelectField } from '@/components/form/select-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ApiError, api } from '@/lib/api';
@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { type Profile, setProfile } from '@/store/authSlice';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -45,12 +45,13 @@ const sizeKeys = ['small', 'medium', 'large'] as const;
 export function ProfilePage() {
   const dispatch = useAppDispatch();
   const { profile } = useAppSelector((s) => s.auth);
-  const { locale, t } = useLocale();
+  const { t } = useLocale();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<FormData>({
@@ -138,14 +139,24 @@ export function ProfilePage() {
                 <label htmlFor="industryType" className="text-sm font-medium">
                   {t('register.industryType')}
                 </label>
-                <Select id="industryType" {...register('industryType')}>
-                  <option value="">{t('register.select')}</option>
-                  {industryKeys.map((key) => (
-                    <option key={key} value={key}>
-                      {t(`industry.${key}`)}
-                    </option>
-                  ))}
-                </Select>
+                <Controller
+                  name="industryType"
+                  control={control}
+                  render={({ field }) => (
+                    <SelectField
+                      id="industryType"
+                      value={field.value}
+                      placeholder={t('register.select')}
+                      options={industryKeys.map((key) => ({
+                        value: key,
+                        label: t(`industry.${key}`),
+                      }))}
+                      onValueChange={field.onChange}
+                      onBlur={field.onBlur}
+                      isInvalid={!!errors.industryType}
+                    />
+                  )}
+                />
                 {errors.industryType && (
                   <p className="text-xs text-destructive">{t(errors.industryType.message || '')}</p>
                 )}
@@ -154,14 +165,24 @@ export function ProfilePage() {
                 <label htmlFor="companySize" className="text-sm font-medium">
                   {t('register.companySize')}
                 </label>
-                <Select id="companySize" {...register('companySize')}>
-                  <option value="">{t('register.select')}</option>
-                  {sizeKeys.map((key) => (
-                    <option key={key} value={key}>
-                      {t(`size.${key}`)}
-                    </option>
-                  ))}
-                </Select>
+                <Controller
+                  name="companySize"
+                  control={control}
+                  render={({ field }) => (
+                    <SelectField
+                      id="companySize"
+                      value={field.value}
+                      placeholder={t('register.select')}
+                      options={sizeKeys.map((key) => ({
+                        value: key,
+                        label: t(`size.${key}`),
+                      }))}
+                      onValueChange={field.onChange}
+                      onBlur={field.onBlur}
+                      isInvalid={!!errors.companySize}
+                    />
+                  )}
+                />
                 {errors.companySize && (
                   <p className="text-xs text-destructive">{t(errors.companySize.message || '')}</p>
                 )}
@@ -171,7 +192,7 @@ export function ProfilePage() {
             <div className="flex items-center gap-3 pt-1">
               <span className="h-px flex-1 bg-border" />
               <p className="text-xs font-medium text-muted-foreground">
-                {locale === 'th' ? 'ข้อมูลผู้ติดต่อ' : 'Contact Information'}
+                {t('profile.contactSection')}
               </p>
               <span className="h-px flex-1 bg-border" />
             </div>

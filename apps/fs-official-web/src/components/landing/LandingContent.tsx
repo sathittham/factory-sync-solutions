@@ -1043,7 +1043,7 @@ const TRUST_ICONS = [
 // ---------------------------------------------------------------------------
 
 function RadarChart() {
-	const { locale } = useLocale();
+	const { t } = useLocale();
 	const cx = 110;
 	const cy = 110;
 	const maxR = 80;
@@ -1051,19 +1051,16 @@ function RadarChart() {
 	const angles = [-90, -45, 0, 45, 90, 135, 180, 225].map((deg) => (deg * Math.PI) / 180);
 	const factoryValues = [0.85, 0.7, 0.6, 0.75, 0.9, 0.65, 0.8, 0.7];
 	const benchmarkValues = [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7];
-	const axisLabels =
-		locale === "th"
-			? ["ง.เบื้องต้น", "ปรับปรุง", "ประสานงาน", "บำรุงรักษา", "คุณภาพ", "การผลิต", "วัสดุ", "ต้นทุน"]
-			: [
-					"Basic",
-					"Improve",
-					"Coordination",
-					"Maintenance",
-					"Quality",
-					"Production",
-					"Materials",
-					"Cost",
-				];
+	const axisLabels = [
+		t("landing.radar.axis.basic"),
+		t("landing.radar.axis.improve"),
+		t("landing.radar.axis.coord"),
+		t("landing.radar.axis.maint"),
+		t("landing.radar.axis.quality"),
+		t("landing.radar.axis.prod"),
+		t("landing.radar.axis.mat"),
+		t("landing.radar.axis.cost"),
+	];
 
 	function toXY(angle: number, r: number) {
 		return {
@@ -1430,7 +1427,7 @@ const HERO_STATS = [
 ];
 
 function HeroSection({ appUrl }: { appUrl: string }) {
-	const { t, locale } = useLocale();
+	const { t } = useLocale();
 
 	return (
 		<section id="hero" className="relative overflow-hidden bg-sky-50 dark:bg-[#041225]">
@@ -1452,29 +1449,14 @@ function HeroSection({ appUrl }: { appUrl: string }) {
 						<h1 className="mb-4 text-[34px] font-extrabold leading-[1.08] tracking-tight sm:text-[40px] md:text-[38px] xl:text-[48px]">
 							<span className="block">{t("landing.hero.title1")}</span>
 							<span className="block mt-1">
-								{locale === "th" ? (
-									<>
-										ด้วย{" "}
-										<span className="text-cyan-600 drop-shadow-[0_1px_0_rgba(255,255,255,0.65)] dark:text-cyan-300 dark:drop-shadow-[0_0_18px_rgba(34,211,238,0.45)]">
-											AI
-										</span>{" "}
-										และ
-										<span className="text-cyan-600 drop-shadow-[0_1px_0_rgba(255,255,255,0.65)] dark:text-cyan-300 dark:drop-shadow-[0_0_18px_rgba(34,211,238,0.45)]">
-											วุฒิวิศวกร
-										</span>
-									</>
-								) : (
-									<>
-										with{" "}
-										<span className="text-cyan-600 drop-shadow-[0_1px_0_rgba(255,255,255,0.65)] dark:text-cyan-300 dark:drop-shadow-[0_0_18px_rgba(34,211,238,0.45)]">
-											AI
-										</span>{" "}
-										&{" "}
-										<span className="text-cyan-600 drop-shadow-[0_1px_0_rgba(255,255,255,0.65)] dark:text-cyan-300 dark:drop-shadow-[0_0_18px_rgba(34,211,238,0.45)]">
-											Certified Engineers
-										</span>
-									</>
-								)}
+								{t("landing.hero.title2.prefix")}{" "}
+								<span className="text-cyan-600 drop-shadow-[0_1px_0_rgba(255,255,255,0.65)] dark:text-cyan-300 dark:drop-shadow-[0_0_18px_rgba(34,211,238,0.45)]">
+									AI
+								</span>{" "}
+								{t("landing.hero.title2.connector")}{" "}
+								<span className="text-cyan-600 drop-shadow-[0_1px_0_rgba(255,255,255,0.65)] dark:text-cyan-300 dark:drop-shadow-[0_0_18px_rgba(34,211,238,0.45)]">
+									{t("landing.hero.title2.engineers")}
+								</span>
 							</span>
 						</h1>
 					</FadeIn>
@@ -1618,7 +1600,7 @@ function TrustBarSection() {
 // ---------------------------------------------------------------------------
 
 function DimensionsSection() {
-	const { t, locale } = useLocale();
+	const { t } = useLocale();
 
 	return (
 		<section
@@ -1632,17 +1614,10 @@ function DimensionsSection() {
 						<FadeIn>
 							<div className="mb-5">
 								<h2 className="mb-3 text-3xl font-extrabold leading-tight text-slate-950 sm:text-4xl dark:text-white">
-									{locale === "th" ? (
-										<>
-											<span className="text-cyan-700 dark:text-cyan-300">8 มิติ</span>
-											การตรวจสุขภาพโรงงาน
-										</>
-									) : (
-										<>
-											<span className="text-cyan-700 dark:text-cyan-300">8 Dimensions</span> of
-											Factory Health Check
-										</>
-									)}
+									<span className="text-cyan-700 dark:text-cyan-300">
+										{t("landing.dims.heading.highlight")}
+									</span>{" "}
+									{t("landing.dims.heading.suffix")}
 								</h2>
 								<p className="max-w-lg leading-relaxed text-slate-600 dark:text-slate-300">
 									{t("landing.dims.subtitle")}
@@ -1769,19 +1744,10 @@ function ExpertSection() {
 							{t("landing.expert.label")}
 						</span>
 						<h2 className="mb-4 text-3xl font-extrabold leading-tight text-slate-950 md:text-[32px] dark:text-white">
-							{locale === "th" ? (
-								<>
-									เชี่ยวชาญงานวิศวกรรม
-									<span className="block text-cyan-700 dark:text-cyan-300">ระดับวุฒิวิศวกร</span>
-								</>
-							) : (
-								<>
-									Engineering Expertise
-									<span className="block text-cyan-700 dark:text-cyan-300">
-										Certified Engineer Level
-									</span>
-								</>
-							)}
+							{t("landing.expert.heading.main")}
+							<span className="block text-cyan-700 dark:text-cyan-300">
+								{t("landing.expert.heading.level")}
+							</span>
 						</h2>
 						<p className="leading-relaxed text-slate-600 dark:text-slate-300">
 							{t("landing.expert.desc")}
@@ -1940,7 +1906,7 @@ function ProcessSection() {
 							/>
 							<div className="bg-white p-5 dark:bg-[#071b33]">
 								<p className="mb-3 text-sm font-bold leading-relaxed text-blue-900 dark:text-cyan-100">
-									{locale === "th" ? "รายงานเชิงลึก พร้อมแผนปรับปรุง" : "In-Depth Report + Action Plan"}
+									{t("landing.process.reportCaption")}
 								</p>
 								<a
 									href="#contact"

@@ -3,16 +3,19 @@ package admin
 import (
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"regexp"
 	"strconv"
 
-	"github.com/go-chi/chi/v5"
 	firebaseAuth "firebase.google.com/go/v4/auth"
+	"github.com/go-chi/chi/v5"
 
+	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/middleware"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/pkg"
+	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/audit"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/profile"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/result"
 )
@@ -42,13 +45,14 @@ func parseLimit(raw string, defaultVal, maxVal int) int {
 const msgInternalError = "internal error"
 
 type Handler struct {
-	resultSvc  *result.Service
-	profileSvc *profile.Service
-	authClient *firebaseAuth.Client
+	resultSvc   *result.Service
+	profileSvc  *profile.Service
+	authClient  *firebaseAuth.Client
+	auditLogger *audit.Logger
 }
 
-func NewHandler(resultSvc *result.Service, profileSvc *profile.Service, authClient *firebaseAuth.Client) *Handler {
-	return &Handler{resultSvc: resultSvc, profileSvc: profileSvc, authClient: authClient}
+func NewHandler(resultSvc *result.Service, profileSvc *profile.Service, authClient *firebaseAuth.Client, auditLogger *audit.Logger) *Handler {
+	return &Handler{resultSvc: resultSvc, profileSvc: profileSvc, authClient: authClient, auditLogger: auditLogger}
 }
 
 // Routes registers all admin routes on the given router.
@@ -123,9 +127,12 @@ func (h *Handler) enrichAssessments(r *http.Request, assessments []result.Assess
 // @Router       /api/v1/admin/assessments [get]
 func (h *Handler) ListAssessments(w http.ResponseWriter, r *http.Request) {
 	limit := parseLimit(r.URL.Query().Get("limit"), 100, maxAssessmentLimit)
+	industryType := r.URL.Query().Get("industryType")
+	companySize := r.URL.Query().Get("companySize")
 
-	filters := map[string]string{}
-	results, err := h.resultSvc.ListResults(r.Context(), filters, limit)
+	// Fetch without a limit cap — filtering happens post-enrichment since
+	// IndustryType and CompanySize live on the profile, not the assessment doc.
+	results, err := h.resultSvc.ListResults(r.Context(), map[string]string{}, 0)
 	if err != nil {
 		slog.Error("list assessments failed", "error", err.Error())
 		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
@@ -136,6 +143,32 @@ func (h *Handler) ListAssessments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enriched := h.enrichAssessments(r, results)
+
+	// Post-enrichment in-memory filtering on profile fields.
+	if industryType != "" {
+		filtered := enriched[:0]
+		for _, e := range enriched {
+			if e.IndustryType == industryType {
+				filtered = append(filtered, e)
+			}
+		}
+		enriched = filtered
+	}
+	if companySize != "" {
+		filtered := enriched[:0]
+		for _, e := range enriched {
+			if e.CompanySize == companySize {
+				filtered = append(filtered, e)
+			}
+		}
+		enriched = filtered
+	}
+
+	// Apply the limit cap after filtering.
+	if limit > 0 && len(enriched) > limit {
+		enriched = enriched[:limit]
+	}
+
 	pkg.RespondList(w, enriched, len(enriched))
 }
 
@@ -159,22 +192,20 @@ func (h *Handler) GetAssessment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Admin can view any assessment — no UID scoping
-	results, err := h.resultSvc.ListResults(r.Context(), nil, 0)
+	// Admin can view any assessment — no UID scoping; direct Firestore fetch avoids O(n) scan
+	a, err := h.resultSvc.GetResultByID(r.Context(), assessmentID)
+	if errors.Is(err, result.ErrResultNotFound) {
+		pkg.RespondError(w, http.StatusNotFound, "NOT_FOUND", "assessment not found")
+		return
+	}
 	if err != nil {
 		slog.Error("get assessment failed", "error", err.Error())
 		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 		return
 	}
 
-	for _, a := range results {
-		if a.ID == assessmentID {
-			enriched := h.enrichAssessments(r, []result.Assessment{a})
-			pkg.RespondJSON(w, http.StatusOK, enriched[0])
-			return
-		}
-	}
-	pkg.RespondError(w, http.StatusNotFound, "NOT_FOUND", "assessment not found")
+	enriched := h.enrichAssessments(r, []result.Assessment{*a})
+	pkg.RespondJSON(w, http.StatusOK, enriched[0])
 }
 
 // ExportCSV godoc
@@ -224,6 +255,10 @@ func (h *Handler) ExportCSV(w http.ResponseWriter, r *http.Request) {
 			a.SubmittedAt,
 		})
 	}
+
+	h.auditLogger.Log(r.Context(), middleware.GetUID(r), audit.EventAdminExport,
+		"export", "assessments.csv",
+		map[string]any{"count": len(enriched)})
 }
 
 // ListUsers godoc
@@ -291,17 +326,17 @@ func (h *Handler) SetUserRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update Firestore profile
-	if err := h.profileSvc.SetRole(r.Context(), uid, req.Role); err != nil {
-		slog.Error("set role in firestore failed", "uid", uid, "role", req.Role, "error", err.Error())
+	// Update Firebase custom claims first (authoritative source for RequireAdmin middleware)
+	claims := map[string]any{"role": req.Role}
+	if err := h.authClient.SetCustomUserClaims(r.Context(), uid, claims); err != nil {
+		slog.Error("set firebase custom claims failed", "uid", uid, "role", req.Role, "error", err.Error())
 		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 		return
 	}
 
-	// Update Firebase custom claims (authoritative source)
-	claims := map[string]interface{}{"role": req.Role}
-	if err := h.authClient.SetCustomUserClaims(r.Context(), uid, claims); err != nil {
-		slog.Error("set firebase custom claims failed", "uid", uid, "role", req.Role, "error", err.Error())
+	// Mirror role to Firestore profile (Firebase claims already updated — safer failure mode)
+	if err := h.profileSvc.SetRole(r.Context(), uid, req.Role); err != nil {
+		slog.Error("set role in firestore failed", "uid", uid, "role", req.Role, "error", err.Error())
 		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 		return
 	}

@@ -17,7 +17,7 @@ import { auth, googleProvider } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
 import { type Theme, useTheme } from '@/lib/theme';
 import { useAppSelector } from '@/store';
-import { signInWithPopup, signOut } from 'firebase/auth';
+import { signInWithRedirect, signOut } from 'firebase/auth';
 import { type ReactElement, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 
@@ -127,6 +127,7 @@ function LocaleDropdown({
   locale: string;
   setLocale: (l: 'th' | 'en') => void;
 }>) {
+  const { t } = useLocale();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -154,13 +155,13 @@ function LocaleDropdown({
           onClick={() => setLocale('th')}
           className={locale === 'th' ? 'font-medium text-primary' : ''}
         >
-          TH ภาษาไทย
+          {`TH ${t('locale.th')}`}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => setLocale('en')}
           className={locale === 'en' ? 'font-medium text-primary' : ''}
         >
-          EN English
+          {`EN ${t('locale.en')}`}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -316,7 +317,6 @@ function DesktopAuthNav({
 }>) {
   const displayName = profile.contactName || profile.displayName;
   const initial = getInitial(displayName || profile.email);
-  const languageLabel = locale === 'th' ? 'ภาษา' : 'Language';
 
   return (
     <>
@@ -388,19 +388,19 @@ function DesktopAuthNav({
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold py-1">
-            {languageLabel}
+            {t('locale.label')}
           </DropdownMenuLabel>
           <DropdownMenuItem
             onClick={() => setLocale('th')}
             className={`gap-2 ${locale === 'th' ? 'font-medium text-primary' : ''}`}
           >
-            TH ภาษาไทย
+            {`TH ${t('locale.th')}`}
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setLocale('en')}
             className={`gap-2 ${locale === 'en' ? 'font-medium text-primary' : ''}`}
           >
-            EN English
+            {`EN ${t('locale.en')}`}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold py-1">
@@ -844,14 +844,9 @@ export function Layout() {
     trackPageView(location.pathname);
   }, [location.pathname]);
 
-  const handleSignIn = async () => {
+  const handleSignIn = () => {
     trackEvent('sign_in_click', { method: 'google', source: 'nav' });
-    try {
-      await signInWithPopup(auth, googleProvider);
-      trackEvent('sign_in_success', { method: 'google' });
-    } catch {
-      trackEvent('sign_in_error', { method: 'google' });
-    }
+    signInWithRedirect(auth, googleProvider);
   };
 
   const handleSignOut = async () => {
@@ -865,35 +860,76 @@ export function Layout() {
     setCookieSettings(false);
   };
 
+  const isAuthPage = ['/', '/register'].includes(location.pathname);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <TopCtaBar t={t} />
+      {isAuthPage ? (
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          <LocaleDropdown locale={locale} setLocale={setLocale} />
+          <ThemeDropdown theme={theme} setTheme={setTheme} t={t} />
+        </div>
+      ) : (
+        <>
+          <TopCtaBar t={t} />
+          <header className="sticky top-0 z-50 border-b bg-background">
+            <div className="container flex h-14 items-center justify-between">
+              <Link to="/" className="flex items-center gap-2 group">
+                <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    className="text-white"
+                  >
+                    <path
+                      d="M2 14V6l6-4 6 4v8H2z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M6 14v-4h4v4"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <span className="font-bold text-foreground">FS</span>
+              </Link>
 
-      <header className="sticky top-0 z-50 border-b bg-background">
-        <div className="container flex h-14 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="text-white">
-                <path
-                  d="M2 14V6l6-4 6 4v8H2z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M6 14v-4h4v4"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <span className="font-bold text-foreground">FS</span>
-          </Link>
+              <nav className="hidden sm:flex items-center gap-1">
+                {isAuthenticated && profile && (
+                  <DesktopAuthNav
+                    profile={profile}
+                    user={user}
+                    isAdmin={isAdmin}
+                    locale={locale}
+                    setLocale={setLocale}
+                    theme={theme}
+                    setTheme={setTheme}
+                    t={t}
+                    handleSignOut={handleSignOut}
+                    setProfileOpen={setProfileOpen}
+                    pathname={location.pathname}
+                  />
+                )}
+                {!isAuthenticated && (
+                  <DesktopGuestNav
+                    locale={locale}
+                    setLocale={setLocale}
+                    theme={theme}
+                    setTheme={setTheme}
+                    t={t}
+                    handleSignIn={handleSignIn}
+                  />
+                )}
+              </nav>
 
-          <nav className="hidden sm:flex items-center gap-1">
-            {isAuthenticated && profile && (
-              <DesktopAuthNav
+              <MobileHeader
+                isAuthenticated={isAuthenticated}
                 profile={profile}
                 user={user}
                 isAdmin={isAdmin}
@@ -902,53 +938,35 @@ export function Layout() {
                 theme={theme}
                 setTheme={setTheme}
                 t={t}
+                handleSignIn={handleSignIn}
+                sheetOpen={sheetOpen}
+                setSheetOpen={setSheetOpen}
                 handleSignOut={handleSignOut}
                 setProfileOpen={setProfileOpen}
                 pathname={location.pathname}
               />
-            )}
-            {!isAuthenticated && (
-              <DesktopGuestNav
-                locale={locale}
-                setLocale={setLocale}
-                theme={theme}
-                setTheme={setTheme}
-                t={t}
-                handleSignIn={handleSignIn}
-              />
-            )}
-          </nav>
-
-          <MobileHeader
-            isAuthenticated={isAuthenticated}
-            profile={profile}
-            user={user}
-            isAdmin={isAdmin}
-            locale={locale}
-            setLocale={setLocale}
-            theme={theme}
-            setTheme={setTheme}
-            t={t}
-            handleSignIn={handleSignIn}
-            sheetOpen={sheetOpen}
-            setSheetOpen={setSheetOpen}
-            handleSignOut={handleSignOut}
-            setProfileOpen={setProfileOpen}
-            pathname={location.pathname}
-          />
-        </div>
-      </header>
+            </div>
+          </header>
+        </>
+      )}
 
       <main className="flex-1">
         <Outlet />
       </main>
 
-      <FooterSection
-        t={t}
-        setLegalModal={setLegalModal}
-        setCookieOpen={setCookieOpen}
-        setCookieSettings={setCookieSettings}
-      />
+      {isAuthPage ? (
+        <footer className="py-4 text-center text-xs text-muted-foreground">
+          FactorySync Solutions &middot; @factorysyncsolutions &nbsp;&middot;&nbsp;{' '}
+          <span className="font-mono">{__APP_VERSION__}</span>
+        </footer>
+      ) : (
+        <FooterSection
+          t={t}
+          setLegalModal={setLegalModal}
+          setCookieOpen={setCookieOpen}
+          setCookieSettings={setCookieSettings}
+        />
+      )}
       <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
       <LegalModal open={legalModal} onClose={() => setLegalModal(null)} />
       <CookieConsent

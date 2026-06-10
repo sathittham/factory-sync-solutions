@@ -1,7 +1,5 @@
 declare global {
-  // biome-ignore lint/style/noVar: globalThis augmentation requires var
   var dataLayer: unknown[];
-  // biome-ignore lint/style/noVar: globalThis augmentation requires var
   var gtag: (...args: unknown[]) => void;
 }
 

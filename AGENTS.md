@@ -19,9 +19,9 @@ Multi-quiz factory health assessment platform. A Go backend serves a React singl
 Violate any of these and the PR will be blocked at review:
 
 1. **Response helpers** — always `pkg.RespondJSON`, `pkg.RespondList`, `pkg.RespondError`. Never write raw JSON.
-2. **UID from context only** — `middleware.GetUID(r.Context())`. Never read the user ID from the request body or path.
+2. **UID from context only** — `middleware.GetUID(r)`. Never read the user ID from the request body or path.
 3. **Wrap every error** — `fmt.Errorf("context: %w", err)`. Check with `errors.Is`, never type assertion.
-4. **Sentinel errors** — `ErrNotFound`, `ErrConflict`, `ErrForbidden` in the service package.
+4. **Sentinel errors** — domain-specific per service (`ErrProfileNotFound`, `ErrAlreadyRegistered`, `ErrResultNotFound`, `ErrQuizNotFound`, etc.).
 5. **shadcn/ui only** — never native `<select>`, `<dialog>`, or `window.confirm()`. Use `components/ui/`.
 6. **i18n everywhere** — all UI text via `useLocale()`. No hardcoded strings (TH/EN).
 7. **Dates via `formatDateTime()`** from `@/lib/dayjs` — never raw `toLocaleDateString()`. Thai locale uses Buddhist Era (พ.ศ.).
@@ -76,7 +76,7 @@ Built only through `pkg` helpers — `RespondJSON` (single), `RespondList` (coll
 
 ### Auth
 
-UID always from `middleware.GetUID(r.Context())`. Admin role lives in both the Firestore profile and Firebase custom claims — **claims are authoritative**.
+UID always from `middleware.GetUID(r)`. Admin role lives in both the Firestore profile and Firebase custom claims — **claims are authoritative**.
 
 ### Quiz / Scoring
 
@@ -126,7 +126,7 @@ Never commit directly to `main`; never force-push `main`.
 
 ## Security Checklist (verify on every PR)
 
-- UID/role read only from `middleware.GetUID` / Firebase claims — never request body.
+- UID/role read only from `middleware.GetUID(r)` / Firebase claims — never request body.
 - Auth middleware applied to every protected route.
 - Input validated via `pkg/validator.go` at the handler layer.
 - Turnstile verified on public-facing endpoints (`pkg/turnstile.go`).

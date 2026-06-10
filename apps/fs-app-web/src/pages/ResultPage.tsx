@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { trackEvent } from '@/lib/analytics';
 import { api } from '@/lib/api';
+import { formatDateTime } from '@/lib/dayjs';
 import { useLocale } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -254,7 +255,7 @@ function QuizResultDetail({
               </Badge>
               {assessment.submittedAt && (
                 <p className="text-xs text-muted-foreground font-mono mt-3">
-                  {new Date(assessment.submittedAt).toLocaleDateString()}
+                  {formatDateTime(assessment.submittedAt, locale, false)}
                 </p>
               )}
             </div>
@@ -610,7 +611,7 @@ export function ResultPage() {
                                   }`}
                                 >
                                   <span className="text-muted-foreground font-mono text-xs">
-                                    {new Date(a.submittedAt).toLocaleDateString()}
+                                    {formatDateTime(a.submittedAt, locale, false)}
                                   </span>
                                   <div className="flex items-center gap-2">
                                     <span className="font-mono font-semibold tabular-nums">

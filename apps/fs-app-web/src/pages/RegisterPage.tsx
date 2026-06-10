@@ -1,7 +1,9 @@
+import { AuthPanel } from '@/components/AuthPanel';
 import { LegalModal, type LegalType } from '@/components/LegalModal';
 import { Turnstile } from '@/components/Turnstile';
-import { Select } from '@/components/form/native-select';
+import { SelectField } from '@/components/form/select-field';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { trackEvent } from '@/lib/analytics';
 import { ApiError, api } from '@/lib/api';
@@ -10,7 +12,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { type Profile, setProfile } from '@/store/authSlice';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useState } from 'react';
-import { type FieldErrors, type UseFormRegister, useForm } from 'react-hook-form';
+import { Controller, type FieldErrors, type UseFormRegister, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
@@ -111,20 +113,16 @@ function ContactFields({
   formRegister,
   errors,
   t,
-  locale,
 }: {
   readonly formRegister: UseFormRegister<FormData>;
   readonly errors: FieldErrors<FormData>;
   readonly t: (key: string) => string;
-  readonly locale: string;
 }) {
   return (
     <>
       <div className="flex items-center gap-3 pt-1">
         <span className="h-px flex-1 bg-border" />
-        <p className="text-xs font-medium text-muted-foreground">
-          {locale === 'th' ? 'ข้อมูลผู้ติดต่อ' : 'Contact Information'}
-        </p>
+        <p className="text-xs font-medium text-muted-foreground">{t('profile.contactSection')}</p>
         <span className="h-px flex-1 bg-border" />
       </div>
       <div className="space-y-1.5">
@@ -196,6 +194,7 @@ export function RegisterPage() {
 
   const {
     register: formRegister,
+    control,
     handleSubmit,
     setValue,
     watch,
@@ -203,8 +202,14 @@ export function RegisterPage() {
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
+      companyName: '',
+      companyRegId: '',
+      industryType: '',
+      companySize: '',
       contactName: user?.displayName || '',
       contactEmail: user?.email || '',
+      contactPhone: '',
+      marketingConsent: false,
     },
   });
 
@@ -286,213 +291,253 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center p-4 sm:p-6">
-      <div className="w-full max-w-lg animate-fade-up" data-testid="registration-form">
-        <div className="bg-card rounded-lg border p-6 sm:p-8">
-          {/* Header */}
-          <div className="flex items-start gap-3 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-primary">
-                <path
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2M5 21H3m4-10h2m4 0h2m-8 4h2m4 0h2"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">{t('register.title')}</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">{t('register.subtitle')}</p>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Registration ID with lookup */}
-            <div className="space-y-1.5">
-              <label htmlFor="companyRegId" className="text-sm font-medium">
-                {t('register.regId')}
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  id="companyRegId"
-                  placeholder="0115560016313"
-                  className="font-mono tracking-wide"
-                  data-testid="reg-company-id-input"
-                  {...formRegister('companyRegId', {
-                    onChange: () => {
-                      setDbdInfo(null);
-                      setRegIdTaken(null);
-                    },
-                  })}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleDbdLookup}
-                  disabled={isLookingUp || !!dbdInfo}
-                  className="shrink-0 min-w-[80px]"
-                  data-testid="reg-dbd-lookup-btn"
-                >
-                  {isLookingUp ? <Spinner /> : getLookupLabel()}
-                </Button>
-              </div>
-              {errors.companyRegId && (
-                <p className="text-xs text-destructive">{t(errors.companyRegId.message || '')}</p>
-              )}
-            </div>
-
-            {regIdTaken && (
-              <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 animate-scale-in">
-                <p className="font-medium text-xs mb-0.5">{t('register.regIdTaken.title')}</p>
-                <p className="text-blue-700 text-[13px]">
-                  &ldquo;{regIdTaken}&rdquo; {t('register.regIdTaken.desc')}
-                </p>
-              </div>
-            )}
-
-            {dbdInfo && <DbdInfoCard info={dbdInfo} />}
-
-            {/* Company name */}
-            <div className="space-y-1.5">
-              <label htmlFor="companyName" className="text-sm font-medium">
-                {t('register.companyName')}
-              </label>
-              <Input id="companyName" {...formRegister('companyName')} />
-              {errors.companyName && (
-                <p className="text-xs text-destructive">{t(errors.companyName.message || '')}</p>
-              )}
-            </div>
-
-            {/* Industry + Size */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label htmlFor="industryType" className="text-sm font-medium">
-                  {t('register.industryType')}
-                </label>
-                <Select id="industryType" {...formRegister('industryType')}>
-                  <option value="">{t('register.select')}</option>
-                  {industryKeys.map((key) => (
-                    <option key={key} value={key}>
-                      {t(`industry.${key}`)}
-                    </option>
-                  ))}
-                </Select>
-                {errors.industryType && (
-                  <p className="text-xs text-destructive">{t(errors.industryType.message || '')}</p>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <label htmlFor="companySize" className="text-sm font-medium">
-                  {t('register.companySize')}
-                </label>
-                <Select id="companySize" {...formRegister('companySize')}>
-                  <option value="">{t('register.select')}</option>
-                  {sizeKeys.map((key) => (
-                    <option key={key} value={key}>
-                      {t(`size.${key}`)}
-                    </option>
-                  ))}
-                </Select>
-                {errors.companySize && (
-                  <p className="text-xs text-destructive">{t(errors.companySize.message || '')}</p>
-                )}
-              </div>
-            </div>
-
-            <ContactFields formRegister={formRegister} errors={errors} t={t} locale={locale} />
-
-            {/* Consent checkboxes */}
-            <div className="space-y-3 pt-1">
-              <div className="flex items-start gap-2.5">
-                <input
-                  type="checkbox"
-                  id="acceptTerms"
-                  className="mt-1 h-4 w-4 rounded border-gray-300 accent-primary"
-                  {...formRegister('acceptTerms')}
-                />
-                <label htmlFor="acceptTerms" className="text-sm leading-relaxed">
-                  {t('register.acceptTerms')}{' '}
-                  <button
-                    type="button"
-                    onClick={() => setLegalModal('terms')}
-                    className="text-primary hover:underline font-medium"
+    <div className="min-h-screen flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-3xl" data-testid="registration-form">
+        <Card className="overflow-hidden shadow-lg">
+          <CardContent className="grid p-0 md:grid-cols-2">
+            <div className="p-8 md:p-10 overflow-y-auto">
+              {/* Header */}
+              <div className="flex flex-col items-center text-center gap-2 mb-6">
+                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="text-primary"
+                    aria-hidden="true"
                   >
-                    {t('register.termsLink')}
-                  </button>{' '}
-                  {t('register.and')}{' '}
-                  <button
-                    type="button"
-                    onClick={() => setLegalModal('privacy')}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    {t('register.privacyLink')}
-                  </button>
-                </label>
+                    <path
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2M5 21H3m4-10h2m4 0h2m-8 4h2m4 0h2"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold">{t('register.title')}</h1>
+                  <p className="text-base text-muted-foreground mt-0.5">{t('register.subtitle')}</p>
+                </div>
               </div>
-              {errors.acceptTerms && (
-                <p className="text-xs text-destructive ml-6">
-                  {t(errors.acceptTerms.message || '')}
-                </p>
-              )}
 
-              <div className="flex items-start gap-2.5">
-                <input
-                  type="checkbox"
-                  id="marketingConsent"
-                  className="mt-1 h-4 w-4 rounded border-gray-300 accent-primary"
-                  {...formRegister('marketingConsent')}
-                />
-                <label htmlFor="marketingConsent" className="text-sm leading-relaxed">
-                  {t('register.marketingConsent')}
-                  <span className="block text-xs text-muted-foreground mt-0.5">
-                    {t('register.marketingConsentDetail')}{' '}
-                    <button
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                {/* Registration ID with lookup */}
+                <div className="space-y-1.5">
+                  <label htmlFor="companyRegId" className="text-sm font-medium">
+                    {t('register.regId')}
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="companyRegId"
+                      placeholder="0115560016313"
+                      className="font-mono tracking-wide"
+                      data-testid="reg-company-id-input"
+                      {...formRegister('companyRegId', {
+                        onChange: () => {
+                          setDbdInfo(null);
+                          setRegIdTaken(null);
+                        },
+                      })}
+                    />
+                    <Button
                       type="button"
-                      onClick={() => setLegalModal('marketing')}
-                      className="text-primary hover:underline font-medium"
+                      variant="outline"
+                      onClick={handleDbdLookup}
+                      disabled={isLookingUp || !!dbdInfo}
+                      className="shrink-0 min-w-[80px]"
+                      data-testid="reg-dbd-lookup-btn"
                     >
-                      {t('register.marketingPolicyLink')}
-                    </button>
-                  </span>
-                </label>
-              </div>
+                      {isLookingUp ? <Spinner /> : getLookupLabel()}
+                    </Button>
+                  </div>
+                  {errors.companyRegId && (
+                    <p className="text-xs text-destructive">
+                      {t(errors.companyRegId.message || '')}
+                    </p>
+                  )}
+                </div>
+
+                {regIdTaken && (
+                  <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 animate-scale-in">
+                    <p className="font-medium text-xs mb-0.5">{t('register.regIdTaken.title')}</p>
+                    <p className="text-blue-700 text-[13px]">
+                      &ldquo;{regIdTaken}&rdquo; {t('register.regIdTaken.desc')}
+                    </p>
+                  </div>
+                )}
+
+                {dbdInfo && <DbdInfoCard info={dbdInfo} />}
+
+                {/* Company name */}
+                <div className="space-y-1.5">
+                  <label htmlFor="companyName" className="text-sm font-medium">
+                    {t('register.companyName')}
+                  </label>
+                  <Input id="companyName" {...formRegister('companyName')} />
+                  {errors.companyName && (
+                    <p className="text-xs text-destructive">
+                      {t(errors.companyName.message || '')}
+                    </p>
+                  )}
+                </div>
+
+                {/* Industry + Size */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label htmlFor="industryType" className="text-sm font-medium">
+                      {t('register.industryType')}
+                    </label>
+                    <Controller
+                      name="industryType"
+                      control={control}
+                      render={({ field }) => (
+                        <SelectField
+                          id="industryType"
+                          value={field.value}
+                          placeholder={t('register.select')}
+                          options={industryKeys.map((key) => ({
+                            value: key,
+                            label: t(`industry.${key}`),
+                          }))}
+                          onValueChange={field.onChange}
+                          onBlur={field.onBlur}
+                          isInvalid={!!errors.industryType}
+                        />
+                      )}
+                    />
+                    {errors.industryType && (
+                      <p className="text-xs text-destructive">
+                        {t(errors.industryType.message || '')}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="companySize" className="text-sm font-medium">
+                      {t('register.companySize')}
+                    </label>
+                    <Controller
+                      name="companySize"
+                      control={control}
+                      render={({ field }) => (
+                        <SelectField
+                          id="companySize"
+                          value={field.value}
+                          placeholder={t('register.select')}
+                          options={sizeKeys.map((key) => ({
+                            value: key,
+                            label: t(`size.${key}`),
+                          }))}
+                          onValueChange={field.onChange}
+                          onBlur={field.onBlur}
+                          isInvalid={!!errors.companySize}
+                        />
+                      )}
+                    />
+                    {errors.companySize && (
+                      <p className="text-xs text-destructive">
+                        {t(errors.companySize.message || '')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <ContactFields formRegister={formRegister} errors={errors} t={t} />
+
+                {/* Consent checkboxes */}
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-start gap-2.5">
+                    <input
+                      type="checkbox"
+                      id="acceptTerms"
+                      className="mt-1 h-4 w-4 rounded border-gray-300 accent-primary"
+                      {...formRegister('acceptTerms')}
+                    />
+                    <label htmlFor="acceptTerms" className="text-sm leading-relaxed">
+                      {t('register.acceptTerms')}{' '}
+                      <button
+                        type="button"
+                        onClick={() => setLegalModal('terms')}
+                        className="text-primary hover:underline font-medium"
+                      >
+                        {t('register.termsLink')}
+                      </button>{' '}
+                      {t('register.and')}{' '}
+                      <button
+                        type="button"
+                        onClick={() => setLegalModal('privacy')}
+                        className="text-primary hover:underline font-medium"
+                      >
+                        {t('register.privacyLink')}
+                      </button>
+                    </label>
+                  </div>
+                  {errors.acceptTerms && (
+                    <p className="text-xs text-destructive ml-6">
+                      {t(errors.acceptTerms.message || '')}
+                    </p>
+                  )}
+
+                  <div className="flex items-start gap-2.5">
+                    <input
+                      type="checkbox"
+                      id="marketingConsent"
+                      className="mt-1 h-4 w-4 rounded border-gray-300 accent-primary"
+                      {...formRegister('marketingConsent')}
+                    />
+                    <label htmlFor="marketingConsent" className="text-sm leading-relaxed">
+                      {t('register.marketingConsent')}
+                      <span className="block text-xs text-muted-foreground mt-0.5">
+                        {t('register.marketingConsentDetail')}{' '}
+                        <button
+                          type="button"
+                          onClick={() => setLegalModal('marketing')}
+                          className="text-primary hover:underline font-medium"
+                        >
+                          {t('register.marketingPolicyLink')}
+                        </button>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {TURNSTILE_SITE_KEY && (
+                  <div className="flex justify-center">
+                    <Turnstile
+                      siteKey={TURNSTILE_SITE_KEY}
+                      onVerify={handleTurnstileVerify}
+                      onExpire={handleTurnstileExpire}
+                      language={locale}
+                    />
+                  </div>
+                )}
+
+                {error && (
+                  <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm text-center animate-scale-in">
+                    {error}
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full h-11 font-semibold"
+                  disabled={isSubmitting}
+                  data-testid="registration-submit-btn"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Spinner />
+                      <span className="ml-2">{t('register.submitting')}</span>
+                    </>
+                  ) : (
+                    t('register.submit')
+                  )}
+                </Button>
+              </form>
             </div>
-
-            {TURNSTILE_SITE_KEY && (
-              <div className="flex justify-center">
-                <Turnstile
-                  siteKey={TURNSTILE_SITE_KEY}
-                  onVerify={handleTurnstileVerify}
-                  onExpire={handleTurnstileExpire}
-                  language={locale}
-                />
-              </div>
-            )}
-
-            {error && (
-              <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm text-center animate-scale-in">
-                {error}
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full h-11 font-semibold"
-              disabled={isSubmitting}
-              data-testid="registration-submit-btn"
-            >
-              {isSubmitting ? (
-                <>
-                  <Spinner />
-                  <span className="ml-2">{t('register.submitting')}</span>
-                </>
-              ) : (
-                t('register.submit')
-              )}
-            </Button>
-          </form>
-        </div>
+            <AuthPanel />
+          </CardContent>
+        </Card>
       </div>
       <LegalModal open={legalModal} onClose={() => setLegalModal(null)} />
     </div>

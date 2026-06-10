@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
 import { api } from "@/lib/api";
 import { trackEvent } from "@/lib/analytics";
@@ -87,7 +87,7 @@ function getScoreColor(score: number): string {
 
 // --- Quiz Tab (Assessment list) ---
 
-function QuizTab() {
+function QuizTab({ onExport, exportError }: Readonly<{ onExport: () => Promise<void>; exportError: string | null }>) {
 	const [assessments, setAssessments] = useState<AdminAssessment[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [industryFilter, setIndustryFilter] = useState("");
@@ -139,27 +139,6 @@ function QuizTab() {
 			setDetailData(a);
 		} finally {
 			setDetailLoading(false);
-		}
-	};
-
-	const handleExport = async () => {
-		try {
-			const res = await fetch("/api/v1/admin/export", {
-				headers: {
-					Authorization: `Bearer ${await auth.currentUser?.getIdToken()}`,
-				},
-			});
-			if (!res.ok) throw new Error("Export failed");
-			const blob = await res.blob();
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = `assessments-${new Date().toISOString().slice(0, 10)}.csv`;
-			a.click();
-			URL.revokeObjectURL(url);
-			trackEvent("admin_export_csv", { count: assessments.length });
-		} catch {
-			trackEvent("admin_export_csv_error");
 		}
 	};
 
@@ -287,6 +266,12 @@ function QuizTab() {
 
 	return (
 		<>
+			{exportError && (
+				<div className="mb-4 p-3 rounded-md text-sm bg-red-50 text-red-800 border border-red-200 animate-scale-in">
+					{exportError}
+				</div>
+			)}
+
 			{/* Stat cards */}
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-5">
 				<div className="bg-card rounded-lg border p-5 animate-fade-up">
@@ -364,7 +349,7 @@ function QuizTab() {
 					</div>
 					<Button
 						variant="outline"
-						onClick={handleExport}
+						onClick={onExport}
 						data-testid="admin-export-csv-btn-mobile"
 						className="gap-2 sm:hidden"
 					>
@@ -402,9 +387,8 @@ function QuizTab() {
 							</thead>
 							<tbody>
 								{assessments.map((a) => (
-									<>
+									<Fragment key={a.id}>
 										<tr
-											key={a.id}
 											onClick={() => handleSelectAssessment(a)}
 											className={`border-b last:border-0 cursor-pointer transition-colors ${
 												selectedId === a.id
@@ -446,7 +430,7 @@ function QuizTab() {
 											</td>
 										</tr>
 										{selectedId === a.id && (
-											<tr key={`${a.id}-detail`}>
+											<tr>
 												<td colSpan={6} className="p-0">
 													<div className="border-t bg-muted/10 p-5 animate-fade-up" style={{ animationDelay: "0s" }}>
 														{renderDetailContent()}
@@ -454,7 +438,7 @@ function QuizTab() {
 												</td>
 											</tr>
 										)}
-									</>
+									</Fragment>
 								))}
 								{assessments.length === 0 && (
 									<tr>
@@ -800,12 +784,19 @@ function UsersTab() {
 
 export function AdminPage() {
 	const { t } = useLocale();
+	const [exportError, setExportError] = useState<string | null>(null);
 
 	const handleExport = async () => {
+		setExportError(null);
 		try {
+			const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
+			if (!token) {
+				setExportError(t("export.error"));
+				return;
+			}
 			const res = await fetch("/api/v1/admin/export", {
 				headers: {
-					Authorization: `Bearer ${await auth.currentUser?.getIdToken()}`,
+					Authorization: `Bearer ${token}`,
 				},
 			});
 			if (!res.ok) throw new Error("Export failed");
@@ -818,6 +809,7 @@ export function AdminPage() {
 			URL.revokeObjectURL(url);
 			trackEvent("admin_export_csv");
 		} catch {
+			setExportError(t("export.error"));
 			trackEvent("admin_export_csv_error");
 		}
 	};
@@ -851,7 +843,7 @@ export function AdminPage() {
 					</TabsList>
 
 					<TabsContent value="quiz">
-						<QuizTab />
+						<QuizTab onExport={handleExport} exportError={exportError} />
 					</TabsContent>
 
 					<TabsContent value="users">

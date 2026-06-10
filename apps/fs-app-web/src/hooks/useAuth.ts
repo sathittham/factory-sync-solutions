@@ -1,39 +1,50 @@
-import { useEffect } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { api, ApiError } from "@/lib/api";
-import { useAppDispatch } from "@/store";
+import { trackEvent } from '@/lib/analytics';
+import { api, ApiError } from '@/lib/api';
+import { auth } from '@/lib/firebase';
+import { useAppDispatch } from '@/store';
 import {
-	setUser,
-	setProfile,
+	logout,
 	setHasCompletedQuiz,
 	setLoading,
-	logout,
+	setProfile,
+	setUser,
 	type Profile,
-} from "@/store/authSlice";
+} from '@/store/authSlice';
+import { getRedirectResult, onAuthStateChanged } from 'firebase/auth';
+import { useEffect } from 'react';
 
 export function useAuth() {
 	const dispatch = useAppDispatch();
 
 	useEffect(() => {
+		// Resolve pending redirect sign-in (fires once on page load after redirect)
+		getRedirectResult(auth)
+			.then((result) => {
+				if (result) {
+					trackEvent('sign_in_success', { method: 'google' });
+				}
+			})
+			.catch(() => {
+				trackEvent('sign_in_error', { method: 'google' });
+			});
+
 		const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
 			if (firebaseUser) {
 				dispatch(
 					setUser({
 						uid: firebaseUser.uid,
-						email: firebaseUser.email || "",
-						displayName: firebaseUser.displayName || "",
+						email: firebaseUser.email || '',
+						displayName: firebaseUser.displayName || '',
 						photoURL: firebaseUser.photoURL,
 					}),
 				);
 
 				try {
-					const profile = await api.get<Profile>("/profile");
+					const profile = await api.get<Profile>('/profile');
 					dispatch(setProfile(profile));
 
-					// Check if user has completed any quiz
 					try {
-						const results = await api.get<unknown[]>("/results");
+						const results = await api.get<unknown[]>('/results');
 						dispatch(setHasCompletedQuiz(results.length > 0));
 					} catch {
 						dispatch(setHasCompletedQuiz(false));
@@ -41,12 +52,14 @@ export function useAuth() {
 					dispatch(setLoading(false));
 				} catch (err) {
 					if (err instanceof ApiError && err.status === 404) {
-						// User is authenticated but has no profile yet → needs to register
+						// Authenticated but no profile yet → needs to register
 						dispatch(setProfile(null));
-						dispatch(setLoading(false));
+					} else if (err instanceof ApiError && err.status === 401) {
+						// Token rejected by API → treat as logged out
+						dispatch(logout());
 					}
-					// For other errors (500, network), keep loading=true so
-					// the UI doesn't wrongly redirect to /register.
+					// Always unblock the UI — an infinite spinner is worse than any redirect
+					dispatch(setLoading(false));
 				}
 			} else {
 				dispatch(logout());

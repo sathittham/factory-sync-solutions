@@ -111,9 +111,10 @@ func (s *Service) SubmitQuiz(ctx context.Context, uid, contactEmail, contactName
 		"diagnosis":    scoringResult.Diagnosis,
 	})
 
-	// Trigger notifications (fire-and-forget — failures logged, not propagated)
+	// Trigger notifications (fire-and-forget — use Background context so the
+	// goroutine is not cancelled when the HTTP handler returns).
 	if s.notifSvc != nil {
-		go s.notifSvc.NotifyQuizResult(ctx, assessment, contactEmail, contactName, companyName, emailNotifications, scoringResult.DimensionScores)
+		go s.notifSvc.NotifyQuizResult(context.Background(), assessment, contactEmail, contactName, companyName, emailNotifications, scoringResult.DimensionScores)
 	}
 
 	return assessment, nil
