@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { updateConsentMode } from "@/lib/consent";
 import { LocaleProvider, useLocale } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 
@@ -289,12 +290,14 @@ function CookieConsentInner() {
 		setAnalytics(true);
 		setMarketing(true);
 		saveConsent(true, true);
+		updateConsentMode(true, true);
 		setSettingsOpen(false);
 		setOpen(false);
 	};
 
 	const handleConfirm = () => {
 		saveConsent(analytics, marketing);
+		updateConsentMode(analytics, marketing);
 		setSettingsOpen(false);
 		setOpen(false);
 	};

@@ -31,7 +31,7 @@
           var changed = false;
           Object.keys(allow).forEach(function (param) {
             var v = p.get(param);
-            if (v !== null && allow[param].valid.indexOf(v) !== -1) {
+            if (v !== null && allow[param].valid.includes(v)) {
               localStorage.setItem(allow[param].key, v);
             }
             if (v !== null) { p.delete(param); changed = true; }
@@ -40,10 +40,20 @@
             var qs = p.toString();
             history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
           }
-        } catch (e) {}
+        } catch (e) {
+          // Handoff is best-effort (e.g. blocked localStorage); log and continue
+          console.debug('preference handoff skipped:', e);
+        }
       })();
       // Prevent theme flash — apply saved theme before first paint
-      (function(){var t=localStorage.getItem('fss-theme')||'system';var d=t==='system'?window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light':t;document.documentElement.classList.add(d)})();
+      (function () {
+        var t = localStorage.getItem('fss-theme') || 'system';
+        var d = t;
+        if (t === 'system') {
+          d = globalThis.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.classList.add(d);
+      })();
     </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
