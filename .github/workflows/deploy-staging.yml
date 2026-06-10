@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*-staging"
+      - "v*-staging-*"
   workflow_dispatch:
     inputs:
       deploy_api:
@@ -47,7 +48,7 @@ jobs:
             exit 0
           fi
           CURRENT="${GITHUB_REF_NAME}"
-          PREV=$(git tag -l 'v*-staging' --sort=-creatordate | grep -vx "$CURRENT" | head -1)
+          PREV=$(git tag -l 'v*-staging' 'v*-staging-*' --sort=-creatordate | grep -vx "$CURRENT" | head -1)
           if [ -z "$PREV" ]; then
             echo "No previous staging tag — deploying all apps."
             { echo "api=true"; echo "web=true"; echo "official=true"; } >> "$GITHUB_OUTPUT"
