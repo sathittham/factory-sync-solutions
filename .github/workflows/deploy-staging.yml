@@ -57,9 +57,9 @@ jobs:
           CHANGED=$(git diff --name-only "$PREV" "$CURRENT")
           echo "Changed files:"; echo "$CHANGED"
           api=false; web=false; official=false
-          if echo "$CHANGED" | grep -q '^apps/fs-backend/';      then api=true;      fi
-          if echo "$CHANGED" | grep -q '^apps/fs-app-web/';      then web=true;      fi
-          if echo "$CHANGED" | grep -q '^apps/fs-official-web/'; then official=true; fi
+          if echo "$CHANGED" | grep -q '^apps/fs-backend/';                                          then api=true;      fi
+          if echo "$CHANGED" | grep -q '^apps/fs-app-web/';                                          then web=true;      fi
+          if echo "$CHANGED" | grep -qE '^apps/fs-official-web/|^\.github/workflows/deploy-staging\.yml'; then official=true; fi
           echo "Deploy → api=$api web=$web official=$official"
           { echo "api=$api"; echo "web=$web"; echo "official=$official"; } >> "$GITHUB_OUTPUT"
 
