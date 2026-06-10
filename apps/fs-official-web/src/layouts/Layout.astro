@@ -1,4 +1,7 @@
 ---
+import { AppHandoff } from "../components/AppHandoff";
+import { CookieConsent } from "../components/CookieConsent";
+
 interface Props {
   title: string;
   description?: string;
@@ -43,6 +46,8 @@ const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
       })();
     </script>
     <slot />
+    <CookieConsent client:idle />
+    <AppHandoff client:idle appUrl={appUrl} />
   </body>
 </html>
 

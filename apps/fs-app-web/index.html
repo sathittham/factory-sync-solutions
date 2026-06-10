@@ -16,6 +16,32 @@
   </head>
   <body>
     <script>
+      // Handoff from the official site (cross-subdomain): seed language, theme,
+      // and cookie consent from query params, then strip them from the URL.
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var allow = {
+            lang: { key: 'fss-locale', valid: ['th', 'en'] },
+            theme: { key: 'fss-theme', valid: ['light', 'dark', 'system'] },
+            consent: { key: 'fss-cookie-consent', valid: ['all', 'partial', 'essential'] },
+            analytics: { key: 'fss-analytics-consent', valid: ['true', 'false'] },
+            marketing: { key: 'fss-marketing-consent', valid: ['true', 'false'] }
+          };
+          var changed = false;
+          Object.keys(allow).forEach(function (param) {
+            var v = p.get(param);
+            if (v !== null && allow[param].valid.indexOf(v) !== -1) {
+              localStorage.setItem(allow[param].key, v);
+            }
+            if (v !== null) { p.delete(param); changed = true; }
+          });
+          if (changed) {
+            var qs = p.toString();
+            history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+          }
+        } catch (e) {}
+      })();
       // Prevent theme flash — apply saved theme before first paint
       (function(){var t=localStorage.getItem('fss-theme')||'system';var d=t==='system'?window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light':t;document.documentElement.classList.add(d)})();
     </script>
