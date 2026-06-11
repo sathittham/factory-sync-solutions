@@ -105,6 +105,7 @@ Invoke with `/skill-name` in Claude Code.
 | `branch-cleanup.js` | Prune stale refs; delete merged + gone branches (protects `main`/`staging`/`develop`) |
 | `pre-release-audit.js` | Audit changed apps before a release tag (Go vet + race tests; Biome + tsc + Vitest + security scan) |
 | `deploy-smoke-test.js` | Deploy changed frontend apps to Cloudflare Pages and verify each URL returns 200 |
+| `release.js` | Promote develop → staging (tag) → main (tag); auto-detects semver bump from commits |
 
 ---
 
