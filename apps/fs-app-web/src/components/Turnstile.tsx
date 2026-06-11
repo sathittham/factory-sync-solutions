@@ -23,10 +23,11 @@ interface TurnstileProps {
 	readonly siteKey: string;
 	readonly onVerify: (token: string) => void;
 	readonly onExpire?: () => void;
+	readonly onError?: () => void;
 	readonly language?: string;
 }
 
-export function Turnstile({ siteKey, onVerify, onExpire, language }: TurnstileProps) {
+export function Turnstile({ siteKey, onVerify, onExpire, onError, language }: TurnstileProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const widgetIdRef = useRef<string | null>(null);
 
@@ -37,20 +38,18 @@ export function Turnstile({ siteKey, onVerify, onExpire, language }: TurnstilePr
 			sitekey: siteKey,
 			callback: onVerify,
 			"expired-callback": onExpire,
-			"error-callback": onExpire,
+			"error-callback": onError,
 			theme: "light",
 			language: language === "th" ? "th" : "en",
 		});
-	}, [siteKey, onVerify, onExpire, language]);
+	}, [siteKey, onVerify, onExpire, onError, language]);
 
 	useEffect(() => {
-		// If turnstile script is already loaded, render immediately
 		if (window.turnstile) {
 			renderWidget();
 			return;
 		}
 
-		// Otherwise wait for it to load
 		const interval = setInterval(() => {
 			if (window.turnstile) {
 				clearInterval(interval);

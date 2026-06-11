@@ -1,8 +1,8 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-06-10
+version: 1.2.0
+lastUpdated: 2026-06-11
 author: Sathittham Sangthong
-status: Done — email/password added
+status: Done — email/password added; backoffice auth documented
 ---
 
 # Authentication & Authorization — Feature Spec
@@ -10,6 +10,10 @@ status: Done — email/password added
 > Firebase Authentication (Google Sign-In + Email/Password) wired to a Go
 > backend via verified ID tokens. Redux stores the auth state; three route
 > guards enforce access control across the app.
+
+> **Two apps, two auth surfaces.** This spec covers `fs-app-web` (user-facing).
+> For `fs-backoffice-web` (FactorySync staff portal), see §11.1 and
+> [backoffice/feature-spec.md §7](../backoffice/feature-spec.md).
 
 ---
 
@@ -29,13 +33,16 @@ request context, and proceeds. No trust is placed on client-supplied user
 identifiers. The backend middleware is provider-agnostic — it only verifies
 the token, not how the user authenticated.
 
-Authorization has three tiers:
+Authorization has three tiers in `fs-app-web`:
 
 | Tier | Guard component | Required condition |
 |------|-----------------|--------------------|
 | Authenticated | `AuthGuard` | Firebase user exists |
 | Registered | `RegisterGuard` | Profile exists in Firestore |
 | Admin | `AdminGuard` | Firebase custom claim `role == "admin"` |
+
+`fs-backoffice-web` uses a separate set of guards based on the `backofficeRole`
+custom claim — see §11.1.
 
 ---
 
@@ -65,6 +72,8 @@ Authorization has three tiers:
 
 ## 3. Current State
 
+### `fs-app-web` components
+
 | Component | Location | Status |
 |-----------|----------|--------|
 | Firebase client config | `apps/fs-app-web/src/lib/firebase.ts` | ✅ Built |
@@ -79,8 +88,29 @@ Authorization has three tiers:
 | `AdminGuard` | `apps/fs-app-web/src/components/guards/AdminGuard.tsx` | ✅ Built |
 | Router (route tree) | `apps/fs-app-web/src/router.tsx` | ✅ Built |
 | Sign-out (Layout) | `apps/fs-app-web/src/components/Layout.tsx` | ✅ Built |
-| Backend `FirebaseAuth` middleware | `apps/fs-backend/middleware/auth.go` | ✅ Built |
-| Backend `RequireAdmin` middleware | `apps/fs-backend/middleware/auth.go` | ✅ Built |
+
+### `fs-backoffice-web` components
+
+| Component | Location | Status |
+|-----------|----------|--------|
+| Firebase client config | `apps/fs-backoffice-web/src/lib/firebase.ts` | ✅ Built |
+| API auth helper | `apps/fs-backoffice-web/src/lib/api.ts` | ✅ Built |
+| Auth state (Redux) | `apps/fs-backoffice-web/src/store/authSlice.ts` | ✅ Built |
+| Auth initializer hook | `apps/fs-backoffice-web/src/hooks/useAuth.ts` | ✅ Built |
+| Sign-in page (Google only) | `apps/fs-backoffice-web/src/pages/SignInPage.tsx` | ✅ Built |
+| `AuthGuard` | `apps/fs-backoffice-web/src/components/guards/AuthGuard.tsx` | ✅ Built |
+| `BackofficeGuard` | `apps/fs-backoffice-web/src/components/guards/BackofficeGuard.tsx` | ✅ Built |
+| `SuperAdminGuard` | `apps/fs-backoffice-web/src/components/guards/SuperAdminGuard.tsx` | ✅ Built |
+| `UnauthorizedPage` | `apps/fs-backoffice-web/src/pages/UnauthorizedPage.tsx` | ✅ Built |
+| Router (route tree) | `apps/fs-backoffice-web/src/router.tsx` | ✅ Built |
+
+### Backend components (shared by both apps)
+
+| Component | Location | Status |
+|-----------|----------|--------|
+| `FirebaseAuth` middleware | `apps/fs-backend/middleware/auth.go` | ✅ Built |
+| `RequireAdmin` middleware | `apps/fs-backend/middleware/auth.go` | ✅ Built |
+| `RequireBackofficeRole` middleware | `apps/fs-backend/middleware/auth.go` | ✅ Built |
 | Context extractors (`GetUID`, `GetEmail`, `GetDisplayName`) | `apps/fs-backend/middleware/auth.go` | ✅ Built |
 
 ---
@@ -338,6 +368,58 @@ renders when `isAdmin` is true.
 
 ---
 
+## 11.1 Backoffice Role Authorization (`fs-backoffice-web`)
+
+`fs-backoffice-web` uses the same Firebase project but reads a completely
+separate custom claim: `backofficeRole`.
+
+| Claim value | Who | Access |
+|-------------|-----|--------|
+| `"staff"` | FactorySync support / operations | All pages except `/staff` |
+| `"superadmin"` | FactorySync CTO / engineering lead | All pages including `/staff` |
+| absent / any other | Anyone else | Redirected to `/unauthorized` |
+
+**Setting a backoffice claim (Firebase Admin SDK — ops task):**
+```js
+admin.auth().setCustomUserClaims(uid, { backofficeRole: 'staff' });
+```
+
+### `BackofficeGuard`
+
+Applied to the entire authenticated section of the backoffice router. Reads
+`backofficeRole` from `getIdTokenResult(forceRefresh=true)` and redirects to
+`/unauthorized` if the claim is absent or unrecognised.
+
+```
+onAuthStateChanged
+  ↓ user signed in
+getIdTokenResult(forceRefresh=true)
+  ↓ read claims.backofficeRole
+dispatch setBackofficeRole(role)
+  ↓
+BackofficeGuard: backofficeRole ∈ {"staff","superadmin"}?
+  no  → /unauthorized
+  yes → render page
+```
+
+### `SuperAdminGuard`
+
+Applied only to the `/staff` route. Redirects to `/unauthorized` unless
+`backofficeRole === "superadmin"`.
+
+### Key differences from `fs-app-web` auth
+
+| Aspect | `fs-app-web` | `fs-backoffice-web` |
+|--------|-------------|---------------------|
+| Sign-in methods | Email/password + Google | Google only |
+| Registration step | Required (Firestore profile) | None — staff are added by ops |
+| Auth claim checked | `role` | `backofficeRole` |
+| Unauthenticated redirect | `/` (landing page) | `/sign-in` |
+| Unauthorized redirect | `/` | `/unauthorized` |
+| Backend middleware | `RequireAdmin` | `RequireBackofficeRole` |
+
+---
+
 ## 12. Analytics Events
 
 | Event | Trigger | `method` values |
@@ -350,15 +432,18 @@ renders when `isAdmin` is true.
 
 ## 13. Environment Variables
 
+Both `fs-app-web` and `fs-backoffice-web` connect to the **same Firebase project**.
+They share identical `VITE_FIREBASE_*` vars (same values, separate `.env` files).
+
 | Variable | App | Required | Notes |
 |----------|-----|----------|-------|
-| `VITE_FIREBASE_API_KEY` | `fs-app-web` | Yes | Firebase project config |
-| `VITE_FIREBASE_AUTH_DOMAIN` | `fs-app-web` | Yes | e.g. `project.firebaseapp.com` |
-| `VITE_FIREBASE_PROJECT_ID` | `fs-app-web` | Yes | |
-| `VITE_FIREBASE_STORAGE_BUCKET` | `fs-app-web` | Yes | |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `fs-app-web` | Yes | |
-| `VITE_FIREBASE_APP_ID` | `fs-app-web` | Yes | |
-| `VITE_API_BASE_URL` | `fs-app-web` | No | Defaults to `/api/v1` |
+| `VITE_FIREBASE_API_KEY` | `fs-app-web`, `fs-backoffice-web` | Yes | Firebase project config |
+| `VITE_FIREBASE_AUTH_DOMAIN` | `fs-app-web`, `fs-backoffice-web` | Yes | e.g. `project.firebaseapp.com` |
+| `VITE_FIREBASE_PROJECT_ID` | `fs-app-web`, `fs-backoffice-web` | Yes | |
+| `VITE_FIREBASE_STORAGE_BUCKET` | `fs-app-web`, `fs-backoffice-web` | Yes | |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `fs-app-web`, `fs-backoffice-web` | Yes | |
+| `VITE_FIREBASE_APP_ID` | `fs-app-web`, `fs-backoffice-web` | Yes | |
+| `VITE_API_BASE_URL` | `fs-app-web`, `fs-backoffice-web` | No | Defaults to `/api/v1` |
 | `GOOGLE_APPLICATION_CREDENTIALS` | `fs-backend` | Yes | Firebase Admin SDK service account path |
 
 Never commit any of these values. They are git-ignored via `.env*` and
@@ -403,6 +488,7 @@ Never commit any of these values. They are git-ignored via `.env*` and
 
 ## 16. References
 
+### `fs-app-web`
 - Firebase client: [firebase.ts](../../../apps/fs-app-web/src/lib/firebase.ts)
 - API helper: [api.ts](../../../apps/fs-app-web/src/lib/api.ts)
 - Auth slice: [authSlice.ts](../../../apps/fs-app-web/src/store/authSlice.ts)
@@ -412,6 +498,19 @@ Never commit any of these values. They are git-ignored via `.env*` and
 - AuthGuard: [guards/AuthGuard.tsx](../../../apps/fs-app-web/src/components/guards/AuthGuard.tsx)
 - RegisterGuard: [guards/RegisterGuard.tsx](../../../apps/fs-app-web/src/components/guards/RegisterGuard.tsx)
 - AdminGuard: [guards/AdminGuard.tsx](../../../apps/fs-app-web/src/components/guards/AdminGuard.tsx)
-- Backend middleware: [middleware/auth.go](../../../apps/fs-backend/middleware/auth.go)
+
+### `fs-backoffice-web`
+- Auth hook: [useAuth.ts](../../../apps/fs-backoffice-web/src/hooks/useAuth.ts)
+- Auth slice: [authSlice.ts](../../../apps/fs-backoffice-web/src/store/authSlice.ts)
+- Router: [router.tsx](../../../apps/fs-backoffice-web/src/router.tsx)
+- BackofficeGuard: [guards/BackofficeGuard.tsx](../../../apps/fs-backoffice-web/src/components/guards/BackofficeGuard.tsx)
+- SuperAdminGuard: [guards/SuperAdminGuard.tsx](../../../apps/fs-backoffice-web/src/components/guards/SuperAdminGuard.tsx)
+- UnauthorizedPage: [UnauthorizedPage.tsx](../../../apps/fs-backoffice-web/src/pages/UnauthorizedPage.tsx)
+- Backoffice feature spec: [backoffice/feature-spec.md §7](../backoffice/feature-spec.md)
+
+### Backend
+- Middleware: [middleware/auth.go](../../../apps/fs-backend/middleware/auth.go)
+
+### Cross-cutting
 - User flow: [user-flow.md](../user-flow.md)
 - Register feature: [register/feature-spec.md](../register/feature-spec.md)

@@ -1,10 +1,16 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-03-07
+version: 1.2.0
+lastUpdated: 2026-06-11
 author: Sathittham Sangthong
 ---
 
 # UI Wireframes
+
+> **Scope:** This file contains wireframes for `fs-app-web` (user-facing app)
+> and `fs-official-web` (public site). Wireframes for `fs-backoffice-web`
+> (FactorySync staff portal) live in
+> [backoffice/feature-spec.md §4](product/backoffice/feature-spec.md) alongside
+> the sidebar layout, page-level ASCII sketches, and component notes.
 
 ## 1. Landing Page (/)
 

@@ -419,3 +419,4 @@ avoid drift.
 - Layout (dialog mount + triggers): [Layout.tsx](../../../apps/fs-app-web/src/components/Layout.tsx)
 - Register feature (initial profile creation): [register/feature-spec.md](../register/feature-spec.md)
 - Auth feature (`GetProfile` on sign-in): [auth/feature-spec.md](../auth/feature-spec.md)
+- Backoffice user/profile management (FactorySync staff view of all profiles): [backoffice/feature-spec.md §4](../backoffice/feature-spec.md)

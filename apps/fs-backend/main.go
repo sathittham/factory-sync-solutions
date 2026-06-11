@@ -10,6 +10,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"log"
 	"log/slog"
@@ -34,6 +35,50 @@ import (
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/scoring"
 )
 
+const msgQuizConfigLoaded = "quiz config loaded"
+
+// checkServiceAccount validates that the configured service account belongs to the expected
+// GCP project. A project mismatch causes silent 401 "invalid token" errors at runtime.
+func checkServiceAccount() {
+	saPath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+	if saPath == "" {
+		return
+	}
+	data, err := os.ReadFile(saPath)
+	if err != nil {
+		return
+	}
+	want := os.Getenv("GCP_PROJECT_ID")
+	if want == "" || bytes.Contains(data, []byte(`"project_id": "`+want+`"`)) {
+		return
+	}
+	log.Fatalf("STARTUP ERROR: service account at %s does not belong to project %q — "+
+		"Firebase token verification will reject all user tokens. "+
+		"Download the correct service account from the Firebase Console for project %q.", saPath, want, want)
+}
+
+func loadQuizConfigs(registry *scoring.QuizRegistry) {
+	type quizFile struct {
+		path string
+		name string
+	}
+	files := []quizFile{
+		{"config/questions.json", "shindan"},
+		{"config/questions-factory.json", "factory"},
+		{"config/questions-lean.json", "lean"},
+		{"config/questions-cybersecurity.json", "cybersecurity"},
+		{"config/questions-iso29110.json", "iso29110"},
+	}
+	for _, f := range files {
+		cfg, err := scoring.LoadQuestions(f.path)
+		if err != nil {
+			log.Fatalf("load %s questions: %v", f.name, err)
+		}
+		registry.Register(cfg)
+		slog.Info(msgQuizConfigLoaded, "id", cfg.ID, "questions", len(cfg.Questions), "dimensions", len(cfg.Dimensions))
+	}
+}
+
 func main() {
 	// Load environment-specific .env file
 	env := os.Getenv("ENVIRONMENT")
@@ -51,6 +96,8 @@ func main() {
 		Level: slog.LevelInfo,
 	}))
 	slog.SetDefault(logger)
+
+	checkServiceAccount()
 
 	// Initialize Firebase Admin SDK
 	app, err := firebase.NewApp(ctx, nil)
@@ -75,41 +122,7 @@ func main() {
 
 	// Load quiz configurations
 	quizRegistry := scoring.NewQuizRegistry()
-
-	shindanConfig, err := scoring.LoadQuestions("config/questions.json")
-	if err != nil {
-		log.Fatalf("load shindan questions: %v", err)
-	}
-	quizRegistry.Register(shindanConfig)
-	slog.Info("quiz config loaded", "id", shindanConfig.ID, "questions", len(shindanConfig.Questions), "dimensions", len(shindanConfig.Dimensions))
-
-	factoryConfig, err := scoring.LoadQuestions("config/questions-factory.json")
-	if err != nil {
-		log.Fatalf("load factory questions: %v", err)
-	}
-	quizRegistry.Register(factoryConfig)
-	slog.Info("quiz config loaded", "id", factoryConfig.ID, "questions", len(factoryConfig.Questions), "dimensions", len(factoryConfig.Dimensions))
-
-	leanConfig, err := scoring.LoadQuestions("config/questions-lean.json")
-	if err != nil {
-		log.Fatalf("load lean questions: %v", err)
-	}
-	quizRegistry.Register(leanConfig)
-	slog.Info("quiz config loaded", "id", leanConfig.ID, "questions", len(leanConfig.Questions), "dimensions", len(leanConfig.Dimensions))
-
-	cyberConfig, err := scoring.LoadQuestions("config/questions-cybersecurity.json")
-	if err != nil {
-		log.Fatalf("load cybersecurity questions: %v", err)
-	}
-	quizRegistry.Register(cyberConfig)
-	slog.Info("quiz config loaded", "id", cyberConfig.ID, "questions", len(cyberConfig.Questions), "dimensions", len(cyberConfig.Dimensions))
-
-	iso29110Config, err := scoring.LoadQuestions("config/questions-iso29110.json")
-	if err != nil {
-		log.Fatalf("load iso29110 questions: %v", err)
-	}
-	quizRegistry.Register(iso29110Config)
-	slog.Info("quiz config loaded", "id", iso29110Config.ID, "questions", len(iso29110Config.Questions), "dimensions", len(iso29110Config.Dimensions))
+	loadQuizConfigs(quizRegistry)
 
 	// --- Wire up repositories, services, and handlers ---
 

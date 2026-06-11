@@ -1,8 +1,8 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-06-10
+version: 1.1.0
+lastUpdated: 2026-06-11
 author: Sathittham Sangthong
-status: Built — not yet routed
+status: Built — not yet routed (fs-app-web); Live (fs-backoffice-web)
 ---
 
 # Dashboard Page — Feature Spec
@@ -10,6 +10,13 @@ status: Built — not yet routed
 > Post-login home screen showing all completed quiz cards with mini score rings,
 > two quick-action cards (View Results / Retake Shindan), and a list of available
 > quizzes not yet completed. Currently built but not wired into the router.
+
+> **Two separate dashboards exist** — this spec covers the `fs-app-web` user
+> dashboard (`DashboardPage.tsx`). The `fs-backoffice-web` backoffice dashboard
+> is a distinct page (same file name, different app) that is already **live and
+> fully routed** at `/dashboard` — it shows platform-wide stats (projects, users,
+> avg score, staff count) and a recent-results table. See
+> [backoffice/feature-spec.md §4](../backoffice/feature-spec.md) for that page.
 
 ---
 

@@ -1,8 +1,8 @@
 ---
-version: 1.0.0
+version: 1.1.0
 lastUpdated: 2026-06-11
 author: Sathittham Sangthong
-status: Planned
+status: In Progress — scaffold + all pages built; E2E tests pending
 ---
 
 # Backoffice — Feature Spec
@@ -108,6 +108,16 @@ See [ADR-021](../../architecture/decisions.md#adr-021) and
 ```
 
 Mobile: sidebar collapses; hamburger opens a shadcn `Sheet`.
+
+### UnauthorizedPage (`/unauthorized`)
+
+Shown when `BackofficeGuard` or `SuperAdminGuard` redirects a user who lacks
+the required claim. Renders a centered card with:
+- A lock icon and "Access Denied" / "ไม่มีสิทธิ์เข้าถึง" heading.
+- A message explaining that backoffice access requires a FactorySync account role.
+- A "Back to sign-in" link (`→ /sign-in`).
+
+This page requires **no auth** — it must be reachable without a valid session.
 
 ---
 
@@ -229,7 +239,7 @@ middleware). Superadmin-only routes use an additional `RequireBackofficeRole` fo
 | `GET` | `/backoffice/projects/{projectID}/members` | staff+ | List project members |
 | `PUT` | `/backoffice/projects/{projectID}/members/{uid}/role` | staff+ | Change member's project role |
 | `DELETE` | `/backoffice/projects/{projectID}/members/{uid}` | staff+ | Remove member from project |
-| `POST` | `/backoffice/projects/{projectID}/invite-owner` | staff+ | Send owner invitation |
+| `POST` | `/backoffice/projects/{projectID}/invite-owner` | staff+ | Send owner invitation — **backend spec exists; API client method not yet implemented** |
 
 ### 5.2 Users
 
@@ -329,20 +339,63 @@ follow the same `namespace.key` pattern as `fs-app-web`.
 
 ## 10. Acceptance Criteria
 
+### Auth & navigation
+
 - [ ] Navigating to `backoffice.factorysync.com` without a session redirects to `/sign-in`.
 - [ ] Signing in with a Google account that has no `backofficeRole` claim redirects to `/unauthorized`.
+- [ ] `/unauthorized` page renders the access-denied message and "Back to sign-in" link without requiring auth.
 - [ ] Signing in with `backofficeRole: "staff"` lands on `/dashboard`; Staff menu item is hidden.
 - [ ] Signing in with `backofficeRole: "superadmin"` lands on `/dashboard`; Staff menu item is visible.
-- [ ] Projects page lists all projects; search by name filters the list.
-- [ ] Project Detail — Members tab shows all members with role badges.
-- [ ] Project Detail — Settings tab allows updating name/industry/size (staff+).
-- [ ] Deactivate project button is visible and functional for superadmin; hidden for staff.
-- [ ] Users page lists all users; clicking a row opens a detail dialog.
-- [ ] Delete user button visible only for superadmin.
-- [ ] Results page shows all quiz results; Export CSV downloads a file.
-- [ ] Staff page is accessible only to superadmin; staff role navigating to `/staff` is redirected.
-- [ ] All text renders in the active locale (TH/EN).
+- [ ] Sign-out clears Redux auth state and redirects to `/sign-in`.
+
+### Dashboard
+
+- [ ] Dashboard stat cards show correct counts: total projects, total users, average quiz score, staff count.
+- [ ] Recent results table renders the last 10 quiz results with company name, score, diagnosis, and date.
+- [ ] Clicking a recent result row navigates to `/results` (or expands inline detail).
+
+### Projects page
+
+- [ ] Projects page lists all projects with company name, reg ID, industry, member count, and status badge.
+- [ ] Search input filters the visible rows by company name in real time.
+- [ ] "+ New Project" button opens a create-project dialog; submitting creates the project and adds it to the list.
+- [ ] Row action menu (⋯) offers "View Detail" and "Deactivate" (superadmin only).
+- [ ] "Deactivate" option is hidden for staff role.
+
+### Project Detail page
+
+- [ ] Members tab loads and displays all project members with name, email, role badge, joined date, and action buttons.
+- [ ] "Change Role" button opens a dialog with a role selector (`Select`); confirming calls `PUT /backoffice/projects/{id}/members/{uid}/role` and updates the badge in the table.
+- [ ] "Remove" button opens a confirmation dialog; confirming calls `DELETE /backoffice/projects/{id}/members/{uid}` and removes the row.
+- [ ] "Invite Owner" button is present; **note: `backofficeApi.inviteOwner` is not yet implemented** — this button should be disabled or hidden until the endpoint is wired.
+- [ ] Settings tab pre-fills current name, industry, and size; "Save Changes" calls `PUT /backoffice/projects/{id}` and shows a success/error indicator.
+- [ ] "Deactivate" button (header, superadmin only) calls the deactivate endpoint and updates the project status badge.
+
+### Users page
+
+- [ ] Users page lists all users; clicking a row opens a detail dialog with all profile fields.
+- [ ] "Delete" button is visible only to superadmin; clicking opens a confirmation dialog before calling `DELETE /backoffice/users/{uid}`.
+
+### Results page
+
+- [ ] Results page lists all quiz results across all projects; filters by company name, project, diagnosis, and date range narrow the visible rows.
+- [ ] Clicking a row expands inline dimension scores, strengths, and weaknesses.
+- [ ] "Export CSV" downloads a `text/csv` file via `GET /backoffice/export`.
+
+### Staff page (superadmin only)
+
+- [ ] Staff page is only accessible to superadmin; a staff-role user navigating to `/staff` is redirected to `/unauthorized`.
+- [ ] Staff list shows all backoffice staff with name, email, role badge, joined date, and action buttons.
+- [ ] "+ Add Staff" button opens a dialog with a Firebase UID input and a role selector (`Select` with `staff` / `superadmin`); submitting calls `PUT /backoffice/staff/{uid}` and adds/updates the row.
+- [ ] "Change Role" button opens a dialog pre-filled with the current role; confirming calls `PUT /backoffice/staff/{uid}` and updates the role badge.
+- [ ] "Revoke Access" button opens a confirmation dialog; confirming calls `DELETE /backoffice/staff/{uid}` and removes the row.
+- [ ] Error state (e.g. unknown UID on add) shows an inline error message in the dialog.
+
+### General
+
+- [ ] All text renders in the active locale (TH/EN) via `useLocale()`.
 - [ ] `tsc --noEmit` and `biome check` pass.
+- [ ] `make test-api` passes (backend `/backoffice/` route group).
 
 ---
 
