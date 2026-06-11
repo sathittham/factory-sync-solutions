@@ -30,6 +30,9 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5174,
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      },
       proxy: {
         '/api': {
           target: proxyTarget,

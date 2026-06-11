@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 )
 
@@ -28,8 +29,13 @@ func NewTurnstileClient(secret string) *TurnstileClient {
 // Returns true if the token is valid.
 func (t *TurnstileClient) Verify(ctx context.Context, token string) (bool, error) {
 	if t.secret == "" {
-		// Skip verification if no secret is configured (local dev without Turnstile)
-		return true, nil
+		env := os.Getenv("ENVIRONMENT")
+		// Bypass only in explicitly non-production environments.
+		// Default to fail-closed so a missing env var doesn't open the gate in production.
+		if env == "development" || env == "dev" || env == "staging" {
+			return true, nil
+		}
+		return false, fmt.Errorf("turnstile: secret not configured")
 	}
 
 	resp, err := t.httpClient.PostForm(turnstileVerifyURL, url.Values{

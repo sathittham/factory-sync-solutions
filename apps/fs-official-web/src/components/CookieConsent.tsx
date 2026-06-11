@@ -100,27 +100,23 @@ function CategoryRow({
 // --- Banner ---
 
 function CookieBanner({
-	isTh,
 	onSettings,
 	onAcceptAll,
 }: {
-	readonly isTh: boolean;
 	readonly onSettings: () => void;
 	readonly onAcceptAll: () => void;
 }) {
+	const { t } = useLocale();
+
 	return (
 		<div className="animate-fade-up fixed bottom-0 left-0 right-0 z-50 p-4">
 			<div className="container mx-auto max-w-3xl">
 				<div className="space-y-3 rounded-lg border bg-card p-4 shadow-lg sm:p-5">
-					<p className="text-sm font-semibold">
-						{isTh ? "เว็บไซต์นี้ใช้คุกกี้" : "This website uses cookies"}
-					</p>
+					<p className="text-sm font-semibold">{t("cookie.banner.title")}</p>
 					<p className="text-sm leading-relaxed text-muted-foreground">
-						{isTh
-							? 'เราใช้คุกกี้เพื่อเพิ่มประสบการณ์ที่ดีในการใช้เว็บไซต์ แสดงเนื้อหาและโฆษณาให้ตรงกับความสนใจ รวมถึงเพื่อวิเคราะห์การเข้าชมเว็บไซต์และทำความเข้าใจผู้ใช้งาน คุณสามารถเลือกตั้งค่าความยินยอมการใช้คุกกี้ได้ โดยคลิก "การตั้งค่าคุกกี้" '
-							: 'We use cookies to improve your experience, display relevant content, and analyze website traffic. You can manage your cookie preferences by clicking "Cookie Settings". '}
+						{t("cookie.banner.description")}{" "}
 						<a href="/privacy" className="font-medium text-primary hover:underline">
-							{isTh ? "นโยบายความเป็นส่วนตัว" : "Privacy Policy"}
+							{t("footer.privacy")}
 						</a>
 					</p>
 					<div className="flex items-center justify-end gap-2">
@@ -131,7 +127,7 @@ function CookieBanner({
 							className="text-xs"
 							data-testid="cookie-settings-btn"
 						>
-							{isTh ? "การตั้งค่าคุกกี้" : "Cookie Settings"}
+							{t("cookie.banner.settings")}
 						</Button>
 						<Button
 							size="sm"
@@ -139,7 +135,7 @@ function CookieBanner({
 							className="text-xs"
 							data-testid="cookie-accept-all-btn"
 						>
-							{isTh ? "ยอมรับทั้งหมด" : "Accept All"}
+							{t("cookie.banner.acceptAll")}
 						</Button>
 					</div>
 				</div>
@@ -154,6 +150,8 @@ function Modal({
 	onClose,
 	children,
 }: { readonly onClose: () => void; readonly children: React.ReactNode }) {
+	const { t } = useLocale();
+
 	useEffect(() => {
 		const handleKey = (e: KeyboardEvent) => {
 			if (e.key === "Escape") onClose();
@@ -166,7 +164,8 @@ function Modal({
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 			<button
 				type="button"
-				aria-label="Close"
+				aria-label={t("common.close")}
+				tabIndex={-1}
 				onClick={onClose}
 				className="absolute inset-0 bg-black/50"
 			/>
@@ -185,7 +184,6 @@ function Modal({
 // --- Settings Panel ---
 
 function CookieSettings({
-	isTh,
 	analytics,
 	marketing,
 	onAnalyticsChange,
@@ -193,7 +191,6 @@ function CookieSettings({
 	onAcceptAll,
 	onConfirm,
 }: {
-	readonly isTh: boolean;
 	readonly analytics: boolean;
 	readonly marketing: boolean;
 	readonly onAnalyticsChange: () => void;
@@ -201,59 +198,43 @@ function CookieSettings({
 	readonly onAcceptAll: () => void;
 	readonly onConfirm: () => void;
 }) {
-	const detailLabel = isTh ? "รายละเอียดคุกกี้" : "Cookie Details";
+	const { t } = useLocale();
 
 	return (
 		<>
 			<div className="flex items-center justify-between px-6 pb-4 pt-6">
-				<h2 className="text-lg font-semibold">
-					{isTh ? "การตั้งค่าความเป็นส่วนตัว" : "Privacy Settings"}
-				</h2>
+				<h2 className="text-lg font-semibold">{t("cookie.settings.title")}</h2>
 				<Button size="sm" onClick={onAcceptAll} className="text-xs">
-					{isTh ? "ยอมรับทั้งหมด" : "Accept All"}
+					{t("cookie.banner.acceptAll")}
 				</Button>
 			</div>
 
 			<div className="divide-y">
 				<CategoryRow
-					title={isTh ? "คุกกี้พื้นฐานที่จำเป็น" : "Essential Cookies"}
-					description={
-						isTh
-							? "คุกกี้พื้นฐานที่จำเป็น เพื่อช่วยให้การทำงานหลักของเว็บไซต์ใช้งานได้ รวมถึงการเข้าถึงพื้นที่ปลอดภัยต่างๆ หากไม่มีคุกกี้นี้เว็บไซต์จะไม่สามารถทำงานได้อย่างเหมาะสม"
-							: "Essential cookies are required for the website to function properly, including access to secure areas. Without these cookies, the website cannot operate correctly."
-					}
-					detailLabel={detailLabel}
+					title={t("cookie.settings.essential.title")}
+					description={t("cookie.settings.essential.description")}
+					detailLabel={t("cookie.link")}
 					control={
-						<span className="text-xs font-medium text-primary">
-							{isTh ? "เปิดใช้งานตลอดเวลา" : "Always Active"}
-						</span>
+						<span className="text-xs font-medium text-primary">{t("cookie.settings.always")}</span>
 					}
 				/>
 				<CategoryRow
-					title={isTh ? "คุกกี้ในส่วนวิเคราะห์" : "Analytics Cookies"}
-					description={
-						isTh
-							? "คุกกี้ในส่วนวิเคราะห์ จะช่วยให้เว็บไซต์เข้าใจรูปแบบการใช้งานของผู้เข้าชมและจะช่วยปรับปรุงประสบการณ์การใช้งาน โดยการเก็บรวบรวมข้อมูลและรายงานผลการใช้งานของผู้ใช้งาน"
-							: "Analytics cookies help us understand how visitors use the website and improve the user experience by collecting and reporting usage data."
-					}
-					detailLabel={detailLabel}
+					title={t("cookie.settings.analytics.title")}
+					description={t("cookie.settings.analytics.description")}
+					detailLabel={t("cookie.link")}
 					control={<Toggle checked={analytics} onChange={onAnalyticsChange} />}
 				/>
 				<CategoryRow
-					title={isTh ? "คุกกี้ในส่วนการตลาด" : "Marketing Cookies"}
-					description={
-						isTh
-							? "คุกกี้ในส่วนการตลาด ใช้เพื่อติดตามพฤติกรรมผู้เข้าชมเว็บไซต์เพื่อแสดงโฆษณาที่เหมาะสมสำหรับผู้ใช้งานแต่ละรายและเพื่อเพิ่มประสิทธิผลการโฆษณาสำหรับผู้เผยแพร่และผู้โฆษณาสำหรับบุคคลที่สาม"
-							: "Marketing cookies are used to track visitor behavior to display relevant advertisements for each user and to increase advertising effectiveness for publishers and third-party advertisers."
-					}
-					detailLabel={detailLabel}
+					title={t("cookie.settings.marketing.title")}
+					description={t("cookie.settings.marketing.description")}
+					detailLabel={t("cookie.link")}
 					control={<Toggle checked={marketing} onChange={onMarketingChange} />}
 				/>
 			</div>
 
 			<div className="border-t px-6 py-4">
 				<Button onClick={onConfirm} className="w-full" data-testid="cookie-confirm-btn">
-					{isTh ? "ยืนยันตัวเลือกของฉัน" : "Confirm My Selection"}
+					{t("cookie.settings.confirm")}
 				</Button>
 			</div>
 		</>
@@ -263,8 +244,6 @@ function CookieSettings({
 // --- Inner (consumes locale) ---
 
 function CookieConsentInner() {
-	const { locale } = useLocale();
-	const isTh = locale === "th";
 	const [open, setOpen] = useState(false);
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [analytics, setAnalytics] = useState(() => getStored(ANALYTICS_KEY, false));
@@ -282,8 +261,8 @@ function CookieConsentInner() {
 			setMarketing(getStored(MARKETING_KEY, false));
 			setSettingsOpen(true);
 		};
-		window.addEventListener(OPEN_SETTINGS_EVENT, handler);
-		return () => window.removeEventListener(OPEN_SETTINGS_EVENT, handler);
+		globalThis.addEventListener(OPEN_SETTINGS_EVENT, handler);
+		return () => globalThis.removeEventListener(OPEN_SETTINGS_EVENT, handler);
 	}, []);
 
 	const handleAcceptAll = () => {
@@ -306,7 +285,6 @@ function CookieConsentInner() {
 		return (
 			<Modal onClose={() => setSettingsOpen(false)}>
 				<CookieSettings
-					isTh={isTh}
 					analytics={analytics}
 					marketing={marketing}
 					onAnalyticsChange={() => setAnalytics((v) => !v)}
@@ -320,13 +298,7 @@ function CookieConsentInner() {
 
 	if (!open) return null;
 
-	return (
-		<CookieBanner
-			isTh={isTh}
-			onSettings={() => setSettingsOpen(true)}
-			onAcceptAll={handleAcceptAll}
-		/>
-	);
+	return <CookieBanner onSettings={() => setSettingsOpen(true)} onAcceptAll={handleAcceptAll} />;
 }
 
 // --- Root (self-contained island) ---

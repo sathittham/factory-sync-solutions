@@ -1,0 +1,26 @@
+---
+import { SiteNavBar } from "../components/SiteNavBar";
+import { RegisterContent } from "../components/register/RegisterContent";
+import Layout from "../layouts/Layout.astro";
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL ?? "";
+const turnstileSiteKey = import.meta.env.PUBLIC_CF_TURNSTILE_SITE_KEY ?? "";
+---
+
+<Layout title="สมัครใช้งาน — FactorySync Solutions" noindex={true}>
+  <SiteNavBar client:load appUrl={appUrl} />
+  <RegisterContent
+    client:load
+    appUrl={appUrl}
+    apiBaseUrl={apiBaseUrl}
+    turnstileSiteKey={turnstileSiteKey}
+  />
+</Layout>
+
+<script
+  is:inline
+  src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+  async
+  defer
+></script>

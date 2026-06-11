@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-03-07
+version: 1.3.0
+lastUpdated: 2026-06-11
 author: Sathittham Sangthong
 ---
 
@@ -15,13 +15,14 @@ author: Sathittham Sangthong
 | Phase 1: Core Services (scoring, profile, result, quiz) | Done |
 | Phase 2: Notification Service (email, Slack) | Done |
 | Phase 3: Admin Service (list, detail, CSV export) | Done |
-| Phase 4: Frontend Scaffold & Auth | Done |
+| Phase 4: Frontend Scaffold & Auth (`fs-app-web`) | Done |
 | Phase 5: Frontend Pages (register, quiz, result, 404) | Done |
-| Phase 6: Admin Dashboard | Done |
-| Phase 9: Project & RBAC (multi-user workspace) | Planned — see [project/feature-spec.md](product/project/feature-spec.md) |
+| Phase 6: Admin Dashboard in `fs-app-web` (superseded by Phase 11) | Done |
 | Phase 7: Testing & Quality | Done |
 | Phase 8: CI/CD & Deployment | Done |
+| Phase 9: Project & RBAC (multi-user workspace) | Planned — see [project/feature-spec.md](product/project/feature-spec.md) |
 | Phase 10: ISO 29110 Quiz Variant | In Progress — see below |
+| **Phase 11: Backoffice Web App (`fs-backoffice-web`)** | **In Progress — see below** |
 
 ---
 
@@ -153,14 +154,14 @@ Everything else depends on this. Build first.
 
 ### 4.1 Project setup
 
-- [x] `apps/web/vite.config.ts` — Vite config with React plugin, `@/` alias, dev proxy
-- [x] `apps/web/tsconfig.json` — strict TS with path aliases
-- [x] `apps/web/tailwind.config.ts` + `postcss.config.js`
-- [x] `apps/web/src/main.tsx` — entry point
-- [x] `apps/web/src/App.tsx` — Router + Redux providers + AuthInitializer
-- [x] `apps/web/src/index.css` — Tailwind directives + CSS variables
-- [x] `apps/web/src/lib/utils.ts` — `cn()` utility
-- [x] `apps/web/src/vite-env.d.ts` — Vite env type declarations
+- [x] `apps/fs-app-web/vite.config.ts` — Vite config with React plugin, `@/` alias, dev proxy
+- [x] `apps/fs-app-web/tsconfig.json` — strict TS with path aliases
+- [x] `apps/fs-app-web/tailwind.config.ts` + `postcss.config.js`
+- [x] `apps/fs-app-web/src/main.tsx` — entry point
+- [x] `apps/fs-app-web/src/App.tsx` — Router + Redux providers + AuthInitializer
+- [x] `apps/fs-app-web/src/index.css` — Tailwind directives + CSS variables
+- [x] `apps/fs-app-web/src/lib/utils.ts` — `cn()` utility
+- [x] `apps/fs-app-web/src/vite-env.d.ts` — Vite env type declarations
 - [x] `npm install` — all deps install
 - [x] `tsc --noEmit` — TypeScript compiles cleanly
 - [x] `vite build` — production build succeeds
@@ -410,6 +411,60 @@ ISO 29110 Basic Profile assessment for Very Small Enterprises (VSEs ≤ 25 peopl
 
 ---
 
+---
+
+## Phase 11: Backoffice Web App (`fs-backoffice-web`)
+
+Dedicated FactorySync staff portal at `backoffice.factorysync.com`. Supersedes
+the in-app `/admin` page for platform management. See
+[backoffice/feature-spec.md](product/backoffice/feature-spec.md) for the full spec.
+
+> **Note:** Phase 6 (in-app `AdminPage`) remains in place for users with
+> `role == "admin"`. Phase 11 is a separate app for FactorySync staff with the
+> `backofficeRole` claim — the two admin surfaces serve different actor groups.
+
+### 11.1 Backend (`/api/v1/backoffice/` route group) ✓
+
+- [x] `services/backoffice/handler.go`, `service.go`, `models.go`
+- [x] `middleware.RequireBackofficeRole` — enforces `backofficeRole ∈ {"superadmin","staff"}`
+- [x] `GET /backoffice/stats` — aggregate dashboard counts
+- [x] `GET/POST /backoffice/projects` — list & create projects
+- [x] `GET/PUT /backoffice/projects/{id}` — detail & update
+- [x] `POST /backoffice/projects/{id}/deactivate|reactivate` (superadmin)
+- [x] `GET /backoffice/projects/{id}/members` — list members
+- [x] `PUT /backoffice/projects/{id}/members/{uid}/role` — change member role
+- [x] `DELETE /backoffice/projects/{id}/members/{uid}` — remove member
+- [x] `GET /backoffice/users` — list all users
+- [x] `GET /backoffice/users/{uid}` — user detail
+- [x] `DELETE /backoffice/users/{uid}` (superadmin)
+- [x] `PUT /backoffice/users/{uid}/role` (superadmin) — set `role` claim
+- [x] `GET /backoffice/results` + `/{assessmentID}` — all quiz results
+- [x] `GET /backoffice/export` — CSV export
+- [x] `GET /backoffice/staff` (superadmin) — list staff
+- [x] `PUT /backoffice/staff/{uid}` (superadmin) — set backofficeRole
+- [x] `DELETE /backoffice/staff/{uid}` (superadmin) — revoke backofficeRole
+- [ ] `POST /backoffice/projects/{id}/invite-owner` — **not yet implemented** in API client
+
+### 11.2 Frontend (`apps/fs-backoffice-web/`) ✓
+
+- [x] Vite + React 19 + shadcn/ui + Redux Toolkit — project scaffold
+- [x] Firebase Auth (`useAuth`, `authSlice` with `backofficeRole` claim)
+- [x] `BackofficeGuard` — redirects to `/unauthorized` if no `backofficeRole` claim
+- [x] `SuperAdminGuard` — redirects to `/unauthorized` if not `superadmin`
+- [x] `Layout` — collapsible sidebar with Dashboard / Projects / Users / Results / Staff nav
+- [x] `SignInPage` — Google sign-in (same Firebase project as `fs-app-web`)
+- [x] `UnauthorizedPage` — shown when claim check fails; links back to sign-in
+- [x] `DashboardPage` — stats cards (projects, users, avg score, staff) + recent results table
+- [x] `ProjectsPage` — searchable project list, create-project dialog, row action menu
+- [x] `ProjectDetailPage` — Members tab (invite owner, change role, remove); Settings tab (edit name/industry/size)
+- [x] `UsersPage` — user list with detail dialog; delete (superadmin)
+- [x] `ResultsPage` — all results with expand, filters, CSV export
+- [x] `StaffPage` (superadmin only) — list staff, add staff dialog, change role, revoke access
+- [x] Full router wired: `/dashboard`, `/projects`, `/projects/:projectID`, `/users`, `/results`, `/staff`
+- [ ] Comprehensive E2E tests (Playwright)
+
+---
+
 ## Changelog
 
 | Version | Date | Description |
@@ -417,3 +472,4 @@ ISO 29110 Basic Profile assessment for Very Small Enterprises (VSEs ≤ 25 peopl
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated Cloud Functions → Cloud Run, fixed deploy triggers (tag-based), GitHub Secrets instead of GCP Secret Manager |
 | 1.2.0 | 2026-06-11 | Add ISO 29110 Basic Profile quiz variant (Phase 10) |
+| 1.3.0 | 2026-06-11 | Add Phase 11 (backoffice web app); fix stale `apps/web/` → `apps/fs-app-web/` paths throughout; update current-state table |

@@ -32,6 +32,11 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5173,
+      headers: {
+        // Required for Firebase signInWithPopup — Google's OAuth page sets COOP: same-origin,
+        // which blocks the popup from communicating back without this header on the opener.
+        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      },
       proxy: {
         '/api': {
           target: proxyTarget,

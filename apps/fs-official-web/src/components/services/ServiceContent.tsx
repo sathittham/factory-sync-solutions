@@ -603,6 +603,10 @@ export function getServiceTitle(slug: ServiceSlug, locale: "th" | "en" = "th"): 
 	return SERVICE_DETAILS[slug][locale].title;
 }
 
+export function getServiceTagline(slug: ServiceSlug, locale: "th" | "en" = "th"): string {
+	return SERVICE_DETAILS[slug][locale].tagline;
+}
+
 export interface ServiceContentProps {
 	slug: ServiceSlug;
 	appUrl: string;

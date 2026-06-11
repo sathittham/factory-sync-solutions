@@ -1,12 +1,12 @@
 {
-  "extends": "astro/tsconfigs/strict",
-  "include": ["src"],
-  "compilerOptions": {
-    "paths": {
-      "@/*": ["./src/*"],
-      "@shared/*": ["../../packages/shared/*"]
-    },
-    "jsx": "react-jsx",
-    "jsxImportSource": "react"
-  }
+	"extends": "astro/tsconfigs/strict",
+	"include": ["src"],
+	"compilerOptions": {
+		"paths": {
+			"@/*": ["./src/*"],
+			"@shared/*": ["../../packages/shared/*"]
+		},
+		"jsx": "react-jsx",
+		"jsxImportSource": "react"
+	}
 }

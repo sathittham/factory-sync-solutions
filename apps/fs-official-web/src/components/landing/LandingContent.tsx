@@ -452,7 +452,6 @@ const NAV_LINKS = [
 	{ key: "nav.peace", href: "#services" },
 	{ key: "nav.cases", href: "#results" },
 	{ key: "nav.blog", href: "#process" },
-	{ key: "nav.about", href: "#about" },
 	{ key: "nav.contact", href: "#contact" },
 ];
 
@@ -628,16 +627,12 @@ const DIMENSIONS: DimensionCard[] = [
 
 interface Service {
 	img: string;
-	titleKey: string;
-	descKey: string;
 	icon: React.ReactNode;
 }
 
 const SERVICES: Service[] = [
 	{
 		img: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=600&q=80&auto=format&fit=crop",
-		titleKey: "service.healthCheck.title",
-		descKey: "service.healthCheck.desc",
 		icon: (
 			<svg
 				width="18"
@@ -657,8 +652,6 @@ const SERVICES: Service[] = [
 	},
 	{
 		img: "https://images.unsplash.com/photo-1565043666747-69f6646db940?w=600&q=80&auto=format&fit=crop",
-		titleKey: "service.production.title",
-		descKey: "service.production.desc",
 		icon: (
 			<svg
 				width="18"
@@ -678,8 +671,6 @@ const SERVICES: Service[] = [
 	},
 	{
 		img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&q=80&auto=format&fit=crop",
-		titleKey: "service.consulting.title",
-		descKey: "service.consulting.desc",
 		icon: (
 			<svg
 				width="18"
@@ -698,8 +689,6 @@ const SERVICES: Service[] = [
 	},
 	{
 		img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80&auto=format&fit=crop",
-		titleKey: "service.digital.title",
-		descKey: "service.digital.desc",
 		icon: (
 			<svg
 				width="18"
@@ -1027,7 +1016,7 @@ function RadarChart() {
 			viewBox="0 0 220 220"
 			width="180"
 			height="180"
-			aria-label="Radar chart showing factory assessment scores"
+			aria-label={t("landing.radar.ariaLabel")}
 			role="img"
 		>
 			{/* Rings */}
@@ -1117,7 +1106,7 @@ function GoldSeal() {
 			width="48"
 			height="48"
 			viewBox="0 0 64 64"
-			aria-label="Certified engineer seal"
+			aria-label={t("landing.goldSeal.ariaLabel")}
 			role="img"
 			className="h-12 w-12 shrink-0"
 		>
@@ -1181,22 +1170,24 @@ function NavBar({
 					: "shadow-none"
 			)}
 		>
-			<div className="mx-auto flex h-14 max-w-[1180px] items-center justify-between gap-4 px-4 sm:px-6">
-				{/* Logo */}
+			<div className="mx-auto grid h-14 w-full max-w-[1536px] grid-cols-[auto_1fr_auto] items-center gap-x-4 px-4 sm:px-6 lg:px-8">
+				{/* Logo — left */}
 				<a
 					href="/"
-					className="flex items-center gap-2 font-bold text-slate-950 shrink-0 dark:text-white"
+					className="col-start-1 flex shrink-0 items-center gap-2 justify-self-start font-bold text-slate-950 dark:text-white"
 				>
 					<LogoIcon theme={resolvedTheme} />
-					<span className="hidden text-lg leading-tight sm:inline">
+					<span className="text-lg leading-tight">
 						FactorySync
 						<span className="block text-sm font-extrabold text-cyan-400 -mt-1">Solutions</span>
 					</span>
-					<span className="font-bold text-slate-950 sm:hidden dark:text-white">FS</span>
 				</a>
 
 				{/* Center nav links — hidden on mobile */}
-				<nav className="hidden items-center gap-1 md:flex" aria-label="Main navigation">
+				<nav
+					className="col-start-2 hidden items-center justify-center gap-1 overflow-hidden justify-self-center lg:flex"
+					aria-label="Main navigation"
+				>
 					{NAV_LINKS.map((link, index) => (
 						<a
 							key={link.key}
@@ -1214,28 +1205,39 @@ function NavBar({
 					))}
 				</nav>
 
-				{/* Right controls */}
-				<div className="flex items-center gap-2 shrink-0">
-					<LocaleSwitcher />
-					<ThemeSwitcher theme={theme} setTheme={setTheme} />
+				{/* Right controls — right-aligned */}
+				<div className="col-start-3 flex shrink-0 items-center justify-end gap-2 justify-self-end">
+					<LocaleSwitcher className="hidden lg:block" />
+					<ThemeSwitcher theme={theme} setTheme={setTheme} className="hidden lg:block" />
 
-					{/* CTA */}
+					{/* Sign in — outline button for returning users */}
 					<a
 						href={appUrl}
 						className={cn(
-							buttonVariants({ size: "sm" }),
-							"hidden rounded-md bg-blue-600 px-4 text-xs text-white shadow-[0_0_24px_rgba(37,99,235,0.35)] hover:bg-blue-500 sm:inline-flex xl:px-7 xl:text-sm"
+							buttonVariants({ variant: "outline", size: "sm" }),
+							"hidden rounded-md px-4 text-xs lg:inline-flex xl:px-5 xl:text-sm"
 						)}
 					>
 						{t("nav.signIn")}
+					</a>
+
+					{/* Register CTA */}
+					<a
+						href="/register"
+						className={cn(
+							buttonVariants({ size: "sm" }),
+							"hidden rounded-md bg-blue-600 px-4 text-xs text-white shadow-[0_0_24px_rgba(37,99,235,0.35)] hover:bg-blue-500 min-[1360px]:inline-flex xl:px-5 xl:text-sm"
+						)}
+					>
+						{t("nav.signUp")}
 					</a>
 
 					{/* Hamburger */}
 					<button
 						type="button"
 						onClick={handleToggleMobile}
-						aria-label="Toggle menu"
-						className="rounded-md p-1.5 text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10 md:hidden"
+						aria-label={t("nav.toggleMenu")}
+						className="rounded-md p-1.5 text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10 lg:hidden"
 					>
 						{mobileOpen ? <CloseIcon /> : <MenuIcon />}
 					</button>
@@ -1244,7 +1246,7 @@ function NavBar({
 
 			{/* Mobile dropdown */}
 			{mobileOpen && (
-				<div className="border-t border-slate-200 bg-white shadow-lg dark:border-cyan-300/10 dark:bg-[#06172d] md:hidden">
+				<div className="border-t border-slate-200 bg-white shadow-lg dark:border-cyan-300/10 dark:bg-[#06172d] lg:hidden">
 					<nav className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-1">
 						{NAV_LINKS.map((link) => (
 							<a
@@ -1257,14 +1259,21 @@ function NavBar({
 							</a>
 						))}
 						<a
-							href={appUrl}
+							href="/register"
 							onClick={handleCloseMobile}
 							className={cn(
 								buttonVariants(),
 								"mt-2 justify-center bg-blue-600 text-white hover:bg-blue-500"
 							)}
 						>
-							{t("landing.cta").replace("!", "")}
+							{t("nav.signUp")}
+						</a>
+						<a
+							href={appUrl}
+							onClick={handleCloseMobile}
+							className="mt-1 text-center text-sm text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-cyan-300"
+						>
+							{t("nav.signIn")}
 						</a>
 						<div className="mt-3 flex items-center justify-between gap-3">
 							<span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
@@ -1414,10 +1423,11 @@ function HeroSection({ appUrl }: { appUrl: string }) {
 					<FadeIn delay={0.16}>
 						<div className="mb-6 flex flex-wrap gap-3">
 							<a
-								href={appUrl}
+								href="/register"
+								onClick={() => globalThis.gtag?.("event", "cta_click", { location: "hero" })}
 								className="inline-flex h-11 items-center gap-2 rounded-md bg-blue-600 px-7 font-semibold text-white shadow-[0_0_28px_rgba(37,99,235,0.5)] transition-colors hover:bg-blue-500"
 							>
-								{t("landing.cta")}
+								{t("nav.signUp")}
 								<svg
 									width="15"
 									height="15"
@@ -1514,7 +1524,7 @@ function TrustBarSection() {
 	return (
 		<section className="border-y border-sky-200 bg-white py-5 text-slate-950 dark:border-cyan-300/20 dark:bg-[#06172d] dark:text-white">
 			<div className="mx-auto max-w-[1180px] px-4 sm:px-6">
-				<div className="grid grid-cols-1 divide-y divide-sky-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0 md:grid-cols-4 dark:divide-cyan-300/15">
+				<div className="grid grid-cols-1 divide-y divide-sky-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4 dark:divide-cyan-300/15">
 					{items.map((item) => (
 						<div
 							key={item.titleKey}
@@ -1527,7 +1537,7 @@ function TrustBarSection() {
 								<p className="text-sm font-bold leading-snug text-slate-950 dark:text-white">
 									{t(item.titleKey)}
 								</p>
-								<p className="mt-1 text-xs leading-snug text-cyan-700 dark:text-cyan-300">
+								<p className="mt-1 text-sm leading-snug text-cyan-700 sm:text-xs dark:text-cyan-300">
 									{t(item.subKey)}
 								</p>
 							</div>
@@ -1552,7 +1562,7 @@ function DimensionsSection() {
 			className="border-b border-sky-200 bg-sky-50 py-6 text-slate-950 dark:border-cyan-300/15 dark:bg-[#06172d] dark:text-white"
 		>
 			<div className="mx-auto max-w-[1180px] px-4 sm:px-6">
-				<div className="flex flex-col items-start gap-6 md:flex-row">
+				<div className="flex flex-col items-start gap-6 lg:flex-row">
 					{/* Left — dimension cards */}
 					<div className="flex-1 min-w-0">
 						<FadeIn>
@@ -1569,7 +1579,7 @@ function DimensionsSection() {
 							</div>
 						</FadeIn>
 
-						<StaggerChildren className="grid grid-cols-2 gap-3 md:grid-cols-4">
+						<StaggerChildren className="grid grid-cols-2 gap-3 lg:grid-cols-4">
 							{DIMENSIONS.map((dim) => (
 								<StaggerItem key={dim.number}>
 									<div className="flex min-h-[86px] flex-col gap-2 rounded-md border border-sky-200 bg-white p-3 shadow-xs transition-all hover:border-sky-300 hover:shadow-md dark:border-cyan-300/25 dark:bg-cyan-300/10 dark:shadow-none dark:hover:border-cyan-300/60 dark:hover:bg-cyan-300/15 dark:hover:shadow-[0_0_24px_rgba(34,211,238,0.12)]">
@@ -1589,7 +1599,7 @@ function DimensionsSection() {
 					</div>
 
 					{/* Right — Radar chart card */}
-					<div className="w-full shrink-0 md:w-[350px]">
+					<div className="w-full shrink-0 lg:w-[350px]">
 						<FadeIn delay={0.15}>
 							<div className="rounded-md border border-sky-200 bg-white p-4 text-slate-950 shadow-xs dark:border-cyan-300/35 dark:bg-[#041225] dark:text-white dark:shadow-[0_0_35px_rgba(14,165,233,0.16)]">
 								<div className="mb-3 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
@@ -1646,7 +1656,7 @@ function ExpertSection() {
 	return (
 		<section id="expert" className="bg-sky-50 text-slate-950 dark:bg-[#06172d] dark:text-white">
 			<div className="mx-auto max-w-[1180px] border-t border-sky-200 px-4 py-8 sm:px-6 dark:border-cyan-300/15">
-				<div className="grid gap-7 md:grid-cols-[0.9fr_0.75fr_1fr] md:items-center">
+				<div className="grid gap-7 lg:grid-cols-[0.9fr_0.75fr_1fr] lg:items-center">
 					{/* Left — certificate card */}
 					<FadeIn>
 						<div className="relative flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-md border border-amber-200/70 bg-linear-to-br from-amber-50 via-yellow-50 to-orange-50 p-5 shadow-2xl">
@@ -1677,7 +1687,6 @@ function ExpertSection() {
 								<p className="text-xs font-semibold text-amber-800">
 									{t("landing.certificate.authority")}
 								</p>
-								<p className="text-xs text-slate-400 mt-0.5">Council of Engineers Thailand</p>
 							</div>
 						</div>
 					</FadeIn>
@@ -1752,9 +1761,9 @@ function ServicesSection() {
 					</div>
 				</FadeIn>
 
-				<StaggerChildren className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
+				<StaggerChildren className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
 					{SERVICES.map((svc, i) => (
-						<StaggerItem key={svc.titleKey}>
+						<StaggerItem key={svc.img}>
 							<div className="group flex h-full flex-col overflow-hidden rounded-md border border-slate-200 bg-white shadow-xs transition-all hover:-translate-y-1 hover:shadow-lg dark:border-cyan-300/15 dark:bg-[#071b33] dark:shadow-none dark:hover:border-cyan-300/35">
 								<div className="relative h-36">
 									<img
@@ -1811,16 +1820,16 @@ function ProcessSection() {
 					</h2>
 				</FadeIn>
 
-				<div className="grid gap-8 md:grid-cols-[1fr_330px] md:items-center">
+				<div className="grid gap-8 lg:grid-cols-[1fr_330px] lg:items-center">
 					{/* Left — steps */}
 					<div className="min-w-0">
-						<div className="grid gap-5 md:grid-cols-4">
+						<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
 							{steps.map((step, i) => (
 								<FadeIn key={step.number} delay={i * 0.08}>
 									<div className="relative">
 										{i < steps.length - 1 && (
 											<div
-												className="absolute left-10 top-5 hidden w-[calc(100%+1.25rem)] border-t-2 border-dashed border-blue-300 md:block"
+												className="absolute left-10 top-5 hidden w-[calc(100%+1.25rem)] border-t-2 border-dashed border-blue-300 lg:block"
 												aria-hidden="true"
 											/>
 										)}
@@ -1844,7 +1853,7 @@ function ProcessSection() {
 						<div className="grid grid-cols-[110px_1fr] overflow-hidden rounded-md border border-slate-200 bg-white shadow-xs dark:border-cyan-300/15 dark:bg-[#071b33] dark:shadow-none">
 							<img
 								src="https://images.unsplash.com/photo-1553484771-371a605b060b?w=400&q=80"
-								alt="Sample report"
+								alt={t("landing.report.alt")}
 								className="h-full min-h-40 w-full object-cover"
 								loading="lazy"
 							/>
@@ -1890,7 +1899,7 @@ function ResultsSection() {
 				</FadeIn>
 
 				{/* All 4 cards — carousel on mobile via overflow-x-auto, grid on desktop */}
-				<div className="grid grid-cols-2 gap-5 md:grid-cols-4">
+				<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
 					{cards.map((card) => (
 						<div
 							key={card.badge + card.industry}
@@ -1937,9 +1946,9 @@ function BottomCtaSection({ appUrl }: { appUrl: string }) {
 		{
 			icon: <EmailIcon size={22} />,
 			iconColor: "text-blue-400",
-			primary: "info@factorysyncsolutions.com",
+			primary: t("landing.contact.email"),
 			secondary: t("landing.contact.emailNote"),
-			href: "mailto:info@factorysyncsolutions.com",
+			href: `mailto:${t("landing.contact.email")}`,
 		},
 		{
 			icon: <PhoneIcon size={22} />,
@@ -1968,13 +1977,14 @@ function BottomCtaSection({ appUrl }: { appUrl: string }) {
 							</h2>
 							<p className="mt-1 text-sm text-cyan-100">{t("landing.bottomCta.subtitle")}</p>
 							<a
-								href={appUrl}
+								href="/register"
+								onClick={() => globalThis.gtag?.("event", "cta_click", { location: "bottom_cta" })}
 								className={cn(
 									buttonVariants({ size: "lg" }),
 									"mt-4 bg-blue-600 px-10 text-base text-white shadow-[0_0_24px_rgba(37,99,235,0.45)] hover:bg-blue-500"
 								)}
 							>
-								{t("landing.ctaBottom")}
+								{t("nav.signUp")}
 							</a>
 						</div>
 						<div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -2038,7 +2048,7 @@ function Footer({ version, resolvedTheme }: { version: string; resolvedTheme: Re
 					<LogoIcon theme={resolvedTheme} />
 					<div>
 						<p className="text-sm font-semibold text-slate-900 dark:text-white">
-							FactorySync Solutions Co., Ltd.
+							{t("footer.companyName")}
 						</p>
 						<p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{t("footer.desc")}</p>
 					</div>

@@ -27,7 +27,7 @@ function getInitialLocale(): Locale {
 }
 
 export function LocaleProvider({ children }: LocaleProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(getInitialLocale);
+  const [locale, setLocaleState] = useState<Locale>(getInitialLocale); // NOSONAR typescript:S6754 — setter intentionally renamed; setLocale is the public wrapper that also persists to localStorage
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l);
@@ -96,26 +96,22 @@ const translations: Record<Locale, Record<string, string>> = {
     // Sign In — email/password
     'signin.emailLabel': 'อีเมล',
     'signin.passwordLabel': 'รหัสผ่าน',
-    'signin.confirmPasswordLabel': 'ยืนยันรหัสผ่าน',
+    'signin.confirmPasswordLabel': 'ยืนยันรหัสผ่าน', // NOSONAR typescript:S2068
     'signin.signInWithEmail': 'เข้าสู่ระบบ',
     'signin.signInWithGoogle': 'เข้าสู่ระบบด้วย Google',
-    'signin.createAccount': 'สร้างบัญชี',
-    'signin.createAccountTitle': 'สร้างบัญชีใหม่',
-    'signin.createAccountSubtitle': 'กรอกอีเมลและรหัสผ่านเพื่อเริ่มต้น',
     'signin.resetTitle': 'รีเซ็ตรหัสผ่าน',
     'signin.resetSubtitle': 'เราจะส่งลิงก์รีเซ็ตไปยังอีเมลของคุณ',
-    'signin.forgotPassword': 'ลืมรหัสผ่าน?',
+    'signin.forgotPassword': 'ลืมรหัสผ่าน?', // NOSONAR typescript:S2068
     'signin.sendResetEmail': 'ส่งลิงก์รีเซ็ต',
     'signin.resetEmailSent': 'ส่งลิงก์รีเซ็ตรหัสผ่านแล้ว กรุณาตรวจสอบอีเมล',
     'signin.backToSignIn': 'กลับสู่การเข้าสู่ระบบ',
     'signin.orContinueWith': 'หรือ',
     'signin.noAccount': 'ยังไม่มีบัญชี?',
-    'signin.haveAccount': 'มีบัญชีแล้ว?',
     'signin.signInLink': 'เข้าสู่ระบบ',
     'signin.signUpLink': 'สร้างบัญชี',
     'signin.loading': 'กำลังโหลด...',
-    'signin.showPassword': 'แสดงรหัสผ่าน',
-    'signin.hidePassword': 'ซ่อนรหัสผ่าน',
+    'signin.showPassword': 'แสดงรหัสผ่าน', // NOSONAR typescript:S2068
+    'signin.hidePassword': 'ซ่อนรหัสผ่าน', // NOSONAR typescript:S2068
     'signin.errorInvalidEmail': 'รูปแบบอีเมลไม่ถูกต้อง',
     'signin.errorInvalidCredential': 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
     'signin.errorEmailInUse': 'อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ',
@@ -123,7 +119,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'signin.errorTooManyRequests': 'ลองผิดหลายครั้งเกินไป กรุณาลองใหม่ภายหลัง',
     'signin.errorNetwork': 'เกิดข้อผิดพลาดเครือข่าย กรุณาตรวจสอบการเชื่อมต่อ',
     'signin.errorGeneric': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง',
-    'signin.errorPasswordMismatch': 'รหัสผ่านไม่ตรงกัน',
+    'signin.errorPasswordMismatch': 'รหัสผ่านไม่ตรงกัน', // NOSONAR typescript:S2068
     'signin.errorAccountExistsOtherProvider': 'อีเมลนี้ใช้วิธีการเข้าสู่ระบบอื่น ลองเข้าสู่ระบบด้วย Google แทน',
 
     // Register
@@ -146,6 +142,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'register.submitting': 'กำลังลงทะเบียน...',
     'register.error': 'การลงทะเบียนล้มเหลว กรุณาลองอีกครั้ง',
     'register.captchaRequired': 'กรุณายืนยันว่าคุณไม่ใช่บอท',
+    'register.captchaUnavailable': 'ไม่สามารถโหลด CAPTCHA ได้ คุณยังสามารถส่งแบบฟอร์มได้',
     'register.select': 'เลือก...',
     'register.regIdError': 'ต้องเป็นตัวเลข 13 หลัก',
     'register.companyNameError': 'กรุณากรอกชื่อบริษัท',
@@ -302,23 +299,23 @@ const translations: Record<Locale, Record<string, string>> = {
 
     // Profile — security & linking
     'profile.securitySection': 'ความปลอดภัย',
-    'profile.changePassword': 'เปลี่ยนรหัสผ่าน',
-    'profile.passwordChanging': 'กำลังเปลี่ยน...',
-    'profile.passwordChanged': 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว',
-    'profile.currentPassword': 'รหัสผ่านปัจจุบัน',
-    'profile.newPassword': 'รหัสผ่านใหม่',
-    'profile.confirmNewPassword': 'ยืนยันรหัสผ่านใหม่',
-    'profile.errorWrongPassword': 'รหัสผ่านปัจจุบันไม่ถูกต้อง',
+    'profile.changePassword': 'เปลี่ยนรหัสผ่าน', // NOSONAR typescript:S2068
+    'profile.passwordChanging': 'กำลังเปลี่ยน...', // NOSONAR typescript:S2068
+    'profile.passwordChanged': 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว', // NOSONAR typescript:S2068
+    'profile.currentPassword': 'รหัสผ่านปัจจุบัน', // NOSONAR typescript:S2068
+    'profile.newPassword': 'รหัสผ่านใหม่', // NOSONAR typescript:S2068
+    'profile.confirmNewPassword': 'ยืนยันรหัสผ่านใหม่', // NOSONAR typescript:S2068
+    'profile.errorWrongPassword': 'รหัสผ่านปัจจุบันไม่ถูกต้อง', // NOSONAR typescript:S2068
     'profile.errorRecentLogin': 'กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่ก่อนเปลี่ยนรหัสผ่าน',
     'profile.linkingSection': 'วิธีการเข้าสู่ระบบ',
     'profile.linked': 'เชื่อมต่อแล้ว',
     'profile.linkGoogle': 'เชื่อมต่อ Google',
     'profile.unlinkGoogle': 'ยกเลิก Google',
-    'profile.linkEmailPassword': 'เชื่อมต่ออีเมล',
+    'profile.linkEmailPassword': 'เชื่อมต่ออีเมล', // NOSONAR typescript:S2068
     'profile.unlinkEmailPassword': 'ยกเลิกอีเมล',
     'profile.linkEmailLabel': 'อีเมล',
     'profile.linkPasswordLabel': 'รหัสผ่าน',
-    'profile.linkConfirmPasswordLabel': 'ยืนยันรหัสผ่าน',
+    'profile.linkConfirmPasswordLabel': 'ยืนยันรหัสผ่าน', // NOSONAR typescript:S2068
     'profile.linkSubmit': 'เชื่อมต่อ',
     'profile.linkSuccess': 'เชื่อมต่อบัญชีเรียบร้อยแล้ว',
     'profile.unlinkSuccess': 'ยกเลิกการเชื่อมต่อแล้ว',
@@ -355,7 +352,10 @@ const translations: Record<Locale, Record<string, string>> = {
 
     // 404
     'notFound.title': 'ไม่พบหน้าที่ค้นหา',
+    'notFound.desc': 'หน้านี้อาจถูกลบออก เปลี่ยนชื่อ หรือไม่เคยมีอยู่',
     'notFound.goHome': 'กลับหน้าหลัก',
+    'notFound.goBack': 'ย้อนกลับ',
+    'notFound.quickLinks': 'ไปยังหน้าที่ใช้บ่อย',
   },
 
   en: {
@@ -400,9 +400,6 @@ const translations: Record<Locale, Record<string, string>> = {
     'signin.confirmPasswordLabel': 'Confirm Password',
     'signin.signInWithEmail': 'Sign In',
     'signin.signInWithGoogle': 'Sign in with Google',
-    'signin.createAccount': 'Create Account',
-    'signin.createAccountTitle': 'Create an account',
-    'signin.createAccountSubtitle': 'Enter your email and password to get started',
     'signin.resetTitle': 'Reset your password',
     'signin.resetSubtitle': "We'll send a reset link to your email",
     'signin.forgotPassword': 'Forgot password?',
@@ -411,7 +408,6 @@ const translations: Record<Locale, Record<string, string>> = {
     'signin.backToSignIn': 'Back to sign in',
     'signin.orContinueWith': 'or',
     'signin.noAccount': "Don't have an account?",
-    'signin.haveAccount': 'Already have an account?',
     'signin.signInLink': 'Sign in',
     'signin.signUpLink': 'Sign up',
     'signin.loading': 'Loading...',
@@ -448,6 +444,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'register.submitting': 'Registering...',
     'register.error': 'Registration failed. Please try again.',
     'register.captchaRequired': 'Please complete the captcha verification.',
+    'register.captchaUnavailable': 'CAPTCHA could not load. You can still submit the form.',
     'register.select': 'Select...',
     'register.regIdError': 'Must be 13 digits',
     'register.companyNameError': 'Company name is required',
@@ -659,6 +656,9 @@ const translations: Record<Locale, Record<string, string>> = {
 
     // 404
     'notFound.title': 'Page not found',
+    'notFound.desc': 'This page may have been removed, renamed, or never existed.',
     'notFound.goHome': 'Go Home',
+    'notFound.goBack': 'Go Back',
+    'notFound.quickLinks': 'Quick links',
   },
 };

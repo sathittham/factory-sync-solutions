@@ -6,7 +6,6 @@ import { AdminPage } from '@/pages/AdminPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { QuizPage } from '@/pages/QuizPage';
-import { RegisterPage } from '@/pages/RegisterPage';
 import { ResultPage } from '@/pages/ResultPage';
 import { SignInPage } from '@/pages/SignInPage';
 import { createBrowserRouter } from 'react-router';
@@ -19,7 +18,6 @@ export const router = createBrowserRouter([
       {
         element: <AuthGuard />,
         children: [
-          { path: 'register', element: <RegisterPage /> },
           {
             element: <RegisterGuard />,
             children: [

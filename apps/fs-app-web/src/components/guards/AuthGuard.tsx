@@ -1,21 +1,21 @@
-import { Navigate, Outlet } from "react-router";
-import { useAppSelector } from "@/store";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from '@/components/ui/skeleton';
+import { useAppSelector } from '@/store';
+import { Navigate, Outlet } from 'react-router';
 
 export function AuthGuard() {
-	const { isAuthenticated, loading } = useAppSelector((s) => s.auth);
+  const { isAuthenticated, loading } = useAppSelector((s) => s.auth);
 
-	if (loading) {
-		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<Skeleton className="h-12 w-48" />
-			</div>
-		);
-	}
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Skeleton className="h-12 w-48" />
+      </div>
+    );
+  }
 
-	if (!isAuthenticated) {
-		return <Navigate to="/" replace />;
-	}
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
-	return <Outlet />;
+  return <Outlet />;
 }

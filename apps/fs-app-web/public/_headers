@@ -1,0 +1,33 @@
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com https://www.googletagmanager.com; frame-src https://factory-sync-solutions.firebaseapp.com https://accounts.google.com https://apis.google.com; connect-src 'self' https://*.run.app https://*.googleapis.com https://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; frame-ancestors 'none'
+
+# Cloudflare Pages response headers
+# https://developers.cloudflare.com/pages/configuration/headers/
+
+# Favicon files — force revalidation on every request so Chrome picks up
+# new favicons after a deploy instead of serving a stale cached copy.
+/favicon.ico
+  Cache-Control: public, max-age=0, must-revalidate
+
+/favicon-16x16.png
+  Cache-Control: public, max-age=0, must-revalidate
+
+/favicon-32x32.png
+  Cache-Control: public, max-age=0, must-revalidate
+
+/apple-touch-icon.png
+  Cache-Control: public, max-age=0, must-revalidate
+
+/android-chrome-192x192.png
+  Cache-Control: public, max-age=0, must-revalidate
+
+/android-chrome-512x512.png
+  Cache-Control: public, max-age=0, must-revalidate
+
+/site.webmanifest
+  Cache-Control: public, max-age=0, must-revalidate

@@ -23,9 +23,10 @@ export function getInitialTheme(): Theme {
 
 export function useTheme() {
 	const [theme, setThemeState] = useState<Theme>(getInitialTheme);
-	const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>
-		getInitialTheme() === "system" ? getSystemTheme() : (getInitialTheme() as ResolvedTheme)
-	);
+	const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() => {
+		const initial = getInitialTheme();
+		return initial === "system" ? getSystemTheme() : (initial as ResolvedTheme);
+	});
 
 	const setTheme = useCallback((t: Theme) => {
 		setThemeState(t);

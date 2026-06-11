@@ -415,3 +415,4 @@ navigation — not repeated here.
 - Result models: [models.go](../../../apps/fs-backend/services/result/models.go)
 - Quiz feature: [quiz/feature-spec.md](../quiz/feature-spec.md)
 - User flow: [user-flow.md](../user-flow.md)
+- Backoffice results view (all-platform results for FactorySync staff): [backoffice/feature-spec.md §4](../backoffice/feature-spec.md)

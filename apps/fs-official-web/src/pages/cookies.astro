@@ -1,11 +1,14 @@
 ---
-import Layout from "../layouts/Layout.astro";
 import { LegalContent } from "../components/legal/LegalContent";
+import Layout from "../layouts/Layout.astro";
 
 const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
 const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
 ---
 
-<Layout title="FactorySync Solutions">
-  <LegalContent client:load page="cookies" appUrl={appUrl} version={version} />
+<Layout
+  title="นโยบายคุกกี้ — FactorySync Solutions"
+  description="FactorySync Solutions ใช้คุกกี้เพื่อพัฒนาประสบการณ์การใช้งาน อ่านนโยบายคุกกี้ฉบับเต็มได้ที่นี่"
+>
+  <LegalContent client:idle page="cookies" appUrl={appUrl} version={version} />
 </Layout>

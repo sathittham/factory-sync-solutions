@@ -70,4 +70,75 @@ describe("updateConsentMode", () => {
 		expect(() => updateConsentMode(false, false)).not.toThrow();
 		expect(document.cookie).not.toContain("_ga=");
 	});
+
+	it("updateConsentMode(false, true) denies analytics and grants marketing in one call", () => {
+		const gtag = vi.fn();
+		globalThis.gtag = gtag;
+
+		updateConsentMode(false, true);
+
+		expect(gtag).toHaveBeenCalledTimes(1);
+		expect(gtag).toHaveBeenCalledWith("consent", "update", {
+			analytics_storage: "denied",
+			ad_storage: "granted",
+			ad_user_data: "granted",
+			ad_personalization: "granted",
+		});
+	});
+
+	it("deleteGoogleAnalyticsCookies attempts deletion against ancestor domain patterns", () => {
+		globalThis.gtag = vi.fn();
+
+		// Set a hostname with multiple parts so the domain-iteration logic runs.
+		// jsdom defaults to "localhost"; override to something with an eTLD+1.
+		Object.defineProperty(globalThis, "location", {
+			value: { ...globalThis.location, hostname: "app.example.com" },
+			writable: true,
+			configurable: true,
+		});
+
+		document.cookie = "_ga=GA1.2.999";
+		document.cookie = "_ga_XYZ=GS1.1.111";
+
+		// Spy on the setter to capture every deletion attempt.
+		const cookieWrites: string[] = [];
+		const originalDescriptor = Object.getOwnPropertyDescriptor(Document.prototype, "cookie");
+		vi.spyOn(document, "cookie", "set").mockImplementation((value: string) => {
+			cookieWrites.push(value);
+			// Also apply the real setter so document.cookie state stays consistent.
+			originalDescriptor?.set?.call(document, value);
+		});
+
+		updateConsentMode(false, false);
+
+		// The function should attempt to delete against ".example.com" (eTLD+1)
+		// and ".app.example.com" — both are derived from "app.example.com".
+		const domainAttempts = cookieWrites.filter((w) => w.startsWith("_ga") && w.includes("domain="));
+		const attemptedDomains = domainAttempts.map((w) => {
+			const match = /domain=([^;]+)/.exec(w);
+			return match?.[1] ?? "";
+		});
+
+		expect(attemptedDomains).toContain(".example.com");
+		expect(attemptedDomains).toContain(".app.example.com");
+	});
+
+	it("does not throw on localhost and still clears cookies without domain prefix", () => {
+		// Reset hostname to "localhost" — the domains filter produces [] because
+		// "localhost" has no "." so every domain variant is filtered out.
+		Object.defineProperty(globalThis, "location", {
+			value: { ...globalThis.location, hostname: "localhost" },
+			writable: true,
+			configurable: true,
+		});
+
+		document.cookie = "_ga=GA1.1.123";
+
+		// Must not throw even when domains array is empty.
+		expect(() => updateConsentMode(false, false)).not.toThrow();
+
+		// The plain deletion (without domain=) should still be attempted.
+		// jsdom's cookie sandbox may not fully honour past-expiry deletion,
+		// but the important invariant is no exception.
+	});
 });

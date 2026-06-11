@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-06-10
+version: 1.1.0
+lastUpdated: 2026-06-11
 author: Sathittham Sangthong
 status: Done
 ---
@@ -12,6 +12,17 @@ status: Done
 > export) and **Users** (registered profile list with role management and a
 > detail dialog). Backed by five endpoints under `/api/v1/admin/`, all protected
 > by `FirebaseAuth` + `RequireAdmin`.
+
+> **Scope note — two separate admin surfaces exist:**
+>
+> | Surface | App | Actor | Auth claim |
+> |---------|-----|-------|-----------|
+> | `/admin` page (this spec) | `fs-app-web` | End-users with the `role: "admin"` claim | `role == "admin"` |
+> | Backoffice portal | `fs-backoffice-web` | FactorySync internal staff | `backofficeRole ∈ {"staff","superadmin"}` |
+>
+> These are different actor groups. **New admin capabilities should go into
+> `fs-backoffice-web`** unless they are specific to end-user administration.
+> See [backoffice/feature-spec.md](../backoffice/feature-spec.md) for the staff portal spec.
 
 ---
 
