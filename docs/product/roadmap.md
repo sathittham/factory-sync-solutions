@@ -18,8 +18,10 @@ author: Sathittham Sangthong
 | Phase 4: Frontend Scaffold & Auth | Done |
 | Phase 5: Frontend Pages (register, quiz, result, 404) | Done |
 | Phase 6: Admin Dashboard | Done |
+| Phase 9: Project & RBAC (multi-user workspace) | Planned — see [project/feature-spec.md](product/project/feature-spec.md) |
 | Phase 7: Testing & Quality | Done |
 | Phase 8: CI/CD & Deployment | Done |
+| Phase 10: ISO 29110 Quiz Variant | In Progress — see below |
 
 ---
 
@@ -375,9 +377,43 @@ Phase 0 (Foundation)
 
 ---
 
+---
+
+## Phase 10: ISO 29110 Software Process Assessment
+
+ISO 29110 Basic Profile assessment for Very Small Enterprises (VSEs ≤ 25 people). Targets the two mandatory process groups: Project Management (PM) and Software Implementation (SI).
+
+### 10.1 Backend (quiz config) ✓
+
+- [x] `apps/fs-backend/config/questions-iso29110.json` — 38 questions across 8 dimensions (v1.0.0)
+  - PM.1: Project Planning (5 questions)
+  - PM.2–3: Project Execution & Control (5 questions)
+  - PM.4: Project Closure (4 questions)
+  - SI.1: Software Implementation Initiation (4 questions)
+  - SI.2: Software Requirements Analysis (5 questions)
+  - SI.3: Software Architectural & Detailed Design (5 questions)
+  - SI.4–5: Software Construction & Testing (6 questions)
+  - SI.6: Product Delivery (4 questions)
+- [x] Registered in `apps/fs-backend/main.go` — available at `GET /api/v1/quiz/questions?quizId=iso29110`
+
+### 10.2 Frontend (TODO)
+
+- [ ] Quiz page: display ISO 29110 dimension names and process context
+- [ ] Result page: map overall score to ISO 29110 capability level label
+  - 1.00–1.99 → Level 0: Not Performed (ยังไม่ดำเนินการ)
+  - 2.00–2.99 → Level 1 Partial: Partially Performed (ดำเนินการบางส่วน)
+  - 3.00–3.99 → Level 1 Full: Performed (ดำเนินการได้)
+  - 4.00–4.99 → Level 2: Managed (มีการจัดการ)
+  - 5.00 → Level 3: Established (มีมาตรฐาน)
+- [ ] Result page: group radar chart by PM / SI process group
+- [ ] (Optional) Recommendations panel: link low-scoring dimensions to ISO 29110 guidance
+
+---
+
 ## Changelog
 
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated Cloud Functions → Cloud Run, fixed deploy triggers (tag-based), GitHub Secrets instead of GCP Secret Manager |
+| 1.2.0 | 2026-06-11 | Add ISO 29110 Basic Profile quiz variant (Phase 10) |

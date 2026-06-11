@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -30,6 +31,7 @@ func FirebaseAuth(authClient *firebaseAuth.Client) func(http.Handler) http.Handl
 			idToken := strings.TrimPrefix(authHeader, "Bearer ")
 			token, err := authClient.VerifyIDToken(r.Context(), idToken)
 			if err != nil {
+				slog.Error("FirebaseAuth: VerifyIDToken failed", "error", err, "tokenPrefix", idToken[:min(20, len(idToken))])
 				pkg.RespondError(w, http.StatusUnauthorized, "UNAUTHORIZED", "invalid token")
 				return
 			}
@@ -92,4 +94,45 @@ func GetEmail(r *http.Request) string {
 func GetDisplayName(r *http.Request) string {
 	name, _ := r.Context().Value(displayNameContextKey).(string)
 	return name
+}
+
+// RequireBackofficeRole returns a middleware that allows only requests whose
+// token's backofficeRole custom claim matches one of the given roles.
+// Must be used after FirebaseAuth.
+//
+// Usage — allow both staff roles:
+//
+//	r.Use(middleware.RequireBackofficeRole(authClient, "superadmin", "staff"))
+//
+// Usage — superadmin-only route:
+//
+//	r.Use(middleware.RequireBackofficeRole(authClient, "superadmin"))
+func RequireBackofficeRole(authClient *firebaseAuth.Client, roles ...string) func(http.Handler) http.Handler {
+	allowed := make(map[string]bool, len(roles))
+	for _, role := range roles {
+		allowed[role] = true
+	}
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			uid := GetUID(r)
+			if uid == "" {
+				pkg.RespondError(w, http.StatusUnauthorized, "UNAUTHORIZED", "missing auth")
+				return
+			}
+
+			user, err := authClient.GetUser(r.Context(), uid)
+			if err != nil {
+				pkg.RespondError(w, http.StatusForbidden, "FORBIDDEN", "access denied")
+				return
+			}
+
+			backofficeRole, _ := user.CustomClaims["backofficeRole"].(string)
+			if !allowed[backofficeRole] {
+				pkg.RespondError(w, http.StatusForbidden, "FORBIDDEN", "backoffice access required")
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
 }

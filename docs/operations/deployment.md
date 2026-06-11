@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-03-07
+version: 1.2.0
+lastUpdated: 2026-06-11
 author: Sathittham Sangthong
 ---
 
@@ -10,8 +10,10 @@ author: Sathittham Sangthong
 
 | Component | Platform | Method |
 |-----------|----------|--------|
-| Frontend (React SPA) | Cloudflare Pages | GitHub Actions (`cloudflare/wrangler-action`) |
-| Backend (Go API) | Google Cloud Run | Docker container via GitHub Actions |
+| `fs-app-web` (user app) | Cloudflare Pages | GitHub Actions (`cloudflare/wrangler-action`) |
+| `fs-backoffice-web` (staff backoffice) | Cloudflare Pages + Cloudflare Access | GitHub Actions (`cloudflare/wrangler-action`) |
+| `fs-official-web` (public site) | Cloudflare Pages | GitHub Actions (`cloudflare/wrangler-action`) |
+| `fs-backend` (Go API) | Google Cloud Run | Docker container via GitHub Actions |
 | Database | Firestore | Managed service (no deployment needed) |
 | Auth | Firebase Authentication | Managed service (no deployment needed) |
 
@@ -27,20 +29,47 @@ author: Sathittham Sangthong
 
 ### Automatic Deployment (GitHub Actions)
 
-The `deploy-staging.yml` and `deploy-production.yml` workflows handle frontend deployment automatically:
+The `deploy-staging.yml` and `deploy-production.yml` workflows handle all frontend deployments:
 
 1. Installs dependencies (`npm ci`)
 2. Builds with Vite (`npx vite build`) with injected `VITE_*` env vars
 3. Deploys via `cloudflare/wrangler-action@v3`
 
-### Manual Deployment
+### `fs-app-web` (User App)
+
+| Environment | CF Pages Project | Domain |
+|-------------|-----------------|--------|
+| Staging | `factory-sync-solutions-staging` | `factory-sync-solutions-staging.pages.dev` |
+| Production | `factory-sync-solutions` | `app.factorysync.com` |
 
 ```bash
-cd apps/web
-npm ci
-npx vite build
+# Manual deploy
+cd apps/fs-app-web
+npm ci && npx vite build
 npx wrangler pages deploy dist --project-name=factory-sync-solutions
 ```
+
+### `fs-backoffice-web` (Staff Backoffice)
+
+| Environment | CF Pages Project | Domain |
+|-------------|-----------------|--------|
+| Staging | `factory-sync-backoffice-staging` | `factory-sync-backoffice-staging.pages.dev` |
+| Production | `factory-sync-backoffice` | `backoffice.factorysync.com` |
+
+**Cloudflare Access** is applied to the production domain. Only users on the
+`@factorysync.com` email allowlist (or an explicit allow-list) can reach the
+site. This is a network-layer gate configured in the Cloudflare Zero Trust
+dashboard — it is separate from Firebase Auth.
+
+```bash
+# Manual deploy
+cd apps/fs-backoffice-web
+npm ci && npx vite build
+npx wrangler pages deploy dist --project-name=factory-sync-backoffice
+```
+
+> Cloudflare Access policy must be set up once in the Zero Trust dashboard:
+> **Access > Applications > factory-sync-backoffice > Policy: Allow @factorysync.com**
 
 ## Backend Deployment (Cloud Run)
 
@@ -107,16 +136,18 @@ Secrets are injected as environment variables from **GitHub Secrets** at deploy 
 Tag v*-staging (staging deploy):
   1. Run tests (reusable test.yml)
   2. Build & push Docker image to Artifact Registry
-  3. Deploy backend to Cloud Run (staging)
-  4. Build frontend with Vite
-  5. Deploy frontend to Cloudflare Pages (staging)
+  3. Deploy fs-backend to Cloud Run (staging)
+  4. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions-staging)
+  5. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice-staging)
+  6. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official-staging)
 
 Tag v*.*.* (production deploy):
   1. Run tests (reusable test.yml)
   2. Build & push Docker image to Artifact Registry
-  3. Deploy backend to Cloud Run (production)
-  4. Build frontend with Vite
-  5. Deploy frontend to Cloudflare Pages (production)
+  3. Deploy fs-backend to Cloud Run (production)
+  4. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions)
+  5. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice)
+  6. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official)
 ```
 
 ### Required GitHub Secrets
@@ -186,9 +217,10 @@ firebase emulators:start --only firestore,auth
 After deploying to any environment:
 
 1. **Health check**: `curl https://<API_URL>/healthz`
-2. **Smoke test**: Sign in with Google -> register -> submit quiz -> view result
-3. **Check Slack**: Verify notifications arrive in `#registrations` and `#quiz-results`
-4. **Check logs**: `gcloud run services logs read factory-sync-solutions-api --region=asia-southeast3`
+2. **App smoke test**: Sign in with Google → register → submit quiz → view result
+3. **Backoffice smoke test**: Navigate to `backoffice.factorysync.com` → verify Cloudflare Access gate → sign in with a `backofficeRole` account → confirm dashboard loads
+4. **Check Slack**: Verify notifications arrive in `#registrations` and `#quiz-results`
+5. **Check logs**: `gcloud run services logs read factory-sync-solutions-api --region=asia-southeast3`
 
 ## Rollback
 
@@ -234,3 +266,4 @@ See [logging-monitoring.md](logging-monitoring.md) for detailed monitoring setup
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated: Cloud Functions -> Cloud Run, removed turbo references, fixed secrets management, updated deploy commands |
+| 1.2.0 | 2026-06-11 | Added fs-backoffice-web deployment (CF Pages + Cloudflare Access); updated pipeline stages; updated app names to fs-* |

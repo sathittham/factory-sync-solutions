@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-06-10
 author: Sathittham Sangthong
 ---
 
@@ -26,11 +26,15 @@ id := uuid.New().String() // e.g. "550e8400-e29b-41d4-a716-446655440000"
 | `users/{uid}` | Firebase Auth UID (from `token.UID`) |
 | `assessments/{assessmentId}` | UUIDv4 |
 | `email_jobs/{jobId}` | UUIDv4 |
+| `projects/{projectID}` | `companyRegId` (13-digit Thai tax ID — naturally unique per company) |
+| `projects/{projectID}/members/{uid}` | Firebase Auth UID (subcollection, same key as `users/{uid}`) |
+| `project_invitations/{token}` | UUIDv4 |
 
 ## Firestore Collections
 
 ```
 ├── users/{uid}
+│   ├── uid: string                  (mirrors document ID)
 │   ├── email: string
 │   ├── displayName: string
 │   ├── companyName: string
@@ -40,12 +44,21 @@ id := uuid.New().String() // e.g. "550e8400-e29b-41d4-a716-446655440000"
 │   ├── contactName: string
 │   ├── contactEmail: string
 │   ├── contactPhone: string
-│   ├── role: string                 ("user" | "admin")
+│   ├── role: string                 ("user" | "admin") — system-level; separate from projectRole
+│   ├── activeProjectID: string       → the project currently in scope for this user's session
+│   ├── projectRoles: map            { "0123456789012": "owner", "0987654321012": "manager", … }
+│   │                                  denormalized mirror of all members subdoc entries; updated
+│   │                                  in the same transaction as any role/membership change
+│   ├── consentVersion: string
+│   ├── consentAt: string            (UTC ISO 8601)
+│   ├── emailNotifications: bool
 │   ├── createdAt: string            (UTC ISO 8601)
 │   └── updatedAt: string            (UTC ISO 8601)
 │
 ├── assessments/{assessmentId}
 │   ├── uid: string
+│   ├── projectID: string            → foreign key to projects/{projectID}
+│   ├── quizID: string
 │   ├── answers: QuizAnswer[]
 │   ├── scores: DimensionScore[]
 │   ├── overallScore: number         (1.0 – 5.0)
@@ -54,13 +67,53 @@ id := uuid.New().String() // e.g. "550e8400-e29b-41d4-a716-446655440000"
 │   ├── diagnosis: string            ("Beginning" | "Developing" | "Established" | "Advanced")
 │   └── submittedAt: string          (UTC ISO 8601)
 │
-└── email_jobs/{jobId}
-    ├── uid: string
-    ├── assessmentId: string
-    ├── status: string               ("pending" | "sent" | "failed")
-    ├── createdAt: string            (UTC ISO 8601)
-    ├── sentAt: string               (UTC ISO 8601)
-    └── error: string | null
+├── email_jobs/{jobId}
+│   ├── uid: string
+│   ├── assessmentId: string
+│   ├── status: string               ("pending" | "sent" | "failed")
+│   ├── createdAt: string            (UTC ISO 8601)
+│   ├── sentAt: string               (UTC ISO 8601)
+│   └── error: string | null
+│
+├── projects/{projectID}             (projectID == companyRegId)
+│   ├── projectID: string
+│   ├── name: string
+│   ├── companyRegId: string
+│   ├── industryType: string
+│   ├── companySize: string          ("small" | "medium" | "large")
+│   ├── ownerUID: string             → uid of the Owner member
+│   ├── memberCount: number          (denormalized — incremented/decremented on member add/remove)
+│   ├── isActive: bool
+│   ├── createdAt: string            (UTC ISO 8601)
+│   └── updatedAt: string            (UTC ISO 8601)
+│
+│   └── members/{uid}               (subcollection — source of truth for roles)
+│       ├── uid: string
+│       ├── email: string
+│       ├── displayName: string
+│       ├── projectRole: string      ("owner" | "system_admin" | "manager" | "general_user")
+│       ├── joinMethod: string       ("self_registered" | "invited")
+│       ├── invitedBy: string | null (uid of the inviter; null when joinMethod == "self_registered")
+│       ├── invitationToken: string | null (consumed token; null when self_registered)
+│       ├── joinedAt: string         (UTC ISO 8601)
+│       └── isActive: bool
+│
+└── project_invitations/{token}      (token == UUIDv4)
+    ├── token: string
+    ├── projectID: string
+    ├── projectName: string          (snapshot — avoids a join on public preview endpoint)
+    ├── invitedBy: string            (uid of sender)
+    ├── invitedByName: string        (displayName snapshot)
+    ├── role: string
+    ├── email: string                (target email — pre-fill only, not enforced on accept)
+    ├── status: string               ("pending" | "accepted" | "expired" | "revoked")
+    ├── expiresAt: string            (UTC ISO 8601; 7 days from creation)
+    ├── acceptedAt: string | null    (UTC ISO 8601 — set when status → "accepted")
+    ├── acceptedByUID: string | null (UID of acceptor — may differ from invited email)
+    ├── revokedAt: string | null     (UTC ISO 8601 — set when status → "revoked")
+    ├── revokedBy: string | null     (UID of who revoked)
+    ├── emailSentAt: string | null   (UTC ISO 8601 — populated on successful Resend delivery)
+    └── emailError: string | null    (error message when delivery fails)
 ```
 
 ## Security Rules
@@ -169,8 +222,23 @@ Only runs in development, requires `FIREBASE_SERVICE_ACCOUNT` env var.
 
 ---
 
+## Composite Indexes (project-related)
+
+| Collection | Fields | Order | Query |
+|------------|--------|-------|-------|
+| `assessments` | `projectID`, `submittedAt` | ASC, DESC | Scope all project assessments by date |
+| `assessments` | `projectID`, `uid`, `submittedAt` | ASC, ASC, DESC | Scope one member's assessments within a project |
+| `projects/.../members` | `isActive`, `joinedAt` | ASC, ASC | List active members in join order |
+| `project_invitations` | `projectID`, `status`, `expiresAt` | ASC, ASC, ASC | List invitations by status for a project |
+| `project_invitations` | `projectID`, `invitedBy`, `status` | ASC, ASC, ASC | Audit: all invitations sent by a specific member |
+| `audit_events` | `projectID`, `createdAt` | ASC, DESC | Project-scoped audit log query (`GET /project/audit`) |
+
+---
+
 ## Changelog
 
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.1.0 | 2026-06-10 | Add `projects`, `projects/.../members`, `project_invitations` collections; add `projectID` and `projectRole` to `users`; add `projectID` to `assessments`; add composite indexes table |
+| 1.2.0 | 2026-06-10 | Add `audit_events: projectID + createdAt` composite index |

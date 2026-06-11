@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-06-11
 author: Sathittham Sangthong
 ---
 
@@ -41,7 +41,7 @@ Centralized reference for all environment variables used across the project.
 | `SLACK_WEBHOOK_REGISTRATION` | Yes | Webhook URL for `#registrations` channel | GitHub Secrets |
 | `SLACK_WEBHOOK_QUIZ_RESULT` | Yes | Webhook URL for `#quiz-results` channel | GitHub Secrets |
 
-## Frontend (React SPA)
+## Frontend — `fs-app-web` (User App)
 
 Only `VITE_` prefixed variables are exposed to the browser. Never put secrets here.
 
@@ -55,6 +55,21 @@ Only `VITE_` prefixed variables are exposed to the browser. Never put secrets he
 | `VITE_FIREBASE_APP_ID` | Yes | Firebase app ID | `1:123:web:abc` |
 | `VITE_API_BASE_URL` | No | Backend API base URL (empty = use Vite proxy in dev) | `/api/v1` |
 | `VITE_CF_TURNSTILE_SITE_KEY` | No | Cloudflare Turnstile public site key | `0x4AAA...` |
+
+## Frontend — `fs-backoffice-web` (Staff Backoffice)
+
+Uses the **same Firebase project** as `fs-app-web` — no separate Firebase app needed.
+There is no Turnstile widget on the backoffice (Cloudflare Access handles bot/access control at the network layer).
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `VITE_FIREBASE_API_KEY` | Yes | Same Firebase API key as `fs-app-web` | `AIza...` |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Yes | Same Firebase Auth domain | `project-id.firebaseapp.com` |
+| `VITE_FIREBASE_PROJECT_ID` | Yes | Same Firebase project ID | `factory-health-check-prod` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Yes | Same Firebase storage bucket | `project-id.appspot.com` |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Yes | Same messaging sender ID | `123456789` |
+| `VITE_FIREBASE_APP_ID` | Yes | Firebase app ID (backoffice web app) | `1:123:web:def` |
+| `VITE_API_BASE_URL` | No | Backend API base URL | `http://localhost:8080/api/v1` |
 
 ## CI/CD (GitHub Settings)
 
@@ -77,13 +92,14 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `ALLOWED_ORIGINS` | CORS allowed origins | `https://factory-sync-solutions.pages.dev` |
+| `ALLOWED_ORIGINS` | CORS allowed origins (comma-separated; include both app and backoffice) | `https://factory-sync-solutions.pages.dev,https://factory-sync-backoffice.pages.dev` |
 | `VITE_FIREBASE_API_KEY` | Firebase API key | `AIza...` |
 | `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth domain | `project-id.firebaseapp.com` |
 | `VITE_FIREBASE_PROJECT_ID` | Firebase project ID | `factory-health-check-prod` |
 | `VITE_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket | `project-id.appspot.com` |
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID | `123456789` |
-| `VITE_FIREBASE_APP_ID` | Firebase app ID | `1:123:web:abc` |
+| `VITE_FIREBASE_APP_ID` | Firebase app ID (fs-app-web) | `1:123:web:abc` |
+| `VITE_BACKOFFICE_APP_ID` | Firebase app ID (fs-backoffice-web) | `1:123:web:def` |
 | `VITE_API_BASE_URL` | Backend API URL | `https://api.example.com/api/v1` |
 
 ### Workflow Triggers
@@ -99,17 +115,19 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | Variable | Development | Staging | Production |
 |----------|------------|---------|------------|
 | `ENVIRONMENT` | `development` | `staging` | `production` |
-| `ALLOWED_ORIGINS` | `http://localhost:5173` | `https://factory-sync-solutions-staging.pages.dev` | `https://factory-sync-solutions.pages.dev` |
+| `ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:5174` | `https://factory-sync-solutions-staging.pages.dev,https://factory-sync-backoffice-staging.pages.dev` | `https://factory-sync-solutions.pages.dev,https://factory-sync-backoffice.pages.dev` |
 | `VITE_API_BASE_URL` | `http://localhost:8080/api/v1` | `https://api-staging.example.com/api/v1` | `https://api.example.com/api/v1` |
 
 ## Local Development Setup
 
-1. Copy the example file:
+1. Copy the example file for each app:
    ```bash
-   cp .env.example .env
+   cp apps/fs-backend/.env.example      apps/fs-backend/.env
+   cp apps/fs-app-web/.env.example      apps/fs-app-web/.env
+   cp apps/fs-backoffice-web/.env.example apps/fs-backoffice-web/.env
    ```
 
-2. Fill in your values (see table above).
+2. Fill in your values (see tables above).
 
 3. For Firestore Emulator:
    ```bash
@@ -119,8 +137,10 @@ Each deploy environment (`staging`, `production`) has its own set of values.
    # In another terminal, set emulator env vars
    export FIRESTORE_EMULATOR_HOST=localhost:8080
    export FIREBASE_AUTH_EMULATOR_HOST=localhost:9099
-   cd apps/api && go run main.go
+   cd apps/fs-backend && go run main.go
    ```
+
+4. To test backoffice locally, set `backofficeRole` on a test Firebase user via the Firebase Admin SDK or the emulator UI, then sign in at `http://localhost:5174`.
 
 ## Rules
 
@@ -137,5 +157,4 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
-| 1.1.0 | 2026-03-06 | Updated to GitHub Secrets strategy, fixed Slack webhook names, added workflow triggers table |
-| 1.2.0 | 2026-03-07 | Updated Cloud Functions → Cloud Run references throughout |
+| 1.1.0 | 2026-06-11 | Added fs-backoffice-web env vars; updated ALLOWED_ORIGINS to include backoffice origins; updated local dev setup; updated app path references |

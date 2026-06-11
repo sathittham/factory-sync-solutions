@@ -1,12 +1,13 @@
 export const meta = {
   name: 'feature-dev',
-  description: 'Implement a full-stack feature: build the Go backend service (handler→service→models→tests), then the React frontend (types→api→store→components→i18n→routes), then review and verify',
+  description: 'Implement a full-stack feature: gate on SRS, build the Go backend service (handler→service→models→tests), then the React frontend (types→api→store→components→i18n→routes), then review and verify',
   phases: [
-    { title: 'Explore',  detail: 'Map existing patterns and the contract this feature must follow' },
-    { title: 'Backend',  detail: 'Build the Go service: models → service → handler → tests' },
-    { title: 'Frontend', detail: 'Build React: types → api → store → components → i18n → routes' },
-    { title: 'Verify',   detail: 'Run go test / vet and tsc / biome / vitest; fix what breaks' },
-    { title: 'Review',   detail: '5-point checklist review of the new code' },
+    { title: 'Explore',         detail: 'Map existing patterns and the contract this feature must follow' },
+    { title: 'ISO 29110 Gate',  detail: 'SI.2 — verify SRS exists before construction begins' },
+    { title: 'Backend',         detail: 'Build the Go service: models → service → handler → tests' },
+    { title: 'Frontend',        detail: 'Build React: types → api → store → components → i18n → routes' },
+    { title: 'Verify',          detail: 'Run go test / vet and tsc / biome / vitest; fix what breaks' },
+    { title: 'Review',          detail: '5-point checklist review of the new code' },
   ],
 }
 
@@ -14,13 +15,17 @@ export const meta = {
 //   ticket: 'FHC-123',
 //   description: 'Quiz history list page with per-assessment detail',
 //   service: 'result',          // backend service dir under apps/fs-backend/services/
+//   feature: 'result',          // docs/product/<feature>/ folder (defaults to service name)
 //   scope: 'full',              // 'backend' | 'frontend' | 'full'  (default: 'full')
+//   skipSrsCheck: false,        // set true to bypass the ISO 29110 SRS gate
 // }})
 
-const ticket      = args?.ticket || 'NO-TICKET'
-const description = args?.description || ''
-const service     = args?.service || 'feature'
-const scope       = args?.scope || 'full'
+const ticket       = args?.ticket || 'NO-TICKET'
+const description  = args?.description || ''
+const service      = args?.service || 'feature'
+const feature      = args?.feature || service
+const scope        = args?.scope || 'full'
+const skipSrsCheck = args?.skipSrsCheck === true
 
 if (!description) {
   log('args.description is required — what should this feature do?')
@@ -29,6 +34,18 @@ if (!description) {
 
 const doBackend  = scope === 'full' || scope === 'backend'
 const doFrontend = scope === 'full' || scope === 'frontend'
+
+const SRS_GATE_SCHEMA = {
+  type: 'object',
+  properties: {
+    srsFound:         { type: 'boolean' },
+    srsPath:          { type: 'string' },
+    testPlanFound:    { type: 'boolean' },
+    testPlanPath:     { type: 'string' },
+    availableFolders: { type: 'array', items: { type: 'string' } },
+  },
+  required: ['srsFound', 'srsPath', 'testPlanFound', 'testPlanPath'],
+}
 
 const EXPLORE_SCHEMA = {
   type: 'object',
@@ -97,7 +114,7 @@ const REVIEW_SCHEMA = {
 phase('Explore')
 
 log(`Budget: ${budget.total ? Math.round(budget.remaining() / 1000) + 'k tokens remaining' : 'unbounded — pass +300k to cap spending'}`)
-log(`[${ticket}] ${description} (scope: ${scope}, service: ${service})`)
+log(`[${ticket}] ${description} (scope: ${scope}, service: ${service}, feature: ${feature})`)
 
 const explore = await agent(
   `We are about to build a feature for Factory Health Check.
@@ -121,7 +138,56 @@ const refBlock = explore
   ? `\n\nESTABLISHED PATTERNS:\nBackend: ${explore.backendPattern}\nFrontend: ${explore.frontendPattern}\nAPI contract: ${explore.apiContract || '(infer)'}\nReference files: ${(explore.referenceFiles || []).join(', ')}\nRisks: ${(explore.risks || []).join('; ') || 'none noted'}`
   : ''
 
-// ─── Phase 2: Backend ──────────────────────────────────────────────────────────
+// ─── Phase 2: ISO 29110 Gate (SI.2 — SRS must precede construction) ───────────
+phase('ISO 29110 Gate')
+
+const srsPath = `docs/product/${feature}/feature-spec.md`
+let srsFound = false
+
+if (skipSrsCheck) {
+  log(`ISO 29110 Gate: skipped (skipSrsCheck=true)`)
+  srsFound = true
+} else {
+  const testPlanPath = `docs/product/${feature}/test-plan.md`
+
+  const srsCheck = await agent(
+    `ISO 29110 gate — check whether the SRS and test plan exist before construction begins.
+
+Run these commands:
+1. test -f "${srsPath}" && echo "SRS_EXISTS" || echo "SRS_MISSING"
+2. test -f "${testPlanPath}" && echo "TESTPLAN_EXISTS" || echo "TESTPLAN_MISSING"
+3. ls docs/product/ 2>/dev/null
+
+Return:
+- srsFound: true if "${srsPath}" exists, false if missing
+- srsPath: "${srsPath}"
+- testPlanFound: true if "${testPlanPath}" exists, false if missing
+- testPlanPath: "${testPlanPath}"
+- availableFolders: array of folder names listed under docs/product/`,
+    { label: 'iso29110-gate', phase: 'ISO 29110 Gate', schema: SRS_GATE_SCHEMA }
+  )
+
+  srsFound = srsCheck?.srsFound === true
+
+  if (srsFound) {
+    log(`ISO 29110 SI.2: SRS found — ${srsPath}`)
+  } else {
+    log(`ISO 29110 WARNING: SRS not found at ${srsPath}`)
+    log(`  ISO 29110 SI.2 requires requirements before construction.`)
+    log(`  Fix: copy docs/iso29110/srs-template.md → ${srsPath} and fill it in.`)
+    log(`  Available folders: ${(srsCheck?.availableFolders || []).join(', ') || '(none)'}`)
+    log(`  Continuing — pass args.skipSrsCheck=true to silence this warning.`)
+  }
+
+  if (srsCheck?.testPlanFound) {
+    log(`ISO 29110 SI.O4-O5: test-plan.md found — ${testPlanPath}`)
+  } else {
+    log(`ISO 29110 WARNING (SI.O4-O5): test-plan.md not found at ${testPlanPath}`)
+    log(`  Fix: copy docs/iso29110/test-plan-template.md → ${testPlanPath} and use @qa-dev to fill it in.`)
+  }
+}
+
+// ─── Phase 3: Backend ──────────────────────────────────────────────────────────
 let backend = null
 if (doBackend) {
   phase('Backend')
@@ -145,12 +211,12 @@ Set blocked=true with blockReason ONLY if a decision genuinely cannot be made fr
   )
   if (backend?.blocked) {
     log(`Backend BLOCKED: ${backend.blockReason}`)
-    return { ticket, blocked: true, where: 'backend', reason: backend.blockReason, explore }
+    return { ticket, blocked: true, where: 'backend', reason: backend.blockReason, explore, srsFound }
   }
   log(`Backend: +${backend?.filesCreated?.length || 0} / ~${backend?.filesModified?.length || 0} files. Endpoints: ${(backend?.endpoints || []).join(', ') || 'n/a'}`)
 }
 
-// ─── Phase 3: Frontend ─────────────────────────────────────────────────────────
+// ─── Phase 4: Frontend ─────────────────────────────────────────────────────────
 let frontend = null
 if (doFrontend) {
   phase('Frontend')
@@ -179,7 +245,7 @@ Set blocked=true with blockReason only if truly stuck.`,
   )
   if (frontend?.blocked) {
     log(`Frontend BLOCKED: ${frontend.blockReason}`)
-    return { ticket, blocked: true, where: 'frontend', reason: frontend.blockReason, backend, explore }
+    return { ticket, blocked: true, where: 'frontend', reason: frontend.blockReason, backend, explore, srsFound }
   }
   log(`Frontend: +${frontend?.filesCreated?.length || 0} / ~${frontend?.filesModified?.length || 0} files`)
 }
@@ -189,7 +255,7 @@ const touched = [
   ...(frontend?.filesCreated || []), ...(frontend?.filesModified || []),
 ]
 
-// ─── Phase 4: Verify ───────────────────────────────────────────────────────────
+// ─── Phase 5: Verify ───────────────────────────────────────────────────────────
 phase('Verify')
 
 const verify = await agent(
@@ -211,7 +277,7 @@ allGreen = true only if every check you ran passed. summary = one line.`,
 
 log(`Verify: ${verify?.allGreen ? 'all green' : 'issues remain'} — ${verify?.summary || ''}`)
 
-// ─── Phase 5: Review ───────────────────────────────────────────────────────────
+// ─── Phase 6: Review ───────────────────────────────────────────────────────────
 phase('Review')
 
 const review = await agent(
@@ -229,10 +295,18 @@ const blocking = (review?.findings || []).filter(f => f.severity === 'critical' 
 log(`Review verdict: ${review?.verdict || 'unknown'} (${blocking.length} blocking finding(s))`)
 for (const f of blocking) log(`  [${f.severity}] ${f.dimension} — ${f.file || '?'}: ${f.issue}`)
 
+if (!srsFound) {
+  log(`ISO 29110 REMINDER (SI.2): SRS still missing at ${srsPath} — create it before closing this ticket.`)
+}
+log(`ISO 29110 REMINDER (SI.O4-O5): Ensure test-plan.md exists at docs/product/${feature}/test-plan.md — use @qa-dev to create it and fill in test cases.`)
+log(`ISO 29110 REMINDER (SI.2): If this feature modifies approved scope, log it in docs/iso29110/change-request-log.md.`)
+
 return {
   ticket,
   description,
   scope,
+  srsFound,
+  srsPath,
   filesTouched: touched,
   backend,
   frontend,

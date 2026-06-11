@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-03-07
+version: 1.2.0
+lastUpdated: 2026-06-11
 author: Sathittham Sangthong
 ---
 
@@ -17,12 +17,20 @@ author: Sathittham Sangthong
 ```
 factory-sync-solutions/
 ├── apps/
-│   ├── web/                  # React + Vite SPA
+│   ├── fs-app-web/           # React 19 + Vite SPA (authenticated user app)
 │   │   ├── src/
 │   │   ├── e2e/
 │   │   ├── package.json
 │   │   └── vite.config.ts
-│   └── api/                  # Go backend services
+│   ├── fs-backoffice-web/    # React 19 + Vite SPA (FactorySync staff backoffice)
+│   │   ├── src/
+│   │   ├── package.json
+│   │   └── vite.config.ts
+│   ├── fs-official-web/      # Astro 6 + React islands (public marketing site)
+│   │   ├── src/
+│   │   ├── package.json
+│   │   └── astro.config.mjs
+│   └── fs-backend/           # Go + Chi backend services
 │       ├── services/
 │       │   ├── profile/
 │       │   ├── quiz/
@@ -30,6 +38,7 @@ factory-sync-solutions/
 │       │   ├── result/
 │       │   ├── notification/
 │       │   ├── admin/
+│       │   ├── backoffice/       # Backoffice management service
 │       │   └── dbd/              # DBD DataWarehouse company lookup
 │       ├── go.mod
 │       └── main.go
@@ -66,6 +75,7 @@ Logical service boundaries:
 | `result-service` | Persist and fetch result summaries |
 | `notification-service` | Send result email and Slack notifications after submission |
 | `admin-service` | Admin analytics queries and management endpoints (role-protected) |
+| `backoffice-service` | FactorySync staff management — projects, users, results, staff claims (`/api/v1/backoffice/`) |
 | `dbd-service` | Thai DBD DataWarehouse company lookup by registration ID |
 
 ## MVP Integration Flow
@@ -82,13 +92,26 @@ Logical service boundaries:
 
 ## Route Access Policy
 
+### `fs-app-web` (app.factorysync.com)
+
 | Route | Access Level |
 |-------|-------------|
 | `/` | Public |
 | `/register` | Authenticated only |
 | `/quiz`, `/results` | Authenticated + registered |
 | `/profile` | Authenticated + registered |
-| `/admin` | Authenticated + admin role |
+| `/admin` | Authenticated + `role: "admin"` claim |
+
+### `fs-backoffice-web` (backoffice.factorysync.com)
+
+| Route | Access Level |
+|-------|-------------|
+| `/sign-in` | Public (within Cloudflare Access allowlist) |
+| `/dashboard`, `/projects`, `/users`, `/results` | `backofficeRole: "staff"` or `"superadmin"` |
+| `/staff` | `backofficeRole: "superadmin"` only |
+
+Network-level gate: Cloudflare Access email allowlist limits who can reach the
+domain at all, before the Firebase Auth check runs.
 
 ## GA4 Event Tracking
 
@@ -129,12 +152,14 @@ Phase 2 outputs:
 ```mermaid
 graph TD
     subgraph Browser["User Browser"]
-        SPA["React + Vite SPA<br/>(Cloudflare Pages)"]
+        SPA["fs-app-web<br/>(Cloudflare Pages)"]
+        BO["fs-backoffice-web<br/>(Cloudflare Pages + CF Access)"]
+        OW["fs-official-web<br/>(Cloudflare Pages)"]
     end
 
     subgraph Firebase["Firebase Services"]
         AUTH["Firebase Auth<br/>(Google Sign-In)"]
-        FS["Firestore Database<br/>users | assessments | email_jobs"]
+        FS["Firestore Database<br/>users | assessments | projects | email_jobs"]
     end
 
     subgraph GCR["Google Cloud Run (Go 1.26.4)"]
@@ -144,15 +169,21 @@ graph TD
         RS[Result Service]
         NS[Notification Service]
         AS[Admin Service]
+        BOS[Backoffice Service]
         DS[DBD Service]
     end
 
     RESEND["Resend (Email API)"]
     SLACK["Slack (Incoming Webhooks)"]
+    CFA["Cloudflare Access<br/>(email allowlist)"]
 
     SPA -- "Google Sign-In" --> AUTH
     SPA -- "REST API calls<br/>(Bearer ID token)" --> GCR
-    GCR -- "verify token" --> AUTH
+    BO -- "Cloudflare Access gate" --> CFA
+    CFA -- "allowed" --> BO
+    BO -- "Google Sign-In<br/>(backofficeRole claim)" --> AUTH
+    BO -- "REST API calls<br/>(Bearer ID token)" --> GCR
+    GCR -- "verify token + claims" --> AUTH
     GCR -- "read/write" --> FS
     NS -- "send email" --> RESEND
     NS -- "send notification" --> SLACK
@@ -169,11 +200,20 @@ graph TD
 
 ### CORS
 
-Go API endpoints must allow cross-origin requests from the SPA:
-- **Allowed origins**: `https://factory-sync-solutions.pages.dev`, `https://factory-sync-solutions-staging.pages.dev`, `http://localhost:5173` (dev)
+Go API endpoints must allow cross-origin requests from all three frontend apps:
+
+| Origin | Environment |
+|--------|-------------|
+| `http://localhost:5173` | Development (`fs-app-web`) |
+| `http://localhost:5174` | Development (`fs-backoffice-web`) |
+| `https://factory-sync-solutions-staging.pages.dev` | Staging app |
+| `https://factory-sync-solutions.pages.dev` | Production app |
+| `https://factory-sync-backoffice-staging.pages.dev` | Staging backoffice |
+| `https://factory-sync-backoffice.pages.dev` | Production backoffice |
+
 - **Allowed methods**: `GET`, `POST`, `PUT`, `DELETE`, `OPTIONS`
 - **Allowed headers**: `Authorization`, `Content-Type`
-- **Credentials**: `true` (for cookie-based sessions if needed)
+- **Credentials**: `true`
 
 ### Rate Limiting
 
@@ -204,7 +244,7 @@ Quiz questions are stored as a **static JSON/YAML config** bundled with the Go b
 - Easy review in PRs before deployment
 - No Firestore read costs for question definitions
 
-Location: `apps/api/config/questions.json`
+Location: `apps/fs-backend/config/questions*.json`
 
 Future: Admin UI for managing questions (Phase 2), which would migrate to Firestore.
 
@@ -286,3 +326,4 @@ Initial legal implementation scope:
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated: Cloud Functions -> Cloud Run, added DBD service, fixed rate limiting values, fixed webhook var names, updated Swagger status, added i18n as implemented feature |
+| 1.2.0 | 2026-06-11 | Updated app names to `fs-*` layout; added `fs-backoffice-web`, backoffice service, backoffice route policy; updated CORS origins; updated architecture diagram |

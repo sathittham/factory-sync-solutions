@@ -1,16 +1,15 @@
 ---
-version: 1.0.0
+version: 1.1.0
 lastUpdated: 2026-06-10
 author: Sathittham Sangthong
-status: Done
+status: Done — invitation email planned
 ---
 
 # Notification Service — Feature Spec
 
-> Backend-only service that sends two types of notifications across two channels
-> (email via Resend, Slack via Incoming Webhooks). All notifications are
-> fire-and-forget goroutines — failures are logged but never surface to the API
-> caller.
+> Backend-only service that sends notifications across two channels (email via
+> Resend, Slack via Incoming Webhooks). All notifications are fire-and-forget
+> goroutines — failures are logged but never surface to the API caller.
 
 ---
 
@@ -23,6 +22,7 @@ backend service with no frontend surface. It fires two events:
 |-------|-------|-------|
 | **New registration** | — | ✅ Always |
 | **Quiz result submitted** | ✅ Opt-in (user's `emailNotifications` flag) | ✅ Always |
+| **Project invitation sent** | ✅ Always (email IS the delivery mechanism) | — |
 
 **Key design choices:**
 
@@ -64,6 +64,13 @@ backend service with no frontend surface. It fires two events:
 
 ---
 
+**Key difference for invitation emails:**
+Unlike quiz result emails, invitation emails are **not** gated by `emailNotifications`.
+The email is the only delivery mechanism — the recipient cannot accept the invitation
+without it. There is no Slack counterpart; it is a user-to-user message, not an ops event.
+
+---
+
 ## 3. Current State
 
 | Component | Location | Status |
@@ -78,6 +85,7 @@ backend service with no frontend surface. It fires two events:
 | Resend self-service retry | — | ❌ Not implemented |
 | User unsubscribe endpoint | — | ❌ Not implemented |
 | Email template engine | — | ❌ HTML built via `strings.Builder` (no template) |
+| Invitation email | `apps/fs-backend/services/notification/email.go` | ⏳ Planned (`SendInvitation` method) |
 
 ---
 
@@ -90,17 +98,23 @@ HTTP Request
     │       └─ go handler.notifSvc.NotifyRegistration(...)
     │                   └─ slack.SendRegistration
     │
-    └─ POST /quiz/submit (SubmitQuiz)
-            └─ go notifSvc.NotifyQuizResult(...)
-                        ├─ if emailNotifications:
-                        │       ├─ createEmailJob (status: pending)
-                        │       ├─ email.SendResult
-                        │       └─ updateEmailJob (status: sent | failed)
-                        └─ slack.SendQuizResult (always)
+    ├─ POST /quiz/submit (SubmitQuiz)
+    │       └─ go notifSvc.NotifyQuizResult(...)
+    │                   ├─ if emailNotifications:
+    │                   │       ├─ createEmailJob (status: pending)
+    │                   │       ├─ email.SendResult
+    │                   │       └─ updateEmailJob (status: sent | failed)
+    │                   └─ slack.SendQuizResult (always)
+    │
+    └─ POST /project/invitations (CreateInvitation)
+            └─ go notifSvc.NotifyProjectInvitation(...)
+                        └─ email.SendInvitation (always — no opt-in check)
+                               → on success: update project_invitations/{token}.emailSentAt
+                               → on failure: update project_invitations/{token}.emailError
 ```
 
-Both goroutines use `context.Background()` (not the request context) so they
-survive after the HTTP response is written.
+All goroutines use `context.Background()` so they survive after the HTTP
+response is written. No goroutine ever blocks the HTTP response.
 
 ---
 
@@ -195,10 +209,63 @@ Fallback text: `"Quiz result: Acme Co. — 3.47 (Established)"`
 
 ---
 
-## 7. Email Template
+## 6.3 Event: Project Invitation Sent
 
-The HTML is assembled via `strings.Builder` in `buildResultEmailHTML`. No
-external template engine is used. The template is English-only — no i18n.
+**Trigger:** `project.Handler.CreateInvitation` — after the `project_invitations/{token}`
+document is successfully written.
+
+```go
+go h.notifSvc.NotifyProjectInvitation(
+    context.Background(),
+    notification.InvitationData{
+        To:          req.Email,           // invitee email
+        Token:       invitation.Token,
+        ProjectName: project.Name,
+        InviterName: callerProfile.DisplayName,
+        Role:        req.Role,
+        ExpiresAt:   invitation.ExpiresAt,
+        JoinURL:     baseURL + "/join?token=" + invitation.Token,
+    },
+)
+```
+
+**Channel:** Email only. Uses the same `RESEND_API_KEY` as result emails.
+
+**No `emailNotifications` gate.** The email is the invitation — it must always be sent.
+
+**Email fields:**
+
+| Field | Value |
+|-------|-------|
+| From | `FactorySync Solutions <noreply@factorysyncsolutions.com>` |
+| To | Invitee's email (from `POST /project/invitations` body) |
+| Subject | `{inviterName} invited you to join {projectName}` |
+| Body | HTML — see §7.2 |
+
+**Audit trail on `project_invitations/{token}`:**
+Unlike quiz result emails (which use a separate `email_jobs` collection), invitation
+email status is tracked directly on the invitation document:
+
+| Field | Set when |
+|-------|---------|
+| `emailSentAt` | Email delivered successfully |
+| `emailError` | Email failed — stores error string |
+
+This avoids a separate collection and keeps the full invitation lifecycle in one document.
+
+**Resend invitation:** the `[Resend]` button in the Members UI calls
+`POST /api/v1/project/invitations/{token}/resend`. The backend creates a
+**new** invitation token (old one is revoked) and fires a new goroutine.
+It does not attempt to resend via the original token.
+
+---
+
+## 7. Email Templates
+
+All HTML is assembled via `strings.Builder`. No external template engine.
+English-only — see §12.2 for i18n open task.
+
+### 7.1 Quiz Result Email (`buildResultEmailHTML`)
 
 **Structure:**
 
@@ -232,6 +299,47 @@ This report was generated on 2026-06-10. FactorySync Solutions.
 ```
 
 Inline CSS only (email client compatibility). Max width 600px. Font: sans-serif.
+
+---
+
+### 7.2 Invitation Email (`buildInvitationEmailHTML`)
+
+**Subject:** `{inviterName} invited you to join {projectName}`
+
+```
+[FactorySync Solutions] (h1, blue #1a56db)
+
+{inviterName} has invited you to join {projectName}
+as a {roleName}.
+
+┌──────────────────────────────────────────────────────┐
+│  🏭  {projectName}                                    │
+│  Role: {roleName}                                     │
+│  Invited by: {inviterName}                            │
+└──────────────────────────────────────────────────────┘
+
+  [  Accept Invitation  ]   ← CTA button, link to joinURL
+
+This invitation expires on {expiresAt} (7 days).
+If you did not expect this invitation, you can ignore this email.
+
+────────────────────────────────────────────────────────
+FactorySync Solutions  ·  This email was sent to {to}
+```
+
+**Role display names** (English):
+
+| `role` value | Displayed as |
+|---|---|
+| `owner` | Owner |
+| `system_admin` | System Admin |
+| `manager` | Manager |
+| `general_user` | General User |
+
+**CTA button:** primary blue (`#1a56db`), white text, 12px border-radius.
+`href` = `joinURL` (e.g. `https://app.factorysyncsolutions.com/join?token=<uuid>`).
+
+Inline CSS only. Max width 600px. Font: sans-serif.
 
 ---
 
@@ -279,11 +387,16 @@ panicking in development environments.
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `RESEND_API_KEY` | No (email disabled if absent) | Resend API key for sending emails |
+| `RESEND_API_KEY` | No (email disabled if absent) | Resend API key — used for both result emails and invitation emails |
 | `SLACK_WEBHOOK_REGISTRATION` | No (Slack skipped if empty) | Incoming webhook URL for registration events |
 | `SLACK_WEBHOOK_QUIZ_RESULT` | No (Slack skipped if empty) | Incoming webhook URL for quiz result events |
 
 All three can be absent simultaneously — the service degrades silently.
+
+**Note:** Invitation emails share the same `RESEND_API_KEY`. If the key is absent,
+invitation emails are silently skipped and `project_invitations/{token}.emailError`
+is set to `"email client not configured"`. The invitation document (and its token
+link) is still created — the inviter can share the join URL directly.
 
 ---
 
@@ -295,10 +408,12 @@ All three can be absent simultaneously — the service degrades silently.
 | `createEmailJob` Firestore write fails | Error logged; email send proceeds anyway |
 | `email.SendResult` fails | Error logged; `EmailJob` updated to `"failed"` with error message |
 | `updateEmailJob` Firestore write fails | Error logged; no retry |
+| `email.SendInvitation` fails | Error logged; `project_invitations/{token}.emailError` updated |
+| `emailSentAt` / `emailError` Firestore write fails | Error logged; token document may lack audit fields — invitation is still valid |
 | `slack.post` HTTP request fails | Error logged; no retry |
 | Slack returns non-200 | Error logged; no retry |
 | Webhook URL is empty string | `SlackClient.post` returns `nil` immediately — no log, no error |
-| `RESEND_API_KEY` absent | `emailClient == nil` → email branch skipped silently |
+| `RESEND_API_KEY` absent | `emailClient == nil` → both result emails and invitation emails skipped silently; invitation token still created |
 
 No notification failure ever reaches the HTTP response. The quiz submission or
 registration response is always independent of notification success.
@@ -342,7 +457,14 @@ layout or inject HTML.
 **Fix:** Replace `fmt.Sprintf` interpolation with `html/template` or call
 `html.EscapeString(value)` on all user-supplied fields before inserting.
 
-### 12.5 Registration Slack only — no email
+### 12.5 Resend Invitation endpoint
+
+`POST /api/v1/project/invitations/{token}/resend` revokes the old token and
+creates a new one, then fires a new invitation email goroutine. The backend
+does NOT attempt to resend the original token — resend = new token + new email.
+This keeps token expiry simple (each token has its own 7-day window from creation).
+
+### 12.6 Registration Slack only — no email
 
 New registrations send Slack only. If an internal welcome email (to the admin
 team or to the new user) is desired, add an `email.SendRegistration` method and
@@ -362,6 +484,13 @@ call it conditionally in `NotifyRegistration`.
 - [ ] A Slack webhook failure does not cause the quiz submission or registration endpoint to return an error.
 - [ ] When `RESEND_API_KEY` is absent, no email attempt is made and no `email_jobs` document is created.
 - [ ] When a webhook URL env var is empty, no HTTP request is made.
+- [ ] Creating an invitation via `POST /project/invitations` triggers an invitation email to the supplied address.
+- [ ] The invitation email subject is `{inviterName} invited you to join {projectName}`.
+- [ ] The email body contains the project name, role display name, inviter name, CTA button linking to `/join?token=<uuid>`, and expiry date.
+- [ ] On successful email delivery, `project_invitations/{token}.emailSentAt` is populated.
+- [ ] On email failure, `project_invitations/{token}.emailError` is populated and the invitation token is still valid.
+- [ ] When `RESEND_API_KEY` is absent, the invitation document is still created; `emailError` is set to `"email client not configured"`.
+- [ ] `POST /project/invitations/{token}/resend` revokes the original token, creates a new one, and sends a new invitation email.
 - [ ] `make test-api` passes.
 
 ---

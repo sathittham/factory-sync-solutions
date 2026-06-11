@@ -25,6 +25,7 @@ import (
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/pkg"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/admin"
 	auditpkg "github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/audit"
+	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/backoffice"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/dbd"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/notification"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/profile"
@@ -62,8 +63,8 @@ func main() {
 		log.Fatalf("firebase auth init: %v", err)
 	}
 
-	// Initialize Firestore client
-	firestoreClient := pkg.NewFirestoreClient(ctx)
+	// Initialize Firestore client (reuses the same Firebase app — avoids duplicate NewApp)
+	firestoreClient := pkg.NewFirestoreClient(ctx, app)
 	defer firestoreClient.Close()
 
 	// Initialize audit logger
@@ -103,6 +104,13 @@ func main() {
 	quizRegistry.Register(cyberConfig)
 	slog.Info("quiz config loaded", "id", cyberConfig.ID, "questions", len(cyberConfig.Questions), "dimensions", len(cyberConfig.Dimensions))
 
+	iso29110Config, err := scoring.LoadQuestions("config/questions-iso29110.json")
+	if err != nil {
+		log.Fatalf("load iso29110 questions: %v", err)
+	}
+	quizRegistry.Register(iso29110Config)
+	slog.Info("quiz config loaded", "id", iso29110Config.ID, "questions", len(iso29110Config.Questions), "dimensions", len(iso29110Config.Dimensions))
+
 	// --- Wire up repositories, services, and handlers ---
 
 	// Notification
@@ -132,6 +140,9 @@ func main() {
 
 	// Admin
 	adminHandler := admin.NewHandler(resultSvc, profileSvc, authClient, auditLogger)
+
+	// Backoffice
+	backofficeHandler := backoffice.NewHandler(resultSvc, profileSvc, authClient, firestoreClient)
 
 	// DBD
 	dbdSvc := dbd.NewDefaultService()
@@ -179,6 +190,12 @@ func main() {
 			r.Route("/admin", func(r chi.Router) {
 				r.Use(appMiddleware.RequireAdmin(authClient))
 				adminHandler.Routes(r)
+			})
+
+			// Backoffice routes (backoffice staff only)
+			r.Route("/backoffice", func(r chi.Router) {
+				r.Use(appMiddleware.RequireBackofficeRole(authClient, "superadmin", "staff"))
+				backofficeHandler.Routes(r)
 			})
 		})
 	})

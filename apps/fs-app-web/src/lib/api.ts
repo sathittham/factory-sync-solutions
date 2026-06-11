@@ -5,9 +5,11 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api/v1";
 async function getAuthHeaders(): Promise<HeadersInit> {
 	const user = auth.currentUser;
 	if (!user) {
+		console.warn('[api] getAuthHeaders — auth.currentUser is null, sending request without token');
 		return { "Content-Type": "application/json" };
 	}
 	const token = await user.getIdToken();
+	console.debug('[api] getAuthHeaders — token obtained for uid:', user.uid, '(first 20):', token.slice(0, 20));
 	return {
 		"Content-Type": "application/json",
 		Authorization: `Bearer ${token}`,

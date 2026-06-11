@@ -20,6 +20,19 @@ In Claude Code, type `@agent-name` or select from the agent picker:
 |-------|------|---------|
 | `backend-dev` | Senior Go Engineer | New endpoints, service logic, Firestore queries, Firebase Auth, bug fixes (`apps/fs-backend`) |
 | `frontend-dev` | Senior React Engineer | UI components, pages, forms, Redux state, i18n, shadcn/ui, Biome fixes — both `apps/fs-app-web` (React + Vite) and `apps/fs-official-web` (Astro) |
+| `qa-dev` | Senior QA Engineer | TDD tests first, handler/service test coverage, Vitest unit tests, Playwright E2E, ISO 29110 test-plan.md — both backend (Go) and frontend |
+| `lead-dev` | Lead Developer | Architecture decisions, cross-cutting code reviews (Chi layering, Firestore schema, scoring correctness), TDD enforcement, technical planning |
+| `security-eng` | Cybersecurity Engineer | Security audits (OWASP), Firebase Auth flow review, Firestore rules gaps, secrets exposure, pre-release security check |
+
+---
+
+## Persona Agents
+
+Persona agents simulate a specific end-user. Use them to validate UX copy, quiz flows, result pages, and feature design from the user's perspective.
+
+| Agent | Persona | Best for |
+|-------|---------|---------|
+| `persona-factory-manager` | Thai factory owner/manager taking the health assessment | Quiz question clarity, Thai copy naturalness, result usefulness, mobile UX, onboarding flow |
 
 ---
 
@@ -53,5 +66,5 @@ color: blue | green | red | yellow | purple | teal | orange
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 04 June 2026*
+*Version: 1.1.0*
+*Last updated: 11 June 2026*

@@ -1,0 +1,666 @@
+{
+  "id": "iso29110",
+  "version": "1.0.0",
+  "nameTh": "การประเมินกระบวนการซอฟต์แวร์ ISO 29110",
+  "nameEn": "ISO 29110 Software Process Assessment",
+  "dimensions": [
+    {
+      "id": "project-planning",
+      "nameTh": "การวางแผนโครงการ (PM.1)",
+      "nameEn": "Project Planning (PM.1)",
+      "weight": 1.0
+    },
+    {
+      "id": "project-execution",
+      "nameTh": "การดำเนินการและควบคุมโครงการ (PM.2–3)",
+      "nameEn": "Project Execution & Control (PM.2–3)",
+      "weight": 1.0
+    },
+    {
+      "id": "project-closure",
+      "nameTh": "การปิดโครงการ (PM.4)",
+      "nameEn": "Project Closure (PM.4)",
+      "weight": 1.0
+    },
+    {
+      "id": "sw-initiation",
+      "nameTh": "การเริ่มต้นการพัฒนาซอฟต์แวร์ (SI.1)",
+      "nameEn": "Software Implementation Initiation (SI.1)",
+      "weight": 1.0
+    },
+    {
+      "id": "requirements",
+      "nameTh": "การวิเคราะห์ความต้องการซอฟต์แวร์ (SI.2)",
+      "nameEn": "Software Requirements Analysis (SI.2)",
+      "weight": 1.0
+    },
+    {
+      "id": "sw-design",
+      "nameTh": "การออกแบบซอฟต์แวร์ (SI.3)",
+      "nameEn": "Software Architectural & Detailed Design (SI.3)",
+      "weight": 1.0
+    },
+    {
+      "id": "sw-construction",
+      "nameTh": "การสร้างและทดสอบซอฟต์แวร์ (SI.4–5)",
+      "nameEn": "Software Construction & Testing (SI.4–5)",
+      "weight": 1.0
+    },
+    {
+      "id": "product-delivery",
+      "nameTh": "การส่งมอบผลิตภัณฑ์ (SI.6)",
+      "nameEn": "Product Delivery (SI.6)",
+      "weight": 1.0
+    }
+  ],
+  "questions": [
+    {
+      "id": "pp-1",
+      "dimensionId": "project-planning",
+      "textTh": "แผนโครงการและขอบเขตงาน",
+      "textEn": "Project Plan & Scope Definition",
+      "descriptionTh": "มีเอกสารแผนโครงการที่ระบุขอบเขต กำหนดส่งมอบ และเหตุการณ์สำคัญ (milestone) อย่างชัดเจน",
+      "descriptionEn": "A project plan document exists that defines scope, deliverables, and milestones clearly",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีแผนโครงการ", "en": "No project plan exists" },
+        "2": { "th": "มีแผนคร่าวๆ ไม่ครบถ้วน", "en": "Informal or incomplete plan exists" },
+        "3": { "th": "มีแผนโครงการครบถ้วนและทุกคนในทีมรับทราบ", "en": "Complete plan exists and team is aware of it" },
+        "4": { "th": "แผนถูกปรับปรุงตามความเป็นจริงอย่างสม่ำเสมอ", "en": "Plan is regularly updated to reflect actual progress" },
+        "5": { "th": "แผนใช้เป็นฐานในการตัดสินใจและปรับปรุงกระบวนการ", "en": "Plan drives decisions and process improvement" }
+      }
+    },
+    {
+      "id": "pp-2",
+      "dimensionId": "project-planning",
+      "textTh": "การวางแผนทรัพยากรและงบประมาณ",
+      "textEn": "Resource & Budget Planning",
+      "descriptionTh": "มีการกำหนดทรัพยากรบุคคล เครื่องมือ และงบประมาณที่จำเป็นสำหรับโครงการ",
+      "descriptionEn": "Required personnel, tools, and budget are identified and allocated to the project",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการวางแผนทรัพยากร", "en": "No resource planning in place" },
+        "2": { "th": "วางแผนบางส่วนแบบไม่เป็นทางการ", "en": "Partial, informal resource allocation" },
+        "3": { "th": "ทรัพยากรถูกระบุและจัดสรรครบถ้วน", "en": "Resources fully identified and assigned" },
+        "4": { "th": "มีการติดตามการใช้ทรัพยากรเทียบกับแผน", "en": "Resource usage is tracked against plan" },
+        "5": { "th": "ข้อมูลทรัพยากรใช้ปรับปรุงการประมาณการในโครงการถัดไป", "en": "Resource data improves estimation in future projects" }
+      }
+    },
+    {
+      "id": "pp-3",
+      "dimensionId": "project-planning",
+      "textTh": "การบริหารความเสี่ยง",
+      "textEn": "Risk Identification & Mitigation",
+      "descriptionTh": "มีการระบุ ประเมิน และวางแผนรับมือความเสี่ยงของโครงการ",
+      "descriptionEn": "Project risks are identified, assessed, and have mitigation/contingency plans",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการจัดการความเสี่ยง", "en": "No risk management performed" },
+        "2": { "th": "รับรู้ความเสี่ยงแต่ไม่มีแผนรับมือ", "en": "Risks acknowledged but no mitigation plans" },
+        "3": { "th": "ความเสี่ยงหลักถูกระบุพร้อมแผนรับมือ", "en": "Key risks identified with mitigation plans" },
+        "4": { "th": "ความเสี่ยงถูกติดตามและปรับปรุงตลอดโครงการ", "en": "Risks are monitored and updated throughout the project" },
+        "5": { "th": "บทเรียนจากความเสี่ยงถูกนำกลับมาปรับปรุงแผนโครงการถัดไป", "en": "Risk lessons feed back into planning for future projects" }
+      }
+    },
+    {
+      "id": "pp-4",
+      "dimensionId": "project-planning",
+      "textTh": "แผนการจัดการการกำหนดรูปแบบ (Configuration Management)",
+      "textEn": "Configuration Management Plan",
+      "descriptionTh": "มีการกำหนดรายการ configuration item วิธีการจัดเก็บ และการควบคุมเวอร์ชัน",
+      "descriptionEn": "Configuration items, storage, and version control approach are defined in the project plan",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการจัดการ configuration", "en": "No configuration management in place" },
+        "2": { "th": "จัดเก็บไฟล์แบบไม่เป็นระบบ", "en": "Files stored informally without versioning" },
+        "3": { "th": "ใช้ version control และระบุ configuration items", "en": "Version control used and configuration items defined" },
+        "4": { "th": "การเปลี่ยนแปลงทุกรายการผ่านกระบวนการควบคุม", "en": "All changes go through a controlled process" },
+        "5": { "th": "ประวัติ configuration ใช้สนับสนุนการตรวจสอบและ audit", "en": "Configuration history supports audits and traceability" }
+      }
+    },
+    {
+      "id": "pp-5",
+      "dimensionId": "project-planning",
+      "textTh": "แผนการประกันคุณภาพซอฟต์แวร์",
+      "textEn": "Software Quality Assurance Plan",
+      "descriptionTh": "มีการกำหนดกิจกรรม QA เช่น การตรวจสอบ (review) การทดสอบ และเกณฑ์การยอมรับ",
+      "descriptionEn": "QA activities such as reviews, testing, and acceptance criteria are planned",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีแผน QA", "en": "No QA plan" },
+        "2": { "th": "มีกิจกรรม QA บ้างแต่ไม่ได้วางแผนล่วงหน้า", "en": "Some QA activities done ad-hoc" },
+        "3": { "th": "มีแผน QA ที่ระบุกิจกรรมและเกณฑ์การยอมรับ", "en": "QA plan with defined activities and acceptance criteria" },
+        "4": { "th": "ผลลัพธ์ QA ถูกติดตามและรายงาน", "en": "QA results tracked and reported" },
+        "5": { "th": "กระบวนการ QA ถูกปรับปรุงจากผลลัพธ์ที่ผ่านมา", "en": "QA process is continuously improved from past results" }
+      }
+    },
+    {
+      "id": "pe-1",
+      "dimensionId": "project-execution",
+      "textTh": "การประชุมติดตามความคืบหน้า",
+      "textEn": "Progress Review Meetings",
+      "descriptionTh": "มีการประชุมทีมอย่างสม่ำเสมอเพื่อติดตามสถานะโครงการ",
+      "descriptionEn": "Regular team meetings are held to review project status and track progress",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการประชุมติดตาม", "en": "No progress meetings held" },
+        "2": { "th": "ประชุมบางครั้งเมื่อมีปัญหา", "en": "Meetings held only when problems arise" },
+        "3": { "th": "ประชุมสม่ำเสมอตามกำหนด", "en": "Regular scheduled meetings held" },
+        "4": { "th": "มีการบันทึกและติดตาม action items จากการประชุม", "en": "Action items recorded and tracked from meetings" },
+        "5": { "th": "ข้อมูลจากการประชุมใช้ปรับแผนโครงการเชิงรุก", "en": "Meeting data proactively drives plan adjustments" }
+      }
+    },
+    {
+      "id": "pe-2",
+      "dimensionId": "project-execution",
+      "textTh": "การติดตามความพยายามและกำหนดเวลา",
+      "textEn": "Effort & Schedule Tracking",
+      "descriptionTh": "มีการบันทึกชั่วโมงทำงานจริงและเปรียบเทียบกับแผน",
+      "descriptionEn": "Actual effort is recorded and compared against the planned schedule",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการติดตามความพยายาม", "en": "No effort tracking" },
+        "2": { "th": "บันทึกเฉพาะบางส่วนอย่างไม่สม่ำเสมอ", "en": "Partial recording, inconsistently done" },
+        "3": { "th": "บันทึกชั่วโมงทำงานจริงและเปรียบเทียบกับแผน", "en": "Actual hours recorded and compared to plan" },
+        "4": { "th": "ค่าผิดพลาดใช้ทบทวนแผนและคาดการณ์ล่วงหน้า", "en": "Variances used to replan and forecast" },
+        "5": { "th": "ข้อมูลย้อนหลังใช้ปรับปรุงการประมาณการในโครงการถัดไป", "en": "Historical data improves estimates in future projects" }
+      }
+    },
+    {
+      "id": "pe-3",
+      "dimensionId": "project-execution",
+      "textTh": "การติดตามและแก้ไขปัญหา",
+      "textEn": "Issue Tracking & Resolution",
+      "descriptionTh": "ปัญหาที่เกิดขึ้นระหว่างโครงการถูกบันทึก ติดตาม และแก้ไขอย่างเป็นระบบ",
+      "descriptionEn": "Issues arising during the project are logged, tracked, and resolved systematically",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการติดตามปัญหา", "en": "No issue tracking" },
+        "2": { "th": "แก้ไขปัญหาแบบ ad-hoc ไม่มีการบันทึก", "en": "Issues resolved ad-hoc without logging" },
+        "3": { "th": "ปัญหาถูกบันทึกและติดตามจนแก้ไขสำเร็จ", "en": "Issues logged and tracked to resolution" },
+        "4": { "th": "มีการกำหนดลำดับความสำคัญและเจ้าของรับผิดชอบ", "en": "Issues prioritized and assigned to owners" },
+        "5": { "th": "ข้อมูลปัญหาใช้ป้องกันการเกิดซ้ำในโครงการถัดไป", "en": "Issue data used to prevent recurrence in future projects" }
+      }
+    },
+    {
+      "id": "pe-4",
+      "dimensionId": "project-execution",
+      "textTh": "กระบวนการจัดการการเปลี่ยนแปลง",
+      "textEn": "Change Request Management",
+      "descriptionTh": "การเปลี่ยนแปลงขอบเขตหรือความต้องการผ่านกระบวนการอนุมัติที่กำหนดไว้",
+      "descriptionEn": "Changes to scope or requirements go through a defined approval process",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "รับการเปลี่ยนแปลงโดยไม่มีกระบวนการ", "en": "Changes accepted without any process" },
+        "2": { "th": "มีการพูดคุยก่อนรับการเปลี่ยนแปลงบางครั้ง", "en": "Changes sometimes discussed before acceptance" },
+        "3": { "th": "มีกระบวนการ change request และบันทึกทุกการเปลี่ยนแปลง", "en": "Change request process exists and all changes are logged" },
+        "4": { "th": "ผลกระทบต่อแผนและงบประมาณถูกประเมินก่อนอนุมัติ", "en": "Impact on plan and budget assessed before approval" },
+        "5": { "th": "ข้อมูล change request ใช้ปรับปรุงการวางแผนขอบเขต", "en": "Change data improves scope planning in future projects" }
+      }
+    },
+    {
+      "id": "pe-5",
+      "dimensionId": "project-execution",
+      "textTh": "การสื่อสารและประสานงานในทีม",
+      "textEn": "Team Communication & Coordination",
+      "descriptionTh": "ช่องทางและความถี่ในการสื่อสารภายในทีมถูกกำหนดและปฏิบัติตาม",
+      "descriptionEn": "Communication channels and frequency within the team are defined and followed",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "การสื่อสารในทีมไม่มีโครงสร้าง", "en": "No structured team communication" },
+        "2": { "th": "สื่อสารตามสถานการณ์ ไม่สม่ำเสมอ", "en": "Ad-hoc, inconsistent communication" },
+        "3": { "th": "ช่องทางและความถี่ในการสื่อสารถูกกำหนดและปฏิบัติ", "en": "Communication channels and frequency defined and practiced" },
+        "4": { "th": "มีการวัดประสิทธิภาพการสื่อสารและปรับปรุง", "en": "Communication effectiveness measured and improved" },
+        "5": { "th": "วัฒนธรรมการสื่อสารเปิดและโปร่งใสฝังอยู่ในทีม", "en": "Open, transparent communication is embedded in team culture" }
+      }
+    },
+    {
+      "id": "pc-1",
+      "dimensionId": "project-closure",
+      "textTh": "การยอมรับผลิตภัณฑ์จากลูกค้า",
+      "textEn": "Customer Product Acceptance",
+      "descriptionTh": "มีกระบวนการทดสอบการยอมรับและได้รับการลงนามรับมอบจากลูกค้า",
+      "descriptionEn": "A formal acceptance testing process exists and customer sign-off is obtained",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีกระบวนการยอมรับอย่างเป็นทางการ", "en": "No formal acceptance process" },
+        "2": { "th": "ลูกค้าตรวจรับแบบไม่เป็นทางการ", "en": "Informal customer review only" },
+        "3": { "th": "มีการทดสอบการยอมรับและได้รับการลงนาม", "en": "Acceptance testing performed and sign-off obtained" },
+        "4": { "th": "เกณฑ์การยอมรับถูกกำหนดตั้งแต่ต้นโครงการ", "en": "Acceptance criteria defined at project start and verified at closure" },
+        "5": { "th": "ผลการยอมรับใช้ปรับปรุงกระบวนการและเกณฑ์ในโครงการถัดไป", "en": "Acceptance outcomes improve criteria for future projects" }
+      }
+    },
+    {
+      "id": "pc-2",
+      "dimensionId": "project-closure",
+      "textTh": "การบันทึกบทเรียนที่ได้รับ",
+      "textEn": "Lessons Learned Documentation",
+      "descriptionTh": "มีการประชุมและบันทึกบทเรียนที่ได้รับเมื่อสิ้นสุดโครงการ",
+      "descriptionEn": "A lessons learned session is held and documented at project end",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการบันทึกบทเรียน", "en": "No lessons learned recorded" },
+        "2": { "th": "แลกเปลี่ยนบทเรียนปากเปล่าแต่ไม่มีการบันทึก", "en": "Lessons discussed verbally but not documented" },
+        "3": { "th": "บทเรียนถูกบันทึกและแบ่งปันในทีม", "en": "Lessons documented and shared with team" },
+        "4": { "th": "บทเรียนถูกนำไปปรับปรุงกระบวนการในโครงการถัดไป", "en": "Lessons are applied to improve processes in next projects" },
+        "5": { "th": "คลังบทเรียนเป็นส่วนหนึ่งของวัฒนธรรมองค์กร", "en": "Lessons library is part of the organizational culture" }
+      }
+    },
+    {
+      "id": "pc-3",
+      "dimensionId": "project-closure",
+      "textTh": "รายงานปิดโครงการ",
+      "textEn": "Project Closure Report",
+      "descriptionTh": "มีเอกสารสรุปผลโครงการ เปรียบเทียบแผนกับผลลัพธ์จริง",
+      "descriptionEn": "A closure report summarizing project outcomes versus plan is produced",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีรายงานปิดโครงการ", "en": "No project closure report" },
+        "2": { "th": "สรุปผลแบบไม่เป็นทางการ", "en": "Informal summary only" },
+        "3": { "th": "มีรายงานปิดโครงการที่เปรียบเทียบแผนกับผลจริง", "en": "Closure report comparing plan vs. actual produced" },
+        "4": { "th": "รายงานรวมการวิเคราะห์สาเหตุความเบี่ยงเบน", "en": "Report includes root cause analysis of deviations" },
+        "5": { "th": "รายงานเป็นข้อมูลฐานสำหรับปรับปรุงกระบวนการองค์กร", "en": "Report is baseline data for organizational process improvement" }
+      }
+    },
+    {
+      "id": "pc-4",
+      "dimensionId": "project-closure",
+      "textTh": "การจัดเก็บและเก็บรักษาผลงาน",
+      "textEn": "Deliverable Archiving & Knowledge Retention",
+      "descriptionTh": "ผลงาน เอกสาร และรหัสซอฟต์แวร์ถูกจัดเก็บอย่างเป็นระบบเพื่อใช้อ้างอิงในอนาคต",
+      "descriptionEn": "Deliverables, documents, and source code are archived systematically for future reference",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการจัดเก็บอย่างเป็นระบบ", "en": "No systematic archiving" },
+        "2": { "th": "จัดเก็บบางส่วน เข้าถึงได้ยาก", "en": "Partial archiving, hard to retrieve" },
+        "3": { "th": "ผลงานและเอกสารถูกจัดเก็บครบถ้วนและเข้าถึงได้", "en": "All deliverables archived and accessible" },
+        "4": { "th": "มีการควบคุมการเข้าถึงและสิทธิ์", "en": "Access control and permissions applied to archives" },
+        "5": { "th": "คลังความรู้ถูกนำมาใช้เริ่มต้นโครงการใหม่อย่างมีประสิทธิภาพ", "en": "Knowledge repository is actively reused to accelerate new projects" }
+      }
+    },
+    {
+      "id": "si1-1",
+      "dimensionId": "sw-initiation",
+      "textTh": "บทบาทและความรับผิดชอบของทีม",
+      "textEn": "Team Roles & Responsibilities",
+      "descriptionTh": "บทบาทและความรับผิดชอบของสมาชิกทีมพัฒนาซอฟต์แวร์ถูกกำหนดชัดเจน",
+      "descriptionEn": "Roles and responsibilities of each software development team member are clearly defined",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการกำหนดบทบาท", "en": "No defined roles" },
+        "2": { "th": "บทบาทถูกกำหนดบางส่วนแต่ซ้อนทับกัน", "en": "Roles partially defined with overlaps" },
+        "3": { "th": "บทบาทและความรับผิดชอบชัดเจนและทุกคนรับทราบ", "en": "Clear roles and responsibilities known by all" },
+        "4": { "th": "บทบาทถูกทบทวนและปรับตามระยะของโครงการ", "en": "Roles reviewed and adjusted per project phase" },
+        "5": { "th": "มีการพัฒนาทักษะตามบทบาทอย่างต่อเนื่อง", "en": "Skills are continuously developed aligned to roles" }
+      }
+    },
+    {
+      "id": "si1-2",
+      "dimensionId": "sw-initiation",
+      "textTh": "การตั้งค่าสภาพแวดล้อมการพัฒนา",
+      "textEn": "Development Environment Setup",
+      "descriptionTh": "เครื่องมือ สภาพแวดล้อม และโครงสร้างพื้นฐานในการพัฒนาถูกจัดเตรียมก่อนเริ่มงาน",
+      "descriptionEn": "Development tools, environments, and infrastructure are prepared before work begins",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ตั้งค่าสภาพแวดล้อมขณะทำงานไปเรื่อยๆ", "en": "Environment set up on-the-fly during development" },
+        "2": { "th": "สภาพแวดล้อมถูกตั้งค่าแต่ไม่ตรงกันระหว่างสมาชิก", "en": "Environment set up but inconsistent across team members" },
+        "3": { "th": "สภาพแวดล้อมมาตรฐานถูกตั้งค่าและแชร์ในทีม", "en": "Standardized environment set up and shared across team" },
+        "4": { "th": "มีเอกสารขั้นตอนการตั้งค่าและทดสอบ", "en": "Setup procedure documented and tested" },
+        "5": { "th": "สภาพแวดล้อมถูก automate และ reproduce ได้", "en": "Environment is automated and reproducible" }
+      }
+    },
+    {
+      "id": "si1-3",
+      "dimensionId": "sw-initiation",
+      "textTh": "การทบทวนขอบเขตโครงการและ Statement of Work",
+      "textEn": "Statement of Work Review",
+      "descriptionTh": "ทีมพัฒนาทบทวนและเข้าใจขอบเขตงานและ Statement of Work ก่อนเริ่มพัฒนา",
+      "descriptionEn": "The development team reviews and understands the project scope and Statement of Work before starting",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ทีมเริ่มพัฒนาโดยไม่ได้ทบทวน SoW", "en": "Team starts without reviewing SoW" },
+        "2": { "th": "บางคนในทีมได้อ่าน SoW", "en": "Only some team members read the SoW" },
+        "3": { "th": "ทีมทบทวน SoW ร่วมกันและเข้าใจตรงกัน", "en": "Team collectively reviews and aligns on SoW" },
+        "4": { "th": "ข้อสงสัยถูกชี้แจงกับลูกค้าก่อนเริ่มงาน", "en": "Ambiguities clarified with customer before work starts" },
+        "5": { "th": "SoW ถูกแปลงเป็น task list ที่ตรวจสอบได้", "en": "SoW is decomposed into a traceable task list" }
+      }
+    },
+    {
+      "id": "si1-4",
+      "dimensionId": "sw-initiation",
+      "textTh": "การระบุ dependency และข้อจำกัดทางเทคนิค",
+      "textEn": "Technical Dependencies & Constraints",
+      "descriptionTh": "มีการระบุ dependency ภายนอก ข้อจำกัด และความเสี่ยงทางเทคนิคก่อนเริ่มพัฒนา",
+      "descriptionEn": "External dependencies, constraints, and technical risks are identified before development begins",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการระบุ dependency หรือข้อจำกัด", "en": "No dependencies or constraints identified" },
+        "2": { "th": "ระบุบางส่วนแบบไม่เป็นระบบ", "en": "Some identified informally" },
+        "3": { "th": "ระบุและบันทึก dependency และข้อจำกัดหลัก", "en": "Key dependencies and constraints identified and documented" },
+        "4": { "th": "แผนรับมือ dependency ถูกรวมในแผนโครงการ", "en": "Dependency mitigation plans integrated into project plan" },
+        "5": { "th": "ความรู้เรื่อง dependency ถูกแบ่งปันและสะสมข้ามโครงการ", "en": "Dependency knowledge shared and accumulated across projects" }
+      }
+    },
+    {
+      "id": "si2-1",
+      "dimensionId": "requirements",
+      "textTh": "การรวบรวมความต้องการจากผู้มีส่วนได้ส่วนเสีย",
+      "textEn": "Requirements Elicitation",
+      "descriptionTh": "มีการใช้วิธีการที่เป็นระบบ เช่น สัมภาษณ์ workshop เพื่อรวบรวมความต้องการจากผู้ใช้และลูกค้า",
+      "descriptionEn": "Systematic methods such as interviews or workshops are used to gather requirements from users and customers",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ความต้องการถูกรวบรวมแบบ ad-hoc ไม่มีกระบวนการ", "en": "Requirements gathered ad-hoc without process" },
+        "2": { "th": "รวบรวมบางส่วนจากลูกค้าคนเดียว", "en": "Gathered partially from a single customer contact" },
+        "3": { "th": "ใช้วิธีการที่กำหนดไว้ รวบรวมจากหลายผู้มีส่วนได้ส่วนเสีย", "en": "Defined techniques used; multiple stakeholders consulted" },
+        "4": { "th": "ครอบคลุม functional และ non-functional requirements", "en": "Functional and non-functional requirements both elicited" },
+        "5": { "th": "กระบวนการรวบรวมถูกปรับปรุงจากข้อเสนอแนะ", "en": "Elicitation process continuously improved from feedback" }
+      }
+    },
+    {
+      "id": "si2-2",
+      "dimensionId": "requirements",
+      "textTh": "เอกสารข้อกำหนดซอฟต์แวร์ (SRS)",
+      "textEn": "Software Requirements Specification",
+      "descriptionTh": "ความต้องการถูกบันทึกในรูปแบบที่ชัดเจน ตรวจสอบได้ และทุกคนในทีมเข้าถึงได้",
+      "descriptionEn": "Requirements are documented clearly, verifiably, and accessible to all team members",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีเอกสาร SRS", "en": "No SRS document" },
+        "2": { "th": "ความต้องการถูกบันทึกบางส่วน ไม่ครบถ้วน", "en": "Requirements partially documented, incomplete" },
+        "3": { "th": "SRS ครบถ้วน ชัดเจน และทีมเข้าถึงได้", "en": "Complete, clear SRS accessible to the team" },
+        "4": { "th": "ความต้องการแต่ละข้อมี ID และ test case เชื่อมโยง", "en": "Each requirement has an ID and linked test case" },
+        "5": { "th": "SRS เป็น living document ที่ทันสมัยตลอดโครงการ", "en": "SRS is a living document kept current throughout the project" }
+      }
+    },
+    {
+      "id": "si2-3",
+      "dimensionId": "requirements",
+      "textTh": "การทวนสอบความต้องการกับลูกค้า",
+      "textEn": "Requirements Validation with Customer",
+      "descriptionTh": "ความต้องการถูกทบทวนร่วมกับลูกค้าเพื่อยืนยันความถูกต้องก่อนเริ่มออกแบบ",
+      "descriptionEn": "Requirements are reviewed with the customer to confirm correctness before design begins",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการทวนสอบกับลูกค้า", "en": "No validation with customer" },
+        "2": { "th": "แสดง prototype/concept แต่ไม่มีการยืนยันอย่างเป็นทางการ", "en": "Prototype shown informally but no formal confirmation" },
+        "3": { "th": "ลูกค้าลงนามรับรองความต้องการก่อนเริ่มออกแบบ", "en": "Customer signs off on requirements before design" },
+        "4": { "th": "การทวนสอบแบบ iterative ตลอด requirements phase", "en": "Iterative validation throughout requirements phase" },
+        "5": { "th": "ลูกค้ามีส่วนร่วมอย่างต่อเนื่องในการทวนสอบ", "en": "Customer actively participates continuously in validation" }
+      }
+    },
+    {
+      "id": "si2-4",
+      "dimensionId": "requirements",
+      "textTh": "การติดตามความต้องการ (Requirements Traceability)",
+      "textEn": "Requirements Traceability",
+      "descriptionTh": "สามารถติดตามความต้องการแต่ละข้อจาก SRS ไปยัง design, code และ test case ได้",
+      "descriptionEn": "Each requirement can be traced from the SRS through to design, code, and test cases",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการติดตามความต้องการ", "en": "No requirements traceability" },
+        "2": { "th": "ติดตามบางส่วนแบบไม่เป็นทางการ", "en": "Partial traceability maintained informally" },
+        "3": { "th": "มี traceability matrix ที่ครอบคลุม SRS ถึง test", "en": "Traceability matrix covering SRS to test" },
+        "4": { "th": "ติดตามได้ทั้ง forward และ backward", "en": "Forward and backward traceability maintained" },
+        "5": { "th": "เครื่องมือ automated ใช้ติดตามและรายงาน coverage", "en": "Automated tools track and report requirements coverage" }
+      }
+    },
+    {
+      "id": "si2-5",
+      "dimensionId": "requirements",
+      "textTh": "การควบคุมการเปลี่ยนแปลงความต้องการ",
+      "textEn": "Requirements Change Control",
+      "descriptionTh": "การเปลี่ยนแปลงความต้องการหลังจากอนุมัติ SRS ต้องผ่านกระบวนการควบคุม",
+      "descriptionEn": "Changes to requirements after SRS approval go through a controlled change process",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ความต้องการเปลี่ยนแปลงได้ตลอดเวลาโดยไม่มีการควบคุม", "en": "Requirements change freely with no control" },
+        "2": { "th": "มีการพูดคุยก่อนเปลี่ยนแต่ไม่มีเอกสาร", "en": "Changes discussed before acceptance but not documented" },
+        "3": { "th": "การเปลี่ยนแปลงทุกรายการผ่านกระบวนการและถูกบันทึก", "en": "All changes go through process and are logged" },
+        "4": { "th": "ผลกระทบต่อ scope เวลา และต้นทุนถูกประเมินก่อนอนุมัติ", "en": "Impact on scope, time, and cost assessed before approval" },
+        "5": { "th": "ข้อมูลการเปลี่ยนแปลงใช้ปรับปรุงกระบวนการ elicitation", "en": "Change data improves the elicitation process" }
+      }
+    },
+    {
+      "id": "si3-1",
+      "dimensionId": "sw-design",
+      "textTh": "เอกสารสถาปัตยกรรมซอฟต์แวร์",
+      "textEn": "Software Architecture Document",
+      "descriptionTh": "มีเอกสารสถาปัตยกรรมที่อธิบายโครงสร้าง component หลักและการเชื่อมต่อระหว่างกัน",
+      "descriptionEn": "An architecture document exists describing the major components and their interactions",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีเอกสารสถาปัตยกรรม", "en": "No architecture document" },
+        "2": { "th": "สถาปัตยกรรมอธิบายปากเปล่าเท่านั้น", "en": "Architecture described verbally only" },
+        "3": { "th": "มีเอกสารสถาปัตยกรรมที่ครอบคลุม component หลัก", "en": "Architecture document covers major components and interfaces" },
+        "4": { "th": "สถาปัตยกรรมถูกทบทวนและอนุมัติโดยทีม", "en": "Architecture reviewed and approved by the team" },
+        "5": { "th": "สถาปัตยกรรมถูกอัปเดตสะท้อนระบบจริงตลอดเวลา", "en": "Architecture document kept current with the actual system" }
+      }
+    },
+    {
+      "id": "si3-2",
+      "dimensionId": "sw-design",
+      "textTh": "การออกแบบรายละเอียด (Detailed Design)",
+      "textEn": "Detailed Component & Interface Design",
+      "descriptionTh": "มีการออกแบบรายละเอียดของ component อินเตอร์เฟซ และโครงสร้างข้อมูล",
+      "descriptionEn": "Detailed design of components, interfaces, and data structures is produced",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการออกแบบรายละเอียด", "en": "No detailed design" },
+        "2": { "th": "ออกแบบบางส่วนสำหรับ component ที่ซับซ้อน", "en": "Partial design for complex components only" },
+        "3": { "th": "มีเอกสาร detailed design ครอบคลุม component และ interface", "en": "Detailed design covering components and interfaces produced" },
+        "4": { "th": "การออกแบบถูกทบทวนเพื่อยืนยันความสามารถในการ implement", "en": "Design reviewed to confirm implementability" },
+        "5": { "th": "รูปแบบ design ที่ดีถูกสะสมและนำมาใช้ใหม่", "en": "Good design patterns accumulated and reused" }
+      }
+    },
+    {
+      "id": "si3-3",
+      "dimensionId": "sw-design",
+      "textTh": "การทบทวนการออกแบบ (Design Review)",
+      "textEn": "Design Review",
+      "descriptionTh": "การออกแบบถูกทบทวนโดยสมาชิกทีมก่อนเริ่ม implement เพื่อค้นหาปัญหาล่วงหน้า",
+      "descriptionEn": "The design is reviewed by team members before implementation to identify issues early",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการทบทวนการออกแบบ", "en": "No design review" },
+        "2": { "th": "ทบทวนแบบไม่เป็นทางการกับเพื่อนร่วมทีมบางคน", "en": "Informal review with some teammates" },
+        "3": { "th": "การทบทวนเป็นทางการโดยมีผู้เข้าร่วมที่กำหนด", "en": "Formal review with defined participants conducted" },
+        "4": { "th": "ปัญหาจากการทบทวนถูกติดตามจนแก้ไขสำเร็จ", "en": "Issues from review tracked to resolution" },
+        "5": { "th": "รูปแบบข้อผิดพลาดจาก review ใช้ปรับปรุง checklist", "en": "Error patterns from reviews improve design checklists" }
+      }
+    },
+    {
+      "id": "si3-4",
+      "dimensionId": "sw-design",
+      "textTh": "ความสามารถตรวจสอบได้ระหว่างการออกแบบกับความต้องการ",
+      "textEn": "Design-to-Requirements Traceability",
+      "descriptionTh": "สามารถติดตามกลับจากการออกแบบไปยังความต้องการเดิมที่รองรับได้",
+      "descriptionEn": "Design elements can be traced back to the requirements they fulfill",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการเชื่อมโยงระหว่างการออกแบบกับความต้องการ", "en": "No link between design and requirements" },
+        "2": { "th": "มีการอ้างอิงบางส่วนในเอกสาร", "en": "Some references in documents" },
+        "3": { "th": "design element แต่ละชิ้นเชื่อมโยงกับ requirement ที่รองรับ", "en": "Each design element linked to the requirement it fulfills" },
+        "4": { "th": "coverage ถูกวัดและ gap ถูกแก้ไข", "en": "Coverage measured and gaps addressed" },
+        "5": { "th": "traceability ถูกอัปเดตอัตโนมัติเมื่อ design เปลี่ยน", "en": "Traceability auto-updated when design changes" }
+      }
+    },
+    {
+      "id": "si3-5",
+      "dimensionId": "sw-design",
+      "textTh": "การออกแบบคำนึงถึงความปลอดภัยและ Non-Functional Requirements",
+      "textEn": "Security & Non-Functional Requirements in Design",
+      "descriptionTh": "การออกแบบคำนึงถึงประสิทธิภาพ ความปลอดภัย และ non-functional requirements อื่นๆ",
+      "descriptionEn": "The design explicitly addresses performance, security, and other non-functional requirements",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการพิจารณา NFR ในการออกแบบ", "en": "No NFR consideration in design" },
+        "2": { "th": "บางด้าน NFR ถูกพิจารณาบ้าง", "en": "Some NFR aspects considered informally" },
+        "3": { "th": "NFR ถูกระบุและสะท้อนในการออกแบบ", "en": "NFRs explicitly identified and reflected in design" },
+        "4": { "th": "การออกแบบถูกทดสอบว่าตอบ NFR ได้จริง", "en": "Design is tested to verify NFR compliance" },
+        "5": { "th": "รูปแบบ design ด้านความปลอดภัยถูกสะสมและนำมาใช้ซ้ำ", "en": "Security design patterns accumulated and reused" }
+      }
+    },
+    {
+      "id": "si45-1",
+      "dimensionId": "sw-construction",
+      "textTh": "มาตรฐานและแนวทางการเขียนโค้ด",
+      "textEn": "Coding Standards & Guidelines",
+      "descriptionTh": "มีการกำหนดมาตรฐานการเขียนโค้ดและสมาชิกทีมทุกคนปฏิบัติตาม",
+      "descriptionEn": "Coding standards and guidelines are defined and followed by all team members",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีมาตรฐานการเขียนโค้ด", "en": "No coding standards" },
+        "2": { "th": "มีบางมาตรฐานแต่ไม่ได้ใช้สม่ำเสมอ", "en": "Some standards exist but not consistently applied" },
+        "3": { "th": "มาตรฐานถูกกำหนดและทุกคนปฏิบัติตาม", "en": "Standards defined and followed by all" },
+        "4": { "th": "มาตรฐานถูกตรวจสอบด้วย linting/static analysis tools", "en": "Standards enforced by linting or static analysis tools" },
+        "5": { "th": "มาตรฐานถูกปรับปรุงจาก code review feedback", "en": "Standards continuously improved from code review feedback" }
+      }
+    },
+    {
+      "id": "si45-2",
+      "dimensionId": "sw-construction",
+      "textTh": "การทบทวนโค้ด (Code Review)",
+      "textEn": "Code Review Practice",
+      "descriptionTh": "โค้ดที่พัฒนาถูกทบทวนโดยเพื่อนร่วมทีมก่อน merge เพื่อค้นหาข้อผิดพลาด",
+      "descriptionEn": "Code is reviewed by peers before merging to catch defects and improve quality",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการทบทวนโค้ด", "en": "No code reviews" },
+        "2": { "th": "ทบทวนบางครั้งตาม discretion ของนักพัฒนา", "en": "Reviews done at developer's discretion, not consistently" },
+        "3": { "th": "การทบทวนโค้ดเป็นข้อกำหนดบังคับก่อน merge", "en": "Code review is mandatory before any merge" },
+        "4": { "th": "มี checklist และเกณฑ์ในการทบทวน", "en": "Review checklist and criteria defined" },
+        "5": { "th": "ข้อมูล defect จาก review ใช้ปรับปรุง training", "en": "Defect data from reviews feeds developer training" }
+      }
+    },
+    {
+      "id": "si45-3",
+      "dimensionId": "sw-construction",
+      "textTh": "การทดสอบหน่วย (Unit Testing)",
+      "textEn": "Unit Testing",
+      "descriptionTh": "นักพัฒนาเขียน unit test สำหรับ component ที่พัฒนาและทดสอบก่อน integrate",
+      "descriptionEn": "Developers write unit tests for components they build and run them before integration",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการเขียน unit test", "en": "No unit tests written" },
+        "2": { "th": "เขียน unit test บางส่วนสำหรับ function ที่ซับซ้อน", "en": "Unit tests written for some complex functions only" },
+        "3": { "th": "unit test เป็นข้อกำหนดสำหรับทุก component", "en": "Unit tests required for all components" },
+        "4": { "th": "วัด code coverage และมีเป้าหมายขั้นต่ำ", "en": "Code coverage measured with a minimum target" },
+        "5": { "th": "unit test ถูก automate และรันใน CI pipeline", "en": "Unit tests automated in CI pipeline" }
+      }
+    },
+    {
+      "id": "si45-4",
+      "dimensionId": "sw-construction",
+      "textTh": "การทดสอบการรวม (Integration Testing)",
+      "textEn": "Integration Testing",
+      "descriptionTh": "มีแผนและผลการทดสอบการรวม component เพื่อยืนยันว่าทำงานร่วมกันได้ถูกต้อง",
+      "descriptionEn": "Integration tests verify that components work correctly together as planned",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการทดสอบการรวม", "en": "No integration testing" },
+        "2": { "th": "ทดสอบการรวมแบบ ad-hoc", "en": "Ad-hoc integration testing only" },
+        "3": { "th": "มีแผนและผลการทดสอบการรวมที่ครบถ้วน", "en": "Planned integration tests with recorded results" },
+        "4": { "th": "การทดสอบครอบคลุม interface และ data flow ทั้งหมด", "en": "Tests cover all interfaces and data flows" },
+        "5": { "th": "integration test ถูก automate ใน CI pipeline", "en": "Integration tests automated in CI pipeline" }
+      }
+    },
+    {
+      "id": "si45-5",
+      "dimensionId": "sw-construction",
+      "textTh": "การติดตามและแก้ไข defect",
+      "textEn": "Defect Tracking & Resolution",
+      "descriptionTh": "ข้อบกพร่องทุกรายการถูกบันทึก จัดลำดับ และติดตามจนแก้ไขสำเร็จ",
+      "descriptionEn": "Every defect is logged, prioritized, and tracked to resolution",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการติดตาม defect อย่างเป็นระบบ", "en": "No systematic defect tracking" },
+        "2": { "th": "บันทึก defect บางส่วนในเอกสารหรือ chat", "en": "Some defects logged informally in docs or chat" },
+        "3": { "th": "defect ทุกรายการถูกบันทึกและติดตามในระบบ", "en": "All defects logged and tracked in a system" },
+        "4": { "th": "วิเคราะห์ root cause ของ defect ที่สำคัญ", "en": "Root cause analyzed for significant defects" },
+        "5": { "th": "แนวโน้ม defect ใช้ปรับปรุงกระบวนการพัฒนา", "en": "Defect trends drive process improvements" }
+      }
+    },
+    {
+      "id": "si45-6",
+      "dimensionId": "sw-construction",
+      "textTh": "ความครอบคลุมการทดสอบเทียบกับความต้องการ",
+      "textEn": "Test Coverage vs. Requirements",
+      "descriptionTh": "มีการตรวจสอบว่าการทดสอบครอบคลุมความต้องการทุกข้อที่กำหนดไว้",
+      "descriptionEn": "Tests are verified to cover all defined requirements",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการตรวจสอบ coverage กับ requirements", "en": "No test coverage check against requirements" },
+        "2": { "th": "ทดสอบ requirements หลักบางส่วน", "en": "Key requirements tested partially" },
+        "3": { "th": "ทุก requirement มี test case ที่เชื่อมโยง", "en": "Every requirement has a linked test case" },
+        "4": { "th": "requirements coverage ถูกวัดและรายงาน", "en": "Requirements coverage measured and reported" },
+        "5": { "th": "การวิเคราะห์ gap ใช้เพิ่ม test case ก่อน release", "en": "Gap analysis adds test cases before release" }
+      }
+    },
+    {
+      "id": "si6-1",
+      "dimensionId": "product-delivery",
+      "textTh": "เอกสารผู้ใช้และคู่มือการใช้งาน",
+      "textEn": "User Documentation & Training Materials",
+      "descriptionTh": "มีเอกสารคู่มือผู้ใช้ที่ครบถ้วนและสื่อ training สำหรับผู้ใช้งานระบบ",
+      "descriptionEn": "Complete user documentation and training materials are produced for end users",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีเอกสารผู้ใช้", "en": "No user documentation" },
+        "2": { "th": "มีเอกสารบางส่วน ไม่ครบถ้วน", "en": "Partial documentation exists" },
+        "3": { "th": "คู่มือผู้ใช้ครบถ้วนพร้อมก่อน deliver", "en": "Complete user manual ready before delivery" },
+        "4": { "th": "เอกสารถูกตรวจสอบโดยผู้ใช้จริงก่อน release", "en": "Documentation reviewed by actual users before release" },
+        "5": { "th": "เอกสารถูกปรับปรุงตาม feedback จากผู้ใช้อย่างต่อเนื่อง", "en": "Documentation continuously updated from user feedback" }
+      }
+    },
+    {
+      "id": "si6-2",
+      "dimensionId": "product-delivery",
+      "textTh": "ขั้นตอนการ release และการ deploy",
+      "textEn": "Release & Deployment Procedures",
+      "descriptionTh": "มีขั้นตอนการ release ที่ชัดเจนและสามารถ reproduce ได้สำหรับการ deploy ระบบ",
+      "descriptionEn": "A clear, reproducible release procedure exists for deploying the system",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีขั้นตอน release ที่กำหนดไว้", "en": "No defined release procedure" },
+        "2": { "th": "ขั้นตอน release อยู่ในหัว ไม่มีเอกสาร", "en": "Release procedure undocumented, known only to individual" },
+        "3": { "th": "มีเอกสารขั้นตอน release ที่ทีมสามารถปฏิบัติตาม", "en": "Documented release procedure team can follow" },
+        "4": { "th": "ขั้นตอน release ถูกทดสอบและปรับปรุงในทุก release", "en": "Release procedure tested and improved each release" },
+        "5": { "th": "กระบวนการ release ถูก automate เป็นส่วนใหญ่", "en": "Release process largely automated" }
+      }
+    },
+    {
+      "id": "si6-3",
+      "dimensionId": "product-delivery",
+      "textTh": "การทดสอบการยอมรับจากลูกค้า",
+      "textEn": "Customer Acceptance Testing",
+      "descriptionTh": "ลูกค้าดำเนินการทดสอบการยอมรับตามเกณฑ์ที่กำหนดไว้และลงนามรับมอบ",
+      "descriptionEn": "Customer performs acceptance testing against defined criteria and provides sign-off",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีการทดสอบการยอมรับอย่างเป็นทางการ", "en": "No formal acceptance testing" },
+        "2": { "th": "ลูกค้า demo แต่ไม่มีเกณฑ์ชัดเจน", "en": "Customer demo without clear acceptance criteria" },
+        "3": { "th": "การทดสอบการยอมรับตามเกณฑ์ที่กำหนด และได้รับการลงนาม", "en": "Acceptance testing against defined criteria with sign-off" },
+        "4": { "th": "ปัญหาจากการทดสอบถูกแก้ไขก่อน release จริง", "en": "Issues from testing resolved before actual release" },
+        "5": { "th": "เกณฑ์การยอมรับถูกปรับปรุงจากประสบการณ์ที่ผ่านมา", "en": "Acceptance criteria improved from past experience" }
+      }
+    },
+    {
+      "id": "si6-4",
+      "dimensionId": "product-delivery",
+      "textTh": "แผนการสนับสนุนและบำรุงรักษาหลัง delivery",
+      "textEn": "Post-Delivery Support & Maintenance Plan",
+      "descriptionTh": "มีแผนการสนับสนุนและบำรุงรักษาหลังส่งมอบที่ลูกค้ารับทราบและตกลงกัน",
+      "descriptionEn": "A post-delivery support and maintenance plan is defined and agreed upon with the customer",
+      "weight": 1.0,
+      "rubric": {
+        "1": { "th": "ไม่มีแผนการสนับสนุนหลัง delivery", "en": "No post-delivery support plan" },
+        "2": { "th": "การสนับสนุนให้แบบ ad-hoc ตามคำขอ", "en": "Support provided ad-hoc on request" },
+        "3": { "th": "มีแผนสนับสนุนที่ตกลงกับลูกค้าและระบุ SLA", "en": "Support plan agreed with customer including SLA" },
+        "4": { "th": "มีการวัดและรายงานผลการให้บริการสนับสนุน", "en": "Support performance measured and reported" },
+        "5": { "th": "ข้อมูลการสนับสนุนใช้ปรับปรุงคุณภาพซอฟต์แวร์ในเวอร์ชันถัดไป", "en": "Support data feeds quality improvements in the next version" }
+      }
+    }
+  ]
+}

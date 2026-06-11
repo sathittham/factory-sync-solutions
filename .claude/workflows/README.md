@@ -179,7 +179,7 @@ const results = await pipeline(
 
 ### agentType options
 Project agents in `.claude/agents/` — use the agent `name` field:
-`backend-dev` (Go), `frontend-dev` (React/Astro).
+`backend-dev` (Go), `frontend-dev` (React/Astro), `qa-dev` (TDD tests + ISO test plans).
 Built-in helpers: `Explore`, `feature-dev:code-explorer`, `feature-dev:code-architect`, `feature-dev:code-reviewer`, `general-purpose`.
 
 ---

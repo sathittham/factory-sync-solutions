@@ -13,11 +13,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { trackEvent, trackPageView } from '@/lib/analytics';
-import { auth, googleProvider } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
 import { type Theme, useTheme } from '@/lib/theme';
 import { useAppSelector } from '@/store';
-import { signInWithRedirect, signOut } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { type ReactElement, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 
@@ -907,8 +907,7 @@ export function Layout() {
   }, [location.pathname]);
 
   const handleSignIn = () => {
-    trackEvent('sign_in_click', { method: 'google', source: 'nav' });
-    signInWithRedirect(auth, googleProvider);
+    navigate('/');
   };
 
   const handleSignOut = async () => {
@@ -1016,12 +1015,7 @@ export function Layout() {
         <Outlet />
       </main>
 
-      {isAuthPage ? (
-        <footer className="py-4 text-center text-xs text-muted-foreground">
-          FactorySync Solutions &middot; @factorysyncsolutions &nbsp;&middot;&nbsp;{' '}
-          <span className="font-mono">{__APP_VERSION__}</span>
-        </footer>
-      ) : (
+      {!isAuthPage && (
         <FooterSection
           t={t}
           setLegalModal={setLegalModal}

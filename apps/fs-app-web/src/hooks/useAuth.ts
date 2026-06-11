@@ -1,4 +1,3 @@
-import { trackEvent } from '@/lib/analytics';
 import { api, ApiError } from '@/lib/api';
 import { auth } from '@/lib/firebase';
 import { useAppDispatch } from '@/store';
@@ -10,25 +9,16 @@ import {
 	setUser,
 	type Profile,
 } from '@/store/authSlice';
-import { getRedirectResult, onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect } from 'react';
 
 export function useAuth() {
 	const dispatch = useAppDispatch();
 
 	useEffect(() => {
-		// Resolve pending redirect sign-in (fires once on page load after redirect)
-		getRedirectResult(auth)
-			.then((result) => {
-				if (result) {
-					trackEvent('sign_in_success', { method: 'google' });
-				}
-			})
-			.catch(() => {
-				trackEvent('sign_in_error', { method: 'google' });
-			});
-
 		const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+			console.debug('[useAuth] onAuthStateChanged fired — user:', firebaseUser?.uid ?? null);
+
 			if (firebaseUser) {
 				dispatch(
 					setUser({
@@ -40,7 +30,13 @@ export function useAuth() {
 				);
 
 				try {
+					// Force-refresh so getIdToken returns a valid token after popup
+					const token = await firebaseUser.getIdToken(/* forceRefresh */ false);
+					console.debug('[useAuth] token obtained (first 20 chars):', token.slice(0, 20));
+					console.debug('[useAuth] auth.currentUser at fetch time:', auth.currentUser?.uid ?? null);
+
 					const profile = await api.get<Profile>('/profile');
+					console.debug('[useAuth] profile fetched:', profile);
 					dispatch(setProfile(profile));
 
 					try {
@@ -51,17 +47,20 @@ export function useAuth() {
 					}
 					dispatch(setLoading(false));
 				} catch (err) {
+					console.warn('[useAuth] profile fetch error:', err);
 					if (err instanceof ApiError && err.status === 404) {
-						// Authenticated but no profile yet → needs to register
+						console.debug('[useAuth] no profile → navigate to /register');
 						dispatch(setProfile(null));
 					} else if (err instanceof ApiError && err.status === 401) {
-						// Token rejected by API → treat as logged out
+						console.warn('[useAuth] 401 on profile — token rejected, logging out');
 						dispatch(logout());
+					} else {
+						console.error('[useAuth] unexpected error on profile fetch:', err);
 					}
-					// Always unblock the UI — an infinite spinner is worse than any redirect
 					dispatch(setLoading(false));
 				}
 			} else {
+				console.debug('[useAuth] no user → logout');
 				dispatch(logout());
 				dispatch(setLoading(false));
 			}

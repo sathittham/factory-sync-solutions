@@ -18,6 +18,8 @@ docs/
 |------|-------------|
 | [api/user.md](api/user.md) | All user-facing endpoints |
 | [api/admin.md](api/admin.md) | Admin endpoints + audit event reference |
+| [api/project.md](api/project.md) | Project & RBAC endpoints |
+| [api/backoffice.md](api/backoffice.md) | Backoffice `/api/v1/backoffice/` endpoints (staff/superadmin) |
 | [api/conventions.md](api/conventions.md) | Response format, error codes, naming |
 | [api/swagger.md](api/swagger.md) | swaggo setup and Swagger UI |
 
@@ -59,6 +61,7 @@ docs/
 | [product/user-flow.md](product/user-flow.md) | User journey with decision points |
 | [product/wireframes.md](product/wireframes.md) | Screen layouts for all pages |
 | [product/roadmap.md](product/roadmap.md) | Phased roadmap with milestones |
+| [product/backoffice/feature-spec.md](product/backoffice/feature-spec.md) | Backoffice web app — RBAC, pages, API, deployment |
 
 ## Reference
 

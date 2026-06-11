@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-06-04
+version: 1.1.0
+lastUpdated: 2026-06-10
 ---
 
 # User API Reference
@@ -43,12 +43,21 @@ Returns the authenticated user's profile.
     "contactEmail": "somchai@abc.com",
     "contactPhone": "0812345678",
     "role": "user",
+    "activeProjectID": "0105567001234",
+    "projectRoles": {
+      "0105567001234": "owner",
+      "0987654321012": "manager"
+    },
     "consentVersion": "1.0",
     "emailNotifications": true,
     "createdAt": "2026-03-08T10:00:00Z"
   }
 }
 ```
+
+`activeProjectID` is the project currently in scope for this user's session.
+`projectRoles` is a map of every project the user belongs to: `{ projectID: role }`.
+A user can appear in multiple projects with different roles.
 
 **Errors:** `401 UNAUTHORIZED`, `404 NOT_FOUND`
 
@@ -85,11 +94,19 @@ Register a new user profile after Google Sign-In. Requires Cloudflare Turnstile 
 | `consentVersion` | string | optional — stored for compliance audit |
 | `turnstileToken` | string | required |
 
-**Response 201** — same shape as GET /profile
+**Response 201** — same shape as `GET /profile`
 
-**Errors:** `400 VALIDATION_ERROR`, `400 CAPTCHA_FAILED`, `401 UNAUTHORIZED`, `409 CONFLICT` (regId already registered)
+**Errors:**
 
-**Side effects:** Slack registration webhook fired asynchronously. Audit event `user.registered` written.
+| HTTP | Code | Condition |
+|------|------|-----------|
+| 400 | `VALIDATION_ERROR` | Body parse failure or field validation error |
+| 400 | `CAPTCHA_FAILED` | Turnstile verification failed |
+| 401 | `UNAUTHORIZED` | Missing/invalid Firebase token |
+| 409 | `ALREADY_REGISTERED` | This user already has a profile |
+| 409 | `PROJECT_ALREADY_EXISTS` | `companyRegId` is already in use — user must request an invite from the project Owner instead of registering |
+
+**Side effects:** Project created (if first user for this `companyRegId`). Caller's `projectRole` set to `owner`. Slack registration webhook fired. Audit event `user.registered` written.
 
 ---
 
@@ -246,7 +263,13 @@ Every question in the quiz must have an answer. `value` must be 1–5.
 
 ### `GET /results`
 
-List all assessments for the authenticated user, ordered by submission date descending.
+List assessments ordered by submission date descending.
+
+**Query params**
+
+| Param | Default | Description |
+|-------|---------|-------------|
+| `scope` | `self` | `self` — caller's own results only. `project` — all results for the entire project (requires `manager` role or higher). |
 
 **Response 200**
 ```json
@@ -255,6 +278,8 @@ List all assessments for the authenticated user, ordered by submission date desc
   "data": [ { "id": "uuid", "quizId": "shindan", "overallScore": 3.42, "diagnosis": "Established", "submittedAt": "..." } ]
 }
 ```
+
+**Errors:** `401 UNAUTHORIZED`, `403 FORBIDDEN` (when `scope=project` without sufficient role)
 
 ---
 

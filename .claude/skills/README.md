@@ -20,6 +20,10 @@ Type `/skill-name` in Claude Code:
 |-------|-------------|-------|
 | `commit` | Stage and commit with project convention, then push | `/commit` or `/commit "description"` |
 | `code-review` | Review Go and React changes for security, correctness, performance | `/code-review` or `/code-review <path>` |
+| `iso29110` | ISO 29110 compliance helper — checklist, VDD, SRS, test plan, risk register, health status | `/iso29110 status`, `/iso29110 checklist`, `/iso29110 vdd v1.0.0`, `/iso29110 srs <feature>`, `/iso29110 test-plan <feature>`, `/iso29110 progress`, `/iso29110 risk` |
+| `new-service` | Scaffold a new Go service with handler + service + models + tests + sentinel errors | `/new-service <name>` |
+| `swagger-sync` | Sync swagger annotations in Go Chi handlers and regenerate swagger docs | `/swagger-sync <service>` or `/swagger-sync all` |
+| `doc-review` | Review docs/ files for accuracy, currency, and ISO 29110 artifact alignment | `/doc-review` or `/doc-review docs/product/<feature>/` |
 
 ---
 

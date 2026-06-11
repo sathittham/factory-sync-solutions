@@ -48,7 +48,7 @@ apps/
 ## Quiz / Scoring Domain
 
 - **8-dimension Shindan rubric-based assessment** — multi-quiz
-- Quiz configs: `apps/fs-backend/config/questions*.json` — one per variant (`questions.json`, `questions-factory.json`, `questions-cybersecurity.json`, `questions-lean.json`)
+- Quiz configs: `apps/fs-backend/config/questions*.json` — one per variant (`questions.json`, `questions-factory.json`, `questions-cybersecurity.json`, `questions-lean.json`, `questions-iso29110.json`)
 - Scoring: `apps/fs-backend/services/scoring/`
 - Results stored per-user in Firestore
 
@@ -64,5 +64,30 @@ When modifying API endpoints:
 - Update swagger annotations in handler.go
 - Update the relevant `.claude/rules/` file when adding new conventions
 
-*Version: 1.1.0*
-*Last updated: 09 June 2026*
+## ISO 29110 Compliance (MANDATORY)
+
+This project follows **ISO 29110 Basic Profile**. All artifacts live in `docs/iso29110/`.
+
+### Before starting a new feature (SI.2 — Requirements first):
+1. Copy `docs/iso29110/srs-template.md` → `docs/product/<feature>/feature-spec.md` and fill requirements **before** writing code
+2. For non-trivial changes: copy `docs/iso29110/sdd-template.md` → `docs/architecture/<feature>-design.md`
+3. Log the feature as a change request in `docs/iso29110/change-request-log.md` if it modifies approved scope
+
+### During development (SI.4-5 — Tests required):
+- Copy `docs/iso29110/test-plan-template.md` → `docs/product/<feature>/test-plan.md`
+- Use `@qa-dev` to create the test plan and write tests TDD-first (test before implementation)
+- Unit tests required for all new service methods (backend: `service_test.go`, `handler_test.go`)
+- Backend coverage target ≥ 80% for critical services
+
+### Before each production release (SI.O7 + PM.O2):
+1. Copy `docs/iso29110/vdd-template.md` → `docs/iso29110/releases/vX.Y.Z.md` and fill in
+2. Add a progress entry in `docs/iso29110/progress-log.md`
+3. Review and update `docs/iso29110/risk-register.md`
+4. Verify the compliance checklist in `docs/iso29110/README.md`
+
+### Risk management:
+- New risks → add to `docs/iso29110/risk-register.md` immediately
+- Review register every 2 weeks or at each progress meeting
+
+*Version: 1.2.0*
+*Last updated: 11 June 2026*

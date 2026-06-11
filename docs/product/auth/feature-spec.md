@@ -1,28 +1,33 @@
 ---
-version: 1.0.0
+version: 1.1.0
 lastUpdated: 2026-06-10
 author: Sathittham Sangthong
-status: Done
+status: Done — email/password added
 ---
 
 # Authentication & Authorization — Feature Spec
 
-> Firebase Authentication (Google Sign-In) wired to a Go backend via verified
-> ID tokens. Redux stores the auth state; three route guards enforce access
-> control across the app.
+> Firebase Authentication (Google Sign-In + Email/Password) wired to a Go
+> backend via verified ID tokens. Redux stores the auth state; three route
+> guards enforce access control across the app.
 
 ---
 
 ## 1. Summary
 
-Authentication is handled entirely by Firebase Auth using Google's OAuth 2.0
-redirect flow. The frontend never stores passwords or manages sessions directly
-— it holds a short-lived Firebase ID token that refreshes automatically.
+Authentication is handled by Firebase Auth supporting two providers:
 
-Every API request from the frontend attaches the current ID token as a
-`Bearer` header. The backend verifies it with the Firebase Admin SDK,
-extracts the verified UID/email/displayName into the request context, and
-proceeds. No trust is placed on client-supplied user identifiers.
+- **Email/Password** — user enters email + password in the `LoginForm`. New
+  users can create an account ("Sign up") and reset their password via email link.
+- **Google Sign-In** — OAuth 2.0 popup flow via `signInWithPopup`.
+
+The frontend never manages sessions or stores passwords — it holds a
+short-lived Firebase ID token that refreshes automatically. Every API request
+attaches the current token as a `Bearer` header. The backend verifies it with
+the Firebase Admin SDK, extracts the verified UID/email/displayName into the
+request context, and proceeds. No trust is placed on client-supplied user
+identifiers. The backend middleware is provider-agnostic — it only verifies
+the token, not how the user authenticated.
 
 Authorization has three tiers:
 
@@ -38,7 +43,9 @@ Authorization has three tiers:
 
 ### Goals
 
-- Google Sign-In only — no email/password, no magic link.
+- Email/password + Google Sign-In via Firebase Auth.
+- Password reset by email (`sendPasswordResetEmail`).
+- Sign-up flow: create Firebase Auth account → redirect to `/register` for profile completion.
 - Single source of auth truth: Firebase Auth + a Firestore profile document.
 - Stateless backend — verify the token on every request, extract claims from it.
 - Admin elevation via Firebase custom claims (set out-of-band, not by users).
@@ -47,7 +54,8 @@ Authorization has three tiers:
 
 ### Non-Goals
 
-- Email/password or social logins other than Google.
+- Social logins other than Google.
+- Magic link / passwordless email sign-in.
 - Persistent sessions (Firebase handles token refresh natively).
 - Frontend refresh-token management (handled by the Firebase SDK).
 - Self-service admin promotion (admin claims are set via Firebase Admin SDK by ops).
@@ -64,7 +72,7 @@ Authorization has three tiers:
 | Auth state (Redux) | `apps/fs-app-web/src/store/authSlice.ts` | ✅ Built |
 | Auth initializer hook | `apps/fs-app-web/src/hooks/useAuth.ts` | ✅ Built |
 | Sign-in page | `apps/fs-app-web/src/pages/SignInPage.tsx` | ✅ Built |
-| Login form component | `apps/fs-app-web/src/components/login-form.tsx` | ✅ Built |
+| Login form (email/pw + Google + sign-up + reset) | `apps/fs-app-web/src/components/login-form.tsx` | ✅ Built |
 | Auth panel (branding) | `apps/fs-app-web/src/components/AuthPanel.tsx` | ✅ Built |
 | `AuthGuard` | `apps/fs-app-web/src/components/guards/AuthGuard.tsx` | ✅ Built |
 | `RegisterGuard` | `apps/fs-app-web/src/components/guards/RegisterGuard.tsx` | ✅ Built |
@@ -79,22 +87,27 @@ Authorization has three tiers:
 
 ## 4. Sign-In Flow
 
+`LoginForm` is self-contained — it handles all Firebase calls and exposes three modes:
+
+| Mode | Trigger | Firebase call |
+|------|---------|---------------|
+| `signin` (default) | Email + password form | `signInWithEmailAndPassword` |
+| `signup` | "Sign up" link | `createUserWithEmailAndPassword` |
+| `reset` | "Forgot password?" link | `sendPasswordResetEmail` |
+| — | Google button | `signInWithPopup(googleProvider)` |
+
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant SP as SignInPage
-    participant FB as Firebase Auth (Google OAuth)
+    participant LF as LoginForm
+    participant FB as Firebase Auth
     participant RL as useAuth hook (onAuthStateChanged)
     participant API as Go API (/profile, /results)
     participant FS as Firestore
 
-    U->>SP: Click "Sign in with Google"
-    SP->>SP: trackEvent('sign_in_click')
-    SP->>FB: signInWithRedirect(auth, googleProvider)
-    FB-->>U: Redirect to Google accounts.google.com
-    U-->>FB: Grants consent
-    FB-->>SP: Redirect back → getRedirectResult()
-    SP->>SP: trackEvent('sign_in_success')
+    U->>LF: Submit email + password (or click Google)
+    LF->>FB: signInWithEmailAndPassword / signInWithPopup
+    LF->>LF: trackEvent('sign_in_success' | 'sign_in_error')
 
     note over RL: onAuthStateChanged fires
     RL->>RL: dispatch(setUser({ uid, email, displayName, photoURL }))
@@ -118,8 +131,23 @@ sequenceDiagram
 
 After `setLoading(false)` the `SignInPage` re-evaluates and either:
 - redirects to `/results` (authenticated + registered)
-- redirects to `/register` (authenticated, no profile)
-- stays on `/` (sign-in error)
+- redirects to `/register` (authenticated, no profile — both new email and new Google users land here)
+- stays on `/` (sign-in error, shown inline in the form)
+
+### Password Reset sub-flow
+
+When mode is `reset`, the form calls `sendPasswordResetEmail(auth, email)`.
+On success it shows a confirmation message in-form — no page navigation.
+Firebase sends the reset email; the user clicks the link in their inbox and
+sets a new password via Firebase's hosted action handler.
+
+### New email/password user
+
+`createUserWithEmailAndPassword` creates a Firebase Auth account with no
+display name. `firebaseUser.displayName` is `null` — `setUser` stores it as
+`''`. `onAuthStateChanged` fires, `useAuth` fetches `/profile` → 404 →
+`isRegistered = false` → redirect to `/register`. The profile completion
+flow is identical to Google sign-in.
 
 ---
 
@@ -312,11 +340,11 @@ renders when `isAdmin` is true.
 
 ## 12. Analytics Events
 
-| Event | Trigger | Properties |
-|-------|---------|------------|
-| `sign_in_click` | User clicks Sign in with Google | `{ method: 'google' }` |
-| `sign_in_success` | `getRedirectResult()` returns a result | `{ method: 'google' }` |
-| `sign_in_error` | `getRedirectResult()` rejects | `{ method: 'google' }` |
+| Event | Trigger | `method` values |
+|-------|---------|-----------------|
+| `sign_in_click` | User submits email form or clicks Google | `'email'` · `'email_signup'` · `'google'` |
+| `sign_in_success` | Firebase call resolves | same as above |
+| `sign_in_error` | Firebase call rejects (not popup-closed) | same as above |
 
 ---
 
@@ -340,16 +368,21 @@ Never commit any of these values. They are git-ignored via `.env*` and
 
 ## 14. Acceptance Criteria
 
-- [ ] Clicking "Sign in with Google" redirects to Google OAuth and returns to the app.
+- [ ] Clicking "Sign in with Google" opens the Google OAuth popup and signs in.
+- [ ] Entering a valid email + password and clicking "Sign In" authenticates the user.
+- [ ] Clicking "Sign up" shows the create-account form; submitting creates a Firebase Auth account and redirects to `/register`.
+- [ ] Clicking "Forgot password?" switches to the reset form; submitting a known email shows the confirmation message.
+- [ ] Firebase error codes map to human-readable messages (wrong password, weak password, email in use, etc.).
+- [ ] "Passwords do not match" error shows if the sign-up confirm field differs.
 - [ ] A new authenticated user with no profile is redirected to `/register`.
-- [ ] A returning registered user is redirected to `/results` (or `/quiz` if quiz not done).
+- [ ] A returning registered user is redirected to `/results`.
 - [ ] On hard refresh, the app shows a loading skeleton until Firebase resolves the session — no flash of unauthenticated redirect.
 - [ ] An expired or invalid token causes the frontend to call `logout()` and redirect to `/`.
 - [ ] Clicking "Sign out" clears all Redux auth state and redirects to `/`.
 - [ ] A non-admin user navigating to `/admin` is redirected to `/`.
 - [ ] An admin user sees the admin nav link and can access `/admin`.
 - [ ] Every API call attaches a fresh Bearer token; no raw UID is sent in the request body.
-- [ ] `sign_in_success` and `sign_in_error` events are tracked correctly.
+- [ ] `sign_in_success` and `sign_in_error` events are tracked for both `email` and `google` methods.
 - [ ] All sign-in UI copy renders in the active locale (TH/EN).
 - [ ] `make lint-web` and `make test-web` pass.
 
