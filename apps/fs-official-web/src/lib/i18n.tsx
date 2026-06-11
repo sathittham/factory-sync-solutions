@@ -1,4 +1,4 @@
-import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from "react";
+import { type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 export type Locale = "th" | "en";
 
@@ -544,7 +544,12 @@ const translations: Record<Locale, Record<string, string>> = {
 };
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-	const [locale, setLocaleState] = useState<Locale>(getInitialLocale);
+	const [locale, setLocaleState] = useState<Locale>("th");
+
+	useEffect(() => {
+		const stored = getInitialLocale();
+		if (stored !== "th") setLocaleState(stored);
+	}, []);
 
 	const setLocale = useCallback((l: Locale) => {
 		setLocaleState(l);
