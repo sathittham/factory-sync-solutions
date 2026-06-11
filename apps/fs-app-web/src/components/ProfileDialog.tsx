@@ -168,7 +168,7 @@ function ChangePasswordSection() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordChanged, setPasswordChanged] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setPasswordError(null);
     setPasswordChanged(false);
@@ -295,7 +295,7 @@ function ChangePasswordSection() {
 
 interface LinkEmailFormProps {
   readonly isLinking: boolean;
-  readonly onSubmit: (e: React.FormEvent) => void;
+  readonly onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   readonly linkEmail: string;
   readonly linkPassword: string;
   readonly onLinkPasswordChange: (v: string) => void;
@@ -440,7 +440,7 @@ function LinkingSection({ providers, onRefresh }: LinkingSectionProps) {
     }
   };
 
-  const handleLinkEmailSubmit = async (e: React.FormEvent) => {
+  const handleLinkEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLinkError(null);
     setLinkSuccess(null);
@@ -479,7 +479,7 @@ function LinkingSection({ providers, onRefresh }: LinkingSectionProps) {
       variant="outline"
       size="sm"
       disabled={isLinking || !canUnlink}
-      title={!canUnlink ? t('profile.cannotUnlinkLast') : undefined}
+      title={canUnlink ? undefined : t('profile.cannotUnlinkLast')}
       onClick={() => handleUnlinkProvider('google.com')}
     >
       {t('profile.unlinkGoogle')}
@@ -502,7 +502,7 @@ function LinkingSection({ providers, onRefresh }: LinkingSectionProps) {
       variant="outline"
       size="sm"
       disabled={isLinking || !canUnlink}
-      title={!canUnlink ? t('profile.cannotUnlinkLast') : undefined}
+      title={canUnlink ? undefined : t('profile.cannotUnlinkLast')}
       onClick={() => handleUnlinkProvider('password')}
     >
       {t('profile.unlinkEmailPassword')}
