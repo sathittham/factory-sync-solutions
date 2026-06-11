@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /register
+Disallow: /cookie-settings
+
+Sitemap: https://www.factorysyncsolutions.com/sitemap-index.xml

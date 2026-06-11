@@ -1,23 +1,44 @@
 ---
-import Layout from "../../layouts/Layout.astro";
 import {
-  ServiceContent,
-  SERVICE_ORDER,
-  getServiceTitle,
-  type ServiceSlug,
+	SERVICE_ORDER,
+	ServiceContent,
+	type ServiceSlug,
+	getServiceTagline,
+	getServiceTitle,
 } from "../../components/services/ServiceContent";
+import Layout from "../../layouts/Layout.astro";
 
 export function getStaticPaths() {
-  return SERVICE_ORDER.map((slug) => ({ params: { slug } }));
+	return SERVICE_ORDER.map((slug) => ({ params: { slug } }));
 }
 
 const { slug } = Astro.params;
 const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
 const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
-const serviceTitle = getServiceTitle(slug as ServiceSlug, "en");
-const pageTitle = `${serviceTitle} — FactorySync Solutions`;
+const serviceTitleTh = getServiceTitle(slug as ServiceSlug, "th");
+const serviceTitleEn = getServiceTitle(slug as ServiceSlug, "en");
+const serviceTagline = getServiceTagline(slug as ServiceSlug, "th");
+const pageTitle = `${serviceTitleTh} — FactorySync Solutions`;
+
+const serviceLd = {
+	"@context": "https://schema.org",
+	"@type": "Service",
+	name: serviceTitleTh,
+	description: serviceTagline,
+	url: `https://www.factorysyncsolutions.com/services/${slug}`,
+	provider: {
+		"@type": "Organization",
+		name: "FactorySync Solutions",
+		url: "https://www.factorysyncsolutions.com",
+	},
+	serviceType: serviceTitleEn,
+	availableLanguage: ["Thai", "English"],
+};
 ---
 
-<Layout title={pageTitle}>
+<Layout title={pageTitle} description={serviceTagline}>
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(serviceLd)} />
+  </Fragment>
   <ServiceContent client:load slug={slug as ServiceSlug} appUrl={appUrl} version={version} />
 </Layout>

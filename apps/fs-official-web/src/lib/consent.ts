@@ -3,10 +3,6 @@
 // this module pushes the *update* when the user makes or changes a choice.
 // See docs/product/cookie-consent/feature-spec.md.
 
-declare global {
-	var gtag: ((...args: unknown[]) => void) | undefined;
-}
-
 export function updateConsentMode(analytics: boolean, marketing: boolean) {
 	globalThis.gtag?.("consent", "update", {
 		analytics_storage: analytics ? "granted" : "denied",

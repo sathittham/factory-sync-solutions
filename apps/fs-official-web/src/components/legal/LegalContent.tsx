@@ -11,11 +11,58 @@ import {
 import { buttonVariants } from "@/components/ui/button";
 import { type Locale, LocaleProvider, useLocale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 
 // ---------------------------------------------------------------------------
 // NavBar — shares the logo, switchers and theme with the landing page
 // ---------------------------------------------------------------------------
+
+function MenuIcon() {
+	return (
+		<svg
+			width="22"
+			height="22"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			aria-hidden="true"
+		>
+			<line x1="3" y1="6" x2="21" y2="6" />
+			<line x1="3" y1="12" x2="21" y2="12" />
+			<line x1="3" y1="18" x2="21" y2="18" />
+		</svg>
+	);
+}
+
+function CloseIcon() {
+	return (
+		<svg
+			width="22"
+			height="22"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			aria-hidden="true"
+		>
+			<line x1="18" y1="6" x2="6" y2="18" />
+			<line x1="6" y1="6" x2="18" y2="18" />
+		</svg>
+	);
+}
+
+const SITE_NAV_LINKS = [
+	{ key: "nav.home", href: "/#hero" },
+	{ key: "nav.healthCheck", href: "/#dimensions" },
+	{ key: "nav.engineering", href: "/#expert" },
+	{ key: "nav.peace", href: "/#services" },
+	{ key: "nav.cases", href: "/#results" },
+	{ key: "nav.blog", href: "/#process" },
+	{ key: "nav.contact", href: "/#contact" },
+];
 
 function NavBar({
 	appUrl,
@@ -29,34 +76,123 @@ function NavBar({
 	resolvedTheme: ResolvedTheme;
 }) {
 	const { t } = useLocale();
+	const [mobileOpen, setMobileOpen] = useState(false);
+	const handleToggleMobile = () => setMobileOpen((v) => !v);
+	const handleCloseMobile = () => setMobileOpen(false);
+
 	return (
 		<header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 text-slate-950 backdrop-blur-sm dark:border-cyan-300/10 dark:bg-[#041225]/95 dark:text-white">
-			<div className="mx-auto flex h-14 max-w-[1180px] items-center justify-between gap-4 px-4 sm:px-6">
+			<div className="mx-auto grid h-14 w-full max-w-[1536px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-4 sm:px-6 lg:px-8">
 				<a
 					href="/"
-					className="flex items-center gap-2 font-bold text-slate-950 shrink-0 dark:text-white"
+					className="col-start-1 flex min-w-0 items-center gap-2 justify-self-start font-bold text-slate-950 dark:text-white"
 				>
 					<LogoIcon theme={resolvedTheme} />
-					<span className="hidden text-lg leading-tight sm:inline">
+					<span className="text-lg leading-tight">
 						FactorySync
 						<span className="block text-sm font-extrabold text-cyan-400 -mt-1">Solutions</span>
 					</span>
-					<span className="font-bold text-slate-950 sm:hidden dark:text-white">FS</span>
 				</a>
-				<div className="flex items-center gap-2 shrink-0">
-					<LocaleSwitcher />
-					<ThemeSwitcher theme={theme} setTheme={setTheme} />
+				<nav
+					className="col-start-2 hidden items-center justify-center gap-1 justify-self-center lg:flex"
+					aria-label="Main navigation"
+				>
+					{SITE_NAV_LINKS.map((link, index) => (
+						<a
+							key={link.key}
+							href={link.href}
+							className={cn(
+								"whitespace-nowrap px-2 py-1.5 text-xs transition-colors hover:text-cyan-700 dark:hover:text-cyan-300 xl:px-3 xl:text-sm",
+								index >= 6 && "hidden xl:inline-flex",
+								link.key === "nav.home"
+									? "text-cyan-700 dark:text-cyan-300 drop-shadow-[0_0_12px_rgba(34,211,238,0.65)]"
+									: "text-slate-600 dark:text-slate-300"
+							)}
+						>
+							{t(link.key)}
+						</a>
+					))}
+				</nav>
+				<div className="col-start-3 flex min-w-0 items-center justify-end gap-2 justify-self-end">
+					<LocaleSwitcher className="hidden lg:block" />
+					<ThemeSwitcher theme={theme} setTheme={setTheme} className="hidden lg:block" />
 					<a
 						href={appUrl}
 						className={cn(
-							buttonVariants({ size: "sm" }),
-							"rounded-md bg-blue-600 px-4 text-xs text-white shadow-[0_0_24px_rgba(37,99,235,0.35)] hover:bg-blue-500 xl:px-7 xl:text-sm"
+							buttonVariants({ variant: "outline", size: "sm" }),
+							"hidden rounded-md px-4 text-xs 2xl:inline-flex xl:px-5 xl:text-sm"
 						)}
 					>
 						{t("nav.signIn")}
 					</a>
+					<a
+						href="/register"
+						className={cn(
+							buttonVariants({ size: "sm" }),
+							"hidden rounded-md bg-blue-600 px-4 text-xs text-white shadow-[0_0_24px_rgba(37,99,235,0.35)] hover:bg-blue-500 min-[1360px]:inline-flex xl:px-5 xl:text-sm"
+						)}
+					>
+						{t("nav.signUp")}
+					</a>
+					<button
+						type="button"
+						onClick={handleToggleMobile}
+						aria-label="Toggle menu"
+						className="rounded-md p-1.5 text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10 lg:hidden"
+					>
+						{mobileOpen ? <CloseIcon /> : <MenuIcon />}
+					</button>
 				</div>
 			</div>
+
+			{mobileOpen && (
+				<div className="border-t border-slate-200 bg-white shadow-lg dark:border-cyan-300/10 dark:bg-[#06172d] lg:hidden">
+					<nav
+						className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3"
+						aria-label="Main navigation"
+					>
+						{SITE_NAV_LINKS.map((link) => (
+							<a
+								key={link.key}
+								href={link.href}
+								onClick={handleCloseMobile}
+								className="rounded-md px-3 py-2.5 text-base text-slate-700 transition-colors hover:bg-slate-100 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-cyan-300"
+							>
+								{t(link.key)}
+							</a>
+						))}
+						<a
+							href="/register"
+							onClick={handleCloseMobile}
+							className={cn(
+								buttonVariants(),
+								"mt-2 justify-center bg-blue-600 text-white hover:bg-blue-500"
+							)}
+						>
+							{t("nav.signUp")}
+						</a>
+						<a
+							href={appUrl}
+							onClick={handleCloseMobile}
+							className="mt-1 text-center text-sm text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-cyan-300"
+						>
+							{t("nav.signIn")}
+						</a>
+						<div className="mt-3 flex items-center justify-between gap-3">
+							<span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
+								{t("locale.label")}
+							</span>
+							<LocaleSwitcher />
+						</div>
+						<div className="mt-3 flex items-center justify-between gap-3">
+							<span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
+								{t("theme.label")}
+							</span>
+							<ThemeSwitcher theme={theme} setTheme={setTheme} />
+						</div>
+					</nav>
+				</div>
+			)}
 		</header>
 	);
 }
@@ -1004,10 +1140,7 @@ function LegalInner({
 						className="mb-3 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
 						aria-label="Breadcrumb"
 					>
-						<a
-							href="/"
-							className="transition-colors hover:text-slate-900 dark:hover:text-white"
-						>
+						<a href="/" className="transition-colors hover:text-slate-900 dark:hover:text-white">
 							{t("nav.home")}
 						</a>
 						<span aria-hidden="true">/</span>

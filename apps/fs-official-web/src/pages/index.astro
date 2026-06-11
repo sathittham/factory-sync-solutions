@@ -1,11 +1,84 @@
 ---
-import Layout from "../layouts/Layout.astro";
 import { LandingContent } from "../components/landing/LandingContent";
+import Layout from "../layouts/Layout.astro";
 
 const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
 const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
+
+const schemata = {
+	"@context": "https://schema.org",
+	"@graph": [
+		{
+			"@type": "Organization",
+			name: "FactorySync Solutions",
+			url: "https://www.factorysyncsolutions.com",
+			logo: "https://www.factorysyncsolutions.com/favicon-32x32.png",
+		},
+		{
+			"@type": "LocalBusiness",
+			name: "FactorySync Solutions",
+			url: "https://www.factorysyncsolutions.com",
+			address: {
+				"@type": "PostalAddress",
+				addressCountry: "TH",
+				addressLocality: "Bangkok",
+				addressRegion: "Bangkok",
+			},
+		},
+		{
+			"@type": "WebSite",
+			name: "FactorySync Solutions",
+			url: "https://www.factorysyncsolutions.com",
+			potentialAction: {
+				"@type": "SearchAction",
+				target: {
+					"@type": "EntryPoint",
+					urlTemplate: "https://www.factorysyncsolutions.com/?q={search_term_string}",
+				},
+				"query-input": "required name=search_term_string",
+			},
+		},
+		{
+			"@type": "FAQPage",
+			mainEntity: [
+				{
+					"@type": "Question",
+					name: "การตรวจสุขภาพโรงงานใช้เวลานานแค่ไหน?",
+					acceptedAnswer: {
+						"@type": "Answer",
+						text: "ประมาณ 15 นาที โดยตอบคำถาม 43 ข้อใน 8 มิติ ครอบคลุมทั้งการผลิต คุณภาพ บุคลากร และเทคโนโลยี",
+					},
+				},
+				{
+					"@type": "Question",
+					name: "ระบบเหมาะกับโรงงาน SME ขนาดไหน?",
+					acceptedAnswer: {
+						"@type": "Answer",
+						text: "เหมาะสำหรับโรงงาน SME ทุกขนาด ตั้งแต่ขนาดเล็ก (ต่ำกว่า 50 คน) ถึงขนาดกลาง (50-200 คน)",
+					},
+				},
+				{
+					"@type": "Question",
+					name: "ผลการประเมินจะนำไปใช้อะไรได้บ้าง?",
+					acceptedAnswer: {
+						"@type": "Answer",
+						text: "รายงานจะแสดงคะแนนใน 8 มิติพร้อมคำแนะนำเฉพาะ ช่วยให้ผู้บริหารวางแผนพัฒนาโรงงานได้อย่างมีทิศทาง",
+					},
+				},
+			],
+		},
+	],
+};
 ---
 
-<Layout title="FactorySync Solutions — ประเมินสุขภาพโรงงานด้วย AI">
+<Layout
+  title="FactorySync Solutions — ประเมินสุขภาพโรงงานด้วย AI"
+  description="ประเมินสุขภาพโรงงาน 8 มิติ ด้วย AI ใน 15 นาที เหมาะสำหรับ SME อุตสาหกรรมการผลิตในไทย รับรายงานพร้อมคำแนะนำที่นำไปปฏิบัติได้ทันที"
+>
+  <Fragment slot="head">
+    <link rel="alternate" hreflang="th" href="https://www.factorysyncsolutions.com/" />
+    <link rel="alternate" hreflang="x-default" href="https://www.factorysyncsolutions.com/" />
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(schemata)} />
+  </Fragment>
   <LandingContent client:load appUrl={appUrl} version={version} />
 </Layout>
