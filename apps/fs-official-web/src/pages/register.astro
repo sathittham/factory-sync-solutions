@@ -11,7 +11,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_CF_TURNSTILE_SITE_KEY ?? "";
 <Layout title="สมัครใช้งาน — FactorySync Solutions" noindex={true}>
   <SiteNavBar client:load appUrl={appUrl} />
   <RegisterContent
-    client:load
+    client:only="react"
     appUrl={appUrl}
     apiBaseUrl={apiBaseUrl}
     turnstileSiteKey={turnstileSiteKey}

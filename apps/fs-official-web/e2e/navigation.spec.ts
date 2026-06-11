@@ -18,12 +18,12 @@ test.describe("Navigation", () => {
 
 	test("header is visible on landing page", async ({ page }) => {
 		await page.goto("/");
-		await expect(page.locator("header")).toBeVisible();
+		await expect(page.locator("header").first()).toBeVisible();
 	});
 
 	test("header is visible on register page", async ({ page }) => {
 		await page.goto("/register");
-		await expect(page.locator("header")).toBeVisible();
+		await expect(page.locator("header").first()).toBeVisible();
 	});
 
 	test("logo links back to homepage", async ({ page }) => {
