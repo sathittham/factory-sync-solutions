@@ -18,8 +18,8 @@
 		"test:e2e:ui": "playwright test --ui",
 		"test:e2e:install": "playwright install --with-deps",
 		"build:staging": "npm run sync:favicon && astro build --mode staging",
-		"deploy:staging": "npm run build:staging && npx wrangler pages deploy dist --project-name=factory-sync-solutions-official-staging --branch=staging",
-		"deploy:prod": "npm run build && npx wrangler pages deploy dist --project-name=factory-sync-solutions-official --branch=main"
+		"deploy:staging": "npm run build:staging && CLOUDFLARE_ACCOUNT_ID=9cfbba8b3a373fdc0d11abaf64071719 npx wrangler pages deploy dist --project-name=factory-sync-solutions-official-staging --branch=staging",
+		"deploy:prod": "npm run build && CLOUDFLARE_ACCOUNT_ID=9cfbba8b3a373fdc0d11abaf64071719 npx wrangler pages deploy dist --project-name=factory-sync-solutions-official --branch=main"
 	},
 	"dependencies": {
 		"@astrojs/react": "^4.0.0",
