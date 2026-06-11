@@ -49,10 +49,11 @@ export function useAuth() {
 				} catch (err) {
 					console.warn('[useAuth] profile fetch error:', err);
 					if (err instanceof ApiError && err.status === 404) {
-						console.debug('[useAuth] no profile → navigate to /register');
+						console.debug('[useAuth] no profile → RegisterGuard will redirect to official-web /register');
 						dispatch(setProfile(null));
 					} else if (err instanceof ApiError && err.status === 401) {
-						console.warn('[useAuth] 401 on profile — token rejected, logging out');
+						console.warn('[useAuth] 401 on profile — token rejected, signing out Firebase session');
+						await auth.signOut();
 						dispatch(logout());
 					} else {
 						console.error('[useAuth] unexpected error on profile fetch:', err);

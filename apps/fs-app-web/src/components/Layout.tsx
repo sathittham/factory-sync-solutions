@@ -844,7 +844,7 @@ export function Layout() {
     setCookieSettings(false);
   };
 
-  const isAuthPage = ['/', '/register'].includes(location.pathname);
+  const isAuthPage = location.pathname === '/';
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
