@@ -184,6 +184,45 @@ function LocaleSwitcherRow({
   );
 }
 
+function LocaleSwitcherRow({
+  locale,
+  setLocale,
+  t,
+}: Readonly<{
+  locale: string;
+  setLocale: (l: 'th' | 'en') => void;
+  t: (key: string) => string;
+}>) {
+  const localeOptions: Array<{ value: 'th' | 'en'; label: string }> = [
+    { value: 'th', label: `TH ${t('locale.th')}` },
+    { value: 'en', label: `EN ${t('locale.en')}` },
+  ];
+
+  return (
+    <div className="px-4 py-3 border-t">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+        {t('locale.label')}
+      </p>
+      <div className="flex gap-1">
+        {localeOptions.map(({ value, label }) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setLocale(value)}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs transition-colors ${
+              locale === value
+                ? 'bg-primary/10 text-primary font-medium'
+                : 'text-muted-foreground hover:bg-muted/50'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ThemeSwitcherRow({
   theme,
   setTheme,
