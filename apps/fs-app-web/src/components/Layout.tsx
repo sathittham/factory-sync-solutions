@@ -13,11 +13,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { trackEvent, trackPageView } from '@/lib/analytics';
+import { auth } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
 import { type Theme, useTheme } from '@/lib/theme';
 import { useAppSelector } from '@/store';
+import { LocaleSwitcher } from '@shared/ui/LocaleSwitcher';
+import { ThemeSwitcher } from '@shared/ui/ThemeSwitcher';
 import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { type ReactElement, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 
@@ -66,8 +68,6 @@ const themeIcons: Record<Theme, ReactElement> = {
     </svg>
   ),
 };
-
-const localeLabels: Record<string, string> = { th: 'TH', en: 'EN' };
 
 const themeOrder: Theme[] = ['light', 'dark', 'system'];
 
@@ -118,56 +118,6 @@ const lineIcon = (
   </svg>
 );
 
-/* ─── Locale dropdown (reused in desktop-guest and mobile) ─── */
-
-function LocaleDropdown({
-  locale,
-  setLocale,
-}: Readonly<{
-  locale: string;
-  setLocale: (l: 'th' | 'en') => void;
-}>) {
-  const { t } = useLocale();
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="h-8 px-2.5 flex items-center gap-1.5 text-xs font-medium rounded-md border bg-background hover:bg-secondary transition-colors text-muted-foreground"
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="shrink-0"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-          </svg>
-          {localeLabels[locale]}
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[140px]">
-        <DropdownMenuItem
-          onClick={() => setLocale('th')}
-          className={locale === 'th' ? 'font-medium text-primary' : ''}
-        >
-          {`TH ${t('locale.th')}`}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => setLocale('en')}
-          className={locale === 'en' ? 'font-medium text-primary' : ''}
-        >
-          {`EN ${t('locale.en')}`}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
 /* ─── Theme sub-components ─── */
 
 function ThemeMenuItems({
@@ -192,33 +142,6 @@ function ThemeMenuItems({
         </DropdownMenuItem>
       ))}
     </>
-  );
-}
-
-function ThemeDropdown({
-  theme,
-  setTheme,
-  t,
-}: Readonly<{
-  theme: Theme;
-  setTheme: (t: Theme) => void;
-  t: (key: string) => string;
-}>) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="h-8 w-8 flex items-center justify-center rounded-md border bg-background hover:bg-secondary transition-colors text-muted-foreground"
-          aria-label={t('theme.label')}
-        >
-          {themeIcons[theme]}
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[140px]">
-        <ThemeMenuItems theme={theme} setTheme={setTheme} t={t} />
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }
 
@@ -490,8 +413,8 @@ function DesktopGuestNav({
 }>) {
   return (
     <>
-      <LocaleDropdown locale={locale} setLocale={setLocale} />
-      <ThemeDropdown theme={theme} setTheme={setTheme} t={t} />
+      <LocaleSwitcher locale={locale} setLocale={setLocale} t={t} />
+      <ThemeSwitcher theme={theme} setTheme={setTheme} t={t} />
       <Button size="sm" onClick={handleSignIn} className="text-xs h-8 px-3">
         {t('nav.login')}
       </Button>
@@ -716,7 +639,7 @@ function MobileHeader({
 }>) {
   return (
     <div className="flex items-center gap-1.5 sm:hidden">
-      <LocaleDropdown locale={locale} setLocale={setLocale} />
+      <LocaleSwitcher locale={locale} setLocale={setLocale} t={t} />
 
       <button
         type="button"
@@ -927,8 +850,8 @@ export function Layout() {
     <div className="min-h-screen flex flex-col bg-background">
       {isAuthPage ? (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-          <LocaleDropdown locale={locale} setLocale={setLocale} />
-          <ThemeDropdown theme={theme} setTheme={setTheme} t={t} />
+          <LocaleSwitcher locale={locale} setLocale={setLocale} t={t} />
+          <ThemeSwitcher theme={theme} setTheme={setTheme} t={t} />
         </div>
       ) : (
         <>

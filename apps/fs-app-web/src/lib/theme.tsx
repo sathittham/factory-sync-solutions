@@ -28,9 +28,7 @@ function getInitialTheme(): Theme {
 }
 
 function applyTheme(resolved: "light" | "dark") {
-	const root = document.documentElement;
-	root.classList.remove("light", "dark");
-	root.classList.add(resolved);
+	document.documentElement.classList.toggle("dark", resolved === "dark");
 }
 
 export function ThemeProvider({ children }: { readonly children: ReactNode }) {

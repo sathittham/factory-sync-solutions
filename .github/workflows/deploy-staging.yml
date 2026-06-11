@@ -19,6 +19,10 @@ on:
         description: "Force-deploy official site"
         type: boolean
         default: false
+      deploy_backoffice:
+        description: "Force-deploy backoffice web"
+        type: boolean
+        default: false
 
 jobs:
   test:
@@ -31,6 +35,7 @@ jobs:
       api: ${{ steps.detect.outputs.api }}
       web: ${{ steps.detect.outputs.web }}
       official: ${{ steps.detect.outputs.official }}
+      backoffice: ${{ steps.detect.outputs.backoffice }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -44,25 +49,27 @@ jobs:
             echo "Manual dispatch — honoring force-deploy inputs."
             { echo "api=${{ inputs.deploy_api }}";
               echo "web=${{ inputs.deploy_web }}";
-              echo "official=${{ inputs.deploy_official }}"; } >> "$GITHUB_OUTPUT"
+              echo "official=${{ inputs.deploy_official }}";
+              echo "backoffice=${{ inputs.deploy_backoffice }}"; } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           CURRENT="${GITHUB_REF_NAME}"
           PREV=$(git tag -l 'v*-staging' 'v*-staging-*' --sort=-creatordate | grep -vx "$CURRENT" | head -1)
           if [ -z "$PREV" ]; then
             echo "No previous staging tag — deploying all apps."
-            { echo "api=true"; echo "web=true"; echo "official=true"; } >> "$GITHUB_OUTPUT"
+            { echo "api=true"; echo "web=true"; echo "official=true"; echo "backoffice=true"; } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "Diffing $PREV..$CURRENT"
           CHANGED=$(git diff --name-only "$PREV" "$CURRENT")
           echo "Changed files:"; echo "$CHANGED"
-          api=false; web=false; official=false
-          if echo "$CHANGED" | grep -q '^apps/fs-backend/';                                          then api=true;      fi
-          if echo "$CHANGED" | grep -q '^apps/fs-app-web/';                                          then web=true;      fi
+          api=false; web=false; official=false; backoffice=false
+          if echo "$CHANGED" | grep -q '^apps/fs-backend/';                                              then api=true;        fi
+          if echo "$CHANGED" | grep -q '^apps/fs-app-web/';                                              then web=true;        fi
           if echo "$CHANGED" | grep -qE '^apps/fs-official-web/|^\.github/workflows/deploy-staging\.yml'; then official=true; fi
-          echo "Deploy → api=$api web=$web official=$official"
-          { echo "api=$api"; echo "web=$web"; echo "official=$official"; } >> "$GITHUB_OUTPUT"
+          if echo "$CHANGED" | grep -q '^apps/fs-backoffice-web/';                                       then backoffice=true; fi
+          echo "Deploy → api=$api web=$web official=$official backoffice=$backoffice"
+          { echo "api=$api"; echo "web=$web"; echo "official=$official"; echo "backoffice=$backoffice"; } >> "$GITHUB_OUTPUT"
 
   deploy-backend:
     name: Deploy Backend to Staging
@@ -180,9 +187,47 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy apps/fs-official-web/dist --project-name=factory-sync-solutions-official-staging --branch=staging
 
+  deploy-backoffice:
+    name: Deploy Backoffice to Staging
+    needs: [test, changes]
+    if: needs.changes.outputs.backoffice == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+    defaults:
+      run:
+        working-directory: apps/fs-backoffice-web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: apps/fs-backoffice-web/package-lock.json
+
+      - name: Install and build
+        run: |
+          npm ci
+          npm run build:staging
+        env:
+          VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/fs-backoffice-web/dist --project-name=factory-sync-backoffice-staging --branch=staging
+
   notify:
     name: Notify Slack
-    needs: [test, changes, deploy-backend, deploy-frontend, deploy-official]
+    needs: [test, changes, deploy-backend, deploy-frontend, deploy-official, deploy-backoffice]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -195,6 +240,7 @@ jobs:
           BACKEND_RESULT: ${{ needs.deploy-backend.result }}
           FRONTEND_RESULT: ${{ needs.deploy-frontend.result }}
           OFFICIAL_RESULT: ${{ needs.deploy-official.result }}
+          BACKOFFICE_RESULT: ${{ needs.deploy-backoffice.result }}
           TAG: ${{ github.ref_name }}
           ACTOR: ${{ github.actor }}
           SHA: ${{ github.sha }}
@@ -219,7 +265,7 @@ jobs:
 
           # Overall outcome: failure if any required job failed or was cancelled.
           OVERALL="success"
-          for r in "$TEST_RESULT" "$CHANGES_RESULT" "$BACKEND_RESULT" "$FRONTEND_RESULT" "$OFFICIAL_RESULT"; do
+          for r in "$TEST_RESULT" "$CHANGES_RESULT" "$BACKEND_RESULT" "$FRONTEND_RESULT" "$OFFICIAL_RESULT" "$BACKOFFICE_RESULT"; do
             if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then OVERALL="failure"; fi
           done
 
@@ -242,6 +288,7 @@ jobs:
             --arg backend "$(status_label "$BACKEND_RESULT")" \
             --arg frontend "$(status_label "$FRONTEND_RESULT")" \
             --arg official "$(status_label "$OFFICIAL_RESULT")" \
+            --arg backoffice "$(status_label "$BACKOFFICE_RESULT")" \
             --arg run_url "$RUN_URL" \
             '{
               blocks: [
@@ -256,7 +303,8 @@ jobs:
                   { type: "mrkdwn", text: "*Tests:*\n\($test)" },
                   { type: "mrkdwn", text: "*Backend:*\n\($backend)" },
                   { type: "mrkdwn", text: "*App Web:*\n\($frontend)" },
-                  { type: "mrkdwn", text: "*Official Web:*\n\($official)" }
+                  { type: "mrkdwn", text: "*Official Web:*\n\($official)" },
+                  { type: "mrkdwn", text: "*Backoffice:*\n\($backoffice)" }
                 ]},
                 { type: "actions", elements: [
                   { type: "button", text: { type: "plain_text", text: "View workflow run", emoji: true }, url: $run_url }

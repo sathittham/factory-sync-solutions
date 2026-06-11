@@ -18,7 +18,7 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const STORAGE_KEY = 'fsb-theme';
+const STORAGE_KEY = 'fss-theme';
 
 function getSystemTheme(): 'light' | 'dark' {
   if (typeof window === 'undefined') return 'light';
@@ -36,9 +36,7 @@ function getInitialTheme(): Theme {
 }
 
 function applyTheme(resolved: 'light' | 'dark') {
-  const root = document.documentElement;
-  root.classList.remove('light', 'dark');
-  root.classList.add(resolved);
+  document.documentElement.classList.toggle('dark', resolved === 'dark');
 }
 
 export function ThemeProvider({ children }: { readonly children: ReactNode }) {
