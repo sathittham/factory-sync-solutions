@@ -126,7 +126,7 @@ export function DashboardPage() {
   const uncompletedQuizzes = availableQuizzes.filter((q) => !completedQuizIds.has(q.id));
 
   // Most recent assessment's quizId, falling back to 'shindan'
-  const lastQuizId = assessments.length > 0 ? (assessments[0].quizId || 'shindan') : 'shindan';
+  const lastQuizId = assessments.length > 0 ? assessments[0].quizId || 'shindan' : 'shindan';
 
   const handleStartQuiz = (quizId: string) => {
     dispatch(resetQuiz());
@@ -422,12 +422,8 @@ export function DashboardPage() {
                   />
                 </svg>
               </div>
-              <p className="text-lg font-bold mb-1">
-                {t('quiz.noResults.title')}
-              </p>
-              <p className="text-sm text-muted-foreground mb-6">
-                {t('quiz.noResults.desc')}
-              </p>
+              <p className="text-lg font-bold mb-1">{t('quiz.noResults.title')}</p>
+              <p className="text-sm text-muted-foreground mb-6">{t('quiz.noResults.desc')}</p>
             </div>
           </ScaleIn>
         )}

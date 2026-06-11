@@ -18,7 +18,10 @@ test.describe("Landing page", () => {
 	});
 
 	test("nav bar sign-in link points to app", async ({ page }) => {
-		const signInLink = page.locator("header a").filter({ hasText: /เข้าสู่ระบบ|Sign In/i }).first();
+		const signInLink = page
+			.locator("header a")
+			.filter({ hasText: /เข้าสู่ระบบ|Sign In/i })
+			.first();
 		await expect(signInLink).toBeVisible();
 		const href = await signInLink.getAttribute("href");
 		expect(href).toBeTruthy();

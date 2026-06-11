@@ -8,13 +8,14 @@ export function NotFoundPage() {
   const navigate = useNavigate();
   const { isAuthenticated, isRegistered } = useAppSelector((s) => s.auth);
 
-  const quickLinks = isAuthenticated && isRegistered
-    ? [
-        { to: '/dashboard', label: t('nav.dashboard') },
-        { to: '/quiz', label: t('nav.quiz') },
-        { to: '/results', label: t('nav.results') },
-      ]
-    : [{ to: '/', label: t('nav.login') }];
+  const quickLinks =
+    isAuthenticated && isRegistered
+      ? [
+          { to: '/dashboard', label: t('nav.dashboard') },
+          { to: '/quiz', label: t('nav.quiz') },
+          { to: '/results', label: t('nav.results') },
+        ]
+      : [{ to: '/', label: t('nav.login') }];
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center p-6">
@@ -47,20 +48,12 @@ export function NotFoundPage() {
         </div>
 
         <h1 className="text-2xl font-bold mb-3">{t('notFound.title')}</h1>
-        <p className="text-muted-foreground mb-8 text-base leading-relaxed">
-          {t('notFound.desc')}
-        </p>
+        <p className="text-muted-foreground mb-8 text-base leading-relaxed">{t('notFound.desc')}</p>
 
         {/* Primary actions */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
           <Button variant="outline" onClick={() => navigate(-1)}>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              aria-hidden="true"
-            >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path
                 d="M10 12L6 8l4-4"
                 stroke="currentColor"
@@ -72,13 +65,7 @@ export function NotFoundPage() {
             {t('notFound.goBack')}
           </Button>
           <Link to="/" className={buttonVariants({ className: 'gap-2' })}>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              aria-hidden="true"
-            >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path
                 d="M2 8l6-5 6 5M4 7v6a1 1 0 001 1h6a1 1 0 001-1V7"
                 stroke="currentColor"

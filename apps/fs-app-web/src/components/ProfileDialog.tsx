@@ -917,7 +917,6 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
             </div>
           </div>
 
-
           {/* Feedback messages */}
           {error && (
             <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm text-center animate-scale-in mb-4">

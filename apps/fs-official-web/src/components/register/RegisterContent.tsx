@@ -1,4 +1,3 @@
-import heroBackground from "@/fs-bg.png";
 import { Turnstile } from "@/components/Turnstile";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +10,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import heroBackground from "@/fs-bg.png";
 import { LocaleProvider, useLocale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -178,9 +178,11 @@ function StepIndicator({ current }: { readonly current: PageStep }) {
 				if (isDone) {
 					circleStyle = "border-blue-600 bg-blue-600 text-white";
 				} else if (isActive) {
-					circleStyle = "border-blue-600 bg-blue-600 text-white shadow-[0_0_0_4px_rgba(37,99,235,0.15)]";
+					circleStyle =
+						"border-blue-600 bg-blue-600 text-white shadow-[0_0_0_4px_rgba(37,99,235,0.15)]";
 				} else {
-					circleStyle = "border-slate-300 bg-white text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-500";
+					circleStyle =
+						"border-slate-300 bg-white text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-500";
 				}
 
 				let labelStyle: string;
@@ -204,12 +206,7 @@ function StepIndicator({ current }: { readonly current: PageStep }) {
 							>
 								{isDone ? <Check className="h-4 w-4 stroke-[3]" /> : stepNum}
 							</div>
-							<span
-								className={cn(
-									"text-center text-[11px] leading-tight font-medium",
-									labelStyle
-								)}
-							>
+							<span className={cn("text-center text-[11px] leading-tight font-medium", labelStyle)}>
 								{t(key)}
 							</span>
 						</div>

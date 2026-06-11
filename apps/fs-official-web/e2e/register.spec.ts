@@ -13,7 +13,10 @@ test.describe("Register page", () => {
 
 	test("nav bar has sign-in link", async ({ page }) => {
 		// Sign In button visible in desktop nav
-		const signInLink = page.locator("header a").filter({ hasText: /เข้าสู่ระบบ|Sign In/i }).first();
+		const signInLink = page
+			.locator("header a")
+			.filter({ hasText: /เข้าสู่ระบบ|Sign In/i })
+			.first();
 		await expect(signInLink).toBeVisible();
 	});
 

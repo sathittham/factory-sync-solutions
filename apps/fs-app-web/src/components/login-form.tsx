@@ -5,16 +5,12 @@ import { trackEvent } from '@/lib/analytics';
 import { auth, googleProvider } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme';
-import { mapFirebaseError } from '@shared/lib/firebaseErrors';
 import fsDarkLogo from '@shared/brand/fs-dark.png';
 import fsLightLogo from '@shared/brand/fs-light.png';
-import { LoginPageLayout } from '@shared/ui/LoginPageLayout';
+import { mapFirebaseError } from '@shared/lib/firebaseErrors';
 import { GoogleSignInButton } from '@shared/ui/GoogleSignInButton';
-import {
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-} from 'firebase/auth';
+import { LoginPageLayout } from '@shared/ui/LoginPageLayout';
+import { sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 
@@ -112,11 +108,7 @@ export function LoginForm() {
       appHref="https://factorysyncsolutions.com"
       backgroundImage="/fs-bg.png"
       imageClassName="object-right"
-      footer={
-        <>
-          FactorySync Solutions &middot; @factorysyncsolutions &middot; {__APP_VERSION__}
-        </>
-      }
+      footer={<>FactorySync Solutions &middot; @factorysyncsolutions &middot; {__APP_VERSION__}</>}
     >
       <div className="flex flex-col gap-6">
         <div className="flex flex-col items-center gap-2 text-center">
@@ -167,9 +159,7 @@ export function LoginForm() {
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   onClick={() => setShowPassword((v) => !v)}
-                  aria-label={
-                    showPassword ? t('signin.hidePassword') : t('signin.showPassword')
-                  }
+                  aria-label={showPassword ? t('signin.hidePassword') : t('signin.showPassword')}
                 >
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>

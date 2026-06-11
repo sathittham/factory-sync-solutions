@@ -1,12 +1,12 @@
-import { Navigate, Outlet } from "react-router";
-import { useAppSelector } from "@/store";
+import { useAppSelector } from '@/store';
+import { Navigate, Outlet } from 'react-router';
 
 export function AdminGuard() {
-	const { isAdmin } = useAppSelector((s) => s.auth);
+  const { isAdmin } = useAppSelector((s) => s.auth);
 
-	if (!isAdmin) {
-		return <Navigate to="/" replace />;
-	}
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
 
-	return <Outlet />;
+  return <Outlet />;
 }
