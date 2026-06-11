@@ -53,6 +53,23 @@ ci(deploy): add staging deployment workflow
 
 ## Your Task
 
+### Step 0 — Branch guard (MANDATORY)
+
+**Before doing anything else**, check the current branch:
+
+```bash
+git branch --show-current
+```
+
+If the current branch is `main`, `staging`, or `develop` — **STOP**. Do not stage or commit anything. Tell the user:
+
+> "You are on `<branch>`, which is a protected branch. Create a feature branch first:
+> `git checkout -b feature/<short-description>`"
+
+Only proceed once confirmed to be on a `feature/*`, `bugfix/*`, `hotfix/*`, `docs/*`, `refactor/*`, or `chore/*` branch.
+
+---
+
 ### Step 1 — Determine scope and type
 
 Inspect `git status --short` and `git diff --stat`:
@@ -144,7 +161,7 @@ If no upstream yet:
 git push -u origin <current-branch>
 ```
 
-**NEVER** push directly to `main`. If currently on `main`, stop and warn the user.
+**NEVER** push directly to `main`, `staging`, or `develop`. If currently on any of these protected branches, stop and warn the user — see Step 0.
 
 ### Step 6 — Confirm
 
@@ -160,6 +177,6 @@ git log --oneline -1
 - **NEVER** `git push --force` or `git push -f`
 - **NEVER** `--no-verify` (skip hooks)
 - **NEVER** commit `.env*`, `firebase-sa.json`, `coverage.out`, or secrets
-- **NEVER** push directly to `main`
+- **NEVER** push directly to `main`, `staging`, or `develop`
 - **ALWAYS** create a new commit after hook failure — never amend
 - If anything is unclear, ask before acting

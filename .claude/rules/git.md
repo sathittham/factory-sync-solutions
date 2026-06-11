@@ -4,6 +4,34 @@ description: Git workflow rules — branch naming, commit format, workflow comma
 
 # Git Rules
 
+## CRITICAL — Protected Branches
+
+**NEVER commit or push directly to `main`, `staging`, or `develop`.**
+
+All code changes go through a feature branch first:
+
+```
+feature/<name>  →  develop  →  staging  →  main
+```
+
+Before making any change, check the current branch:
+```bash
+git branch --show-current
+```
+
+If you are on `main`, `staging`, or `develop` — **stop**. Create a feature branch:
+```bash
+git checkout -b feature/<short-description>
+```
+
+Only these operations are allowed directly on protected branches:
+- Fast-forward merges during release promotion (`git merge --ff-only`)
+- Creating/pushing release tags
+
+Violating this rule means manually syncing all three branches and may break CI deploys.
+
+---
+
 ## Branch Naming
 
 Format: `<type>/<short-description>`
@@ -103,14 +131,37 @@ git push origin vX.Y.Z                 # → triggers production deploy
 | `staging` → `main` | Fast-forward / Merge |
 | `hotfix/*` → `main` | Merge Commit |
 
+## Branch Cleanup After Merge (MANDATORY)
+
+After any feature/bugfix branch is merged into `develop`, **delete it both locally and on the remote**:
+
+```bash
+# 1. Switch to develop and pull the merge commit
+git checkout develop
+git pull origin develop
+
+# 2. Delete the local branch (squash merges need -D)
+git branch -D feature/<name>
+
+# 3. Delete the remote branch
+git push origin --delete feature/<name>
+
+# 4. Prune stale remote-tracking refs
+git fetch origin --prune
+```
+
+The `pull-request.js` workflow does all of this automatically in its Cleanup phase.
+
+**Never leave merged branches around** — they litter `git branch -a` and create confusion about what's in-flight.
+
 ## Rules
 
 - Check current branch before making changes
 - Never force push to `main`
-- Create feature branches for all code changes — never commit directly to `main`
+- Create feature branches for all code changes — never commit directly to `main`, `staging`, or `develop`
 - Promote releases through `staging` and verify before tagging `main` for production
-- Delete branches after merge
+- Delete feature/bugfix branches locally AND remotely immediately after merging into `develop`
 - Never commit `.env*`, `firebase-sa.json`, or any credentials
 
-*Version: 1.1.0*
-*Last updated: 09 June 2026*
+*Version: 1.2.0*
+*Last updated: 11 June 2026*

@@ -80,6 +80,8 @@ Invoke with `/skill-name` in Claude Code.
 |-------|-------------|
 | `/code-review` | Review the current diff — 5-point checklist (security, best-practice, performance, correctness, maintainability) |
 | `/commit` | Stage and commit with the proper `<type>(<scope>): description` format |
+| `/deploy staging` | Rebuild and deploy all (or named) frontend apps to Cloudflare Pages staging |
+| `/deploy prod` | Rebuild and deploy all (or named) frontend apps to Cloudflare Pages production |
 | `/shadcn` | Manage shadcn/ui components — add, search, fix, compose |
 
 ---

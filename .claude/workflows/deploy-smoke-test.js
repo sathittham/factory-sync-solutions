@@ -22,6 +22,11 @@ const APP_CONFIG = {
     staging:    { script: 'deploy:staging', url: 'https://factory-sync-solutions-staging.pages.dev',          cfProject: 'factory-sync-solutions-staging' },
     prod:       { script: 'deploy:prod',    url: 'https://factory-sync-solutions.pages.dev',                  cfProject: 'factory-sync-solutions' },
   },
+  'fs-backoffice-web': {
+    dir:        'apps/fs-backoffice-web',
+    staging:    { script: 'deploy:staging', url: 'https://factory-sync-backoffice-staging.pages.dev',         cfProject: 'factory-sync-backoffice-staging' },
+    prod:       { script: 'deploy:prod',    url: 'https://factory-sync-backoffice.pages.dev',                 cfProject: 'factory-sync-backoffice' },
+  },
   'fs-official-web': {
     dir:        'apps/fs-official-web',
     staging:    { script: 'deploy:staging', url: 'https://factory-sync-solutions-official-staging.pages.dev', cfProject: 'factory-sync-solutions-official-staging' },
