@@ -138,6 +138,7 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
           VITE_CF_TURNSTILE_SITE_KEY: ${{ vars.VITE_CF_TURNSTILE_SITE_KEY }}
+          VITE_OFFICIAL_WEB_URL: https://staging.factorysyncsolutions.com
           # Analytics intentionally disabled on staging — keeps test traffic out
           # of production GTM/GA. Production injects these in deploy-production.yml.
 
@@ -179,6 +180,14 @@ jobs:
         env:
           PUBLIC_APP_URL: https://app-staging.factorysyncsolutions.com
           PUBLIC_APP_VERSION: ${{ steps.version.outputs.version }}
+          PUBLIC_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          PUBLIC_CF_TURNSTILE_SITE_KEY: ${{ vars.VITE_CF_TURNSTILE_SITE_KEY }}
+          PUBLIC_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
+          PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
+          PUBLIC_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
+          PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
+          PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          PUBLIC_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
