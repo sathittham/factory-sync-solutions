@@ -17,8 +17,8 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "build:staging": "npm run sync:favicon && tsc -b && vite build --mode staging",
-    "deploy:staging": "npm run build:staging && npx wrangler pages deploy dist --project-name=factory-sync-solutions-staging --branch=staging",
-    "deploy:prod": "npm run build && npx wrangler pages deploy dist --project-name=factory-sync-solutions --branch=main"
+    "deploy:staging": "npm run build:staging && CLOUDFLARE_ACCOUNT_ID=9cfbba8b3a373fdc0d11abaf64071719 npx wrangler pages deploy dist --project-name=factory-sync-solutions-staging --branch=staging",
+    "deploy:prod": "npm run build && CLOUDFLARE_ACCOUNT_ID=9cfbba8b3a373fdc0d11abaf64071719 npx wrangler pages deploy dist --project-name=factory-sync-solutions --branch=main"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
