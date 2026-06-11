@@ -22,11 +22,10 @@ export function getInitialTheme(): Theme {
 }
 
 export function useTheme() {
-	const [theme, setThemeState] = useState<Theme>(getInitialTheme);
-	const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() => {
-		const initial = getInitialTheme();
-		return initial === "system" ? getSystemTheme() : (initial as ResolvedTheme);
-	});
+	// SSR-safe defaults — no localStorage/window access at initialisation time.
+	// Both values are updated in effects after hydration to avoid mismatch error #418.
+	const [theme, setThemeState] = useState<Theme>("system");
+	const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
 
 	const setTheme = useCallback((t: Theme) => {
 		setThemeState(t);
@@ -35,6 +34,12 @@ export function useTheme() {
 		} catch {}
 	}, []);
 
+	// Read stored preference once after mount (deferred to avoid hydration mismatch).
+	useEffect(() => {
+		setThemeState(getInitialTheme());
+	}, []);
+
+	// Apply theme to DOM whenever `theme` changes (including after the mount read above).
 	useEffect(() => {
 		const applyTheme = () => {
 			const next = theme === "system" ? getSystemTheme() : theme;
