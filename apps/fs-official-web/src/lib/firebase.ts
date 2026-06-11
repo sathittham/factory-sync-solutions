@@ -10,6 +10,13 @@ const firebaseConfig = {
 	appId: import.meta.env.PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+// Guard against SSR — firebase/auth is browser-only; client:only islands still
+// have their modules evaluated in Node during Vite's SSR pass.
+const app =
+	globalThis.window !== undefined && firebaseConfig.apiKey
+		? initializeApp(firebaseConfig)
+		: null;
+
+// biome-ignore lint/suspicious/noExplicitAny: null placeholder for SSR; always a real Auth in browser
+export const auth: ReturnType<typeof getAuth> = app ? getAuth(app) : (null as any);
 export const googleProvider = new GoogleAuthProvider();

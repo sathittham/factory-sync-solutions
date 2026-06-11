@@ -1128,11 +1128,14 @@ function PageBg({
 function RegisterInner({ appUrl, apiBaseUrl, turnstileSiteKey }: RegisterContentProps) {
 	const { t } = useLocale();
 	// null = loading, false = unauthenticated, User = authenticated
-	const [authUser, setAuthUser] = useState<User | null | false>(null);
+	// null = waiting for Firebase; false = not signed in; User = signed in
+	// Start as false immediately if Firebase is not configured (auth is null in SSR/dev without .env)
+	const [authUser, setAuthUser] = useState<User | null | false>(auth ? null : false);
 	const [pageStep, setPageStep] = useState<PageStep>(1);
 	const mountedRef = useRef(true);
 
 	useEffect(() => {
+		if (!auth) return;
 		mountedRef.current = true;
 		const unsubscribe = onAuthStateChanged(auth, (user) => {
 			if (mountedRef.current) {
