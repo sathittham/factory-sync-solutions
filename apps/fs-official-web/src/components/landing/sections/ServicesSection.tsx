@@ -1,7 +1,6 @@
 "use client";
 
-import { StaggerChildren, StaggerItem } from "@/components/motion";
-import { FadeIn } from "@/components/motion";
+import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion";
 import { useLocale } from "@/lib/i18n";
 
 // ---------------------------------------------------------------------------

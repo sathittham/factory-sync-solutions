@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from "react";
 // Icons
 // ---------------------------------------------------------------------------
 
-function LogoIcon({ theme = "dark" }: { theme?: "dark" | "light" }) {
+function LogoIcon({ theme = "dark" }: { readonly theme?: "dark" | "light" }) {
 	const logo = theme === "dark" ? fsDarkLogo : fsLightLogo;
 	return (
 		<img
@@ -169,9 +169,9 @@ function ThemeSwitcher({
 	setTheme,
 	className,
 }: {
-	theme: Theme;
-	setTheme: (theme: Theme) => void;
-	className?: string;
+	readonly theme: Theme;
+	readonly setTheme: (theme: Theme) => void;
+	readonly className?: string;
 }) {
 	const { t } = useLocale();
 	const [open, setOpen] = useState(false);
@@ -249,7 +249,7 @@ const LOCALE_OPTIONS: Array<{ value: Locale; code: string; label: string }> = [
 	{ value: "en", code: "EN", label: "English" },
 ];
 
-function LocaleSwitcher({ className }: { className?: string }) {
+function LocaleSwitcher({ className }: { readonly className?: string }) {
 	const { locale, setLocale, t } = useLocale();
 	const [open, setOpen] = useState(false);
 	const ref = useRef<HTMLDivElement>(null);
@@ -332,7 +332,7 @@ const PAGE_LINKS = [
 // SiteNavBarInner
 // ---------------------------------------------------------------------------
 
-function SiteNavBarInner({ appUrl }: { appUrl: string }) {
+function SiteNavBarInner({ appUrl }: { readonly appUrl: string }) {
 	const { t } = useLocale();
 	const { theme, setTheme, resolvedTheme } = useTheme();
 	const [mobileOpen, setMobileOpen] = useState(false);
@@ -361,7 +361,7 @@ function SiteNavBarInner({ appUrl }: { appUrl: string }) {
 				>
 					<LogoIcon theme={resolvedTheme} />
 					<span className="text-lg leading-tight">
-						FactorySync
+						{"FactorySync"}
 						<span className="block text-sm font-extrabold text-cyan-400 -mt-1">Solutions</span>
 					</span>
 				</a>
@@ -452,7 +452,7 @@ function SiteNavBarInner({ appUrl }: { appUrl: string }) {
 // Public export — wraps its own LocaleProvider so it works as a standalone island
 // ---------------------------------------------------------------------------
 
-export function SiteNavBar({ appUrl }: { appUrl: string }) {
+export function SiteNavBar({ appUrl }: { readonly appUrl: string }) {
 	return (
 		<LocaleProvider>
 			<SiteNavBarInner appUrl={appUrl} />

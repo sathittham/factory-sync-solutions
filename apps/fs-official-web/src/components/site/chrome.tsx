@@ -1,20 +1,20 @@
 "use client";
 
 import { type Locale, useLocale } from "@/lib/i18n";
-import { type ResolvedTheme, type Theme, useTheme } from "@/lib/theme";
+import { type ResolvedTheme, type Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import fsDarkLogo from "@shared/brand/fs-dark.png";
 import fsLightLogo from "@shared/brand/fs-light.png";
 import { Fragment, useEffect, useRef, useState } from "react";
 
 export type { Theme, ResolvedTheme };
-export { useTheme };
+export { useTheme } from "@/lib/theme";
 
 // ---------------------------------------------------------------------------
 // Logo
 // ---------------------------------------------------------------------------
 
-export function LogoIcon({ theme = "dark" }: { theme?: "dark" | "light" }) {
+export function LogoIcon({ theme = "dark" }: { readonly theme?: "dark" | "light" }) {
 	const logo = theme === "dark" ? fsDarkLogo : fsLightLogo;
 
 	return (
@@ -141,9 +141,9 @@ export function ThemeSwitcher({
 	setTheme,
 	className,
 }: {
-	theme: Theme;
-	setTheme: (theme: Theme) => void;
-	className?: string;
+	readonly theme: Theme;
+	readonly setTheme: (theme: Theme) => void;
+	readonly className?: string;
 }) {
 	const { t } = useLocale();
 	const [open, setOpen] = useState(false);
@@ -224,7 +224,7 @@ const LOCALE_OPTIONS: Array<{ value: Locale; code: string; label: string }> = [
 	{ value: "en", code: "EN", label: "English" },
 ];
 
-export function LocaleSwitcher({ className }: { className?: string }) {
+export function LocaleSwitcher({ className }: { readonly className?: string }) {
 	const { locale, setLocale, t } = useLocale();
 	const [open, setOpen] = useState(false);
 	const ref = useRef<HTMLDivElement>(null);
@@ -305,8 +305,8 @@ export function SiteFooter({
 	version,
 	resolvedTheme,
 }: {
-	version: string;
-	resolvedTheme: ResolvedTheme;
+	readonly version: string;
+	readonly resolvedTheme: ResolvedTheme;
 }) {
 	const { t } = useLocale();
 	const year = new Date().getFullYear();

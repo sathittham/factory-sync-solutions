@@ -10,7 +10,7 @@ import {
 	useTheme,
 } from "@/components/site/chrome";
 import { buttonVariants } from "@/components/ui/button";
-import { type Locale, LocaleProvider, useLocale } from "@/lib/i18n";
+import { LocaleProvider, useLocale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export type ServiceSlug =
@@ -29,10 +29,10 @@ function NavBar({
 	setTheme,
 	resolvedTheme,
 }: {
-	appUrl: string;
-	theme: Theme;
-	setTheme: (t: Theme) => void;
-	resolvedTheme: ResolvedTheme;
+	readonly appUrl: string;
+	readonly theme: Theme;
+	readonly setTheme: (t: Theme) => void;
+	readonly resolvedTheme: ResolvedTheme;
 }) {
 	const { t } = useLocale();
 	return (
@@ -44,7 +44,7 @@ function NavBar({
 				>
 					<LogoIcon theme={resolvedTheme} />
 					<span className="hidden text-lg leading-tight sm:inline">
-						FactorySync
+						{"FactorySync"}
 						<span className="block text-sm font-extrabold text-cyan-400 -mt-1">Solutions</span>
 					</span>
 					<span className="font-bold text-slate-950 sm:hidden dark:text-white">FS</span>
@@ -401,9 +401,9 @@ function ServiceInner({
 	appUrl,
 	version,
 }: {
-	slug: ServiceSlug;
-	appUrl: string;
-	version: string;
+	readonly slug: ServiceSlug;
+	readonly appUrl: string;
+	readonly version: string;
 }) {
 	const { locale, t } = useLocale();
 	const { theme, resolvedTheme, setTheme } = useTheme();
@@ -608,9 +608,9 @@ export function getServiceTagline(slug: ServiceSlug, locale: "th" | "en" = "th")
 }
 
 export interface ServiceContentProps {
-	slug: ServiceSlug;
-	appUrl: string;
-	version: string;
+	readonly slug: ServiceSlug;
+	readonly appUrl: string;
+	readonly version: string;
 }
 
 export function ServiceContent({ slug, appUrl, version }: ServiceContentProps) {

@@ -87,7 +87,7 @@ const HERO_STATS = [
 	},
 ];
 
-export function HeroSection({ appUrl }: { appUrl: string }) {
+export function HeroSection({ appUrl }: { readonly appUrl: string }) {
 	const { t } = useLocale();
 
 	return (
@@ -105,7 +105,7 @@ export function HeroSection({ appUrl }: { appUrl: string }) {
 			</div>
 			<div className="relative mx-auto flex min-h-[500px] max-w-[1180px] flex-col md:min-h-[430px] md:flex-row">
 				{/* ── LEFT: text ─────────────────────────────────── */}
-				<div className="flex max-w-[650px] flex-1 flex-col justify-center px-6 py-12 text-slate-950 sm:px-10 md:max-w-[640px] md:px-4 md:py-14 lg:max-w-[720px] dark:text-white">
+				<div className="flex max-w-[650px] flex-col px-6 py-12 text-slate-950 sm:px-10 md:flex-1 md:justify-center md:max-w-[640px] md:px-4 md:py-14 lg:max-w-[720px] dark:text-white">
 					<FadeIn delay={0}>
 						<h1 className="mb-4 text-[34px] font-extrabold leading-[1.08] tracking-tight sm:text-[40px] md:text-[38px] xl:text-[48px]">
 							<span className="block">{t("landing.hero.title1")}</span>

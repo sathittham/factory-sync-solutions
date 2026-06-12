@@ -1,6 +1,6 @@
 "use client";
 
-import { type Locale, LocaleProvider } from "@/lib/i18n";
+import { LocaleProvider } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 import { NavBar } from "./NavBar";
 import { BottomCtaSection } from "./sections/BottomCtaSection";
@@ -13,7 +13,7 @@ import { ResultsSection } from "./sections/ResultsSection";
 import { ServicesSection } from "./sections/ServicesSection";
 import { TrustBarSection } from "./sections/TrustBarSection";
 
-function LandingInner({ appUrl, version }: { appUrl: string; version: string }) {
+function LandingInner({ appUrl, version }: { readonly appUrl: string; readonly version: string }) {
 	const { theme, resolvedTheme, setTheme } = useTheme();
 
 	return (
@@ -35,8 +35,8 @@ function LandingInner({ appUrl, version }: { appUrl: string; version: string }) 
 }
 
 export interface LandingContentProps {
-	appUrl: string;
-	version: string;
+	readonly appUrl: string;
+	readonly version: string;
 }
 
 export function LandingContent({ appUrl, version }: LandingContentProps) {
@@ -48,4 +48,4 @@ export function LandingContent({ appUrl, version }: LandingContentProps) {
 }
 
 // Re-export Locale type so consumers don't need a separate import
-export type { Locale };
+export type { Locale } from "@/lib/i18n";
