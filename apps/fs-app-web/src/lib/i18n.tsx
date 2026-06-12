@@ -124,6 +124,12 @@ const translations: Record<Locale, Record<string, string>> = {
     'signin.errorPasswordMismatch': 'รหัสผ่านไม่ตรงกัน', // NOSONAR typescript:S2068
     'signin.errorAccountExistsOtherProvider': 'อีเมลนี้ใช้วิธีการเข้าสู่ระบบอื่น ลองเข้าสู่ระบบด้วย Google แทน',
 
+    // No profile dialog
+    'noProfile.title': 'ไม่พบบัญชีบริษัท',
+    'noProfile.desc': 'คุณยังไม่มีบัญชีบริษัทในระบบ ต้องการสร้างบริษัทใหม่หรือไม่?',
+    'noProfile.create': 'สร้างบริษัท',
+    'noProfile.signOut': 'ออกจากระบบ',
+
     // Register
     'register.title': 'ลงทะเบียนบริษัท',
     'register.subtitle': 'กรอกข้อมูลบริษัทเพื่อเริ่มการประเมิน',
@@ -427,6 +433,12 @@ const translations: Record<Locale, Record<string, string>> = {
     'signin.errorPasswordMismatch': 'Passwords do not match',
     'signin.errorAccountExistsOtherProvider':
       'This email uses a different sign-in method. Try signing in with Google instead.',
+
+    // No profile dialog
+    'noProfile.title': 'No Company Account Found',
+    'noProfile.desc': "You don't have a company account yet. Would you like to create one?",
+    'noProfile.create': 'Create Company',
+    'noProfile.signOut': 'Sign Out',
 
     // Register
     'register.title': 'Register Your Company',

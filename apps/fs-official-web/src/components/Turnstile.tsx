@@ -31,6 +31,17 @@ interface TurnstileProps {
 	readonly language?: string;
 }
 
+const TURNSTILE_SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+
+function ensureTurnstileScript(): void {
+	if (document.querySelector(`script[src="${TURNSTILE_SCRIPT_SRC}"]`)) return;
+	const script = document.createElement("script");
+	script.src = TURNSTILE_SCRIPT_SRC;
+	script.async = true;
+	script.defer = true;
+	document.head.appendChild(script);
+}
+
 export function Turnstile({ siteKey, onVerify, onExpire, onError, language }: TurnstileProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const widgetIdRef = useRef<string | null>(null);
@@ -49,6 +60,8 @@ export function Turnstile({ siteKey, onVerify, onExpire, onError, language }: Tu
 	}, [siteKey, onVerify, onExpire, onError, language]);
 
 	useEffect(() => {
+		ensureTurnstileScript();
+
 		if (globalThis.turnstile) {
 			renderWidget();
 			return;

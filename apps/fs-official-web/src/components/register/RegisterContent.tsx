@@ -752,14 +752,14 @@ function RegistrationForm({
 
 			// Check existing profile
 			const checkRes = await fetch(`${apiBaseUrl}/profile/check/${regId}`, { headers });
-			const check: CheckRegIdResponse | null = checkRes.ok ? await checkRes.json() : null;
+			const check: CheckRegIdResponse | null = checkRes.ok ? (await checkRes.json()).data : null;
 			const hasExisting = check?.registered === true;
 			if (hasExisting && check) prefillFromExisting(check);
 
 			// DBD lookup
 			const dbdRes = await fetch(`${apiBaseUrl}/dbd/${regId}`, { headers });
 			if (dbdRes.ok) {
-				const dbdData: DbdCompanyProfile = await dbdRes.json();
+				const { data: dbdData }: { data: DbdCompanyProfile } = await dbdRes.json();
 				setDbdInfo(dbdData);
 				if (!hasExisting) prefillFromDbd(dbdData);
 			}
@@ -1180,8 +1180,8 @@ function RegisterInner({ appUrl, apiBaseUrl, turnstileSiteKey }: RegisterContent
 	}, []);
 
 	const handleSuccess = useCallback(() => {
-		setPageStep(4);
-	}, []);
+		window.location.href = appUrl;
+	}, [appUrl]);
 
 	// Loading spinner while Firebase resolves auth state
 	if (authUser === null) {

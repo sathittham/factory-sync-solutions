@@ -20,6 +20,7 @@ export function useAuth() {
       console.debug('[useAuth] onAuthStateChanged fired — user:', firebaseUser?.uid ?? null);
 
       if (firebaseUser) {
+        dispatch(setLoading(true));
         dispatch(
           setUser({
             uid: firebaseUser.uid,
