@@ -444,7 +444,7 @@ export function ResultPage() {
         .catch(() => {})
         .finally(() => dispatch(setLoading(false)));
     }
-  }, [assessment, loading, dispatch]);
+  }, [assessment, dispatch]);
 
   // Fetch available quizzes for tab names
   useEffect(() => {

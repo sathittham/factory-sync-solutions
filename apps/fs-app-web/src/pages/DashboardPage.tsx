@@ -92,7 +92,7 @@ export function DashboardPage() {
         .catch(() => {})
         .finally(() => dispatch(setResultLoading(false)));
     }
-  }, [assessments.length, resultLoading, dispatch]);
+  }, [assessments.length, dispatch]);
 
   useEffect(() => {
     if (availableQuizzes.length === 0) {
