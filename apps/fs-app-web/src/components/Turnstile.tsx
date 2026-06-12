@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 declare global {
-  interface Window {
-    turnstile?: {
-      render: (container: HTMLElement, options: TurnstileOptions) => string;
-      reset: (widgetId: string) => void;
-      remove: (widgetId: string) => void;
-    };
-  }
+  var turnstile:
+    | {
+        render: (container: HTMLElement, options: TurnstileOptions) => string;
+        reset: (widgetId: string) => void;
+        remove: (widgetId: string) => void;
+      }
+    | undefined;
 }
 
 interface TurnstileOptions {
@@ -32,9 +32,9 @@ export function Turnstile({ siteKey, onVerify, onExpire, onError, language }: Tu
   const widgetIdRef = useRef<string | null>(null);
 
   const renderWidget = useCallback(() => {
-    if (!containerRef.current || !window.turnstile || widgetIdRef.current) return;
+    if (!containerRef.current || !globalThis.turnstile || widgetIdRef.current) return;
 
-    widgetIdRef.current = window.turnstile.render(containerRef.current, {
+    widgetIdRef.current = globalThis.turnstile.render(containerRef.current, {
       sitekey: siteKey,
       callback: onVerify,
       'expired-callback': onExpire,
@@ -45,13 +45,13 @@ export function Turnstile({ siteKey, onVerify, onExpire, onError, language }: Tu
   }, [siteKey, onVerify, onExpire, onError, language]);
 
   useEffect(() => {
-    if (window.turnstile) {
+    if (globalThis.turnstile) {
       renderWidget();
       return;
     }
 
     const interval = setInterval(() => {
-      if (window.turnstile) {
+      if (globalThis.turnstile) {
         clearInterval(interval);
         renderWidget();
       }
@@ -59,8 +59,8 @@ export function Turnstile({ siteKey, onVerify, onExpire, onError, language }: Tu
 
     return () => {
       clearInterval(interval);
-      if (widgetIdRef.current && window.turnstile) {
-        window.turnstile.remove(widgetIdRef.current);
+      if (widgetIdRef.current && globalThis.turnstile) {
+        globalThis.turnstile.remove(widgetIdRef.current);
         widgetIdRef.current = null;
       }
     };

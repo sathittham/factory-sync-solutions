@@ -1,5 +1,7 @@
-import { AnimatePresence, motion, useInView } from 'motion/react';
+import { motion, useInView } from 'motion/react';
 import { type ReactNode, useRef } from 'react';
+
+export { AnimatePresence } from 'motion/react';
 
 /** Fade-up on scroll into view */
 function FadeIn({
@@ -105,4 +107,4 @@ function ScaleIn({
   );
 }
 
-export { motion, AnimatePresence, FadeIn, StaggerChildren, StaggerItem, ScaleIn };
+export { motion, FadeIn, StaggerChildren, StaggerItem, ScaleIn };

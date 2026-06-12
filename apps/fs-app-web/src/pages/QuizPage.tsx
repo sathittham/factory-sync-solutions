@@ -153,7 +153,8 @@ function QuestionCard({
           {rubricOrder.map((val) => {
             const isSelected = selectedValue === val;
             const rubricText = q.rubric?.[String(val)];
-            const label = rubricText ? (locale === 'th' ? rubricText.th : rubricText.en) : '';
+            const rubricLocale = locale === 'th' ? rubricText?.th : rubricText?.en;
+            const label = rubricLocale ?? '';
             const displayLabel = useGradeLabels ? GRADE_LABELS[val] : String(val);
             return (
               <button

@@ -36,7 +36,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   const json = await res.json();
   // API wraps all responses as { success, data, ... } — unwrap automatically
-  return json.data !== undefined ? json.data : json;
+  return json.data === undefined ? json : json.data;
 }
 
 export class ApiError extends Error {
