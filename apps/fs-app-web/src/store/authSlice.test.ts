@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import authReducer, { setUser, setProfile, setLoading, logout } from './authSlice';
+import authReducer, { setUser, setProfile, setHasCompletedQuiz, setLoading, logout } from './authSlice';
 
 describe('authSlice', () => {
   const initial = authReducer(undefined, { type: 'unknown' });
@@ -10,6 +10,7 @@ describe('authSlice', () => {
     expect(initial.isAuthenticated).toBe(false);
     expect(initial.isRegistered).toBe(false);
     expect(initial.isAdmin).toBe(false);
+    expect(initial.hasCompletedQuiz).toBe(false);
     expect(initial.loading).toBe(true);
   });
 
@@ -74,6 +75,34 @@ describe('authSlice', () => {
     expect(state.isAdmin).toBe(false);
   });
 
+  it('setProfile null clears registered flags', () => {
+    let state = authReducer(
+      initial,
+      setProfile({
+        uid: 'u-1',
+        email: 'a@b.com',
+        displayName: 'Test',
+        companyName: 'Co',
+        companyRegId: '1234567890123',
+        industryType: 'manufacturing',
+        companySize: 'medium',
+        contactName: 'T',
+        contactEmail: 't@t.com',
+        contactPhone: '0812345678',
+        role: 'admin',
+      }),
+    );
+    state = authReducer(state, setProfile(null));
+    expect(state.isRegistered).toBe(false);
+    expect(state.isAdmin).toBe(false);
+    expect(state.profile).toBeNull();
+  });
+
+  it('setHasCompletedQuiz', () => {
+    const state = authReducer(initial, setHasCompletedQuiz(true));
+    expect(state.hasCompletedQuiz).toBe(true);
+  });
+
   it('setLoading', () => {
     const state = authReducer(initial, setLoading(false));
     expect(state.loading).toBe(false);
@@ -84,10 +113,12 @@ describe('authSlice', () => {
       initial,
       setUser({ uid: 'u-1', email: 'a@b.com', displayName: 'Test', photoURL: null }),
     );
+    state = authReducer(state, setHasCompletedQuiz(true));
     state = authReducer(state, logout());
     expect(state.user).toBeNull();
     expect(state.isAuthenticated).toBe(false);
     expect(state.isRegistered).toBe(false);
+    expect(state.hasCompletedQuiz).toBe(false);
     expect(state.loading).toBe(false);
   });
 });

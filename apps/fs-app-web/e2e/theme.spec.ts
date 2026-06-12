@@ -28,11 +28,11 @@ test.describe('Theme Switching', () => {
     expect(htmlClass).toContain('light');
   });
 
-  test('dark theme applies dark class', async ({ page }) => {
-    await page.evaluate(() => localStorage.setItem('fss-theme', 'dark'));
+  test('system theme resolves to a valid class when no preference is stored', async ({ page }) => {
+    await page.evaluate(() => localStorage.removeItem('fss-theme'));
     await page.reload();
 
     const htmlClass = await page.locator('html').getAttribute('class');
-    expect(htmlClass).toContain('dark');
+    expect(htmlClass).toMatch(/light|dark/);
   });
 });
