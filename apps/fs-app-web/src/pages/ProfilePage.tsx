@@ -1,5 +1,6 @@
 import { SelectField } from '@/components/form/select-field';
 import { Button } from '@/components/ui/button';
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -7,22 +8,9 @@ import { ApiError, api } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { type Profile, setProfile } from '@/store/authSlice';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from '@tanstack/react-form';
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { z } from 'zod';
-
-const schema = z.object({
-  companyName: z.string().min(1, 'register.companyNameError'),
-  industryType: z.string().min(1, 'register.industryTypeError'),
-  companySize: z.string().min(1, 'register.companySizeError'),
-  contactName: z.string().min(1, 'register.contactNameError'),
-  contactEmail: z.string().email('register.contactEmailError'),
-  contactPhone: z.string().min(9, 'register.contactPhoneError'),
-  emailNotifications: z.boolean().optional(),
-});
-
-type FormData = z.infer<typeof schema>;
+import * as z from 'zod';
 
 const industryKeys = [
   'manufacturing',
@@ -52,13 +40,17 @@ export function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    formState: { errors, isSubmitting, isDirty },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  const companyNameSchema = z.string().min(1, t('register.companyNameError'));
+  const industryTypeSchema = z.string().min(1, t('register.industryTypeError'));
+  const companySizeSchema = z.string().min(1, t('register.companySizeError'));
+  const contactNameSchema = z.string().min(1, t('register.contactNameError'));
+  const contactEmailSchema = z
+    .string()
+    .min(1, t('register.contactEmailError'))
+    .email(t('register.contactEmailError'));
+  const contactPhoneSchema = z.string().min(9, t('register.contactPhoneError'));
+
+  const form = useForm({
     defaultValues: {
       companyName: profile?.companyName || '',
       industryType: profile?.industryType || '',
@@ -68,24 +60,23 @@ export function ProfilePage() {
       contactPhone: profile?.contactPhone || '',
       emailNotifications: profile?.emailNotifications ?? false,
     },
-  });
-
-  const onSubmit = async (data: FormData) => {
-    setError(null);
-    setSuccess(false);
-    try {
-      const updated = await api.put<Profile>('/profile', data);
-      dispatch(setProfile(updated));
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError(t('profile.error'));
+    onSubmit: async ({ value }) => {
+      setError(null);
+      setSuccess(false);
+      try {
+        const updated = await api.put<Profile>('/profile', value);
+        dispatch(setProfile(updated));
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setError(err.message);
+        } else {
+          setError(t('profile.error'));
+        }
       }
-    }
-  };
+    },
+  });
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center p-4 sm:p-6">
@@ -127,140 +118,204 @@ export function ProfilePage() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-1.5">
-              <label htmlFor="companyName" className="text-sm font-medium">
-                {t('register.companyName')}
-              </label>
-              <Input id="companyName" {...register('companyName')} />
-              {errors.companyName && (
-                <p className="text-xs text-destructive">{t(errors.companyName.message || '')}</p>
-              )}
-            </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
+            }}
+            className="space-y-4"
+          >
+            <FieldGroup className="gap-4">
+              <form.Field
+                name="companyName"
+                validators={{ onBlur: companyNameSchema, onSubmit: companyNameSchema }}
+              >
+                {(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={field.name}>{t('register.companyName')}</FieldLabel>
+                      <Input
+                        id={field.name}
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        aria-invalid={isInvalid}
+                      />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
+              </form.Field>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label htmlFor="industryType" className="text-sm font-medium">
-                  {t('register.industryType')}
-                </label>
-                <Controller
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <form.Field
                   name="industryType"
-                  control={control}
-                  render={({ field }) => (
-                    <SelectField
-                      id="industryType"
-                      value={field.value}
-                      placeholder={t('register.select')}
-                      options={industryKeys.map((key) => ({
-                        value: key,
-                        label: t(`industry.${key}`),
-                      }))}
-                      onValueChange={field.onChange}
-                      onBlur={field.onBlur}
-                      isInvalid={!!errors.industryType}
-                    />
-                  )}
-                />
-                {errors.industryType && (
-                  <p className="text-xs text-destructive">{t(errors.industryType.message || '')}</p>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <label htmlFor="companySize" className="text-sm font-medium">
-                  {t('register.companySize')}
-                </label>
-                <Controller
+                  validators={{ onBlur: industryTypeSchema, onSubmit: industryTypeSchema }}
+                >
+                  {(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={field.name}>{t('register.industryType')}</FieldLabel>
+                        <SelectField
+                          id={field.name}
+                          value={field.state.value}
+                          placeholder={t('register.select')}
+                          options={industryKeys.map((key) => ({
+                            value: key,
+                            label: t(`industry.${key}`),
+                          }))}
+                          onValueChange={(val) => field.handleChange(val)}
+                          onBlur={field.handleBlur}
+                          isInvalid={isInvalid}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.Field>
+
+                <form.Field
                   name="companySize"
-                  control={control}
-                  render={({ field }) => (
-                    <SelectField
-                      id="companySize"
-                      value={field.value}
-                      placeholder={t('register.select')}
-                      options={sizeKeys.map((key) => ({
-                        value: key,
-                        label: t(`size.${key}`),
-                      }))}
-                      onValueChange={field.onChange}
-                      onBlur={field.onBlur}
-                      isInvalid={!!errors.companySize}
-                    />
-                  )}
-                />
-                {errors.companySize && (
-                  <p className="text-xs text-destructive">{t(errors.companySize.message || '')}</p>
-                )}
+                  validators={{ onBlur: companySizeSchema, onSubmit: companySizeSchema }}
+                >
+                  {(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={field.name}>{t('register.companySize')}</FieldLabel>
+                        <SelectField
+                          id={field.name}
+                          value={field.state.value}
+                          placeholder={t('register.select')}
+                          options={sizeKeys.map((key) => ({
+                            value: key,
+                            label: t(`size.${key}`),
+                          }))}
+                          onValueChange={(val) => field.handleChange(val)}
+                          onBlur={field.handleBlur}
+                          isInvalid={isInvalid}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.Field>
               </div>
-            </div>
 
-            <div className="flex items-center gap-3 pt-1">
-              <span className="h-px flex-1 bg-border" />
-              <p className="text-xs font-medium text-muted-foreground">
-                {t('profile.contactSection')}
-              </p>
-              <span className="h-px flex-1 bg-border" />
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor="contactName" className="text-sm font-medium">
-                {t('register.contactName')}
-              </label>
-              <Input id="contactName" {...register('contactName')} />
-              {errors.contactName && (
-                <p className="text-xs text-destructive">{t(errors.contactName.message || '')}</p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label htmlFor="contactEmail" className="text-sm font-medium">
-                  {t('register.contactEmail')}
-                </label>
-                <Input id="contactEmail" type="email" {...register('contactEmail')} />
-                {errors.contactEmail && (
-                  <p className="text-xs text-destructive">{t(errors.contactEmail.message || '')}</p>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <label htmlFor="contactPhone" className="text-sm font-medium">
-                  {t('register.contactPhone')}
-                </label>
-                <Input id="contactPhone" {...register('contactPhone')} />
-                {errors.contactPhone && (
-                  <p className="text-xs text-destructive">{t(errors.contactPhone.message || '')}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 pt-1">
-              <span className="h-px flex-1 bg-border" />
-              <p className="text-xs font-medium text-muted-foreground">
-                {t('profile.preferencesSection')}
-              </p>
-              <span className="h-px flex-1 bg-border" />
-            </div>
-
-            <div className="flex items-center justify-between gap-4 rounded-md border bg-muted/30 p-4">
-              <div className="space-y-0.5">
-                <Label htmlFor="emailNotifications" className="text-sm font-medium cursor-pointer">
-                  {t('profile.emailNotifications')}
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {t('profile.emailNotificationsDesc')}
+              <div className="flex items-center gap-3 pt-1">
+                <span className="h-px flex-1 bg-border" />
+                <p className="text-xs font-medium text-muted-foreground">
+                  {t('profile.contactSection')}
                 </p>
+                <span className="h-px flex-1 bg-border" />
               </div>
-              <Controller
-                name="emailNotifications"
-                control={control}
-                render={({ field }) => (
-                  <Switch
-                    id="emailNotifications"
-                    checked={field.value ?? false}
-                    onCheckedChange={field.onChange}
-                  />
+
+              <form.Field
+                name="contactName"
+                validators={{ onBlur: contactNameSchema, onSubmit: contactNameSchema }}
+              >
+                {(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={field.name}>{t('register.contactName')}</FieldLabel>
+                      <Input
+                        id={field.name}
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        aria-invalid={isInvalid}
+                      />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
+              </form.Field>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <form.Field
+                  name="contactEmail"
+                  validators={{ onBlur: contactEmailSchema, onSubmit: contactEmailSchema }}
+                >
+                  {(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={field.name}>{t('register.contactEmail')}</FieldLabel>
+                        <Input
+                          id={field.name}
+                          type="email"
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          aria-invalid={isInvalid}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.Field>
+
+                <form.Field
+                  name="contactPhone"
+                  validators={{ onBlur: contactPhoneSchema, onSubmit: contactPhoneSchema }}
+                >
+                  {(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={field.name}>{t('register.contactPhone')}</FieldLabel>
+                        <Input
+                          id={field.name}
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          aria-invalid={isInvalid}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.Field>
+              </div>
+
+              <div className="flex items-center gap-3 pt-1">
+                <span className="h-px flex-1 bg-border" />
+                <p className="text-xs font-medium text-muted-foreground">
+                  {t('profile.preferencesSection')}
+                </p>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+
+              <form.Field name="emailNotifications">
+                {(field) => (
+                  <div className="flex items-center justify-between gap-4 rounded-md border bg-muted/30 p-4">
+                    <div className="space-y-0.5">
+                      <Label htmlFor={field.name} className="text-sm font-medium cursor-pointer">
+                        {t('profile.emailNotifications')}
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        {t('profile.emailNotificationsDesc')}
+                      </p>
+                    </div>
+                    <Switch
+                      id={field.name}
+                      checked={field.state.value}
+                      onCheckedChange={(val) => field.handleChange(val)}
+                    />
+                  </div>
                 )}
-              />
-            </div>
+              </form.Field>
+            </FieldGroup>
 
             {error && (
               <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm text-center animate-scale-in">
@@ -294,9 +349,9 @@ export function ProfilePage() {
             <Button
               type="submit"
               className="w-full h-11 font-semibold"
-              disabled={isSubmitting || !isDirty}
+              disabled={form.state.isSubmitting || !form.state.isDirty}
             >
-              {isSubmitting ? (
+              {form.state.isSubmitting ? (
                 <>
                   <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none">
                     <circle

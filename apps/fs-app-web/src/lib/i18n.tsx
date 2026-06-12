@@ -112,6 +112,8 @@ const translations: Record<Locale, Record<string, string>> = {
     'signin.loading': 'กำลังโหลด...',
     'signin.showPassword': 'แสดงรหัสผ่าน', // NOSONAR typescript:S2068
     'signin.hidePassword': 'ซ่อนรหัสผ่าน', // NOSONAR typescript:S2068
+    'signin.errorEmailRequired': 'กรุณากรอกอีเมล',
+    'signin.errorPasswordRequired': 'กรุณากรอกรหัสผ่าน', // NOSONAR typescript:S2068
     'signin.errorInvalidEmail': 'รูปแบบอีเมลไม่ถูกต้อง',
     'signin.errorInvalidCredential': 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
     'signin.errorEmailInUse': 'อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ',
@@ -413,6 +415,8 @@ const translations: Record<Locale, Record<string, string>> = {
     'signin.loading': 'Loading...',
     'signin.showPassword': 'Show password',
     'signin.hidePassword': 'Hide password',
+    'signin.errorEmailRequired': 'Email is required',
+    'signin.errorPasswordRequired': 'Password is required',
     'signin.errorInvalidEmail': 'Invalid email address',
     'signin.errorInvalidCredential': 'Incorrect email or password',
     'signin.errorEmailInUse': 'This email is already registered. Try signing in.',
