@@ -8,6 +8,7 @@ import { AuthActionPage } from '@/pages/AuthActionPage';
 import { CompanySettingsPage } from '@/pages/CompanySettingsPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { ProfilePage } from '@/pages/ProfilePage';
 import { QuizPage } from '@/pages/QuizPage';
 import { ResultPage } from '@/pages/ResultPage';
 import { SignInPage } from '@/pages/SignInPage';
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
               { path: 'quiz', element: <QuizPage /> },
               { path: 'results', element: <ResultPage /> },
               { path: 'dashboard', element: <DashboardPage /> },
+              { path: 'profile', element: <ProfilePage /> },
               {
                 element: <CompanySettingsGuard />,
                 children: [{ path: 'company-settings', element: <CompanySettingsPage /> }],

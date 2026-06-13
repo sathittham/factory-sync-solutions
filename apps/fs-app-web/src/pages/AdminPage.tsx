@@ -10,6 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -17,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { trackEvent } from '@/lib/analytics';
@@ -27,11 +29,10 @@ import { auth } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
 import { useAppSelector } from '@/store';
 import { canManageUsers } from '@/store/authSlice';
-import { Fragment, useCallback, useEffect, useState } from 'react';
-import { useLocation } from 'react-router';
-import { Loader2, Pencil, RotateCcw, Search, ShieldCheck, UserPlus, Users, X } from 'lucide-react';
 import { useForm } from '@tanstack/react-form';
-import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Loader2, Pencil, RotateCcw, Search, ShieldCheck, UserPlus, Users, X } from 'lucide-react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router';
 import * as z from 'zod';
 
 interface DimensionScore {
@@ -136,14 +137,14 @@ function QuizTab({
   const [detailData, setDetailData] = useState<AdminAssessment | null>(null);
   const { t, locale } = useLocale();
 
-  const fetchAssessments = async () => {
+  const fetchAssessments = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (industryFilter) params.set('industryType', industryFilter);
       if (sizeFilter) params.set('companySize', sizeFilter);
       const query = params.toString();
-      const path = query ? '/admin/assessments?' + query : '/admin/assessments';
+      const path = query ? `/admin/assessments?${query}` : '/admin/assessments';
       const data = await api.get<AdminAssessment[]>(path);
       setAssessments(data);
     } catch {
@@ -151,11 +152,11 @@ function QuizTab({
     } finally {
       setLoading(false);
     }
-  };
+  }, [industryFilter, sizeFilter]);
 
   useEffect(() => {
     fetchAssessments();
-  }, [industryFilter, sizeFilter]);
+  }, [fetchAssessments]);
 
   const handleSelectAssessment = async (a: AdminAssessment) => {
     if (selectedId === a.id) {
@@ -571,23 +572,65 @@ function QuizTab({
 // --- Permissions Matrix Dialog ---
 
 const featureMatrix = [
-  { featureKey: 'permissions.takeAssessment',     user: true,  manager: true,  system_admin: true,  owner: true  },
-  { featureKey: 'permissions.viewOwnResults',     user: true,  manager: true,  system_admin: true,  owner: true  },
-  { featureKey: 'permissions.viewCompanyResults', user: false, manager: true,  system_admin: true,  owner: true  },
-  { featureKey: 'permissions.manageUsers',        user: false, manager: false, system_admin: true,  owner: true  },
-  { featureKey: 'permissions.inviteMembers',      user: false, manager: false, system_admin: true,  owner: true  },
-  { featureKey: 'permissions.editRoles',          user: false, manager: false, system_admin: false, owner: true  },
-  { featureKey: 'permissions.viewAllAssessments', user: false, manager: false, system_admin: false, owner: true  },
+  {
+    featureKey: 'permissions.takeAssessment',
+    user: true,
+    manager: true,
+    system_admin: true,
+    owner: true,
+  },
+  {
+    featureKey: 'permissions.viewOwnResults',
+    user: true,
+    manager: true,
+    system_admin: true,
+    owner: true,
+  },
+  {
+    featureKey: 'permissions.viewCompanyResults',
+    user: false,
+    manager: true,
+    system_admin: true,
+    owner: true,
+  },
+  {
+    featureKey: 'permissions.manageUsers',
+    user: false,
+    manager: false,
+    system_admin: true,
+    owner: true,
+  },
+  {
+    featureKey: 'permissions.inviteMembers',
+    user: false,
+    manager: false,
+    system_admin: true,
+    owner: true,
+  },
+  {
+    featureKey: 'permissions.editRoles',
+    user: false,
+    manager: false,
+    system_admin: false,
+    owner: true,
+  },
+  {
+    featureKey: 'permissions.viewAllAssessments',
+    user: false,
+    manager: false,
+    system_admin: false,
+    owner: true,
+  },
 ] as const;
 
 const matrixColumns = ['user', 'manager', 'system_admin', 'owner'] as const;
-type MatrixRole = typeof matrixColumns[number];
+type MatrixRole = (typeof matrixColumns)[number];
 
 const columnLabelKeys: Record<MatrixRole, string> = {
-  user:         'admin.roleUser',
-  manager:      'admin.roleManager',
+  user: 'admin.roleUser',
+  manager: 'admin.roleManager',
   system_admin: 'admin.roleSystemAdmin',
-  owner:        'admin.roleOwner',
+  owner: 'admin.roleOwner',
 };
 
 function PermissionsDialog({
@@ -596,7 +639,12 @@ function PermissionsDialog({
   t,
 }: Readonly<{ open: boolean; onClose: () => void; t: (key: string) => string }>) {
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) onClose();
+      }}
+    >
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -633,11 +681,20 @@ function PermissionsDialog({
                   {matrixColumns.map((col) => {
                     const granted = row[col];
                     return (
-                      <td key={col} className={`py-2.5 px-3 text-center ${col === 'owner' ? 'bg-amber-50/50 dark:bg-amber-950/10' : ''}`}>
+                      <td
+                        key={col}
+                        className={`py-2.5 px-3 text-center ${col === 'owner' ? 'bg-amber-50/50 dark:bg-amber-950/10' : ''}`}
+                      >
                         {granted ? (
                           <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 mx-auto">
                             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                              <path d="M2 5l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                              <path
+                                d="M2 5l2 2 4-4"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
                             </svg>
                           </span>
                         ) : (
@@ -696,7 +753,10 @@ function InviteMemberDialog({
 
   const isSubmitting = form.state.isSubmitting;
 
-  const emailSchema = z.string().min(1, t('admin.inviteEmailRequired')).email(t('admin.inviteEmailInvalid'));
+  const emailSchema = z
+    .string()
+    .min(1, t('admin.inviteEmailRequired'))
+    .email(t('admin.inviteEmailInvalid'));
 
   const handleOpenChange = (o: boolean) => {
     if (!o) {
@@ -721,10 +781,7 @@ function InviteMemberDialog({
           }}
         >
           <FieldGroup className="space-y-4 py-2">
-            <form.Field
-              name="email"
-              validators={{ onBlur: emailSchema, onSubmit: emailSchema }}
-            >
+            <form.Field name="email" validators={{ onBlur: emailSchema, onSubmit: emailSchema }}>
               {(field) => {
                 const isInvalid = field.state.meta.isTouched && field.state.meta.errors.length > 0;
                 return (
@@ -733,7 +790,7 @@ function InviteMemberDialog({
                     <Input
                       id={field.name}
                       type="email"
-                      placeholder="name@company.com"
+                      placeholder={t('admin.inviteEmailPlaceholder')}
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
@@ -750,7 +807,11 @@ function InviteMemberDialog({
               {(field) => (
                 <Field>
                   <FieldLabel>{t('admin.inviteRole')}</FieldLabel>
-                  <Select value={field.state.value} onValueChange={field.handleChange} disabled={isSubmitting}>
+                  <Select
+                    value={field.state.value}
+                    onValueChange={field.handleChange}
+                    disabled={isSubmitting}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -766,13 +827,16 @@ function InviteMemberDialog({
               )}
             </form.Field>
 
-            {serverError && (
-              <p className="text-sm text-destructive">{serverError}</p>
-            )}
+            {serverError && <p className="text-sm text-destructive">{serverError}</p>}
           </FieldGroup>
 
           <DialogFooter className="mt-4 gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleOpenChange(false)}
+              disabled={isSubmitting}
+            >
               {t('admin.cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
@@ -805,14 +869,26 @@ function UserDetailDialog({
 }) {
   if (!user) return null;
 
+  const displayName = user.contactName || user.displayName || user.email;
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n.charAt(0).toUpperCase())
+    .join('');
+
   const fields = [
-    { label: t('admin.contactName'), value: user.contactName || user.displayName },
     { label: t('admin.accountEmail'), value: user.email },
     { label: t('admin.contactEmail'), value: user.contactEmail },
     { label: t('admin.phone'), value: user.contactPhone },
-    { label: t('admin.role'), value: getRoleLabel(user.role, t) },
-    { label: t('admin.registered'), value: user.createdAt ? formatDateTime(user.createdAt, locale) : '' },
-    { label: t('admin.lastUpdated'), value: user.updatedAt ? formatDateTime(user.updatedAt, locale) : '' },
+    {
+      label: t('admin.registered'),
+      value: user.createdAt ? formatDateTime(user.createdAt, locale) : '',
+    },
+    {
+      label: t('admin.lastUpdated'),
+      value: user.updatedAt ? formatDateTime(user.updatedAt, locale) : '',
+    },
   ];
 
   return (
@@ -822,30 +898,50 @@ function UserDetailDialog({
         if (!o) onClose();
       }}
     >
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t('admin.userDetail')}</DialogTitle>
-          <DialogDescription>
-            {user.contactName || user.displayName || user.email}
-          </DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 py-2">
+
+        {/* Profile header */}
+        <div className="flex items-center gap-4 py-1">
+          <Avatar className="size-16 rounded-xl shrink-0">
+            <AvatarImage
+              src={user.photoURL}
+              alt={displayName}
+              className="rounded-xl object-cover"
+            />
+            <AvatarFallback className="rounded-xl text-xl font-semibold bg-muted">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="text-base font-semibold leading-tight">{displayName}</p>
+            <p className="text-sm text-muted-foreground break-all">{user.email}</p>
+            <div className="pt-0.5">
+              <RoleBadge role={user.role} isPending={user.isPending} t={t} />
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 py-1">
           {fields.map((f) =>
             f.value ? (
               <div key={f.label}>
-                <p className="text-xs text-muted-foreground">{f.label}</p>
-                <p className="text-sm font-medium break-all">{f.value}</p>
+                <p className="text-sm text-muted-foreground">{f.label}</p>
+                <p className="text-base font-medium break-all">{f.value}</p>
               </div>
             ) : null,
           )}
         </div>
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             {t('admin.cancel')}
           </Button>
-          <Button onClick={() => { onClose(); onEditRole(user); }}>
-            {t('admin.editRole')}
-          </Button>
+          <Button onClick={() => onEditRole(user)}>{t('admin.editRole')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -893,14 +989,8 @@ function RoleBadge({
     );
   }
   const meta = roleMeta[role];
-  const className = meta
-    ? meta.className
-    : 'bg-muted text-muted-foreground border-border';
-  return (
-    <Badge className={`text-[10px] border ${className}`}>
-      {getRoleLabel(role, t)}
-    </Badge>
-  );
+  const className = meta ? meta.className : 'bg-muted text-muted-foreground border-border';
+  return <Badge className={`text-[10px] border ${className}`}>{getRoleLabel(role, t)}</Badge>;
 }
 
 const allRoles = ['user', 'manager', 'system_admin', 'owner'] as const;
@@ -919,7 +1009,12 @@ function RoleEditDialog({
   const [selectedRole, setSelectedRole] = useState(user?.role ?? 'user');
 
   return (
-    <Dialog open={!!user} onOpenChange={(open) => { if (!open) onCancel(); }}>
+    <Dialog
+      open={!!user}
+      onOpenChange={(open) => {
+        if (!open) onCancel();
+      }}
+    >
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{t('admin.editRole')}</DialogTitle>
@@ -1005,7 +1100,7 @@ function UserRowActions({
       className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
       disabled={isUpdating}
       onClick={() => onEdit(user)}
-      aria-label="Edit role"
+      aria-label={t('admin.editRole')}
     >
       {isUpdating ? '...' : <Pencil className="h-4 w-4" />}
     </Button>
@@ -1041,17 +1136,24 @@ function UsersTab() {
     loadUsers();
   }, [loadUsers]);
 
-  const filteredUsers = users.filter((u) => {
-    const matchRole = !roleFilter || u.role === roleFilter;
-    const q = search.toLowerCase();
-    const matchSearch =
-      !q ||
-      (u.contactName || u.displayName || '').toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q);
-    return matchRole && matchSearch;
-  });
+  const filteredUsers = useMemo(
+    () =>
+      users.filter((u) => {
+        const matchRole = !roleFilter || u.role === roleFilter;
+        const q = search.toLowerCase();
+        const matchSearch =
+          !q ||
+          (u.contactName || u.displayName || '').toLowerCase().includes(q) ||
+          u.email.toLowerCase().includes(q);
+        return matchRole && matchSearch;
+      }),
+    [users, roleFilter, search],
+  );
 
-  const openRoleDialog = (user: AdminUser) => setRoleDialog(user);
+  const openRoleDialog = (user: AdminUser) => {
+    setDetailUser(null);
+    requestAnimationFrame(() => setRoleDialog(user));
+  };
 
   const confirmRoleChange = async (newRole: string) => {
     if (!roleDialog) return;
@@ -1072,18 +1174,30 @@ function UsersTab() {
     }
   };
 
-  const roleCounts = users.reduce<Record<string, number>>((acc, u) => {
-    acc[u.role] = (acc[u.role] || 0) + 1;
-    return acc;
-  }, {});
+  const roleCounts = useMemo(
+    () =>
+      users.reduce<Record<string, number>>((acc, u) => {
+        acc[u.role] = (acc[u.role] || 0) + 1;
+        return acc;
+      }, {}),
+    [users],
+  );
 
-  const statChips = [
-    { key: '', labelKey: 'admin.allUsers', count: users.length },
-    { key: 'owner', labelKey: 'admin.roleOwner', count: roleCounts['owner'] ?? 0 },
-    { key: 'system_admin', labelKey: 'admin.roleSystemAdmin', count: roleCounts['system_admin'] ?? 0 },
-    { key: 'manager', labelKey: 'admin.roleManager', count: roleCounts['manager'] ?? 0 },
-    { key: 'user', labelKey: 'admin.roleUser', count: roleCounts['user'] ?? 0 },
-  ].filter((c) => c.key === '' || c.count > 0);
+  const statChips = useMemo(
+    () =>
+      [
+        { key: '', labelKey: 'admin.allUsers', count: users.length },
+        { key: 'owner', labelKey: 'admin.roleOwner', count: roleCounts.owner ?? 0 },
+        {
+          key: 'system_admin',
+          labelKey: 'admin.roleSystemAdmin',
+          count: roleCounts.system_admin ?? 0,
+        },
+        { key: 'manager', labelKey: 'admin.roleManager', count: roleCounts.manager ?? 0 },
+        { key: 'user', labelKey: 'admin.roleUser', count: roleCounts.user ?? 0 },
+      ].filter((c) => c.key === '' || c.count > 0),
+    [users, roleCounts],
+  );
 
   const handleCancelInvitation = async (uid: string) => {
     try {
@@ -1125,29 +1239,31 @@ function UsersTab() {
 
       <div className="flex items-center justify-between mb-5 animate-fade-up">
         <div className="flex flex-wrap gap-2">
-        {statChips.map((chip) => {
-          const isActive = roleFilter === chip.key;
-          const activeClass = isActive
-            ? 'bg-primary text-primary-foreground border-primary'
-            : 'bg-card text-muted-foreground hover:text-foreground border-border hover:border-foreground/30';
-          return (
-            <button
-              key={chip.key}
-              type="button"
-              onClick={() => setRoleFilter(chip.key)}
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${activeClass}`}
-            >
-              {t(chip.labelKey)}
-              <span
-                className={`inline-flex items-center justify-center min-w-5 h-5 rounded-full text-xs font-mono px-1 ${
-                  isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-muted-foreground'
-                }`}
+          {statChips.map((chip) => {
+            const isActive = roleFilter === chip.key;
+            const activeClass = isActive
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'bg-card text-muted-foreground hover:text-foreground border-border hover:border-foreground/30';
+            return (
+              <button
+                key={chip.key}
+                type="button"
+                onClick={() => setRoleFilter(chip.key)}
+                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${activeClass}`}
               >
-                {chip.count}
-              </span>
-            </button>
-          );
-        })}
+                {t(chip.labelKey)}
+                <span
+                  className={`inline-flex items-center justify-center min-w-5 h-5 rounded-full text-xs font-mono px-1 ${
+                    isActive
+                      ? 'bg-primary-foreground/20 text-primary-foreground'
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {chip.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Button
@@ -1160,11 +1276,7 @@ function UsersTab() {
             <ShieldCheck className="h-4 w-4" />
             <span className="hidden sm:inline text-xs">{t('permissions.title')}</span>
           </Button>
-          <Button
-            size="sm"
-            className="gap-2"
-            onClick={() => setInviteOpen(true)}
-          >
+          <Button size="sm" className="gap-2" onClick={() => setInviteOpen(true)}>
             <UserPlus className="h-4 w-4" />
             <span className="hidden sm:inline">{t('admin.inviteMember')}</span>
           </Button>
@@ -1253,9 +1365,10 @@ function UsersTab() {
                       <RoleBadge role={u.role} isPending={u.isPending} t={t} />
                     </td>
                     <td className="py-3 px-4 text-muted-foreground font-mono text-xs hidden sm:table-cell">
-                      {u.isPending
-                        ? (u.invitedAt ? formatDateTime(u.invitedAt, locale) : '--')
-                        : (u.createdAt ? formatDateTime(u.createdAt, locale) : '--')}
+                      {(() => {
+                        const raw = u.isPending ? u.invitedAt : u.createdAt;
+                        return raw ? formatDateTime(raw, locale) : '--';
+                      })()}
                     </td>
                     <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                       <UserRowActions
@@ -1311,11 +1424,7 @@ function UsersTab() {
         t={t}
       />
 
-      <PermissionsDialog
-        open={permissionsOpen}
-        onClose={() => setPermissionsOpen(false)}
-        t={t}
-      />
+      <PermissionsDialog open={permissionsOpen} onClose={() => setPermissionsOpen(false)} t={t} />
     </>
   );
 }
@@ -1335,8 +1444,11 @@ export function AdminPage() {
   const [activeTab, setActiveTab] = useState(initialTab);
 
   useEffect(() => {
-    setActiveTab(initialTab);
-  }, [initialTab]);
+    const tab = new URLSearchParams(location.search).get('tab');
+    const next =
+      tab === 'users' && canManageUserList ? 'users' : canViewAssessments ? 'quiz' : 'users';
+    setActiveTab(next);
+  }, [location.search, canManageUserList, canViewAssessments]);
 
   const handleExport = async () => {
     setExportError(null);

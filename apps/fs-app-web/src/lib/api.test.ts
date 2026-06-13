@@ -36,6 +36,15 @@ describe('api', () => {
     });
   }
 
+  function respondNoContent() {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 204,
+      statusText: 'No Content',
+      json: vi.fn(),
+    });
+  }
+
   it('unwraps { data } envelope from a successful response', async () => {
     respond(200, { data: { id: '1', name: 'Test' } });
     expect(await api.get('/test')).toEqual({ id: '1', name: 'Test' });
@@ -80,5 +89,23 @@ describe('api', () => {
     await api.delete('/items/1');
     const [, opts] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(opts.method).toBe('DELETE');
+  });
+
+  it('returns undefined for 204 responses', async () => {
+    respondNoContent();
+    await expect(api.delete('/items/1')).resolves.toBeUndefined();
+  });
+
+  it('api.postForm sends multipart body without JSON content type', async () => {
+    respond(200, { data: { ok: true } });
+    const body = new FormData();
+    body.append('file', new Blob(['x']), 'x.png');
+
+    await api.postForm('/upload/avatar', body);
+
+    const [, opts] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(opts.method).toBe('POST');
+    expect(opts.body).toBe(body);
+    expect(opts.headers).not.toHaveProperty('Content-Type');
   });
 });

@@ -1,7 +1,6 @@
 import { CONSENT_KEY, CookieConsent } from '@/components/CookieConsent';
 import type { LegalType } from '@/components/LegalModal';
 import { LegalModal } from '@/components/LegalModal';
-import { ProfileDialog } from '@/components/ProfileDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -315,13 +314,13 @@ function SidebarUserMenu({
   user,
   t,
   handleSignOut,
-  setProfileOpen,
+  onProfileClick,
 }: Readonly<{
   profile: { contactName: string; displayName: string; email: string };
   user: { photoURL: string | null } | null;
   t: (key: string) => string;
   handleSignOut: () => void;
-  setProfileOpen: (v: boolean) => void;
+  onProfileClick: () => void;
 }>) {
   const { isMobile } = useSidebar();
   const displayName = profile.contactName || profile.displayName || profile.email;
@@ -370,7 +369,7 @@ function SidebarUserMenu({
               <DropdownMenuItem
                 onClick={() => {
                   trackEvent('profile_open', { source: 'sidebar_user_menu' });
-                  setProfileOpen(true);
+                  onProfileClick();
                 }}
                 data-testid="nav-profile-btn"
               >
@@ -401,7 +400,7 @@ function AppSidebar({
   isAdmin,
   t,
   handleSignOut,
-  setProfileOpen,
+  onProfileClick,
   pathname,
   search,
 }: Readonly<{
@@ -410,7 +409,7 @@ function AppSidebar({
   isAdmin: boolean;
   t: (key: string) => string;
   handleSignOut: () => void;
-  setProfileOpen: (v: boolean) => void;
+  onProfileClick: () => void;
   pathname: string;
   search: string;
 }>) {
@@ -525,7 +524,7 @@ function AppSidebar({
           user={user}
           t={t}
           handleSignOut={handleSignOut}
-          setProfileOpen={setProfileOpen}
+          onProfileClick={onProfileClick}
         />
       </SidebarFooter>
 
@@ -553,7 +552,6 @@ export function Layout() {
     trackEvent('theme_change', { theme: th });
   };
 
-  const [profileOpen, setProfileOpen] = useState(false);
   const [legalModal, setLegalModal] = useState<LegalType>(null);
   const [cookieOpen, setCookieOpen] = useState(readConsentState);
   const [cookieSettings, setCookieSettings] = useState(false);
@@ -582,6 +580,9 @@ export function Layout() {
     const path = location.pathname;
     const adminTab = new URLSearchParams(location.search).get('tab');
 
+    if (path === '/profile') {
+      return [{ label: t('nav.main') }, { label: t('profile.title') }];
+    }
     if (path === '/company-settings') {
       return [{ label: t('nav.adminMenu') }, { label: t('nav.companySettings') }];
     }
@@ -632,7 +633,7 @@ export function Layout() {
             isAdmin={isAdmin}
             t={t}
             handleSignOut={handleSignOut}
-            setProfileOpen={setProfileOpen}
+            onProfileClick={() => navigate('/profile')}
             pathname={location.pathname}
             search={location.search}
           />
@@ -698,7 +699,6 @@ export function Layout() {
           />
         </SidebarInset>
 
-        <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
         <LegalModal open={legalModal} onClose={() => setLegalModal(null)} />
         <CookieConsent
           open={cookieOpen}

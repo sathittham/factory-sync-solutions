@@ -39,6 +39,7 @@ export function useAuth() {
           const profile = await api.get<Profile>('/profile');
           console.debug('[useAuth] profile fetched:', profile);
           dispatch(setProfile(profile));
+          api.post('/profile/activity/login', {}).catch(() => {});
 
           try {
             const results = await api.get<unknown[]>('/results');

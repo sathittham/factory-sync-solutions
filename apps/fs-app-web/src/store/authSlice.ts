@@ -37,6 +37,7 @@ interface Profile {
   projectRole?: string;
   permissions?: ProfilePermissions;
   emailNotifications?: boolean;
+  avatarURL?: string;
 }
 
 interface AuthState {
