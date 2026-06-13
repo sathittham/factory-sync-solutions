@@ -386,9 +386,9 @@ Firebase custom claims (authoritative source for `RequireAdmin` checks).
 
 **Request body**
 ```json
-{ "role": "admin" }
+{ "role": "manager" }
 ```
-`role` must be exactly `"admin"` or `"user"` — any other value returns 400.
+`role` must be one of `"user"`, `"manager"`, `"system_admin"`, `"owner"` — any other value returns 400.
 
 **Dual write order:**
 1. `profileSvc.SetRole(ctx, uid, role)` — updates Firestore
@@ -399,14 +399,14 @@ claims will be out of sync until the next successful `SetUserRole` call.
 
 **Response — 200**
 ```json
-{ "uid": "firebase-uid", "role": "admin" }
+{ "uid": "firebase-uid", "role": "manager" }
 ```
 
 **Errors**
 
 | HTTP | Code | Condition |
 |------|------|-----------|
-| 400 | `BAD_REQUEST` | `uid` invalid or `role` not `"admin"` / `"user"` |
+| 400 | `BAD_REQUEST` | `uid` invalid or `role` not one of the four valid values |
 | 401 | `UNAUTHORIZED` | Missing/invalid token |
 | 403 | `FORBIDDEN` | Not admin |
 | 500 | `INTERNAL_ERROR` | Firestore or Firebase SDK error |

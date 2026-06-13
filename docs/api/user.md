@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-06-10
+version: 1.2.0
+lastUpdated: 2026-06-13
 ---
 
 # User API Reference
@@ -43,21 +43,12 @@ Returns the authenticated user's profile.
     "contactEmail": "somchai@abc.com",
     "contactPhone": "0812345678",
     "role": "user",
-    "activeProjectID": "0105567001234",
-    "projectRoles": {
-      "0105567001234": "owner",
-      "0987654321012": "manager"
-    },
     "consentVersion": "1.0",
     "emailNotifications": true,
     "createdAt": "2026-03-08T10:00:00Z"
   }
 }
 ```
-
-`activeProjectID` is the project currently in scope for this user's session.
-`projectRoles` is a map of every project the user belongs to: `{ projectID: role }`.
-A user can appear in multiple projects with different roles.
 
 **Errors:** `401 UNAUTHORIZED`, `404 NOT_FOUND`
 
@@ -103,10 +94,9 @@ Register a new user profile after Google Sign-In. Requires Cloudflare Turnstile 
 | 400 | `VALIDATION_ERROR` | Body parse failure or field validation error |
 | 400 | `CAPTCHA_FAILED` | Turnstile verification failed |
 | 401 | `UNAUTHORIZED` | Missing/invalid Firebase token |
-| 409 | `ALREADY_REGISTERED` | This user already has a profile |
-| 409 | `PROJECT_ALREADY_EXISTS` | `companyRegId` is already in use — user must request an invite from the project Owner instead of registering |
+| 409 | `CONFLICT` | This user already has a profile |
 
-**Side effects:** Project created (if first user for this `companyRegId`). Caller's `projectRole` set to `owner`. Slack registration webhook fired. Audit event `user.registered` written.
+**Side effects:** Slack registration webhook fired asynchronously.
 
 ---
 
@@ -129,11 +119,9 @@ Update mutable profile fields. Only supplied fields are changed.
 
 All fields optional. `emailNotifications` is a boolean — omit to leave unchanged; set `false` to opt out of result emails.
 
-**Response 200** — same shape as GET /profile
+**Response 200** — same shape as `GET /profile`
 
 **Errors:** `400 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `404 NOT_FOUND`
-
-**Side effects:** Audit event `user.profile_updated` written.
 
 ---
 
@@ -166,10 +154,11 @@ List all available quizzes (lightweight).
 {
   "success": true,
   "data": [
-    { "id": "shindan", "nameTh": "แบบประเมินสุขภาพโรงงาน (ชินดัน)", "nameEn": "FactorySync Solutions (Shindan)" },
-    { "id": "factory", "nameTh": "...", "nameEn": "..." },
-    { "id": "lean", "nameTh": "...", "nameEn": "..." },
-    { "id": "cybersecurity", "nameTh": "...", "nameEn": "..." }
+    { "id": "shindan",       "nameTh": "แบบประเมินสุขภาพโรงงาน (ชินดัน)", "nameEn": "Factory Health Assessment (Shindan)" },
+    { "id": "factory",       "nameTh": "...", "nameEn": "..." },
+    { "id": "lean",          "nameTh": "...", "nameEn": "..." },
+    { "id": "cybersecurity", "nameTh": "...", "nameEn": "..." },
+    { "id": "iso29110",      "nameTh": "...", "nameEn": "..." }
   ]
 }
 ```
@@ -253,9 +242,9 @@ Every question in the quiz must have an answer. `value` must be 1–5.
 
 **Diagnosis thresholds:** `Beginning` < 2.00 · `Developing` ≥ 2.00 · `Established` ≥ 3.00 · `Advanced` ≥ 4.00
 
-**Errors:** `400 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `404 NOT_FOUND` (unknown quizId)
+**Errors:** `400 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `404 NOT_FOUND` (unknown `quizId`)
 
-**Side effects:** Result email sent if `emailNotifications=true` on profile. Slack webhook fired. Audit event `assessment.submitted` written.
+**Side effects:** Result email sent asynchronously if `emailNotifications: true` on profile. Slack webhook fired.
 
 ---
 
@@ -263,33 +252,30 @@ Every question in the quiz must have an answer. `value` must be 1–5.
 
 ### `GET /results`
 
-List assessments ordered by submission date descending.
-
-**Query params**
-
-| Param | Default | Description |
-|-------|---------|-------------|
-| `scope` | `self` | `self` — caller's own results only. `project` — all results for the entire project (requires `manager` role or higher). |
+List the authenticated user's own assessments ordered by submission date descending.
 
 **Response 200**
 ```json
 {
   "success": true,
-  "data": [ { "id": "uuid", "quizId": "shindan", "overallScore": 3.42, "diagnosis": "Established", "submittedAt": "..." } ]
+  "data": [
+    { "id": "uuid", "quizId": "shindan", "overallScore": 3.42, "diagnosis": "Established", "submittedAt": "..." }
+  ],
+  "count": 1
 }
 ```
 
-**Errors:** `401 UNAUTHORIZED`, `403 FORBIDDEN` (when `scope=project` without sufficient role)
+**Errors:** `401 UNAUTHORIZED`
 
 ---
 
 ### `GET /results/{assessmentId}`
 
-Get a single assessment. Users can only access their own assessments.
+Get a single assessment. Scoped to the authenticated user — other users' assessments return `404`.
 
-**Response 200** — full assessment object (same shape as POST /quiz/submit response)
+**Response 200** — full assessment object (same shape as `POST /quiz/submit` response)
 
-**Errors:** `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND`
+**Errors:** `401 UNAUTHORIZED`, `404 NOT_FOUND`
 
 ---
 
@@ -316,7 +302,7 @@ Look up a Thai company from the Department of Business Development (DBD) API.
 }
 ```
 
-**Errors:** `400 VALIDATION_ERROR` (not 13 digits), `404 NOT_FOUND`, `503` (DBD API unavailable)
+**Errors:** `400 VALIDATION_ERROR` (not 13 digits), `404 NOT_FOUND`, `502` (DBD API unavailable)
 
 Responses are cached for 1 hour.
 
@@ -339,7 +325,8 @@ Responses are cached for 1 hour.
 | `UNAUTHORIZED` | 401 | Missing or invalid Firebase token |
 | `FORBIDDEN` | 403 | Authenticated but not allowed |
 | `NOT_FOUND` | 404 | Resource does not exist |
-| `CONFLICT` | 409 | Duplicate (e.g. regId already registered) |
+| `CONFLICT` | 409 | Duplicate (e.g. user already registered) |
+| `INVITATION_EXPIRED` | 410 | Invitation link has passed its 24-hour expiry |
 | `VALIDATION_ERROR` | 400 | Request body or param failed validation |
 | `CAPTCHA_FAILED` | 400 | Turnstile verification failed |
 | `INTERNAL_ERROR` | 500 | Unexpected server error |
