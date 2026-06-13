@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-03-07
+version: 1.2.0
+lastUpdated: 2026-06-13
 author: Sathittham Sangthong
 ---
 
@@ -10,7 +10,7 @@ author: Sathittham Sangthong
 
 ### Frontend: Biome
 
-Single tool for linting and formatting (replaces ESLint + Prettier). See [development.md](development.md#linting--formatting).
+Single tool for linting and formatting (replaces ESLint + Prettier). See [development.md](setup.md#linting--formatting).
 
 ```bash
 npx biome check .          # Check lint + format
@@ -19,7 +19,7 @@ npx biome check --fix .    # Auto-fix issues
 
 ### Backend: golangci-lint
 
-The Go backend uses `golangci-lint` as the primary linting tool. Configuration is in `apps/api/.golangci.yml`.
+The Go backend uses `golangci-lint` as the primary linting tool. Configuration is in `apps/fs-backend/.golangci.yml`.
 
 **Installation:**
 ```bash
@@ -28,7 +28,7 @@ go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 **Usage:**
 ```bash
-cd apps/api
+cd apps/fs-backend
 
 # Run on entire project
 golangci-lint run ./...
@@ -77,8 +77,8 @@ import (
     "github.com/go-chi/chi/v5"
 
     // 3. Project internal packages
-    "factory-sync-solutions/apps/api/services/profile"
-    "factory-sync-solutions/apps/api/services/scoring"
+    "github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/profile"
+    "github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/scoring"
 )
 ```
 
@@ -156,7 +156,7 @@ issues:
 ### Before Committing
 
 ```bash
-cd apps/api
+cd apps/fs-backend
 
 # Format code
 gofmt -w .
@@ -194,7 +194,7 @@ Functions exceeding these thresholds must be refactored by extracting helper fun
 `gosec` checks for security issues:
 
 ```bash
-cd apps/api
+cd apps/fs-backend
 gosec ./...
 
 # Common issues
@@ -223,3 +223,7 @@ Before submitting code:
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Replaced Turborepo reference with Makefile |
+| 1.2.0 | 2026-06-13 | Fix stale paths (apps/api → apps/fs-backend); fix module import paths; fix broken development.md link |
+
+*Version: 1.2.0*
+*Last updated: 13 June 2026*

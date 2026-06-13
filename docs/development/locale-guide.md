@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-03-07
+version: 1.2.0
+lastUpdated: 2026-06-13
 author: Sathittham Sangthong
 ---
 
@@ -165,7 +165,7 @@ Multi-language (TH/EN) with a language switcher is already implemented. Key comp
 
 ### Date Formatting with Locale
 
-The helper functions shown above are **recommended patterns** but not yet implemented as shared utilities. Currently, date formatting uses `toLocaleDateString()` directly in components. Consider extracting shared helpers as the app grows.
+The `formatDateTime()` helper from `@/lib/dayjs` is used throughout the app (`DashboardPage`, `AdminPage`, `ResultPage`).
 
 ---
 
@@ -244,3 +244,7 @@ describe('date formatting', () => {
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated multi-language section from "Phase 2 future" to "Implemented", added date formatting note |
+| 1.2.0 | 2026-06-13 | Update date formatting note — formatDateTime from dayjs is now in use; remove stale toLocaleDateString note |
+
+*Version: 1.2.0*
+*Last updated: 13 June 2026*

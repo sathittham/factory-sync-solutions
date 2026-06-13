@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-03-07
+version: 1.2.0
+lastUpdated: 2026-06-13
 author: Sathittham Sangthong
 ---
 
@@ -17,7 +17,7 @@ Use modern Go features:
 
 ## Naming: camelCase Everywhere
 
-All JSON fields, Firestore fields, query params, and struct tags must use **camelCase**. No exceptions. See [api-conventions.md](api-conventions.md) for the full naming table.
+All JSON fields, Firestore fields, query params, and struct tags must use **camelCase**. No exceptions. See [api-conventions.md](../api/conventions.md) for the full naming table.
 
 ## ID Generation: UUIDv4
 
@@ -34,7 +34,7 @@ Generate IDs in the **service layer** — never in the handler or from client in
 ## Project Structure
 
 ```
-apps/api/
+apps/fs-backend/
 ├── main.go                    # Entry point, router setup, middleware
 ├── config/
 │   └── questions.json         # Static quiz question definitions
@@ -60,12 +60,17 @@ apps/api/
 │   │   └── service_test.go
 │   ├── result/
 │   │   ├── handler.go
+│   │   ├── models.go
 │   │   ├── repository.go
-│   │   └── service.go
+│   │   ├── service.go
+│   │   └── service_test.go
 │   ├── notification/
 │   │   ├── email.go           # Resend email integration
-│   │   ├── slack.go           # Slack webhook integration
-│   │   └── service.go
+│   │   ├── email_invite.go    # Invite email
+│   │   ├── email_result.go    # Result email
+│   │   ├── models.go
+│   │   ├── service.go
+│   │   └── slack.go           # Slack webhook integration
 │   └── admin/
 │       └── handler.go         # Handler with inline orchestration (no separate service layer)
 ├── middleware/
@@ -103,10 +108,10 @@ import (
     chiMiddleware "github.com/go-chi/chi/v5/middleware"
     firebase "firebase.google.com/go/v4"
 
-    "factory-sync-solutions/apps/api/middleware"
-    "factory-sync-solutions/apps/api/pkg"
-    "factory-sync-solutions/apps/api/services/profile"
-    "factory-sync-solutions/apps/api/services/quiz"
+    "github.com/sathittham/factory-sync-solutions/apps/fs-backend/middleware"
+    "github.com/sathittham/factory-sync-solutions/apps/fs-backend/pkg"
+    "github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/profile"
+    "github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/quiz"
 )
 
 func main() {
@@ -453,7 +458,7 @@ Initialize the Firestore client once at startup. The Firebase Admin SDK resolves
 - **Firestore Emulator**: Set `FIRESTORE_EMULATOR_HOST=localhost:8080` (no credentials needed).
 - **GCP (Cloud Run)**: Uses Application Default Credentials automatically — no env var needed.
 
-See [env-variables.md](env-variables.md) for the full list of required environment variables.
+See [env-variables.md](../operations/env-variables.md) for the full list of required environment variables.
 
 ```go
 package pkg
@@ -625,12 +630,12 @@ func RespondError(w http.ResponseWriter, status int, code, message string) {
 
 ## See Also
 
-- [api-conventions.md](api-conventions.md) — Naming conventions, response format, error codes
+- [api-conventions.md](../api/conventions.md) — Naming conventions, response format, error codes
 - [error-handling.md](error-handling.md) — Sentinel error pattern and handler error mapping
 - [testing-guide.md](testing-guide.md) — Go-specific testing patterns and mock examples
-- [security-guide.md](security-guide.md) — Authentication, authorization, and Firestore security rules
-- [database.md](database.md) — Firestore collections, data models, and scoring algorithm
-- [env-variables.md](env-variables.md) — All required environment variables
+- [security-guide.md](../operations/security.md) — Authentication, authorization, and Firestore security rules
+- [database.md](../architecture/database.md) — Firestore collections, data models, and scoring algorithm
+- [env-variables.md](../operations/env-variables.md) — All required environment variables
 
 ---
 
@@ -640,3 +645,7 @@ func RespondError(w http.ResponseWriter, status int, code, message string) {
 |---------|------|-------------|
 | 1.1.0 | 2026-03-07 | Add dbd service, fix result/admin structure, update to Cloud Run entry point |
 | 1.0.0 | 2026-03-06 | Initial version |
+| 1.2.0 | 2026-06-13 | Fix broken links; fix apps/api → apps/fs-backend paths; fix module import paths; update notification and result service structures |
+
+*Version: 1.2.0*
+*Last updated: 13 June 2026*

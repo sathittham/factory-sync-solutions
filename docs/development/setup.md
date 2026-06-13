@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-06-13
 author: Sathittham Sangthong
 ---
 
@@ -16,7 +16,7 @@ All code in this project must strictly follow these principles. They apply equal
 - All public functions must have clear godoc (Go) or JSDoc (TypeScript) comments
 - Use strict TypeScript (`strict: true`) and Go linting (`golangci-lint`) with zero warnings
 - Every code path must have explicit error handling — no silent failures
-- All API responses must follow the standard envelope format ([api-conventions.md](api-conventions.md))
+- All API responses must follow the standard envelope format ([api-conventions.md](../api/conventions.md))
 
 ### 2. Long-Term Maintainability
 
@@ -26,7 +26,7 @@ All code in this project must strictly follow these principles. They apply equal
 - **No magic values**: use named constants for thresholds, limits, status strings
 - **Minimal dependencies**: evaluate every third-party package for maintenance risk; prefer stdlib when reasonable
 - **Test coverage ≥ 80%** for service/business logic layers
-- **Document decisions**: new architectural choices must have an ADR in [decisions.md](decisions.md)
+- **Document decisions**: new architectural choices must have an ADR in [decisions.md](../architecture/decisions.md)
 
 ### 3. Best Performance
 
@@ -56,7 +56,7 @@ All code in this project must strictly follow these principles. They apply equal
 - **No secrets in frontend**: only `VITE_` prefixed public config
 - **Bot protection**: Cloudflare Turnstile on registration, rate limiting on all endpoints
 - **CORS**: explicit allowed origins — no wildcard in production
-- See [security-guide.md](security-guide.md) for full details
+- See [security-guide.md](../operations/security.md) for full details
 
 ---
 
@@ -73,7 +73,7 @@ make test-api              # Run Go tests
 make test-web              # Run Vitest
 ```
 
-Each app has its own build and test commands (`apps/api/` uses Go toolchain, `apps/web/` uses npm/Vite).
+Each app has its own build and test commands (`apps/fs-backend/` uses Go toolchain, `apps/fs-app-web/` uses npm/Vite).
 
 ## Linting & Formatting
 
@@ -193,7 +193,7 @@ Playwright E2E tests cover mobile via the `Mobile Chrome` project (Pixel 5). Add
 
 ## API Documentation (Swagger)
 
-> **Status**: Not yet implemented. Swagger annotations exist in handler source code but swaggo is not installed and the Swagger UI route is commented out. See [swagger-openapi.md](swagger-openapi.md) for the planned setup.
+> **Status**: Not yet implemented. Swagger annotations exist in handler source code but swaggo is not installed and the Swagger UI route is commented out. See [swagger-openapi.md](../api/swagger.md) for the planned setup.
 
 ## API Versioning
 
@@ -247,8 +247,8 @@ Flow: `feature/*` → `develop` → `staging` → `main`
 
 | Environment | Frontend URL | Backend |
 |-------------|-------------|---------|
-| Staging | `factory-sync-solutions-staging.pages.dev` | Cloud Run (staging) |
-| Production | `factory-sync-solutions.pages.dev` | Cloud Run (production) |
+| Staging | `staging.factorysync.com` | Cloud Run (staging) |
+| Production | `app.factorysync.com` | Cloud Run (production) |
 
 ## Monitoring & Logging
 
@@ -266,7 +266,7 @@ Real-time alerts sent to Slack channels via Incoming Webhooks:
 - `#ci-cd` — GitHub Actions pipeline status (pass/fail)
 - `#server-status` — Cloud Run health checks and error alerts
 
-See [architecture.md](architecture.md#slack-notifications) for full details.
+See [architecture.md](../architecture/overview.md#slack-notifications) for full details.
 
 ### Backend (Go)
 
@@ -304,3 +304,7 @@ See [architecture.md](architecture.md#slack-notifications) for full details.
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated: Turborepo -> Makefile, Cloud Functions -> Cloud Run, Swagger marked as not implemented, fixed CI/CD pipeline |
+| 1.1.0 | 2026-06-13 | Fix broken links; fix apps/api → apps/fs-backend paths; update environment URLs to custom domains |
+
+*Version: 1.1.0*
+*Last updated: 13 June 2026*

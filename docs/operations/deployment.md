@@ -1,6 +1,6 @@
 ---
-version: 1.2.0
-lastUpdated: 2026-06-11
+version: 1.3.0
+lastUpdated: 2026-06-13
 author: Sathittham Sangthong
 ---
 
@@ -100,7 +100,7 @@ gcloud services enable firestore.googleapis.com
 ### Manual Deployment
 
 ```bash
-cd apps/api
+cd apps/fs-backend
 
 # Build and push Docker image
 IMAGE=asia-southeast3-docker.pkg.dev/<PROJECT_ID>/cloud-run/factory-sync-solutions-api:latest
@@ -247,7 +247,7 @@ gcloud run services update-traffic factory-sync-solutions-api \
 - **Firestore usage**: Check read/write counts against free tier limits (50K reads, 20K writes/day)
 - **Slack `#server-status`**: Watch for error alerts
 
-See [logging-monitoring.md](logging-monitoring.md) for detailed monitoring setup.
+See [monitoring.md](monitoring.md) for detailed monitoring setup.
 
 ---
 
@@ -256,7 +256,7 @@ See [logging-monitoring.md](logging-monitoring.md) for detailed monitoring setup
 - [env-variables.md](env-variables.md) -- All required environment variables
 - [architecture.md](architecture.md) -- System architecture and platform choices
 - [development.md](development.md) -- Branch strategy and CI/CD pipeline overview
-- [logging-monitoring.md](logging-monitoring.md) -- Monitoring, alerting, and log retention
+- [monitoring.md](monitoring.md) -- Monitoring, alerting, and log retention
 
 ---
 
@@ -267,3 +267,4 @@ See [logging-monitoring.md](logging-monitoring.md) for detailed monitoring setup
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated: Cloud Functions -> Cloud Run, removed turbo references, fixed secrets management, updated deploy commands |
 | 1.2.0 | 2026-06-11 | Added fs-backoffice-web deployment (CF Pages + Cloudflare Access); updated pipeline stages; updated app names to fs-* |
+| 1.3.0 | 2026-06-13 | Fix manual deploy path (apps/api → apps/fs-backend); fix broken monitoring doc link |

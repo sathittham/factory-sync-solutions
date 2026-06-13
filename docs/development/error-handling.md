@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-03-07
+version: 1.2.0
+lastUpdated: 2026-06-13
 author: Sathittham Sangthong
 ---
 
@@ -217,9 +217,9 @@ No custom recovery middleware is needed.
 
 ## See Also
 
-- [api-conventions.md](api-conventions.md) — Response envelope format and error codes
+- [api-conventions.md](../api/conventions.md) — Response envelope format and error codes
 - [go-patterns.md](go-patterns.md) — Handler/service/repository layer pattern
-- [logging-monitoring.md](logging-monitoring.md) — Structured error logging with `log/slog`
+- [logging-monitoring.md](../operations/monitoring.md) — Structured error logging with `log/slog`
 
 ---
 
@@ -229,3 +229,7 @@ No custom recovery middleware is needed.
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Added CAPTCHA_FAILED error code, added note about AlreadyExists pattern not being used |
+| 1.2.0 | 2026-06-13 | Fix broken See Also links |
+
+*Version: 1.2.0*
+*Last updated: 13 June 2026*

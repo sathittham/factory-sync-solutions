@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-06-11
+version: 1.2.0
+lastUpdated: 2026-06-13
 author: Sathittham Sangthong
 ---
 
@@ -17,7 +17,7 @@ Centralized reference for all environment variables used across the project.
 | `GOOGLE_APPLICATION_CREDENTIALS` | Dev only | Path to service account JSON file. Not needed on GCP (uses Application Default Credentials). | `/path/to/service-account.json` |
 | `FIRESTORE_EMULATOR_HOST` | Emulator only | Firestore emulator address. Set this to use the local emulator instead of production Firestore. | `localhost:8080` |
 | `FIREBASE_AUTH_EMULATOR_HOST` | Emulator only | Firebase Auth emulator address. Set this for integration tests with auth. | `localhost:9099` |
-| `GCP_PROJECT_ID` | Yes | Google Cloud project ID. Auto-detected on GCP, required locally. | `factory-health-check-prod` |
+| `GCP_PROJECT_ID` | Yes | Google Cloud project ID. Auto-detected on GCP, required locally. | `factory-sync-solutions` |
 | `PORT` | No | HTTP server port. Defaults to `8080`. | `8080` |
 | `ENVIRONMENT` | Yes | Current environment. Controls Swagger UI visibility and log levels. | `development`, `staging`, `production` |
 
@@ -49,8 +49,8 @@ Only `VITE_` prefixed variables are exposed to the browser. Never put secrets he
 |----------|----------|-------------|---------|
 | `VITE_FIREBASE_API_KEY` | Yes | Firebase project API key (public) | `AIza...` |
 | `VITE_FIREBASE_AUTH_DOMAIN` | Yes | Firebase Auth domain | `project-id.firebaseapp.com` |
-| `VITE_FIREBASE_PROJECT_ID` | Yes | Firebase project ID | `factory-health-check-prod` |
-| `VITE_FIREBASE_STORAGE_BUCKET` | Yes | Firebase storage bucket | `project-id.appspot.com` |
+| `VITE_FIREBASE_PROJECT_ID` | Yes | Firebase project ID | `factory-sync-solutions` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Yes | Firebase storage bucket | `factory-sync-solutions.firebasestorage.app` |
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Yes | Firebase messaging sender ID | `123456789` |
 | `VITE_FIREBASE_APP_ID` | Yes | Firebase app ID | `1:123:web:abc` |
 | `VITE_API_BASE_URL` | No | Backend API base URL (empty = use Vite proxy in dev) | `/api/v1` |
@@ -65,8 +65,8 @@ There is no Turnstile widget on the backoffice (Cloudflare Access handles bot/ac
 |----------|----------|-------------|---------|
 | `VITE_FIREBASE_API_KEY` | Yes | Same Firebase API key as `fs-app-web` | `AIza...` |
 | `VITE_FIREBASE_AUTH_DOMAIN` | Yes | Same Firebase Auth domain | `project-id.firebaseapp.com` |
-| `VITE_FIREBASE_PROJECT_ID` | Yes | Same Firebase project ID | `factory-health-check-prod` |
-| `VITE_FIREBASE_STORAGE_BUCKET` | Yes | Same Firebase storage bucket | `project-id.appspot.com` |
+| `VITE_FIREBASE_PROJECT_ID` | Yes | Same Firebase project ID | `factory-sync-solutions` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Yes | Same Firebase storage bucket | `factory-sync-solutions.firebasestorage.app` |
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Yes | Same messaging sender ID | `123456789` |
 | `VITE_FIREBASE_APP_ID` | Yes | Firebase app ID (backoffice web app) | `1:123:web:def` |
 | `VITE_API_BASE_URL` | No | Backend API base URL | `http://localhost:8080/api/v1` |
@@ -87,6 +87,7 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | `CF_TURNSTILE_SECRET` | Cloudflare Turnstile server secret (injected into Cloud Run) |
 | `SLACK_WEBHOOK_REGISTRATION` | Slack webhook for registrations (injected into Cloud Run) |
 | `SLACK_WEBHOOK_QUIZ_RESULT` | Slack webhook for quiz results (injected into Cloud Run) |
+| `SLACK_WEBHOOK_DEPLOY` | Slack webhook for CI/CD deploy notifications (injected into deploy workflow) | GitHub Secrets |
 
 ### GitHub Variables (per environment)
 
@@ -95,8 +96,8 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | `ALLOWED_ORIGINS` | CORS allowed origins (comma-separated; include both app and backoffice) | `https://factory-sync-solutions.pages.dev,https://factory-sync-backoffice.pages.dev` |
 | `VITE_FIREBASE_API_KEY` | Firebase API key | `AIza...` |
 | `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth domain | `project-id.firebaseapp.com` |
-| `VITE_FIREBASE_PROJECT_ID` | Firebase project ID | `factory-health-check-prod` |
-| `VITE_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket | `project-id.appspot.com` |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase project ID | `factory-sync-solutions` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket | `factory-sync-solutions.firebasestorage.app` |
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID | `123456789` |
 | `VITE_FIREBASE_APP_ID` | Firebase app ID (fs-app-web) | `1:123:web:abc` |
 | `VITE_BACKOFFICE_APP_ID` | Firebase app ID (fs-backoffice-web) | `1:123:web:def` |
@@ -158,3 +159,4 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-06-11 | Added fs-backoffice-web env vars; updated ALLOWED_ORIGINS to include backoffice origins; updated local dev setup; updated app path references |
+| 1.2.0 | 2026-06-13 | Fix stale project ID examples; update storage bucket format to firebasestorage.app; add SLACK_WEBHOOK_DEPLOY secret |
