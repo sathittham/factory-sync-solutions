@@ -9,6 +9,7 @@ import {
 	useTheme,
 } from "@/components/site/chrome";
 import { buttonVariants } from "@/components/ui/button";
+import { getAppRegisterUrl } from "@/lib/appLinks";
 import { type Locale, LocaleProvider, useLocale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Fragment, useState } from "react";
@@ -66,11 +67,13 @@ const SITE_NAV_LINKS = [
 
 function NavBar({
 	appUrl,
+	registerUrl,
 	theme,
 	setTheme,
 	resolvedTheme,
 }: {
 	readonly appUrl: string;
+	readonly registerUrl: string;
 	readonly theme: Theme;
 	readonly setTheme: (t: Theme) => void;
 	readonly resolvedTheme: ResolvedTheme;
@@ -126,7 +129,7 @@ function NavBar({
 						{t("nav.signIn")}
 					</a>
 					<a
-						href="/register"
+						href={registerUrl}
 						className={cn(
 							buttonVariants({ size: "sm" }),
 							"hidden rounded-md bg-blue-600 px-4 text-xs text-white shadow-[0_0_24px_rgba(37,99,235,0.35)] hover:bg-blue-500 min-[1360px]:inline-flex xl:px-5 xl:text-sm"
@@ -162,7 +165,7 @@ function NavBar({
 							</a>
 						))}
 						<a
-							href="/register"
+							href={registerUrl}
 							onClick={handleCloseMobile}
 							className={cn(
 								buttonVariants(),
@@ -199,7 +202,10 @@ function NavBar({
 
 const SEP = <span className="text-slate-300 dark:text-slate-600">|</span>;
 
-function Footer({ version, resolvedTheme }: { readonly version: string; readonly resolvedTheme: ResolvedTheme }) {
+function Footer({
+	version,
+	resolvedTheme,
+}: { readonly version: string; readonly resolvedTheme: ResolvedTheme }) {
 	const { t } = useLocale();
 	const year = new Date().getFullYear();
 
@@ -762,8 +768,8 @@ function CookiesEn() {
 				Only activated with explicit consent (opt-in). Withdraw via{" "}
 				<a href="/cookie-settings" className="text-primary hover:underline">
 					Cookie Settings
-				</a>{"."}
-
+				</a>
+				{"."}
 			</p>
 			<h2 className={h2Class}>3. Managing Cookies</h2>
 			<ul className={ulClass}>
@@ -771,8 +777,8 @@ function CookiesEn() {
 					Via the{" "}
 					<a href="/cookie-settings" className="text-primary hover:underline">
 						Cookie Settings page
-					</a>{"."}
-
+					</a>
+					{"."}
 				</li>
 				<li>Via your browser settings.</li>
 			</ul>
@@ -929,8 +935,8 @@ function MarketingEn() {
 					Give consent via{" "}
 					<a href="/cookie-settings" className="text-primary hover:underline">
 						Cookie Settings
-					</a>{"."}
-
+					</a>
+					{"."}
 				</li>
 				<li>
 					Withdraw at any time via Cookie Settings, email unsubscribe link, or contact
@@ -1128,11 +1134,18 @@ function LegalInner({
 }: { readonly page: LegalPageType; readonly appUrl: string; readonly version: string }) {
 	const { locale, t } = useLocale();
 	const { theme, resolvedTheme, setTheme } = useTheme();
+	const registerUrl = getAppRegisterUrl(appUrl, { isDevelopment: import.meta.env.DEV });
 	const title = PAGE_TITLES[page][locale];
 
 	return (
 		<div className="min-h-screen flex flex-col bg-white text-slate-900 dark:bg-[#041225] dark:text-slate-100">
-			<NavBar appUrl={appUrl} theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
+			<NavBar
+				appUrl={appUrl}
+				registerUrl={registerUrl}
+				theme={theme}
+				setTheme={setTheme}
+				resolvedTheme={resolvedTheme}
+			/>
 			<main className="flex-1">
 				<div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
 					{/* Breadcrumb */}

@@ -67,7 +67,7 @@ export function useAuth() {
                 console.warn('[useAuth] invitation accept error:', invErr);
               } else {
                 console.debug(
-                  '[useAuth] no profile, no invitation → RegisterGuard will redirect to official-web /register',
+                  '[useAuth] no profile, no invitation → user can continue through /register',
                 );
               }
               dispatch(setProfile(null));

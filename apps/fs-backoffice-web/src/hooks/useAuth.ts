@@ -16,6 +16,10 @@ export function useAuth() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        // Keep guards in loading state until the token claim is resolved.
+        // Without this, BackofficeGuard renders between setUser and
+        // setBackofficeRole and incorrectly redirects to /unauthorized.
+        dispatch(setLoading(true));
         dispatch(
           setUser({
             uid: firebaseUser.uid,

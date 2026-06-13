@@ -25,6 +25,8 @@ export interface UserProfile {
   uid: string;
   email: string;
   displayName: string;
+  avatarURL?: string;
+  photoURL?: string;
   companyName: string;
   companyRegId: string;
   industryType: string;

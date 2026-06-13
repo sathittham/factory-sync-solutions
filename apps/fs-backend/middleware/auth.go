@@ -19,6 +19,7 @@ type contextKey string
 const uidContextKey contextKey = "uid"
 const emailContextKey contextKey = "email"
 const displayNameContextKey contextKey = "displayName"
+const photoURLContextKey contextKey = "photoURL"
 
 const msgMissingAuth = "missing auth"
 const msgAccessDenied = "access denied"
@@ -50,6 +51,9 @@ func FirebaseAuth(authClient *firebaseAuth.Client) func(http.Handler) http.Handl
 			}
 			if name, ok := token.Claims["name"].(string); ok {
 				ctx = context.WithValue(ctx, displayNameContextKey, name)
+			}
+			if photoURL, ok := token.Claims["picture"].(string); ok {
+				ctx = context.WithValue(ctx, photoURLContextKey, photoURL)
 			}
 
 			next.ServeHTTP(w, r.WithContext(ctx))
@@ -100,6 +104,12 @@ func GetEmail(r *http.Request) string {
 func GetDisplayName(r *http.Request) string {
 	name, _ := r.Context().Value(displayNameContextKey).(string)
 	return name
+}
+
+// GetPhotoURL extracts the verified profile photo URL from the request context.
+func GetPhotoURL(r *http.Request) string {
+	photoURL, _ := r.Context().Value(photoURLContextKey).(string)
+	return photoURL
 }
 
 // RequireFirestoreRole returns a middleware that allows only requests whose

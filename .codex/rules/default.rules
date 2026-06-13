@@ -1,0 +1,54 @@
+# FactorySync command policy for escalated shell execution.
+#
+# Rules apply when Codex requests to run a command outside the sandbox.
+# Keep deploys and history-changing git operations interactive, and block
+# common destructive shortcuts that are too broad for an agent allowlist.
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Do not discard local work; inspect diffs and ask for an explicit recovery plan instead.",
+    match = ["git reset --hard", "git reset --hard HEAD~1"],
+)
+
+prefix_rule(
+    pattern = ["git", "clean"],
+    decision = "forbidden",
+    justification = "Do not remove untracked files automatically; ask before cleanup and list affected paths first.",
+    match = ["git clean -fd", "git clean -fdx"],
+)
+
+prefix_rule(
+    pattern = ["rm", "-rf"],
+    decision = "forbidden",
+    justification = "Broad recursive deletion is blocked; use targeted edits or ask for explicit cleanup approval.",
+    match = ["rm -rf dist", "rm -rf node_modules"],
+)
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Pushing updates remote branches or tags and should stay an explicit user decision.",
+    match = ["git push", "git push origin feature/example", "git push origin v1.2.3"],
+)
+
+prefix_rule(
+    pattern = ["git", "tag"],
+    decision = "prompt",
+    justification = "Release tags trigger deployment workflows in this repository.",
+    match = ["git tag v1.2.3", "git tag v1.2.3-staging"],
+)
+
+prefix_rule(
+    pattern = ["npm", "run", "deploy:staging"],
+    decision = "prompt",
+    justification = "Staging deploys publish externally and should be confirmed.",
+    match = ["npm run deploy:staging"],
+)
+
+prefix_rule(
+    pattern = ["npm", "run", "deploy:prod"],
+    decision = "prompt",
+    justification = "Production deploys publish externally and should be confirmed.",
+    match = ["npm run deploy:prod"],
+)

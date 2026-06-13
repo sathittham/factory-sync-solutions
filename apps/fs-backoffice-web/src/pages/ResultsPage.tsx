@@ -3,23 +3,30 @@ import type { Assessment } from '@/api/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDateTime } from '@/lib/dayjs';
 import { useLocale } from '@/lib/i18n';
+import { PageHeader, PageLayout } from '@shared/ui/PageLayout';
 import { ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const DIAGNOSES = ['Beginning', 'Developing', 'Established', 'Advanced'] as const;
 
 function diagnosisBadge(d: string) {
-  const map: Record<string, string> = {
-    Beginning: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    Developing: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
-    Established: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    Advanced: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+  const map: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    Beginning: 'destructive',
+    Developing: 'secondary',
+    Established: 'outline',
+    Advanced: 'default',
   };
-  return <Badge className={map[d] ?? ''}>{d}</Badge>;
+  return <Badge variant={map[d] ?? 'secondary'}>{d}</Badge>;
 }
 
 function scoreColor(score: number): string {
@@ -47,9 +54,8 @@ export function ResultsPage() {
       .finally(() => setLoading(false));
   }, [t]);
 
-  const filtered = diagnosisFilter === 'all'
-    ? results
-    : results.filter((r) => r.diagnosis === diagnosisFilter);
+  const filtered =
+    diagnosisFilter === 'all' ? results : results.filter((r) => r.diagnosis === diagnosisFilter);
 
   async function handleExport() {
     setExporting(true);
@@ -71,10 +77,12 @@ export function ResultsPage() {
 
   function renderBody() {
     if (loading) {
-      return ['r1','r2','r3','r4','r5'].map((k) => (
+      return ['r1', 'r2', 'r3', 'r4', 'r5'].map((k) => (
         <tr key={k} className="border-b">
-          {['w-32','w-24','w-16','w-24','w-24'].map((w, j) => (
-            <td key={j} className="px-4 py-3"><Skeleton className={`h-4 ${w}`} /></td>
+          {['w-32', 'w-24', 'w-16', 'w-24', 'w-24'].map((w) => (
+            <td key={w} className="px-4 py-3">
+              <Skeleton className={`h-4 ${w}`} />
+            </td>
           ))}
           <td className="px-4 py-3" />
         </tr>
@@ -91,15 +99,24 @@ export function ResultsPage() {
     }
     return filtered.map((r) => {
       const expanded = expandedID === r.id;
+      const toggleExpanded = () => setExpandedID(expanded ? null : r.id);
       return [
-        <tr
-          key={r.id}
-          className="cursor-pointer border-b hover:bg-muted/30"
-          onClick={() => setExpandedID(expanded ? null : r.id)}
-        >
+        <tr key={r.id} className="border-b hover:bg-muted/30">
           <td className="px-4 py-3">
-            {expanded ? <ChevronDown className="inline h-4 w-4 mr-1" /> : <ChevronRight className="inline h-4 w-4 mr-1" />}
-            {r.companyName || '—'}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="-ml-2 justify-start px-2"
+              onClick={toggleExpanded}
+            >
+              {expanded ? (
+                <ChevronDown data-icon="inline-start" />
+              ) : (
+                <ChevronRight data-icon="inline-start" />
+              )}
+              {r.companyName || '—'}
+            </Button>
           </td>
           <td className="hidden px-4 py-3 md:table-cell">{r.quizId}</td>
           <td className={`px-4 py-3 ${scoreColor(r.overallScore)}`}>{r.overallScore.toFixed(2)}</td>
@@ -114,8 +131,10 @@ export function ResultsPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 {r.scores?.length > 0 && (
                   <div>
-                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{t('results.dimensions')}</p>
-                    <div className="space-y-1">
+                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                      {t('results.dimensions')}
+                    </p>
+                    <div className="flex flex-col gap-1">
                       {r.scores.map((s) => (
                         <div key={s.dimensionID} className="flex justify-between text-sm">
                           <span>{s.dimensionName || s.dimensionID}</span>
@@ -125,20 +144,28 @@ export function ResultsPage() {
                     </div>
                   </div>
                 )}
-                <div className="space-y-3">
+                <div className="flex flex-col gap-3">
                   {r.strengths?.length > 0 && (
                     <div>
-                      <p className="mb-1 text-xs font-semibold uppercase text-emerald-600">{t('results.strengths')}</p>
-                      <ul className="list-disc pl-4 text-sm space-y-0.5">
-                        {r.strengths.map((s) => <li key={s}>{s}</li>)}
+                      <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+                        {t('results.strengths')}
+                      </p>
+                      <ul className="flex list-disc flex-col gap-0.5 pl-4 text-sm">
+                        {r.strengths.map((s) => (
+                          <li key={s}>{s}</li>
+                        ))}
                       </ul>
                     </div>
                   )}
                   {r.weaknesses?.length > 0 && (
                     <div>
-                      <p className="mb-1 text-xs font-semibold uppercase text-red-600">{t('results.weaknesses')}</p>
-                      <ul className="list-disc pl-4 text-sm space-y-0.5">
-                        {r.weaknesses.map((w) => <li key={w}>{w}</li>)}
+                      <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+                        {t('results.weaknesses')}
+                      </p>
+                      <ul className="flex list-disc flex-col gap-0.5 pl-4 text-sm">
+                        {r.weaknesses.map((w) => (
+                          <li key={w}>{w}</li>
+                        ))}
                       </ul>
                     </div>
                   )}
@@ -152,49 +179,59 @@ export function ResultsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t('results.title')}</h1>
-        <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
-          <Download className="mr-2 h-4 w-4" />
-          {t('common.export')}
-        </Button>
+    <PageLayout className="max-w-6xl">
+      <PageHeader
+        title={t('results.title')}
+        actions={
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
+            <Download data-icon="inline-start" />
+            {t('common.export')}
+          </Button>
+        }
+      />
+
+      <div className="flex flex-col gap-6">
+        <div className="flex gap-3">
+          <Select value={diagnosisFilter} onValueChange={setDiagnosisFilter}>
+            <SelectTrigger className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('results.filterAll')}</SelectItem>
+              {DIAGNOSES.map((d) => (
+                <SelectItem key={d} value={d}>
+                  {d}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {error && <p className="text-sm text-destructive">{error}</p>}
+
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/40">
+                    <th className="px-4 py-3 text-left font-medium">{t('results.company')}</th>
+                    <th className="hidden px-4 py-3 text-left font-medium md:table-cell">
+                      {t('results.quizId')}
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium">{t('results.score')}</th>
+                    <th className="px-4 py-3 text-left font-medium">{t('results.diagnosis')}</th>
+                    <th className="hidden px-4 py-3 text-left font-medium lg:table-cell">
+                      {t('results.date')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>{renderBody()}</tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-      <div className="flex gap-3">
-        <Select value={diagnosisFilter} onValueChange={setDiagnosisFilter}>
-          <SelectTrigger className="w-44">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('results.filterAll')}</SelectItem>
-            {DIAGNOSES.map((d) => (
-              <SelectItem key={d} value={d}>{d}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {error && <p className="text-sm text-destructive">{error}</p>}
-
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/40">
-                  <th className="px-4 py-3 text-left font-medium">{t('results.company')}</th>
-                  <th className="hidden px-4 py-3 text-left font-medium md:table-cell">{t('results.quizId')}</th>
-                  <th className="px-4 py-3 text-left font-medium">{t('results.score')}</th>
-                  <th className="px-4 py-3 text-left font-medium">{t('results.diagnosis')}</th>
-                  <th className="hidden px-4 py-3 text-left font-medium lg:table-cell">{t('results.date')}</th>
-                </tr>
-              </thead>
-              <tbody>{renderBody()}</tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    </PageLayout>
   );
 }

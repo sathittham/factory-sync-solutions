@@ -3,6 +3,8 @@ import { AdminGuard } from '@/components/guards/AdminGuard';
 import { AuthGuard } from '@/components/guards/AuthGuard';
 import { CompanySettingsGuard } from '@/components/guards/CompanySettingsGuard';
 import { RegisterGuard } from '@/components/guards/RegisterGuard';
+import { LocaleProvider } from '@/lib/i18n';
+import { ThemeProvider } from '@/lib/theme';
 import { AdminPage } from '@/pages/AdminPage';
 import { AuthActionPage } from '@/pages/AuthActionPage';
 import { CompanySettingsPage } from '@/pages/CompanySettingsPage';
@@ -15,16 +17,26 @@ import { ResultPage } from '@/pages/ResultPage';
 import { SignInPage } from '@/pages/SignInPage';
 import { createBrowserRouter } from 'react-router';
 
+function RootRoute() {
+  return (
+    <ThemeProvider>
+      <LocaleProvider>
+        <Layout />
+      </LocaleProvider>
+    </ThemeProvider>
+  );
+}
+
 export const router = createBrowserRouter([
   {
-    element: <Layout />,
+    element: <RootRoute />,
     children: [
       { index: true, element: <SignInPage /> },
       { path: 'auth/action', element: <AuthActionPage /> },
+      { path: 'register', element: <RegisterPage /> },
       {
         element: <AuthGuard />,
         children: [
-          { path: 'register', element: <RegisterPage /> },
           {
             element: <RegisterGuard />,
             children: [

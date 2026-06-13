@@ -87,7 +87,7 @@ const HERO_STATS = [
 	},
 ];
 
-export function HeroSection({ appUrl }: { readonly appUrl: string }) {
+export function HeroSection({ registerUrl }: { readonly registerUrl: string }) {
 	const { t } = useLocale();
 
 	return (
@@ -131,7 +131,7 @@ export function HeroSection({ appUrl }: { readonly appUrl: string }) {
 					<FadeIn delay={0.16}>
 						<div className="mb-6 flex flex-wrap gap-3">
 							<a
-								href="/register"
+								href={registerUrl}
 								onClick={() => globalThis.gtag?.("event", "cta_click", { location: "hero" })}
 								className="inline-flex h-11 items-center gap-2 rounded-md bg-blue-600 px-7 font-semibold text-white shadow-[0_0_28px_rgba(37,99,235,0.5)] transition-colors hover:bg-blue-500"
 							>

@@ -19,6 +19,29 @@ type RepositoryInterface interface {
 	Update(ctx context.Context, uid string, updates []firestore.Update) error
 }
 
+type projectDocument struct {
+	ProjectID    string `firestore:"projectID"`
+	Name         string `firestore:"name"`
+	CompanyRegID string `firestore:"companyRegId"`
+	IndustryType string `firestore:"industryType"`
+	CompanySize  string `firestore:"companySize"`
+	OwnerUID     string `firestore:"ownerUID"`
+	MemberCount  int    `firestore:"memberCount"`
+	IsActive     bool   `firestore:"isActive"`
+	CreatedAt    string `firestore:"createdAt"`
+	UpdatedAt    string `firestore:"updatedAt"`
+}
+
+type memberDocument struct {
+	UID         string `firestore:"uid"`
+	Email       string `firestore:"email"`
+	DisplayName string `firestore:"displayName"`
+	ProjectRole string `firestore:"projectRole"`
+	JoinMethod  string `firestore:"joinMethod"`
+	JoinedAt    string `firestore:"joinedAt"`
+	IsActive    bool   `firestore:"isActive"`
+}
+
 // Repository implements RepositoryInterface using Firestore.
 type Repository struct {
 	client *firestore.Client
@@ -116,9 +139,64 @@ func (r *Repository) GetByRegID(ctx context.Context, regID string) (*Profile, er
 }
 
 func (r *Repository) Create(ctx context.Context, profile *Profile) error {
-	_, err := r.client.Collection("users").Doc(profile.UID).Set(ctx, profile)
+	userRef := r.client.Collection("users").Doc(profile.UID)
+	projectRef := r.client.Collection("projects").Doc(profile.CompanyRegID)
+	memberRef := projectRef.Collection("members").Doc(profile.UID)
+
+	err := r.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		if _, err := tx.Get(userRef); err == nil {
+			return ErrAlreadyRegistered
+		} else if status.Code(err) != codes.NotFound {
+			return fmt.Errorf("get user document: %w", err)
+		}
+
+		projectSnap, err := tx.Get(projectRef)
+		projectExists := err == nil
+		if err != nil && status.Code(err) != codes.NotFound {
+			return fmt.Errorf("get project document: %w", err)
+		}
+
+		memberSnap, err := tx.Get(memberRef)
+		memberExists := err == nil && memberSnap.Exists()
+		if err != nil && status.Code(err) != codes.NotFound {
+			return fmt.Errorf("get project member document: %w", err)
+		}
+
+		if profile.ProjectRoles == nil {
+			profile.ProjectRoles = map[string]string{}
+		}
+		profile.ProjectRoles[profile.CompanyRegID] = "owner"
+
+		if err := tx.Set(userRef, profile); err != nil {
+			return fmt.Errorf("set user document: %w", err)
+		}
+
+		if projectExists {
+			updates := projectUpdatesFromProfile(projectSnap, profile)
+			if !memberExists {
+				updates = append(updates, firestore.Update{Path: "memberCount", Value: firestore.Increment(1)})
+			}
+			if len(updates) > 0 {
+				if err := tx.Update(projectRef, updates); err != nil {
+					return fmt.Errorf("update project document: %w", err)
+				}
+			}
+		} else {
+			if err := tx.Set(projectRef, projectFromProfile(profile)); err != nil {
+				return fmt.Errorf("set project document: %w", err)
+			}
+		}
+
+		if !memberExists {
+			if err := tx.Set(memberRef, memberFromProfile(profile)); err != nil {
+				return fmt.Errorf("set project member document: %w", err)
+			}
+		}
+
+		return nil
+	})
 	if err != nil {
-		return fmt.Errorf("firestore set: %w", err)
+		return fmt.Errorf("firestore create profile transaction: %w", err)
 	}
 	return nil
 }
@@ -129,4 +207,62 @@ func (r *Repository) Update(ctx context.Context, uid string, updates []firestore
 		return fmt.Errorf("firestore update: %w", err)
 	}
 	return nil
+}
+
+func projectFromProfile(profile *Profile) projectDocument {
+	return projectDocument{
+		ProjectID:    profile.CompanyRegID,
+		Name:         profile.CompanyName,
+		CompanyRegID: profile.CompanyRegID,
+		IndustryType: profile.IndustryType,
+		CompanySize:  profile.CompanySize,
+		OwnerUID:     profile.UID,
+		MemberCount:  1,
+		IsActive:     true,
+		CreatedAt:    profile.CreatedAt,
+		UpdatedAt:    profile.UpdatedAt,
+	}
+}
+
+func memberFromProfile(profile *Profile) memberDocument {
+	return memberDocument{
+		UID:         profile.UID,
+		Email:       profile.Email,
+		DisplayName: profile.DisplayName,
+		ProjectRole: "owner",
+		JoinMethod:  "registration",
+		JoinedAt:    profile.CreatedAt,
+		IsActive:    true,
+	}
+}
+
+func projectUpdatesFromProfile(snap *firestore.DocumentSnapshot, profile *Profile) []firestore.Update {
+	var existing projectDocument
+	if err := snap.DataTo(&existing); err != nil {
+		return []firestore.Update{{Path: "updatedAt", Value: profile.UpdatedAt}}
+	}
+
+	updates := []firestore.Update{{Path: "updatedAt", Value: profile.UpdatedAt}}
+	if existing.ProjectID == "" {
+		updates = append(updates, firestore.Update{Path: "projectID", Value: profile.CompanyRegID})
+	}
+	if existing.Name == "" {
+		updates = append(updates, firestore.Update{Path: "name", Value: profile.CompanyName})
+	}
+	if existing.CompanyRegID == "" {
+		updates = append(updates, firestore.Update{Path: "companyRegId", Value: profile.CompanyRegID})
+	}
+	if existing.IndustryType == "" {
+		updates = append(updates, firestore.Update{Path: "industryType", Value: profile.IndustryType})
+	}
+	if existing.CompanySize == "" {
+		updates = append(updates, firestore.Update{Path: "companySize", Value: profile.CompanySize})
+	}
+	if existing.OwnerUID == "" {
+		updates = append(updates, firestore.Update{Path: "ownerUID", Value: profile.UID})
+	}
+	if existing.CreatedAt == "" {
+		updates = append(updates, firestore.Update{Path: "createdAt", Value: profile.CreatedAt})
+	}
+	return updates
 }

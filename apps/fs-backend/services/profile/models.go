@@ -2,23 +2,24 @@ package profile
 
 // Profile represents a user's profile in the users Firestore collection.
 type Profile struct {
-	UID                string `json:"uid" firestore:"uid"`
-	Email              string `json:"email" firestore:"email"`
-	DisplayName        string `json:"displayName" firestore:"displayName"`
-	AvatarURL          string `json:"avatarURL" firestore:"avatarURL"`
-	CompanyName        string `json:"companyName" firestore:"companyName"`
-	CompanyRegID       string `json:"companyRegId" firestore:"companyRegId"`
-	IndustryType       string `json:"industryType" firestore:"industryType"`
-	CompanySize        string `json:"companySize" firestore:"companySize"`
-	ContactName        string `json:"contactName" firestore:"contactName"`
-	ContactEmail       string `json:"contactEmail" firestore:"contactEmail"`
-	ContactPhone       string `json:"contactPhone" firestore:"contactPhone"`
-	Role               string `json:"role" firestore:"role"`
-	ConsentVersion     string `json:"consentVersion" firestore:"consentVersion"`
-	ConsentAt          string `json:"consentAt" firestore:"consentAt"`
-	EmailNotifications bool   `json:"emailNotifications" firestore:"emailNotifications"`
-	CreatedAt          string `json:"createdAt" firestore:"createdAt"`
-	UpdatedAt          string `json:"updatedAt" firestore:"updatedAt"`
+	UID                string            `json:"uid" firestore:"uid"`
+	Email              string            `json:"email" firestore:"email"`
+	DisplayName        string            `json:"displayName" firestore:"displayName"`
+	AvatarURL          string            `json:"avatarURL" firestore:"avatarURL"`
+	CompanyName        string            `json:"companyName" firestore:"companyName"`
+	CompanyRegID       string            `json:"companyRegId" firestore:"companyRegId"`
+	IndustryType       string            `json:"industryType" firestore:"industryType"`
+	CompanySize        string            `json:"companySize" firestore:"companySize"`
+	ContactName        string            `json:"contactName" firestore:"contactName"`
+	ContactEmail       string            `json:"contactEmail" firestore:"contactEmail"`
+	ContactPhone       string            `json:"contactPhone" firestore:"contactPhone"`
+	Role               string            `json:"role" firestore:"role"`
+	ProjectRoles       map[string]string `json:"projectRoles,omitempty" firestore:"projectRoles,omitempty"`
+	ConsentVersion     string            `json:"consentVersion" firestore:"consentVersion"`
+	ConsentAt          string            `json:"consentAt" firestore:"consentAt"`
+	EmailNotifications bool              `json:"emailNotifications" firestore:"emailNotifications"`
+	CreatedAt          string            `json:"createdAt" firestore:"createdAt"`
+	UpdatedAt          string            `json:"updatedAt" firestore:"updatedAt"`
 }
 
 // CreateProfileRequest is the registration form payload.

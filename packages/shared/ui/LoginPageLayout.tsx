@@ -23,7 +23,7 @@ export function LoginPageLayout({
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center md:justify-start">
-          <a href={appHref} target="_blank" rel="noreferrer" className="flex items-center gap-3">
+          <a href={appHref} className="flex items-center gap-3">
             <img
               src={logo}
               alt=""

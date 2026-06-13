@@ -1,5 +1,6 @@
 import { backofficeApi } from '@/api/backoffice';
 import type { Member, Project } from '@/api/types';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -23,20 +24,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDateTime } from '@/lib/dayjs';
 import { useLocale } from '@/lib/i18n';
 import { useAppSelector } from '@/store';
-import { useState, useEffect } from 'react';
+import { PageHeader, PageLayout } from '@shared/ui/PageLayout';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 
 type ProjectRole = 'owner' | 'system_admin' | 'manager' | 'general_user';
 
-const ROLE_BADGE_CLASS: Record<ProjectRole, string> = {
-  owner: 'bg-violet-100 text-violet-800 border-violet-200',
-  system_admin: 'bg-blue-100 text-blue-800 border-blue-200',
-  manager: 'bg-amber-100 text-amber-800 border-amber-200',
-  general_user: 'bg-gray-100 text-gray-700 border-gray-200',
+const ROLE_BADGE_VARIANT: Record<ProjectRole, 'default' | 'secondary' | 'outline'> = {
+  owner: 'default',
+  system_admin: 'outline',
+  manager: 'secondary',
+  general_user: 'secondary',
 };
 
-function roleBadgeClass(role: string): string {
-  return ROLE_BADGE_CLASS[role as ProjectRole] ?? ROLE_BADGE_CLASS.general_user;
+function roleBadgeVariant(role: string): 'default' | 'secondary' | 'outline' {
+  return ROLE_BADGE_VARIANT[role as ProjectRole] ?? ROLE_BADGE_VARIANT.general_user;
 }
 
 interface ChangeRoleDialogProps {
@@ -62,12 +64,17 @@ function ChangeRoleDialog({ member, onClose, onConfirm }: ChangeRoleDialogProps)
   };
 
   return (
-    <Dialog open={member !== null} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog
+      open={member !== null}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('projects.changeRole')}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3 py-2">
+        <div className="flex flex-col gap-3 py-2">
           <p className="text-sm text-muted-foreground">{member?.displayName}</p>
           <Select value={role} onValueChange={setRole}>
             <SelectTrigger>
@@ -112,7 +119,12 @@ function RemoveMemberDialog({ member, onClose, onConfirm }: RemoveMemberDialogPr
   };
 
   return (
-    <Dialog open={member !== null} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog
+      open={member !== null}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('projects.removeConfirm')}</DialogTitle>
@@ -182,7 +194,9 @@ export function ProjectDetailPage() {
     }
 
     fetchData();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [projectID, t]);
 
   const handleSaveSettings = async () => {
@@ -221,9 +235,7 @@ export function ProjectDetailPage() {
     if (!projectID) return;
     try {
       await backofficeApi.changeMemberRole(projectID, uid, role);
-      setMembers((prev) =>
-        prev.map((m) => (m.uid === uid ? { ...m, projectRole: role } : m)),
-      );
+      setMembers((prev) => prev.map((m) => (m.uid === uid ? { ...m, projectRole: role } : m)));
     } catch {
       setError(t('common.error'));
     } finally {
@@ -246,7 +258,7 @@ export function ProjectDetailPage() {
   const pageTitle = loading ? (
     <Skeleton className="h-7 w-48" />
   ) : (
-    <h1 className="text-2xl font-bold">{project?.name ?? `Project #${projectID}`}</h1>
+    (project?.name ?? `Project #${projectID}`)
   );
 
   const toggleButton = isSuperAdmin && project && (
@@ -264,11 +276,21 @@ export function ProjectDetailPage() {
   const memberRows = loading
     ? ['sk-m1', 'sk-m2', 'sk-m3'].map((id) => (
         <tr key={id} className="border-b">
-          <td className="px-4 py-3"><Skeleton className="h-5 w-32" /></td>
-          <td className="px-4 py-3"><Skeleton className="h-5 w-40" /></td>
-          <td className="px-4 py-3"><Skeleton className="h-5 w-20" /></td>
-          <td className="px-4 py-3"><Skeleton className="h-5 w-24" /></td>
-          <td className="px-4 py-3"><Skeleton className="h-8 w-28" /></td>
+          <td className="px-4 py-3">
+            <Skeleton className="h-5 w-32" />
+          </td>
+          <td className="px-4 py-3">
+            <Skeleton className="h-5 w-40" />
+          </td>
+          <td className="px-4 py-3">
+            <Skeleton className="h-5 w-20" />
+          </td>
+          <td className="px-4 py-3">
+            <Skeleton className="h-5 w-24" />
+          </td>
+          <td className="px-4 py-3">
+            <Skeleton className="h-8 w-28" />
+          </td>
         </tr>
       ))
     : members.map((m) => (
@@ -276,29 +298,17 @@ export function ProjectDetailPage() {
           <td className="px-4 py-3 font-medium">{m.displayName}</td>
           <td className="px-4 py-3 text-muted-foreground">{m.email}</td>
           <td className="px-4 py-3">
-            <span
-              className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${roleBadgeClass(m.projectRole)}`}
-            >
-              {m.projectRole}
-            </span>
+            <Badge variant={roleBadgeVariant(m.projectRole)}>{m.projectRole}</Badge>
           </td>
           <td className="px-4 py-3 text-muted-foreground text-sm">
             {formatDateTime(m.joinedAt, locale, false)}
           </td>
           <td className="px-4 py-3">
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setChangeRoleMember(m)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setChangeRoleMember(m)}>
                 {t('projects.changeRole')}
               </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setRemoveMember(m)}
-              >
+              <Button variant="destructive" size="sm" onClick={() => setRemoveMember(m)}>
                 {t('common.remove')}
               </Button>
             </div>
@@ -307,94 +317,92 @@ export function ProjectDetailPage() {
       ));
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          {pageTitle}
-          <p className="text-sm text-muted-foreground">{t('projects.title')}</p>
-        </div>
-        {toggleButton}
-      </div>
+    <PageLayout className="max-w-6xl">
+      <PageHeader title={pageTitle} description={t('projects.title')} actions={toggleButton} />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <Tabs defaultValue="members">
-        <TabsList>
-          <TabsTrigger value="members">{t('projects.membersTab')}</TabsTrigger>
-          <TabsTrigger value="settings">{t('projects.settingsTab')}</TabsTrigger>
-        </TabsList>
+      <div className="flex flex-col gap-6">
+        <Tabs defaultValue="members">
+          <TabsList>
+            <TabsTrigger value="members">{t('projects.membersTab')}</TabsTrigger>
+            <TabsTrigger value="settings">{t('projects.settingsTab')}</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="members">
-          <Card>
-            <CardContent className="p-0">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="px-4 py-3 text-left font-medium">{t('projects.name')}</th>
-                    <th className="px-4 py-3 text-left font-medium">{t('projects.email')}</th>
-                    <th className="px-4 py-3 text-left font-medium">{t('projects.role')}</th>
-                    <th className="px-4 py-3 text-left font-medium">{t('projects.joined')}</th>
-                    <th className="px-4 py-3 text-left font-medium">{t('common.actions')}</th>
-                  </tr>
-                </thead>
-                <tbody>{memberRows}</tbody>
-              </table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="settings">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t('projects.settingsTab')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {loading ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
+          <TabsContent value="members">
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="px-4 py-3 text-left font-medium">{t('projects.name')}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t('projects.email')}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t('projects.role')}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t('projects.joined')}</th>
+                        <th className="px-4 py-3 text-left font-medium">{t('common.actions')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>{memberRows}</tbody>
+                  </table>
                 </div>
-              ) : (
-                <>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="settings-name">{t('projects.companyName')}</Label>
-                    <Input
-                      id="settings-name"
-                      value={settingsName}
-                      onChange={(e) => setSettingsName(e.target.value)}
-                    />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t('projects.settingsTab')}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                {loading ? (
+                  <div className="flex flex-col gap-3">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="settings-industry">{t('projects.industryType')}</Label>
-                    <Input
-                      id="settings-industry"
-                      value={settingsIndustry}
-                      onChange={(e) => setSettingsIndustry(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>{t('projects.companySize')}</Label>
-                    <Select value={settingsSize} onValueChange={setSettingsSize}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="small">{t('projects.small')}</SelectItem>
-                        <SelectItem value="medium">{t('projects.medium')}</SelectItem>
-                        <SelectItem value="large">{t('projects.large')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button onClick={handleSaveSettings} disabled={savingSettings}>
-                    {t('projects.saveSettings')}
-                  </Button>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                ) : (
+                  <>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="settings-name">{t('projects.companyName')}</Label>
+                      <Input
+                        id="settings-name"
+                        value={settingsName}
+                        onChange={(e) => setSettingsName(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="settings-industry">{t('projects.industryType')}</Label>
+                      <Input
+                        id="settings-industry"
+                        value={settingsIndustry}
+                        onChange={(e) => setSettingsIndustry(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label>{t('projects.companySize')}</Label>
+                      <Select value={settingsSize} onValueChange={setSettingsSize}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="small">{t('projects.small')}</SelectItem>
+                          <SelectItem value="medium">{t('projects.medium')}</SelectItem>
+                          <SelectItem value="large">{t('projects.large')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button onClick={handleSaveSettings} disabled={savingSettings}>
+                      {t('projects.saveSettings')}
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
 
       <ChangeRoleDialog
         member={changeRoleMember}
@@ -406,6 +414,6 @@ export function ProjectDetailPage() {
         onClose={() => setRemoveMember(null)}
         onConfirm={handleRemoveMemberConfirm}
       />
-    </div>
+    </PageLayout>
   );
 }

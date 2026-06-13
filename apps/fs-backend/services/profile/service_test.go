@@ -105,7 +105,7 @@ func TestCreateProfile_Success(t *testing.T) {
 	}
 	svc := NewService(mock, nil)
 
-	profile, err := svc.CreateProfile(context.Background(), "uid-123", "test@example.com", "Test User", &CreateProfileRequest{
+	profile, err := svc.CreateProfile(context.Background(), "uid-123", "test@example.com", "Test User", "https://example.com/avatar.png", &CreateProfileRequest{
 		CompanyName:    "ABC Factory",
 		CompanyRegID:   "1234567890123",
 		IndustryType:   "manufacturing",
@@ -121,11 +121,17 @@ func TestCreateProfile_Success(t *testing.T) {
 	if profile.UID != "uid-123" {
 		t.Errorf("uid = %s, want uid-123", profile.UID)
 	}
-	if profile.Role != "user" {
-		t.Errorf("role = %s, want user", profile.Role)
+	if profile.Role != "owner" {
+		t.Errorf("role = %s, want owner", profile.Role)
+	}
+	if profile.ProjectRoles["1234567890123"] != "owner" {
+		t.Errorf("project role = %s, want owner", profile.ProjectRoles["1234567890123"])
 	}
 	if profile.Email != "test@example.com" {
 		t.Errorf("email = %s, want test@example.com", profile.Email)
+	}
+	if profile.AvatarURL != "https://example.com/avatar.png" {
+		t.Errorf("avatarURL = %s, want https://example.com/avatar.png", profile.AvatarURL)
 	}
 }
 
@@ -137,7 +143,7 @@ func TestCreateProfile_AlreadyRegistered(t *testing.T) {
 	}
 	svc := NewService(mock, nil)
 
-	_, err := svc.CreateProfile(context.Background(), "uid-123", "test@example.com", "Test User", &CreateProfileRequest{
+	_, err := svc.CreateProfile(context.Background(), "uid-123", "test@example.com", "Test User", "", &CreateProfileRequest{
 		CompanyName:    "ABC Factory",
 		CompanyRegID:   "1234567890123",
 		IndustryType:   "manufacturing",

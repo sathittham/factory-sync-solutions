@@ -346,11 +346,13 @@ export const NAV_LINKS = [
 
 export function NavBar({
 	appUrl,
+	registerUrl,
 	theme,
 	setTheme,
 	resolvedTheme,
 }: {
 	readonly appUrl: string;
+	readonly registerUrl: string;
 	readonly theme: Theme;
 	readonly setTheme: (theme: Theme) => void;
 	readonly resolvedTheme: ResolvedTheme;
@@ -430,7 +432,7 @@ export function NavBar({
 
 					{/* Register CTA */}
 					<a
-						href="/register"
+						href={registerUrl}
 						className={cn(
 							buttonVariants({ size: "sm" }),
 							"hidden rounded-md bg-blue-600 px-4 text-xs text-white shadow-[0_0_24px_rgba(37,99,235,0.35)] hover:bg-blue-500 min-[1360px]:inline-flex xl:px-5 xl:text-sm"
@@ -466,7 +468,7 @@ export function NavBar({
 							</a>
 						))}
 						<a
-							href="/register"
+							href={registerUrl}
 							onClick={handleCloseMobile}
 							className={cn(
 								buttonVariants(),

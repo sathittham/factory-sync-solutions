@@ -16,5 +16,5 @@ export function SignInPage() {
   // Authenticated users go to dashboard; RegisterGuard handles the no-profile case
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
 
-  return <LoginForm />;
+  return <LoginForm signUpHref="/register" />;
 }

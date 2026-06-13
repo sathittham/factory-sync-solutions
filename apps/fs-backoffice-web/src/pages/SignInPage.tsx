@@ -8,6 +8,7 @@ import { useAppSelector } from '@/store';
 import fsDarkLogo from '@shared/brand/fs-dark.png';
 import fsLightLogo from '@shared/brand/fs-light.png';
 import { mapFirebaseError } from '@shared/lib/firebaseErrors';
+import { getOfficialWebUrl } from '@shared/lib/officialSite';
 import { GoogleSignInButton } from '@shared/ui/GoogleSignInButton';
 import { LocaleSwitcher } from '@shared/ui/LocaleSwitcher';
 import { LoginPageLayout } from '@shared/ui/LoginPageLayout';
@@ -21,22 +22,40 @@ const REMEMBER_EMAIL_KEY = 'fsb-remembered-email';
 const LAST_SIGNIN_KEY = 'fsb-last-signin';
 
 function loadRememberedEmail(): string {
-  try { return localStorage.getItem(REMEMBER_EMAIL_KEY) ?? ''; } catch { return ''; }
+  try {
+    return localStorage.getItem(REMEMBER_EMAIL_KEY) ?? '';
+  } catch {
+    return '';
+  }
 }
 function loadLastSignIn(): 'email' | 'google' | null {
   try {
     const v = localStorage.getItem(LAST_SIGNIN_KEY);
     return v === 'email' || v === 'google' ? v : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 function saveLastSignIn(method: 'email' | 'google') {
-  try { localStorage.setItem(LAST_SIGNIN_KEY, method); } catch { /* noop */ }
+  try {
+    localStorage.setItem(LAST_SIGNIN_KEY, method);
+  } catch {
+    /* noop */
+  }
 }
 function saveRememberedEmail(email: string) {
-  try { localStorage.setItem(REMEMBER_EMAIL_KEY, email); } catch { /* noop */ }
+  try {
+    localStorage.setItem(REMEMBER_EMAIL_KEY, email);
+  } catch {
+    /* noop */
+  }
 }
 function clearRememberedEmail() {
-  try { localStorage.removeItem(REMEMBER_EMAIL_KEY); } catch { /* noop */ }
+  try {
+    localStorage.removeItem(REMEMBER_EMAIL_KEY);
+  } catch {
+    /* noop */
+  }
 }
 
 function isPopupCancelled(code: string): boolean {
@@ -77,6 +96,9 @@ export function SignInPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const logo = resolvedTheme === 'dark' ? fsDarkLogo : fsLightLogo;
+  const officialWebUrl = getOfficialWebUrl(import.meta.env.VITE_OFFICIAL_WEB_URL, {
+    isDevelopment: import.meta.env.DEV,
+  });
   const isAnyLoading = isEmailLoading || isGoogleLoading;
   const submitLabel = mode === 'reset' ? t('auth.sendResetEmail') : t('auth.signInWithEmail');
 
@@ -154,7 +176,7 @@ export function SignInPage() {
       <LoginPageLayout
         logo={logo}
         appName={t('nav.appName')}
-        appHref="https://factorysyncsolutions.com"
+        appHref={officialWebUrl}
         backgroundImage="/fs-bg.png"
         imageClassName="object-left"
         footer={<>FactorySync Backoffice &middot; {__APP_VERSION__}</>}
@@ -169,7 +191,10 @@ export function SignInPage() {
             </p>
           </div>
 
-          <form onSubmit={mode === 'reset' ? handlePasswordReset : handleEmailSignIn} className="flex flex-col gap-3">
+          <form
+            onSubmit={mode === 'reset' ? handlePasswordReset : handleEmailSignIn}
+            className="flex flex-col gap-3"
+          >
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="bo-email">{t('auth.emailLabel')}</Label>
               <Input
@@ -234,7 +259,9 @@ export function SignInPage() {
 
             {error && <p className="text-sm text-destructive text-center">{error}</p>}
             {successMessage && (
-              <p className="text-sm text-green-600 dark:text-green-400 text-center">{successMessage}</p>
+              <p className="text-sm text-green-600 dark:text-green-400 text-center">
+                {successMessage}
+              </p>
             )}
 
             <div className="relative">

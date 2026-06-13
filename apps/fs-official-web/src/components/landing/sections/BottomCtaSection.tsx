@@ -77,7 +77,7 @@ function ClockIcon({ size = 20 }: { readonly size?: number }) {
 // BottomCtaSection
 // ---------------------------------------------------------------------------
 
-export function BottomCtaSection({ appUrl }: { readonly appUrl: string }) {
+export function BottomCtaSection({ registerUrl }: { readonly registerUrl: string }) {
 	const { t } = useLocale();
 
 	const contactItems = [
@@ -122,7 +122,7 @@ export function BottomCtaSection({ appUrl }: { readonly appUrl: string }) {
 							</h2>
 							<p className="mt-1 text-sm text-cyan-100">{t("landing.bottomCta.subtitle")}</p>
 							<a
-								href="/register"
+								href={registerUrl}
 								onClick={() => globalThis.gtag?.("event", "cta_click", { location: "bottom_cta" })}
 								className={cn(
 									buttonVariants({ size: "lg" }),

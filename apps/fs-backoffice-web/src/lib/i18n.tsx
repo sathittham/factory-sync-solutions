@@ -60,12 +60,20 @@ export function useLocale() {
 const translations: Record<Locale, Record<string, string>> = {
   th: {
     'nav.appName': 'FactorySync Backoffice',
+    'nav.brandName': 'FactorySync',
+    'nav.brandUnit': 'Backoffice',
     'nav.dashboard': 'แดชบอร์ด',
     'nav.projects': 'โปรเจกต์',
     'nav.users': 'ผู้ใช้',
     'nav.results': 'ผลการประเมิน',
     'nav.staff': 'จัดการทีมงาน',
     'nav.signOut': 'ออกจากระบบ',
+    'nav.main': 'เมนูหลัก',
+    'nav.superAdmin': 'ผู้ดูแลระบบสูงสุด',
+    'nav.staffRole': 'ทีมงาน',
+
+    'topbar.staffOnly': 'พื้นที่จัดการภายในสำหรับทีมงาน FactorySync',
+    'footer.internal': 'ระบบหลังบ้านสำหรับการจัดการ Factory Health Check',
 
     'auth.signIn': 'เข้าสู่ระบบ',
     'auth.signInWithGoogle': 'เข้าสู่ระบบด้วย Google',
@@ -87,6 +95,7 @@ const translations: Record<Locale, Record<string, string>> = {
 
     'unauthorized.title': 'ไม่มีสิทธิ์เข้าถึง',
     'unauthorized.message': 'บัญชีของคุณไม่มีสิทธิ์เข้าถึง Backoffice',
+    'unauthorized.hint': 'หากคิดว่าเกิดข้อผิดพลาด กรุณาติดต่อผู้ดูแลระบบ',
     'unauthorized.signOut': 'ออกจากระบบ',
 
     'dashboard.title': 'แดชบอร์ด',
@@ -202,12 +211,20 @@ const translations: Record<Locale, Record<string, string>> = {
   },
   en: {
     'nav.appName': 'FactorySync Backoffice',
+    'nav.brandName': 'FactorySync',
+    'nav.brandUnit': 'Backoffice',
     'nav.dashboard': 'Dashboard',
     'nav.projects': 'Projects',
     'nav.users': 'Users',
     'nav.results': 'Results',
     'nav.staff': 'Staff',
     'nav.signOut': 'Sign Out',
+    'nav.main': 'Main',
+    'nav.superAdmin': 'Super Admin',
+    'nav.staffRole': 'Staff',
+
+    'topbar.staffOnly': 'Internal management area for FactorySync staff',
+    'footer.internal': 'Backoffice system for Factory Health Check operations',
 
     'auth.signIn': 'Sign In',
     'auth.signInWithGoogle': 'Sign in with Google',
@@ -229,6 +246,7 @@ const translations: Record<Locale, Record<string, string>> = {
 
     'unauthorized.title': 'Unauthorized',
     'unauthorized.message': 'Your account does not have backoffice access',
+    'unauthorized.hint': 'If you think this is a mistake, please contact your administrator.',
     'unauthorized.signOut': 'Sign Out',
 
     'dashboard.title': 'Dashboard',
@@ -304,7 +322,8 @@ const translations: Record<Locale, Record<string, string>> = {
     'users.role': 'Role',
     'users.registered': 'Registered',
     'users.deleteConfirm': 'Confirm Delete User',
-    'users.deleteConfirmDesc': 'Are you sure you want to delete this user? This action cannot be undone.',
+    'users.deleteConfirmDesc':
+      'Are you sure you want to delete this user? This action cannot be undone.',
     'users.profileDetail': 'User Profile',
     'users.contactName': 'Contact Name',
     'users.contactEmail': 'Contact Email',
@@ -329,7 +348,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'staff.role': 'Role',
     'staff.changeRole': 'Change Role',
     'staff.revokeConfirm': 'Confirm Revoke Access',
-    'staff.revokeConfirmDesc': 'Are you sure you want to revoke this staff member\'s access?',
+    'staff.revokeConfirmDesc': "Are you sure you want to revoke this staff member's access?",
     'staff.addStaff': 'Add Staff',
     'staff.uid': 'User UID',
     'staff.selectRole': 'Select Role',

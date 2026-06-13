@@ -52,7 +52,7 @@ func (s *Service) CheckRegID(ctx context.Context, regID string) (*Profile, error
 	return profile, nil
 }
 
-func (s *Service) CreateProfile(ctx context.Context, uid, email, displayName string, req *CreateProfileRequest) (*Profile, error) {
+func (s *Service) CreateProfile(ctx context.Context, uid, email, displayName, avatarURL string, req *CreateProfileRequest) (*Profile, error) {
 	// Verify Turnstile token
 	if s.turnstile != nil {
 		ok, err := s.turnstile.Verify(ctx, req.TurnstileToken)
@@ -78,6 +78,7 @@ func (s *Service) CreateProfile(ctx context.Context, uid, email, displayName str
 		UID:                uid,
 		Email:              email,
 		DisplayName:        displayName,
+		AvatarURL:          avatarURL,
 		CompanyName:        req.CompanyName,
 		CompanyRegID:       req.CompanyRegID,
 		IndustryType:       req.IndustryType,
@@ -85,7 +86,8 @@ func (s *Service) CreateProfile(ctx context.Context, uid, email, displayName str
 		ContactName:        req.ContactName,
 		ContactEmail:       req.ContactEmail,
 		ContactPhone:       req.ContactPhone,
-		Role:               "user",
+		Role:               "owner",
+		ProjectRoles:       map[string]string{req.CompanyRegID: "owner"},
 		ConsentVersion:     req.ConsentVersion,
 		ConsentAt:          now,
 		EmailNotifications: true,

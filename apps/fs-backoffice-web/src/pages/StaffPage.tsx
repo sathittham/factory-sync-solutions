@@ -12,17 +12,24 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLocale } from '@/lib/i18n';
+import { PageHeader, PageLayout } from '@shared/ui/PageLayout';
 import { UserPlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 type BackofficeRole = 'superadmin' | 'staff';
 
 function roleBadge(role: string) {
-  if (role === 'superadmin') return <Badge className="bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200">superadmin</Badge>;
-  return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">staff</Badge>;
+  if (role === 'superadmin') return <Badge>superadmin</Badge>;
+  return <Badge variant="secondary">staff</Badge>;
 }
 
 export function StaffPage() {
@@ -65,7 +72,7 @@ export function StaffPage() {
     setSaving(true);
     try {
       const updated = await backofficeApi.setStaffRole(changeTarget.uid, newRole);
-      setStaff((prev) => prev.map((s) => s.uid === updated.uid ? updated : s));
+      setStaff((prev) => prev.map((s) => (s.uid === updated.uid ? updated : s)));
       setChangeTarget(null);
     } catch {
       setError(t('common.error'));
@@ -95,7 +102,7 @@ export function StaffPage() {
       const member = await backofficeApi.setStaffRole(addUID.trim(), addRole);
       setStaff((prev) => {
         const exists = prev.some((s) => s.uid === member.uid);
-        return exists ? prev.map((s) => s.uid === member.uid ? member : s) : [...prev, member];
+        return exists ? prev.map((s) => (s.uid === member.uid ? member : s)) : [...prev, member];
       });
       setAddOpen(false);
       setAddUID('');
@@ -109,11 +116,17 @@ export function StaffPage() {
 
   function renderBody() {
     if (loading) {
-      return ['s1','s2','s3'].map((k) => (
+      return ['s1', 's2', 's3'].map((k) => (
         <tr key={k} className="border-b">
-          <td className="px-4 py-3"><Skeleton className="h-4 w-32" /></td>
-          <td className="px-4 py-3"><Skeleton className="h-4 w-40" /></td>
-          <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
+          <td className="px-4 py-3">
+            <Skeleton className="h-4 w-32" />
+          </td>
+          <td className="px-4 py-3">
+            <Skeleton className="h-4 w-40" />
+          </td>
+          <td className="px-4 py-3">
+            <Skeleton className="h-4 w-20" />
+          </td>
           <td className="px-4 py-3" />
         </tr>
       ));
@@ -147,37 +160,46 @@ export function StaffPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t('staff.title')}</h1>
-        <Button size="sm" onClick={() => setAddOpen(true)}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          {t('staff.addStaff')}
-        </Button>
-      </div>
+    <PageLayout className="max-w-6xl">
+      <PageHeader
+        title={t('staff.title')}
+        actions={
+          <Button size="sm" onClick={() => setAddOpen(true)}>
+            <UserPlus data-icon="inline-start" />
+            {t('staff.addStaff')}
+          </Button>
+        }
+      />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/40">
-                  <th className="px-4 py-3 text-left font-medium">{t('staff.name')}</th>
-                  <th className="px-4 py-3 text-left font-medium">{t('staff.email')}</th>
-                  <th className="px-4 py-3 text-left font-medium">{t('staff.role')}</th>
-                  <th className="px-4 py-3 text-right font-medium">{t('common.actions')}</th>
-                </tr>
-              </thead>
-              <tbody>{renderBody()}</tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-6">
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/40">
+                    <th className="px-4 py-3 text-left font-medium">{t('staff.name')}</th>
+                    <th className="px-4 py-3 text-left font-medium">{t('staff.email')}</th>
+                    <th className="px-4 py-3 text-left font-medium">{t('staff.role')}</th>
+                    <th className="px-4 py-3 text-right font-medium">{t('common.actions')}</th>
+                  </tr>
+                </thead>
+                <tbody>{renderBody()}</tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Change role dialog */}
-      <Dialog open={changeTarget !== null} onOpenChange={(open) => { if (!open) setChangeTarget(null); }}>
+      <Dialog
+        open={changeTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setChangeTarget(null);
+        }}
+      >
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{t('staff.changeRole')}</DialogTitle>
@@ -204,7 +226,12 @@ export function StaffPage() {
       </Dialog>
 
       {/* Revoke access dialog */}
-      <Dialog open={revokeTarget !== null} onOpenChange={(open) => { if (!open) setRevokeTarget(null); }}>
+      <Dialog
+        open={revokeTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setRevokeTarget(null);
+        }}
+      >
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{t('staff.revokeConfirm')}</DialogTitle>
@@ -222,7 +249,15 @@ export function StaffPage() {
       </Dialog>
 
       {/* Add staff dialog */}
-      <Dialog open={addOpen} onOpenChange={(open) => { if (!open) { setAddOpen(false); setAddUID(''); } }}>
+      <Dialog
+        open={addOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAddOpen(false);
+            setAddUID('');
+          }
+        }}
+      >
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{t('staff.addStaff')}</DialogTitle>
@@ -259,6 +294,6 @@ export function StaffPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageLayout>
   );
 }

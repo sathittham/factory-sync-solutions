@@ -8,9 +8,9 @@ Instructions for AI coding assistants (Codex, Cursor, GitHub Copilot, Gemini Cod
 
 ## Project Overview
 
-Multi-quiz factory health assessment platform. A Go backend serves a React single-page app (authenticated) and an Astro marketing site (public). Assessments use an 8-dimension Shindan rubric, with several quiz variants. Data lives in Firestore; auth is Firebase Auth.
+Multi-quiz factory health assessment platform. A Go backend serves React single-page apps (authenticated user app and internal backoffice) and an Astro marketing site (public). Assessments use an 8-dimension Shindan rubric, with several quiz variants. Data lives in Firestore; auth is Firebase Auth.
 
-**Stack**: Go 1.26 · Chi router · Firestore · Firebase Auth · React 19 · Redux Toolkit · Vite · shadcn/ui · Astro 6 · Tailwind v4 · Cloudflare Pages
+**Stack**: Go 1.26 · Chi router · Firestore · Firebase Auth · React 19 · React Router 7 · Redux Toolkit · Vite · shadcn/ui · Astro 6 · Tailwind v4 · Cloudflare Pages
 
 ---
 
@@ -31,6 +31,15 @@ Violate any of these and the PR will be blocked at review:
 
 ---
 
+## Codex Project Setup
+
+- Repo-local Codex config lives in `.codex/config.toml` and uses the `factorysync-workspace` permission profile.
+- The permission profile keeps normal workspace editing available while denying reads of `.env*`, Firebase service account JSON, and credential/secret-shaped JSON files.
+- Project command rules live in `.codex/rules/default.rules`. Deployment, tag, and push commands must remain explicit approval points.
+- Do not add repo-local MCP servers, hooks, or custom agents that require secrets. Keep personal tokens and machine-local credentials in user-level Codex config.
+
+---
+
 ## Project Structure
 
 ```
@@ -38,6 +47,7 @@ factory-health-check/
 ├── apps/
 │   ├── fs-backend/        # Go + Chi + Firestore + Firebase Auth
 │   ├── fs-app-web/        # React 19 + Redux Toolkit + Vite + shadcn/ui (authenticated app)
+│   ├── fs-backoffice-web/ # React 19 + React Router + shadcn/ui (internal backoffice)
 │   └── fs-official-web/   # Astro 6 + React islands + shadcn/ui (public marketing site)
 ├── packages/              # shared scripts/assets
 ├── docs/                  # architecture, api, design, development, operations, product
@@ -58,7 +68,7 @@ services/<name>/
 Services: `admin`, `audit`, `dbd`, `notification`, `profile`, `quiz`, `result`, `scoring`.
 Shared packages in `pkg/`: `response.go`, `firestore.go`, `validator.go`, `turnstile.go`.
 
-Frontend layout (`apps/fs-app-web/src/`): `pages/`, `components/` (`ui/` = shadcn), `store/` (Redux slices), `lib/` (`i18n.tsx`, `dayjs.ts`), `hooks/`.
+Frontend layout (`apps/fs-app-web/src/`, `apps/fs-backoffice-web/src/`): `pages/`, `components/` (`ui/` = shadcn), `store/` (Redux slices), `lib/` (`i18n.tsx`, `dayjs.ts`), `hooks/`.
 
 ---
 
@@ -87,18 +97,18 @@ UID always from `middleware.GetUID(r)`. Admin role lives in both the Firestore p
 ## Development Commands
 
 ```bash
-make dev            # API + web in parallel
+make dev            # API + app web in parallel
 make dev-api        # backend only (go run main.go)
 make dev-web        # app web only (vite)
-make build          # build backend + web
-make test           # go test -race -cover  +  vitest run
+make build          # build backend + app web
+make test           # backend + app web tests
 make test-api       # backend tests
 make test-web       # frontend tests
 make lint           # go vet  +  biome check
 make lint-fix       # biome check --fix
 ```
 
-Per-app scripts run inside `apps/<app>/`: `npm run dev`, `build`, `lint`, `test`, `test:e2e` (Playwright, app only).
+Root `make` targets currently cover `apps/fs-backend` and `apps/fs-app-web`. For `apps/fs-backoffice-web` and `apps/fs-official-web`, run per-app scripts inside `apps/<app>/`: `npm run dev`, `build`, `lint`, `test`, and `test:e2e` where available.
 
 ---
 
@@ -137,11 +147,13 @@ Never commit directly to `main`; never force-push `main`.
 
 ## Deployment
 
-Frontend → **Cloudflare Pages** via Wrangler. Release deploys → **git tags** via GitHub Actions.
+Frontend apps → **Cloudflare Pages** via Wrangler. Release deploys → **git tags** via GitHub Actions.
 
 ```bash
 npm run deploy:staging          # app-web + official-web → staging
 npm run deploy:prod             # app-web + official-web → production
+cd apps/fs-backoffice-web && npm run deploy:staging  # backoffice → staging
+cd apps/fs-backoffice-web && npm run deploy:prod     # backoffice → production
 git tag v1.2.3-staging && git push origin v1.2.3-staging   # → staging deploy
 git tag v1.2.3 && git push origin v1.2.3                   # → production deploy
 ```
@@ -150,5 +162,5 @@ Always verify on staging before tagging production.
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 09 June 2026*
+*Version: 1.0.1*
+*Last updated: 13 June 2026*

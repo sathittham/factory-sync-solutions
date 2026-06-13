@@ -77,6 +77,7 @@ func (h *Handler) CreateProfile(w http.ResponseWriter, r *http.Request) {
 	uid := middleware.GetUID(r)
 	email := middleware.GetEmail(r)
 	displayName := middleware.GetDisplayName(r)
+	photoURL := middleware.GetPhotoURL(r)
 
 	var req CreateProfileRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -89,7 +90,7 @@ func (h *Handler) CreateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	profile, err := h.service.CreateProfile(r.Context(), uid, email, displayName, &req)
+	profile, err := h.service.CreateProfile(r.Context(), uid, email, displayName, photoURL, &req)
 	if err != nil {
 		handleError(w, r, err)
 		return

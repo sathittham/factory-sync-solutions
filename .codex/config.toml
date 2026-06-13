@@ -1,5 +1,5 @@
 approval_policy = "on-request"
-sandbox_mode = "workspace-write"
+default_permissions = "factorysync-workspace"
 web_search = "cached"
 model_reasoning_effort = "high"
 personality = "pragmatic"
@@ -8,3 +8,26 @@ project_doc_max_bytes = 65536
 [features]
 hooks = true
 shell_snapshot = true
+
+[permissions.factorysync-workspace]
+extends = ":workspace"
+
+[permissions.factorysync-workspace.filesystem]
+glob_scan_max_depth = 4
+
+[permissions.factorysync-workspace.filesystem.":workspace_roots"]
+".env" = "deny"
+".env.*" = "deny"
+"**/.env" = "deny"
+"**/.env.*" = "deny"
+"firebase-sa.json" = "deny"
+"firebase-sa-*.json" = "deny"
+"**/firebase-sa.json" = "deny"
+"**/firebase-sa-*.json" = "deny"
+"*-firebase-adminsdk-*.json" = "deny"
+"**/*-firebase-adminsdk-*.json" = "deny"
+"**/*credential*.json" = "deny"
+"**/*secret*.json" = "deny"
+
+[permissions.factorysync-workspace.network]
+enabled = false

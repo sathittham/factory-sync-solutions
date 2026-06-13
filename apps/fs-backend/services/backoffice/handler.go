@@ -35,6 +35,31 @@ const (
 
 const msgInternalError = "internal error"
 
+// fetchPhotoURLs returns a uid-to-photoURL map via Firebase Auth batch lookup.
+func fetchPhotoURLs(ctx context.Context, authClient *firebaseAuth.Client, uids []string) map[string]string {
+	photos := make(map[string]string, len(uids))
+	const chunkSize = 100
+	for i := 0; i < len(uids); i += chunkSize {
+		end := min(i+chunkSize, len(uids))
+		chunk := uids[i:end]
+		ids := make([]firebaseAuth.UserIdentifier, len(chunk))
+		for j, uid := range chunk {
+			ids[j] = firebaseAuth.UIDIdentifier{UID: uid}
+		}
+		result, err := authClient.GetUsers(ctx, ids)
+		if err != nil {
+			slog.Error("backoffice: fetch photo urls failed", "error", err.Error())
+			continue
+		}
+		for _, u := range result.Users {
+			if u.PhotoURL != "" {
+				photos[u.UID] = u.PhotoURL
+			}
+		}
+	}
+	return photos
+}
+
 // Handler holds the dependencies for all backoffice HTTP handlers.
 type Handler struct {
 	resultSvc       *result.Service
@@ -732,7 +757,19 @@ func (h *Handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	if profiles == nil {
 		profiles = []*profile.Profile{}
 	}
-	pkg.RespondList(w, profiles, len(profiles))
+
+	uids := make([]string, len(profiles))
+	for i, p := range profiles {
+		uids[i] = p.UID
+	}
+	photos := fetchPhotoURLs(r.Context(), h.authClient, uids)
+
+	users := make([]UserProfile, len(profiles))
+	for i, p := range profiles {
+		users[i] = UserProfile{Profile: *p, PhotoURL: photos[p.UID]}
+	}
+
+	pkg.RespondList(w, users, len(users))
 }
 
 // GetUser godoc

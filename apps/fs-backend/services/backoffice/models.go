@@ -1,6 +1,9 @@
 package backoffice
 
-import "github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/result"
+import (
+	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/profile"
+	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/result"
+)
 
 // Project mirrors the projects/{projectID} Firestore document.
 type Project struct {
@@ -33,6 +36,12 @@ type StaffMember struct {
 	Email          string `json:"email"`
 	DisplayName    string `json:"displayName"`
 	BackofficeRole string `json:"backofficeRole"`
+}
+
+// UserProfile mirrors a user profile with Firebase Auth data used by backoffice.
+type UserProfile struct {
+	profile.Profile
+	PhotoURL string `json:"photoURL"`
 }
 
 // BackofficeStats is the dashboard summary response.

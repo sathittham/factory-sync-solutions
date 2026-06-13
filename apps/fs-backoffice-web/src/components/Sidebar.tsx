@@ -1,6 +1,8 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -12,16 +14,21 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { auth } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
+import { useTheme } from '@/lib/theme';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { logout } from '@/store/authSlice';
+import fsDarkLogo from '@shared/brand/fs-dark.png';
+import fsLightLogo from '@shared/brand/fs-light.png';
 import { signOut } from 'firebase/auth';
 import {
   BarChart3,
@@ -38,24 +45,10 @@ interface AppSidebarProps {
   readonly onNavigate?: () => void;
 }
 
-function AppLogo() {
-  return (
-    <div className="flex aspect-square h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-        <path
-          d="M2 14V6l6-4 6 4v8H2z"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-        />
-        <path d="M6 14v-4h4v4" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-      </svg>
-    </div>
-  );
-}
-
 export function AppSidebar({ onNavigate }: AppSidebarProps) {
   const { t } = useLocale();
+  const { resolvedTheme } = useTheme();
+  const { isMobile } = useSidebar();
   const dispatch = useAppDispatch();
   const { user, isSuperAdmin } = useAppSelector((s) => s.auth);
   const { pathname } = useLocation();
@@ -67,6 +60,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
   const displayName = user?.displayName || user?.email || '';
   const initial = (displayName || 'U').charAt(0).toUpperCase();
+  const logo = resolvedTheme === 'dark' ? fsDarkLogo : fsLightLogo;
 
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
@@ -83,10 +77,18 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link to="/dashboard" onClick={onNavigate}>
-                <AppLogo />
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold text-sm">FactorySync</span>
-                  <span className="text-xs text-muted-foreground">Backoffice</span>
+                <img
+                  src={logo}
+                  alt={t('nav.brandName')}
+                  width={32}
+                  height={32}
+                  className="size-8 object-contain"
+                />
+                <div className="flex flex-col leading-tight">
+                  <span className="text-base font-bold">{t('nav.brandName')}</span>
+                  <span className="-mt-0.5 text-xs font-extrabold text-primary">
+                    {t('nav.brandUnit')}
+                  </span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -96,6 +98,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel>{t('nav.main')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
@@ -126,31 +129,48 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                   size="lg"
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs shrink-0">
-                    {initial}
+                  <Avatar className="size-8 rounded-lg">
+                    <AvatarImage src={user?.photoURL ?? undefined} alt={displayName} />
+                    <AvatarFallback className="rounded-lg text-xs">{initial}</AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">{displayName}</span>
+                    <span className="truncate text-xs">{user?.email}</span>
                   </div>
-                  <div className="flex min-w-0 flex-col gap-0.5 leading-none">
-                    <span className="truncate font-medium text-sm">{displayName}</span>
-                    <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
-                  </div>
-                  <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0" />
+                  <ChevronsUpDown className="ml-auto size-4" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                side="top"
+                className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-56 rounded-lg"
+                side={isMobile ? 'bottom' : 'right'}
                 align="end"
-                className="w-[--radix-dropdown-menu-trigger-width] min-w-56"
+                sideOffset={4}
               >
-                <DropdownMenuLabel className="font-normal">
-                  <p className="font-medium text-sm truncate">{displayName}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                <DropdownMenuLabel className="p-0 font-normal">
+                  <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                    <Avatar className="size-8 rounded-lg">
+                      <AvatarImage src={user?.photoURL ?? undefined} alt={displayName} />
+                      <AvatarFallback className="rounded-lg text-xs">{initial}</AvatarFallback>
+                    </Avatar>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold">{displayName}</span>
+                      <span className="truncate text-xs">{user?.email}</span>
+                    </div>
+                  </div>
                 </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem disabled>
+                    <ShieldCheck />
+                    {isSuperAdmin ? t('nav.superAdmin') : t('nav.staffRole')}
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={handleSignOut}
-                  className="gap-2 text-destructive focus:text-destructive"
+                  className="text-destructive focus:text-destructive"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut />
                   {t('nav.signOut')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
