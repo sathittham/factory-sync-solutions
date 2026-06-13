@@ -66,7 +66,7 @@ function DimensionTabs({
             key={dim.id}
             type="button"
             onClick={() => onStepChange(i)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${getDimTabClass(i === currentStep, isComplete)}`}
+            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${getDimTabClass(i === currentStep, isComplete)}`}
           >
             {isComplete && i !== currentStep && (
               <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
@@ -113,6 +113,7 @@ function QuestionCard({
   useGradeLabels: boolean;
   onAnswer: (questionId: string, value: number) => void;
 }>) {
+  const { t } = useLocale();
   const questionText = locale === 'th' ? q.textTh : q.textEn;
   const secondaryText = locale === 'th' ? q.textEn : q.textTh;
   const descriptionText = locale === 'th' ? q.descriptionTh : q.descriptionEn;
@@ -140,9 +141,9 @@ function QuestionCard({
           </span>
           <div className="flex-1 min-w-0">
             <p className="font-medium text-foreground leading-snug text-[15px]">{questionText}</p>
-            <p className="text-[13px] text-muted-foreground mt-0.5 leading-snug">{secondaryText}</p>
+            <p className="text-sm text-muted-foreground mt-0.5 leading-snug">{secondaryText}</p>
             {descriptionText && (
-              <p className="text-[13px] text-foreground/70 mt-2 leading-relaxed bg-muted/40 rounded-md px-3 py-2">
+              <p className="text-sm text-foreground/70 mt-2 leading-relaxed bg-muted/40 rounded-md px-3 py-2">
                 {descriptionText}
               </p>
             )}
@@ -162,22 +163,25 @@ function QuestionCard({
                 key={val}
                 type="button"
                 onClick={() => onAnswer(q.id, val)}
-                className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-md text-left transition-colors ${
+                aria-pressed={isSelected}
+                className={`w-full flex items-start gap-3 px-3 py-3.5 rounded-md text-left transition-colors cursor-pointer ${
                   isSelected
-                    ? 'bg-primary text-white'
-                    : 'bg-secondary/40 text-foreground hover:bg-secondary/70'
+                    ? 'bg-primary text-white border border-primary'
+                    : 'bg-card border border-border text-foreground hover:border-primary/40 hover:bg-primary/5'
                 }`}
               >
                 <span
                   className={`shrink-0 h-6 w-6 rounded-full text-xs font-bold flex items-center justify-center mt-0.5 ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-card text-muted-foreground border'
+                    isSelected
+                      ? 'bg-white/20 text-white'
+                      : 'bg-muted text-foreground border border-border'
                   }`}
                 >
                   {displayLabel}
                 </span>
                 <span
-                  className={`text-[13px] sm:text-sm leading-snug ${
-                    isSelected ? 'text-white/90' : 'text-foreground/80'
+                  className={`text-sm leading-snug ${
+                    isSelected ? 'text-white/90' : 'text-foreground'
                   }`}
                 >
                   {label}
@@ -187,24 +191,31 @@ function QuestionCard({
           })}
         </div>
       ) : (
-        <div className="flex items-stretch gap-1.5 sm:gap-2 ml-10">
-          {[1, 2, 3, 4, 5].map((val) => {
-            const isSelected = selectedValue === val;
-            return (
-              <button
-                key={val}
-                type="button"
-                onClick={() => onAnswer(q.id, val)}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 sm:py-2.5 rounded-md text-sm font-semibold transition-colors ${
-                  isSelected
-                    ? 'bg-primary text-white'
-                    : 'bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground'
-                }`}
-              >
-                <span className="text-sm sm:text-base">{val}</span>
-              </button>
-            );
-          })}
+        <div className="ml-10 space-y-1.5">
+          <div className="flex items-stretch gap-1.5 sm:gap-2">
+            {[1, 2, 3, 4, 5].map((val) => {
+              const isSelected = selectedValue === val;
+              return (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => onAnswer(q.id, val)}
+                  aria-pressed={isSelected}
+                  className={`flex-1 h-12 flex flex-col items-center justify-center rounded-md text-base font-semibold transition-colors ${
+                    isSelected
+                      ? 'bg-primary text-white'
+                      : 'bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`}
+                >
+                  {val}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground px-0.5">
+            <span>{t('quiz.stronglyDisagree')}</span>
+            <span>{t('quiz.stronglyAgree')}</span>
+          </div>
         </div>
       )}
     </motion.div>
@@ -347,6 +358,7 @@ export function QuizPage() {
   const { locale, t } = useLocale();
   const [error, setError] = useState<string | null>(null);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const useGradeLabels = quizId === 'factory';
 
@@ -435,17 +447,19 @@ export function QuizPage() {
       });
       dispatch(setAssessment(result));
       dispatch(setHasCompletedQuiz(true));
-      dispatch(resetQuiz());
       trackEvent('quiz_complete', {
         quiz_id: quizId,
         overall_score: result.overallScore,
         diagnosis: result.diagnosis,
       });
-      navigate('/results');
+      setShowCelebration(true);
+      setTimeout(() => {
+        dispatch(resetQuiz());
+        navigate('/results', { state: { fromQuiz: true } });
+      }, 1800);
     } catch {
       trackEvent('quiz_submit_error');
       setError(t('quiz.submitError'));
-    } finally {
       dispatch(setSubmitting(false));
     }
   };
@@ -453,6 +467,56 @@ export function QuizPage() {
   return (
     <PageLayout className="max-w-2xl" data-testid="quiz-stepper">
       <>
+        {/* Post-submit celebration overlay */}
+        {showCelebration && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-background/95 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', damping: 12, stiffness: 200 }}
+              className="flex h-24 w-24 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/40"
+            >
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="text-emerald-600 dark:text-emerald-400"
+                aria-hidden="true"
+              >
+                <path
+                  d="M5 13l4 4L19 7"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-center"
+            >
+              <h2 className="text-2xl font-bold mb-1">{t('quiz.resultReady')}</h2>
+              <p className="text-sm text-muted-foreground">{t('quiz.calculating')}</p>
+            </motion.div>
+            <div className="h-1 w-48 overflow-hidden rounded-full bg-secondary">
+              <motion.div
+                initial={{ width: '0%' }}
+                animate={{ width: '100%' }}
+                transition={{ duration: 1.6, ease: 'linear' }}
+                className="h-full rounded-full bg-primary"
+              />
+            </div>
+          </motion.div>
+        )}
+
         {/* Header + Progress */}
         <div className="mb-6">
           <div className="flex items-end justify-between mb-3">

@@ -129,6 +129,10 @@ const translations: Record<Locale, Record<string, string>> = {
     'signin.errorGeneric': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง',
     'signin.errorPasswordMismatch': 'รหัสผ่านไม่ตรงกัน', // NOSONAR typescript:S2068
     'signin.errorAccountExistsOtherProvider': 'อีเมลนี้ใช้วิธีการเข้าสู่ระบบอื่น ลองเข้าสู่ระบบด้วย Google แทน',
+    'signin.createAccountTitle': 'สร้างบัญชีใหม่',
+    'signin.createAccountSubtitle': 'กรอกอีเมลและรหัสผ่านเพื่อเริ่มใช้งาน',
+    'signin.createAccount': 'สร้างบัญชี',
+    'signin.haveAccount': 'มีบัญชีอยู่แล้ว?',
 
     // No profile dialog
     'noProfile.title': 'ไม่พบบัญชีบริษัท',
@@ -173,6 +177,14 @@ const translations: Record<Locale, Record<string, string>> = {
     'register.marketingConsent': 'ฉันยินยอมรับข้อมูลข่าวสารและกิจกรรมส่งเสริมการตลาด',
     'register.marketingConsentDetail': 'คุณสามารถยกเลิกได้ทุกเมื่อ ดูรายละเอียดที่',
     'register.marketingPolicyLink': 'นโยบายการตลาด',
+    'register.step.company': 'ข้อมูลบริษัท',
+    'register.step.contact': 'ข้อมูลผู้ติดต่อ',
+    'register.next': 'ถัดไป',
+    'register.back': 'ย้อนกลับ',
+    'register.companyName.unknown': 'บริษัทที่ลงทะเบียนแล้ว',
+    'register.success.title': 'ลงทะเบียนสำเร็จ!',
+    'register.success.desc': 'บัญชีบริษัทของคุณพร้อมใช้งานแล้ว',
+    'register.success.toDashboard': 'ไปยังแดชบอร์ด',
 
     // Industry types
     'industry.manufacturing': 'การผลิต',
@@ -230,6 +242,12 @@ const translations: Record<Locale, Record<string, string>> = {
     'quiz.exitConfirm.leave': 'ออก',
     'quiz.noResults.title': 'ยังไม่มีผลประเมิน',
     'quiz.noResults.desc': 'เริ่มทำแบบประเมินเพื่อตรวจสุขภาพโรงงานของคุณ',
+    'quiz.resultReady': 'ส่งแบบประเมินเรียบร้อย!',
+    'quiz.calculating': 'กำลังโหลดผลการประเมิน...',
+
+    // Dashboard KPI labels
+    'dashboard.level': 'ระดับ',
+    'dashboard.assessmentCount': 'ครั้งที่ประเมิน',
 
     // Results
     'result.overallScore': 'คะแนนรวม',
@@ -243,6 +261,9 @@ const translations: Record<Locale, Record<string, string>> = {
     'result.scoreBreakdown': 'รายละเอียดคะแนน',
     'result.levelBeginning': 'เริ่มต้น',
     'result.levelAdvanced': 'ก้าวหน้า',
+    'result.justCompleted': 'ผลการประเมินล่าสุดของคุณพร้อมแล้ว',
+    'result.backToDashboard': 'กลับแดชบอร์ด',
+    'result.nextSteps': 'ขั้นตอนถัดไป',
 
     // Diagnosis
     'diagnosis.Beginning': 'เริ่มต้น',
@@ -529,6 +550,10 @@ const translations: Record<Locale, Record<string, string>> = {
     'signin.errorPasswordMismatch': 'Passwords do not match',
     'signin.errorAccountExistsOtherProvider':
       'This email uses a different sign-in method. Try signing in with Google instead.',
+    'signin.createAccountTitle': 'Create an account',
+    'signin.createAccountSubtitle': 'Enter your email and password to get started',
+    'signin.createAccount': 'Create Account',
+    'signin.haveAccount': 'Already have an account?',
 
     // No profile dialog
     'noProfile.title': 'No Company Account Found',
@@ -573,6 +598,14 @@ const translations: Record<Locale, Record<string, string>> = {
     'register.marketingConsent': 'I consent to receive marketing communications and promotions',
     'register.marketingConsentDetail': 'You can unsubscribe at any time. See our',
     'register.marketingPolicyLink': 'Marketing Policy',
+    'register.step.company': 'Company Info',
+    'register.step.contact': 'Contact Info',
+    'register.next': 'Next',
+    'register.back': 'Back',
+    'register.companyName.unknown': 'Unknown company',
+    'register.success.title': 'Registration Successful!',
+    'register.success.desc': 'Your company account is ready. Start your assessment now.',
+    'register.success.toDashboard': 'Go to Dashboard',
 
     // Industry types
     'industry.manufacturing': 'Manufacturing',
@@ -631,6 +664,12 @@ const translations: Record<Locale, Record<string, string>> = {
     'quiz.exitConfirm.leave': 'Exit',
     'quiz.noResults.title': 'No assessments yet',
     'quiz.noResults.desc': 'Start an assessment to check your factory health',
+    'quiz.resultReady': 'Assessment submitted!',
+    'quiz.calculating': 'Loading your results...',
+
+    // Dashboard KPI labels
+    'dashboard.level': 'Level',
+    'dashboard.assessmentCount': 'Assessments',
 
     // Results
     'result.overallScore': 'Overall Score',
@@ -644,6 +683,9 @@ const translations: Record<Locale, Record<string, string>> = {
     'result.scoreBreakdown': 'Score breakdown',
     'result.levelBeginning': 'Beginning',
     'result.levelAdvanced': 'Advanced',
+    'result.justCompleted': 'Your latest assessment is ready',
+    'result.backToDashboard': 'Back to Dashboard',
+    'result.nextSteps': 'Next Steps',
 
     // Diagnosis
     'diagnosis.Beginning': 'Beginning',

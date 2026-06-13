@@ -20,7 +20,7 @@ import {
   setLoading,
 } from '@/store/resultSlice';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import {
   PolarAngleAxis,
   PolarGrid,
@@ -28,6 +28,7 @@ import {
   Radar,
   RadarChart,
   ResponsiveContainer,
+  Tooltip,
 } from 'recharts';
 
 const diagnosisConfig: Record<string, { color: string; bg: string; border: string }> = {
@@ -60,7 +61,11 @@ function getScoreColor(score: number): string {
   return 'hsl(0 72% 51%)';
 }
 
-function ScoreRing({ score, size = 140 }: Readonly<{ score: number; size?: number }>) {
+function ScoreRing({
+  score,
+  size = 140,
+  color,
+}: Readonly<{ score: number; size?: number; color?: string }>) {
   const pct = (score / 5) * 100;
   const strokeW = 10;
   const r = (size - strokeW) / 2;
@@ -82,7 +87,7 @@ function ScoreRing({ score, size = 140 }: Readonly<{ score: number; size?: numbe
         cy={size / 2}
         r={r}
         fill="none"
-        stroke="hsl(var(--primary))"
+        stroke={color ?? 'hsl(var(--primary))'}
         strokeWidth={strokeW}
         strokeLinecap="round"
         strokeDasharray={circumference}
@@ -182,7 +187,7 @@ function DimensionDetail({
                 </div>
               ))}
             </div>
-            <div className="flex justify-between text-[10px] text-muted-foreground">
+            <div className="flex justify-between text-xs text-muted-foreground">
               <span>{t('result.levelBeginning')}</span>
               <span>{t('result.levelAdvanced')}</span>
             </div>
@@ -238,7 +243,11 @@ function QuizResultDetail({
         <div className="bg-card rounded-lg border p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="relative shrink-0">
-              <ScoreRing score={assessment.overallScore} size={148} />
+              <ScoreRing
+                score={assessment.overallScore}
+                size={148}
+                color={getScoreColor(assessment.overallScore)}
+              />
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-3xl sm:text-4xl font-bold tabular-nums tracking-tight">
                   {assessment.overallScore.toFixed(2)}
@@ -267,7 +276,7 @@ function QuizResultDetail({
       {/* Radar chart */}
       <FadeIn delay={0.1}>
         <div className="bg-card rounded-lg border p-6" data-testid="result-spider-chart">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+          <h2 className="text-sm font-semibold text-foreground mb-4">
             {t('result.dimensionScores')}
           </h2>
           <ResponsiveContainer width="100%" height={280} className="sm:[&]:h-[320px]!">
@@ -278,12 +287,21 @@ function QuizResultDetail({
               />
               <PolarAngleAxis
                 dataKey="dimension"
-                tick={{ fontSize: 10, fill: isDark ? 'hsl(220 8% 55%)' : 'hsl(220 8% 46%)' }}
+                tick={{ fontSize: 12, fill: isDark ? 'hsl(220 8% 55%)' : 'hsl(220 8% 46%)' }}
               />
               <PolarRadiusAxis
                 angle={90}
                 domain={[0, 5]}
-                tick={{ fontSize: 9, fill: isDark ? 'hsl(220 8% 50%)' : 'hsl(220 8% 60%)' }}
+                tick={{ fontSize: 11, fill: isDark ? 'hsl(220 8% 50%)' : 'hsl(220 8% 60%)' }}
+              />
+              <Tooltip
+                formatter={(value: number) => [value.toFixed(2), '']}
+                contentStyle={{
+                  backgroundColor: isDark ? 'hsl(220 13% 10%)' : 'hsl(0 0% 100%)',
+                  border: `1px solid ${isDark ? 'hsl(220 13% 20%)' : 'hsl(220 13% 91%)'}`,
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                }}
               />
               <Radar
                 dataKey="score"
@@ -307,7 +325,7 @@ function QuizResultDetail({
       {/* Dimension details — 2 columns */}
       <FadeIn delay={0.15}>
         <div className="bg-card rounded-lg border p-6">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+          <h2 className="text-sm font-semibold text-foreground mb-4">
             {t('result.dimensionDetail')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -359,8 +377,24 @@ function QuizResultDetail({
               </div>
               <ul className="space-y-2">
                 {assessment.strengths.map((s) => (
-                  <li key={s} className="flex items-start gap-2 text-[13px] leading-relaxed">
-                    <span className="text-emerald-500 mt-0.5 shrink-0">+</span>
+                  <li key={s} className="flex items-start gap-2 text-sm leading-relaxed">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      className="text-emerald-500 mt-0.5 shrink-0"
+                      aria-hidden="true"
+                    >
+                      <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
+                      <path
+                        d="M5 8l2 2 4-4"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                     <span className="text-foreground/80">{nameMap[s] ?? s}</span>
                   </li>
                 ))}
@@ -399,8 +433,28 @@ function QuizResultDetail({
               </div>
               <ul className="space-y-2">
                 {assessment.weaknesses.map((w) => (
-                  <li key={w} className="flex items-start gap-2 text-[13px] leading-relaxed">
-                    <span className="text-red-400 mt-0.5 shrink-0">!</span>
+                  <li key={w} className="flex items-start gap-2 text-sm leading-relaxed">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      className="text-red-400 mt-0.5 shrink-0"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M8 2L14 13H2L8 2Z"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M8 6v3M8 11h.01"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                    </svg>
                     <span className="text-foreground/80">{nameMap[w] ?? w}</span>
                   </li>
                 ))}
@@ -423,8 +477,20 @@ export function ResultPage() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const navigate = useNavigate();
+  const location = useLocation();
+  const [showJustCompleted, setShowJustCompleted] = useState(
+    !!(location.state as { fromQuiz?: boolean })?.fromQuiz,
+  );
   const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
   const [dimCache, setDimCache] = useState<Record<string, QuizDimension[]>>({});
+
+  // Auto-dismiss the "just completed" banner and scroll to top
+  useEffect(() => {
+    if (!showJustCompleted) return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const timer = setTimeout(() => setShowJustCompleted(false), 5000);
+    return () => clearTimeout(timer);
+  }, [showJustCompleted]);
 
   // Fetch all assessments
   useEffect(() => {
@@ -558,6 +624,49 @@ export function ResultPage() {
   return (
     <PageLayout>
       <div className="space-y-5" data-testid="result-summary">
+        {showJustCompleted && (
+          <FadeIn>
+            <div className="flex items-center gap-3 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/50">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="text-emerald-600 dark:text-emerald-400"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M5 13l4 4L19 7"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <p className="flex-1 text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+                {t('result.justCompleted')}
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowJustCompleted(false)}
+                className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors"
+                aria-label="Dismiss"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M18 6L6 18M6 6l12 12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </FadeIn>
+        )}
+
         {allQuizIds.length > 0 && (
           <Tabs value={activeQuizId ?? allQuizIds[0]} onValueChange={handleTabChange}>
             <TabsList className="h-auto w-full justify-start overflow-x-auto scrollbar-none">
@@ -598,7 +707,7 @@ export function ResultPage() {
                       {quizAssessments.length > 1 && (
                         <FadeIn delay={0.3}>
                           <div className="bg-card rounded-lg border p-6">
-                            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+                            <h2 className="text-sm font-semibold text-foreground mb-4">
                               {t('result.previousAssessments')}
                             </h2>
                             <div className="space-y-1">
@@ -632,6 +741,23 @@ export function ResultPage() {
                           </div>
                         </FadeIn>
                       )}
+
+                      {/* Next Steps */}
+                      <FadeIn delay={0.4}>
+                        <div className="bg-card rounded-lg border p-6">
+                          <h2 className="text-sm font-semibold text-foreground mb-4">
+                            {t('result.nextSteps')}
+                          </h2>
+                          <div className="flex flex-wrap gap-3">
+                            <Button onClick={() => handleStartQuiz(qid)} variant="outline">
+                              {t('quiz.retake')}
+                            </Button>
+                            <Button onClick={() => navigate('/dashboard')} variant="outline">
+                              {t('result.backToDashboard')}
+                            </Button>
+                          </div>
+                        </div>
+                      </FadeIn>
                     </>
                   ) : (
                     <FadeIn>
