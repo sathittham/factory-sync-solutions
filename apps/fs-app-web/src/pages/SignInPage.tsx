@@ -1,19 +1,9 @@
 import { LoginForm } from '@/components/login-form';
 import { useAppSelector } from '@/store';
-import { useEffect } from 'react';
 import { Navigate } from 'react-router';
 
-const OFFICIAL_WEB_URL = import.meta.env.VITE_OFFICIAL_WEB_URL ?? '';
-
 export function SignInPage() {
-  const { isAuthenticated, isRegistered, loading } = useAppSelector((s) => s.auth);
-
-  useEffect(() => {
-    if (isAuthenticated && !isRegistered) {
-      const dest = OFFICIAL_WEB_URL ? `${OFFICIAL_WEB_URL}/register` : '/';
-      globalThis.location.replace(dest);
-    }
-  }, [isAuthenticated, isRegistered]);
+  const { isAuthenticated, loading } = useAppSelector((s) => s.auth);
 
   if (loading) {
     return (
@@ -23,8 +13,8 @@ export function SignInPage() {
     );
   }
 
-  if (isAuthenticated && isRegistered) return <Navigate to="/results" replace />;
-  if (isAuthenticated && !isRegistered) return null;
+  // Authenticated users go to dashboard; RegisterGuard handles the no-profile case
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
 
   return <LoginForm />;
 }

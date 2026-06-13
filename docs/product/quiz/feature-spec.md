@@ -63,7 +63,7 @@ supported via a `quizId` parameter; the default is `"shindan"`.
 | Quiz models | `apps/fs-backend/services/quiz/models.go` | ✅ Built |
 | Scoring engine | `apps/fs-backend/services/scoring/scoring.go` | ✅ Built |
 | Scoring models | `apps/fs-backend/services/scoring/models.go` | ✅ Built |
-| Quiz configs | `apps/fs-backend/config/questions*.json` | ✅ Built (4 variants) |
+| Quiz configs | `apps/fs-backend/config/questions*.json` | ✅ Built (5 variants) |
 | Quiz registry | `scoring.QuizRegistry` in `scoring.go` | ✅ Built |
 | Notifications (email + Slack) | `notification.Service.NotifyQuizResult` | ✅ Built |
 | Audit logging | `audit.Logger.Log` on submit | ✅ Built |
@@ -72,7 +72,7 @@ supported via a `quizId` parameter; the default is `"shindan"`.
 
 ## 4. Quiz Variants
 
-Four quiz configs are bundled in `apps/fs-backend/config/`. All are registered
+Five quiz configs are bundled in `apps/fs-backend/config/`. All are registered
 in the `QuizRegistry` at startup.
 
 | Quiz ID | File | Version | Dimensions | Questions | Display name |
@@ -81,6 +81,7 @@ in the `QuizRegistry` at startup.
 | `factory` | `questions-factory.json` | 1.0.0 | 7 | 49 | Factory Assessment |
 | `cybersecurity` | `questions-cybersecurity.json` | 1.0.0 | 8 | 51 | Cybersecurity Assessment |
 | `lean` | `questions-lean.json` | 1.0.0 | 12 | 29 | Lean Business Assessment |
+| `iso29110` | `questions-iso29110.json` | 1.0.0 | 8 | 38 | ISO 29110 Software Process Assessment |
 
 **Default quiz:** `"shindan"` — set as `quizId` initial state in `quizSlice`.
 
@@ -545,5 +546,6 @@ Collection: `assessments` · Document ID: UUID v4
 - Factory config: [questions-factory.json](../../../apps/fs-backend/config/questions-factory.json)
 - Cybersecurity config: [questions-cybersecurity.json](../../../apps/fs-backend/config/questions-cybersecurity.json)
 - Lean config: [questions-lean.json](../../../apps/fs-backend/config/questions-lean.json)
+- ISO 29110 config: [questions-iso29110.json](../../../apps/fs-backend/config/questions-iso29110.json)
 - User flow: [user-flow.md](../user-flow.md)
 - Result feature: (see `docs/product/result/` — to be created)

@@ -15,11 +15,11 @@ const mockAssessment: Assessment = {
       dimensionId: 'd1',
       dimensionName: 'Strategy',
       dimensionNameTh: 'กลยุทธ์',
-      score: 4.0,
+      score: 4,
       maxScore: 5,
     },
   ],
-  overallScore: 4.0,
+  overallScore: 4,
   strengths: ['Strategy'],
   weaknesses: [],
   diagnosis: 'Advanced',
@@ -50,5 +50,12 @@ describe('resultSlice', () => {
   it('setLoading', () => {
     const state = resultReducer(initial, setLoading(true));
     expect(state.loading).toBe(true);
+  });
+
+  it('setAssessments does not clear singular assessment', () => {
+    let state = resultReducer(initial, setAssessment(mockAssessment));
+    state = resultReducer(state, setAssessments([mockAssessment]));
+    expect(state.assessment).toEqual(mockAssessment);
+    expect(state.assessments).toHaveLength(1);
   });
 });

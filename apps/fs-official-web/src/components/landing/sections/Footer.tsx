@@ -10,7 +10,7 @@ import { Fragment } from "react";
 // LogoIcon (local copy — Footer needs it independently of NavBar)
 // ---------------------------------------------------------------------------
 
-function LogoIcon({ theme = "dark" }: { theme?: "dark" | "light" }) {
+function LogoIcon({ theme = "dark" }: { readonly theme?: "dark" | "light" }) {
 	const logo = theme === "dark" ? fsDarkLogo : fsLightLogo;
 
 	return (
@@ -29,7 +29,7 @@ const SEP = <span className="text-slate-300 dark:text-slate-600">|</span>;
 export function Footer({
 	version,
 	resolvedTheme,
-}: { version: string; resolvedTheme: ResolvedTheme }) {
+}: { readonly version: string; readonly resolvedTheme: ResolvedTheme }) {
 	const { t } = useLocale();
 	const year = new Date().getFullYear();
 

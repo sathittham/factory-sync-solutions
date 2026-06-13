@@ -80,7 +80,7 @@ jobs:
             --platform=managed \
             --allow-unauthenticated \
             --service-account=deployer@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
-            --set-env-vars="^@^ENVIRONMENT=production@RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}@CF_TURNSTILE_SECRET=${{ secrets.CF_TURNSTILE_SECRET }}@SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }}@SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }}@ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }}"
+            --set-env-vars="^@^ENVIRONMENT=production@APP_URL=https://app.factorysyncsolutions.com@RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}@CF_TURNSTILE_SECRET=${{ secrets.CF_TURNSTILE_SECRET }}@SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }}@SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }}@ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }}"
 
   deploy-frontend:
     name: Deploy Frontend to Production

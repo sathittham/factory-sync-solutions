@@ -2,6 +2,7 @@ package audit
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 type EventType string
 
 const (
+	EventUserLogin           EventType = "user.login"
 	EventUserRegistered      EventType = "user.registered"
 	EventUserProfileUpdated  EventType = "user.profile_updated"
 	EventUserRoleChanged     EventType = "user.role_changed"
@@ -70,4 +72,31 @@ func (l *Logger) Log(ctx context.Context, actorUID string, eventType EventType, 
 			"actorUID", actorUID,
 		)
 	}
+}
+
+// QueryByActor returns the most recent audit events for a given actor, up to limit.
+func (l *Logger) QueryByActor(ctx context.Context, actorUID string, limit int) ([]Event, error) {
+	if l.fsClient == nil {
+		return nil, nil
+	}
+
+	docs, err := l.fsClient.Collection("audit_events").
+		Where("actorUID", "==", actorUID).
+		OrderBy("createdAt", firestore.Desc).
+		Limit(limit).
+		Documents(ctx).GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("query audit events for actor %s: %w", actorUID, err)
+	}
+
+	events := make([]Event, 0, len(docs))
+	for _, doc := range docs {
+		var ev Event
+		if err := doc.DataTo(&ev); err != nil {
+			slog.Warn("audit event decode failed", "docID", doc.Ref.ID, "error", err.Error())
+			continue
+		}
+		events = append(events, ev)
+	}
+	return events, nil
 }

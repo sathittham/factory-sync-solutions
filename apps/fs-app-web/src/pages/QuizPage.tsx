@@ -1,3 +1,4 @@
+import { PageLayout } from '@/components/PageLayout';
 import { AnimatePresence, motion } from '@/components/motion';
 import { Button } from '@/components/ui/button';
 import {
@@ -153,7 +154,8 @@ function QuestionCard({
           {rubricOrder.map((val) => {
             const isSelected = selectedValue === val;
             const rubricText = q.rubric?.[String(val)];
-            const label = rubricText ? (locale === 'th' ? rubricText.th : rubricText.en) : '';
+            const rubricLocale = locale === 'th' ? rubricText?.th : rubricText?.en;
+            const label = rubricLocale ?? '';
             const displayLabel = useGradeLabels ? GRADE_LABELS[val] : String(val);
             return (
               <button
@@ -362,18 +364,20 @@ export function QuizPage() {
 
   if (!questionsLoaded) {
     return (
-      <div className="container max-w-2xl py-10 space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-2.5 w-full rounded-full" />
-        <div className="flex gap-2 mt-4">
-          {SKELETON_DIMS.map((id) => (
-            <Skeleton key={id} className="h-8 w-20 rounded-full" />
+      <PageLayout className="max-w-2xl">
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-2.5 w-full rounded-full" />
+          <div className="flex gap-2 mt-4">
+            {SKELETON_DIMS.map((id) => (
+              <Skeleton key={id} className="h-8 w-20 rounded-full" />
+            ))}
+          </div>
+          {SKELETON_QUESTIONS.map((id) => (
+            <Skeleton key={id} className="h-32 w-full rounded-lg" />
           ))}
         </div>
-        {SKELETON_QUESTIONS.map((id) => (
-          <Skeleton key={id} className="h-32 w-full rounded-lg" />
-        ))}
-      </div>
+      </PageLayout>
     );
   }
 
@@ -447,8 +451,8 @@ export function QuizPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)]">
-      <div className="container max-w-2xl py-6 sm:py-8" data-testid="quiz-stepper">
+    <PageLayout className="max-w-2xl" data-testid="quiz-stepper">
+      <>
         {/* Header + Progress */}
         <div className="mb-6">
           <div className="flex items-end justify-between mb-3">
@@ -542,24 +546,24 @@ export function QuizPage() {
           onNext={handleNext}
           onSubmit={handleSubmit}
         />
-      </div>
 
-      <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>{t('quiz.exitConfirm.title')}</DialogTitle>
-            <DialogDescription>{t('quiz.exitConfirm.desc')}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowExitDialog(false)}>
-              {t('quiz.exitConfirm.stay')}
-            </Button>
-            <Button variant="destructive" onClick={handleExit}>
-              {t('quiz.exitConfirm.leave')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+        <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>{t('quiz.exitConfirm.title')}</DialogTitle>
+              <DialogDescription>{t('quiz.exitConfirm.desc')}</DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setShowExitDialog(false)}>
+                {t('quiz.exitConfirm.stay')}
+              </Button>
+              <Button variant="destructive" onClick={handleExit}>
+                {t('quiz.exitConfirm.leave')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
+    </PageLayout>
   );
 }

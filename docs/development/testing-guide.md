@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-03-07
+version: 1.2.0
+lastUpdated: 2026-06-13
 author: Sathittham Sangthong
 ---
 
@@ -23,7 +23,7 @@ This guide covers Go backend testing patterns specific to this project. For fron
 ## Test File Structure
 
 ```
-apps/api/services/
+apps/fs-backend/services/
 ├── profile/
 │   ├── handler.go
 │   ├── handler_test.go         # Handler tests (mock service)
@@ -512,7 +512,7 @@ npm install -g firebase-tools
 firebase emulators:start --only firestore
 
 # Run integration tests (separate terminal)
-cd apps/api
+cd apps/fs-backend
 FIRESTORE_EMULATOR_HOST=localhost:8080 go test -v -run Integration ./...
 ```
 
@@ -520,25 +520,25 @@ FIRESTORE_EMULATOR_HOST=localhost:8080 go test -v -run Integration ./...
 
 ```bash
 # All backend tests
-cd apps/api && go test ./...
+cd apps/fs-backend && go test ./...
 
 # Specific package
-cd apps/api && go test ./services/scoring/...
+cd apps/fs-backend && go test ./services/scoring/...
 
 # Verbose output
-cd apps/api && go test -v ./...
+cd apps/fs-backend && go test -v ./...
 
 # With coverage
-cd apps/api && go test -cover ./...
+cd apps/fs-backend && go test -cover ./...
 
 # HTML coverage report
-cd apps/api && go test -coverprofile=cover.out ./... && go tool cover -html=cover.out
+cd apps/fs-backend && go test -coverprofile=cover.out ./... && go tool cover -html=cover.out
 
 # Race condition detection
-cd apps/api && go test -race ./...
+cd apps/fs-backend && go test -race ./...
 
 # Skip integration tests (unit only)
-cd apps/api && go test -short ./...
+cd apps/fs-backend && go test -short ./...
 
 # Using Makefile (from project root)
 make test-api
@@ -563,3 +563,7 @@ make test-api
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Replaced Turborepo reference with Makefile |
+| 1.2.0 | 2026-06-13 | Fix stale apps/api → apps/fs-backend paths throughout |
+
+*Version: 1.2.0*
+*Last updated: 13 June 2026*

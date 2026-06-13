@@ -1,6 +1,7 @@
 ---
 import { AppHandoff } from "../components/AppHandoff";
 import { CookieConsent } from "../components/CookieConsent";
+import { TopCtaBar } from "../components/TopCtaBar";
 
 interface Props {
 	title: string;
@@ -134,6 +135,7 @@ const gtmId = import.meta.env.PUBLIC_GTM_ID ?? "";
         } catch (e) {}
       })();
     </script>
+    <TopCtaBar client:load />
     <slot />
     <CookieConsent client:idle />
     <AppHandoff client:idle appUrl={appUrl} />

@@ -70,10 +70,10 @@ function NavBar({
 	setTheme,
 	resolvedTheme,
 }: {
-	appUrl: string;
-	theme: Theme;
-	setTheme: (t: Theme) => void;
-	resolvedTheme: ResolvedTheme;
+	readonly appUrl: string;
+	readonly theme: Theme;
+	readonly setTheme: (t: Theme) => void;
+	readonly resolvedTheme: ResolvedTheme;
 }) {
 	const { t } = useLocale();
 	const [mobileOpen, setMobileOpen] = useState(false);
@@ -89,7 +89,7 @@ function NavBar({
 				>
 					<LogoIcon theme={resolvedTheme} />
 					<span className="text-lg leading-tight">
-						FactorySync
+						{"FactorySync"}
 						<span className="block text-sm font-extrabold text-cyan-400 -mt-1">Solutions</span>
 					</span>
 				</a>
@@ -199,7 +199,7 @@ function NavBar({
 
 const SEP = <span className="text-slate-300 dark:text-slate-600">|</span>;
 
-function Footer({ version, resolvedTheme }: { version: string; resolvedTheme: ResolvedTheme }) {
+function Footer({ version, resolvedTheme }: { readonly version: string; readonly resolvedTheme: ResolvedTheme }) {
 	const { t } = useLocale();
 	const year = new Date().getFullYear();
 
@@ -762,8 +762,8 @@ function CookiesEn() {
 				Only activated with explicit consent (opt-in). Withdraw via{" "}
 				<a href="/cookie-settings" className="text-primary hover:underline">
 					Cookie Settings
-				</a>
-				.
+				</a>{"."}
+
 			</p>
 			<h2 className={h2Class}>3. Managing Cookies</h2>
 			<ul className={ulClass}>
@@ -771,8 +771,8 @@ function CookiesEn() {
 					Via the{" "}
 					<a href="/cookie-settings" className="text-primary hover:underline">
 						Cookie Settings page
-					</a>
-					.
+					</a>{"."}
+
 				</li>
 				<li>Via your browser settings.</li>
 			</ul>
@@ -929,8 +929,8 @@ function MarketingEn() {
 					Give consent via{" "}
 					<a href="/cookie-settings" className="text-primary hover:underline">
 						Cookie Settings
-					</a>
-					.
+					</a>{"."}
+
 				</li>
 				<li>
 					Withdraw at any time via Cookie Settings, email unsubscribe link, or contact
@@ -1075,7 +1075,7 @@ const CONTENT_MAP: Record<LegalPageType, Record<Locale, React.ReactNode>> = {
 
 const LEGAL_NAV: LegalPageType[] = ["terms", "privacy", "cookies", "marketing", "cookie-settings"];
 
-function LegalSidebar({ page }: { page: LegalPageType }) {
+function LegalSidebar({ page }: { readonly page: LegalPageType }) {
 	const { locale, t } = useLocale();
 
 	return (
@@ -1125,7 +1125,7 @@ function LegalInner({
 	page,
 	appUrl,
 	version,
-}: { page: LegalPageType; appUrl: string; version: string }) {
+}: { readonly page: LegalPageType; readonly appUrl: string; readonly version: string }) {
 	const { locale, t } = useLocale();
 	const { theme, resolvedTheme, setTheme } = useTheme();
 	const title = PAGE_TITLES[page][locale];
@@ -1169,9 +1169,9 @@ function LegalInner({
 }
 
 export interface LegalContentProps {
-	page: LegalPageType;
-	appUrl: string;
-	version: string;
+	readonly page: LegalPageType;
+	readonly appUrl: string;
+	readonly version: string;
 }
 
 export function LegalContent({ page, appUrl, version }: LegalContentProps) {

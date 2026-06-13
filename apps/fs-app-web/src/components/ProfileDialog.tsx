@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -17,7 +18,7 @@ import { auth, googleProvider } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { type Profile, setProfile, setUser } from '@/store/authSlice';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from '@tanstack/react-form';
 import {
   EmailAuthProvider,
   linkWithCredential,
@@ -28,26 +29,7 @@ import {
 } from 'firebase/auth';
 import { Eye, EyeOff } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  type Control,
-  Controller,
-  type FieldErrors,
-  type UseFormRegister,
-  useForm,
-} from 'react-hook-form';
-import { z } from 'zod';
-
-const schema = z.object({
-  companyName: z.string().min(1, 'register.companyNameError'),
-  industryType: z.string().min(1, 'register.industryTypeError'),
-  companySize: z.string().min(1, 'register.companySizeError'),
-  contactName: z.string().min(1, 'register.contactNameError'),
-  contactEmail: z.string().email('register.contactEmailError'),
-  contactPhone: z.string().min(9, 'register.contactPhoneError'),
-  emailNotifications: z.boolean().optional(),
-});
-
-type FormData = z.infer<typeof schema>;
+import * as z from 'zod';
 
 const industryKeys = [
   'manufacturing',
@@ -69,8 +51,6 @@ const industryKeys = [
 ] as const;
 
 const sizeKeys = ['small', 'medium', 'large'] as const;
-
-// ── Module-level helpers (no complexity cost to components) ──────────────────
 
 function mapPasswordError(code: string, t: (key: string) => string): string {
   if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
@@ -98,8 +78,6 @@ function mapLinkError(code: string, t: (key: string) => string): string {
 function getProviderLabel(pid: string, t: (key: string) => string): string {
   return pid === 'google.com' ? t('profile.googleProvider') : t('profile.emailPasswordProvider');
 }
-
-// ── Small reusable components ────────────────────────────────────────────────
 
 interface PasswordToggleProps {
   readonly show: boolean;
@@ -133,14 +111,6 @@ function SectionDivider({ label }: { readonly label: string }) {
   );
 }
 
-function FieldError({
-  message,
-  t,
-}: { readonly message?: string; readonly t: (k: string) => string }) {
-  if (!message) return null;
-  return <p className="text-xs text-destructive">{t(message)}</p>;
-}
-
 function SpinnerIcon() {
   return (
     <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -158,44 +128,32 @@ function SpinnerIcon() {
 
 function ChangePasswordSection() {
   const { t } = useLocale();
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [isChanging, setIsChanging] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordChanged, setPasswordChanged] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setPasswordError(null);
-    setPasswordChanged(false);
+  const form = useForm({
+    defaultValues: { currentPassword: '', newPassword: '', confirmNewPassword: '' },
+    onSubmit: async ({ value }) => {
+      setPasswordError(null);
+      setPasswordChanged(false);
 
-    if (newPassword !== confirmNewPassword) {
-      setPasswordError(t('signin.errorPasswordMismatch'));
-      return;
-    }
+      const currentUser = auth.currentUser;
+      if (!currentUser?.email) return;
 
-    const currentUser = auth.currentUser;
-    if (!currentUser?.email) return;
-
-    setIsChanging(true);
-    try {
-      const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
-      await reauthenticateWithCredential(currentUser, credential);
-      await updatePassword(currentUser, newPassword);
-      setPasswordChanged(true);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmNewPassword('');
-    } catch (err: unknown) {
-      setPasswordError(mapPasswordError((err as { code?: string }).code ?? '', t));
-    } finally {
-      setIsChanging(false);
-    }
-  };
+      try {
+        const credential = EmailAuthProvider.credential(currentUser.email, value.currentPassword);
+        await reauthenticateWithCredential(currentUser, credential);
+        await updatePassword(currentUser, value.newPassword);
+        setPasswordChanged(true);
+        form.reset();
+      } catch (err: unknown) {
+        setPasswordError(mapPasswordError((err as { code?: string }).code ?? '', t));
+      }
+    },
+  });
 
   const showLabel = t('signin.showPassword');
   const hideLabel = t('signin.hidePassword');
@@ -203,78 +161,143 @@ function ChangePasswordSection() {
   return (
     <div className="px-6 pb-6">
       <SectionDivider label={t('profile.securitySection')} />
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="cp-current" className="text-sm font-medium">
-            {t('profile.currentPassword')}
-          </Label>
-          <div className="relative">
-            <Input
-              id="cp-current"
-              type={showCurrent ? 'text' : 'password'}
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              required
-              disabled={isChanging}
-              className="pr-10"
-              autoComplete="current-password"
-            />
-            <PasswordToggle
-              show={showCurrent}
-              onToggle={() => setShowCurrent((v) => !v)}
-              labelShow={showLabel}
-              labelHide={hideLabel}
-            />
-          </div>
-        </div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+        className="space-y-3"
+      >
+        <form.Field
+          name="currentPassword"
+          validators={{
+            onBlur: ({ value }) => (value ? undefined : t('signin.errorPasswordRequired')),
+            onSubmit: ({ value }) => (value ? undefined : t('signin.errorPasswordRequired')),
+          }}
+        >
+          {(field) => {
+            const isInvalid = field.state.meta.isTouched && field.state.meta.errors.length > 0;
+            return (
+              <div className="space-y-1.5">
+                <Label htmlFor="cp-current" className="text-sm font-medium">
+                  {t('profile.currentPassword')}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="cp-current"
+                    type={showCurrent ? 'text' : 'password'}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    disabled={form.state.isSubmitting}
+                    className="pr-10"
+                    autoComplete="current-password"
+                  />
+                  <PasswordToggle
+                    show={showCurrent}
+                    onToggle={() => setShowCurrent((v) => !v)}
+                    labelShow={showLabel}
+                    labelHide={hideLabel}
+                  />
+                </div>
+                {isInvalid && (
+                  <p className="text-sm text-destructive">{field.state.meta.errors[0] as string}</p>
+                )}
+              </div>
+            );
+          }}
+        </form.Field>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="cp-new" className="text-sm font-medium">
-            {t('profile.newPassword')}
-          </Label>
-          <div className="relative">
-            <Input
-              id="cp-new"
-              type={showNew ? 'text' : 'password'}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              disabled={isChanging}
-              className="pr-10"
-              autoComplete="new-password"
-            />
-            <PasswordToggle
-              show={showNew}
-              onToggle={() => setShowNew((v) => !v)}
-              labelShow={showLabel}
-              labelHide={hideLabel}
-            />
-          </div>
-        </div>
+        <form.Field
+          name="newPassword"
+          validators={{
+            onBlur: ({ value }) => (value ? undefined : t('signin.errorPasswordRequired')),
+            onSubmit: ({ value }) => (value ? undefined : t('signin.errorPasswordRequired')),
+          }}
+        >
+          {(field) => {
+            const isInvalid = field.state.meta.isTouched && field.state.meta.errors.length > 0;
+            return (
+              <div className="space-y-1.5">
+                <Label htmlFor="cp-new" className="text-sm font-medium">
+                  {t('profile.newPassword')}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="cp-new"
+                    type={showNew ? 'text' : 'password'}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    disabled={form.state.isSubmitting}
+                    className="pr-10"
+                    autoComplete="new-password"
+                  />
+                  <PasswordToggle
+                    show={showNew}
+                    onToggle={() => setShowNew((v) => !v)}
+                    labelShow={showLabel}
+                    labelHide={hideLabel}
+                  />
+                </div>
+                {isInvalid && (
+                  <p className="text-sm text-destructive">{field.state.meta.errors[0] as string}</p>
+                )}
+              </div>
+            );
+          }}
+        </form.Field>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="cp-confirm" className="text-sm font-medium">
-            {t('profile.confirmNewPassword')}
-          </Label>
-          <div className="relative">
-            <Input
-              id="cp-confirm"
-              type={showConfirm ? 'text' : 'password'}
-              value={confirmNewPassword}
-              onChange={(e) => setConfirmNewPassword(e.target.value)}
-              required
-              disabled={isChanging}
-              className="pr-10"
-              autoComplete="new-password"
-            />
-            <PasswordToggle
-              show={showConfirm}
-              onToggle={() => setShowConfirm((v) => !v)}
-              labelShow={showLabel}
-              labelHide={hideLabel}
-            />
-          </div>
-        </div>
+        <form.Field
+          name="confirmNewPassword"
+          validators={{
+            onBlur: ({ value }) => {
+              if (!value) return t('signin.errorPasswordRequired');
+              if (value !== form.getFieldValue('newPassword'))
+                return t('signin.errorPasswordMismatch');
+              return undefined;
+            },
+            onSubmit: ({ value }) => {
+              if (!value) return t('signin.errorPasswordRequired');
+              if (value !== form.getFieldValue('newPassword'))
+                return t('signin.errorPasswordMismatch');
+              return undefined;
+            },
+          }}
+        >
+          {(field) => {
+            const isInvalid = field.state.meta.isTouched && field.state.meta.errors.length > 0;
+            return (
+              <div className="space-y-1.5">
+                <Label htmlFor="cp-confirm" className="text-sm font-medium">
+                  {t('profile.confirmNewPassword')}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="cp-confirm"
+                    type={showConfirm ? 'text' : 'password'}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    disabled={form.state.isSubmitting}
+                    className="pr-10"
+                    autoComplete="new-password"
+                  />
+                  <PasswordToggle
+                    show={showConfirm}
+                    onToggle={() => setShowConfirm((v) => !v)}
+                    labelShow={showLabel}
+                    labelHide={hideLabel}
+                  />
+                </div>
+                {isInvalid && (
+                  <p className="text-sm text-destructive">{field.state.meta.errors[0] as string}</p>
+                )}
+              </div>
+            );
+          }}
+        </form.Field>
 
         {passwordError && <p className="text-sm text-destructive">{passwordError}</p>}
         {passwordChanged && (
@@ -283,8 +306,12 @@ function ChangePasswordSection() {
           </p>
         )}
 
-        <Button type="submit" className="w-full h-11 font-semibold" disabled={isChanging}>
-          {isChanging ? t('profile.passwordChanging') : t('profile.changePassword')}
+        <Button
+          type="submit"
+          className="w-full h-11 font-semibold"
+          disabled={form.state.isSubmitting}
+        >
+          {form.state.isSubmitting ? t('profile.passwordChanging') : t('profile.changePassword')}
         </Button>
       </form>
     </div>
@@ -295,78 +322,140 @@ function ChangePasswordSection() {
 
 interface LinkEmailFormProps {
   readonly isLinking: boolean;
-  readonly onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  readonly linkEmail: string;
-  readonly linkPassword: string;
-  readonly onLinkPasswordChange: (v: string) => void;
-  readonly linkConfirmPassword: string;
-  readonly onLinkConfirmPasswordChange: (v: string) => void;
-  readonly showLinkPassword: boolean;
-  readonly onToggleShowLinkPassword: () => void;
-  readonly showLabel: string;
-  readonly hideLabel: string;
-  readonly t: (key: string) => string;
+  readonly onSuccess: () => void;
+  readonly onError: (msg: string) => void;
+  readonly onRefresh: () => void;
 }
 
-function LinkEmailForm({
-  isLinking,
-  onSubmit,
-  linkEmail,
-  linkPassword,
-  onLinkPasswordChange,
-  linkConfirmPassword,
-  onLinkConfirmPasswordChange,
-  showLinkPassword,
-  onToggleShowLinkPassword,
-  showLabel,
-  hideLabel,
-  t,
-}: LinkEmailFormProps) {
+function LinkEmailForm({ isLinking, onSuccess, onError, onRefresh }: LinkEmailFormProps) {
+  const { t } = useLocale();
+  const [showLinkPassword, setShowLinkPassword] = useState(false);
+
+  const showLabel = t('signin.showPassword');
+  const hideLabel = t('signin.hidePassword');
+
+  const linkForm = useForm({
+    defaultValues: { password: '', confirmPassword: '' },
+    onSubmit: async ({ value }) => {
+      const currentUser = auth.currentUser;
+      if (!currentUser) return;
+      try {
+        await linkWithCredential(
+          currentUser,
+          EmailAuthProvider.credential(currentUser.email ?? '', value.password),
+        );
+        onRefresh();
+        onSuccess();
+        linkForm.reset();
+      } catch (err: unknown) {
+        onError(mapLinkError((err as { code?: string }).code ?? '', t));
+      }
+    },
+  });
+
   return (
-    <form onSubmit={onSubmit} className="pl-6 space-y-2 border-l-2 border-border">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        linkForm.handleSubmit();
+      }}
+      className="pl-6 space-y-2 border-l-2 border-border"
+    >
       <div className="space-y-1">
         <Label htmlFor="link-email" className="text-sm">
           {t('profile.linkEmailLabel')}
         </Label>
-        <Input id="link-email" type="email" value={linkEmail} readOnly className="bg-muted/50" />
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="link-password" className="text-sm">
-          {t('profile.linkPasswordLabel')}
-        </Label>
-        <div className="relative">
-          <Input
-            id="link-password"
-            type={showLinkPassword ? 'text' : 'password'}
-            value={linkPassword}
-            onChange={(e) => onLinkPasswordChange(e.target.value)}
-            required
-            disabled={isLinking}
-            className="pr-10"
-          />
-          <PasswordToggle
-            show={showLinkPassword}
-            onToggle={onToggleShowLinkPassword}
-            labelShow={showLabel}
-            labelHide={hideLabel}
-          />
-        </div>
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="link-confirm" className="text-sm">
-          {t('profile.linkConfirmPasswordLabel')}
-        </Label>
         <Input
-          id="link-confirm"
-          type={showLinkPassword ? 'text' : 'password'}
-          value={linkConfirmPassword}
-          onChange={(e) => onLinkConfirmPasswordChange(e.target.value)}
-          required
-          disabled={isLinking}
+          id="link-email"
+          type="email"
+          value={auth.currentUser?.email ?? ''}
+          readOnly
+          className="bg-muted/50"
         />
       </div>
-      <Button type="submit" size="sm" disabled={isLinking}>
-        {isLinking ? t('profile.linking') : t('profile.linkSubmit')}
+
+      <linkForm.Field
+        name="password"
+        validators={{
+          onBlur: ({ value }) => (value ? undefined : t('signin.errorPasswordRequired')),
+          onSubmit: ({ value }) => (value ? undefined : t('signin.errorPasswordRequired')),
+        }}
+      >
+        {(field) => {
+          const isInvalid = field.state.meta.isTouched && field.state.meta.errors.length > 0;
+          return (
+            <div className="space-y-1">
+              <Label htmlFor="link-password" className="text-sm">
+                {t('profile.linkPasswordLabel')}
+              </Label>
+              <div className="relative">
+                <Input
+                  id="link-password"
+                  type={showLinkPassword ? 'text' : 'password'}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  disabled={isLinking}
+                  className="pr-10"
+                />
+                <PasswordToggle
+                  show={showLinkPassword}
+                  onToggle={() => setShowLinkPassword((v) => !v)}
+                  labelShow={showLabel}
+                  labelHide={hideLabel}
+                />
+              </div>
+              {isInvalid && (
+                <p className="text-xs text-destructive">{field.state.meta.errors[0] as string}</p>
+              )}
+            </div>
+          );
+        }}
+      </linkForm.Field>
+
+      <linkForm.Field
+        name="confirmPassword"
+        validators={{
+          onBlur: ({ value }) => {
+            if (!value) return t('signin.errorPasswordRequired');
+            if (value !== linkForm.getFieldValue('password'))
+              return t('signin.errorPasswordMismatch');
+            return undefined;
+          },
+          onSubmit: ({ value }) => {
+            if (!value) return t('signin.errorPasswordRequired');
+            if (value !== linkForm.getFieldValue('password'))
+              return t('signin.errorPasswordMismatch');
+            return undefined;
+          },
+        }}
+      >
+        {(field) => {
+          const isInvalid = field.state.meta.isTouched && field.state.meta.errors.length > 0;
+          return (
+            <div className="space-y-1">
+              <Label htmlFor="link-confirm" className="text-sm">
+                {t('profile.linkConfirmPasswordLabel')}
+              </Label>
+              <Input
+                id="link-confirm"
+                type={showLinkPassword ? 'text' : 'password'}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                disabled={isLinking}
+              />
+              {isInvalid && (
+                <p className="text-xs text-destructive">{field.state.meta.errors[0] as string}</p>
+              )}
+            </div>
+          );
+        }}
+      </linkForm.Field>
+
+      <Button type="submit" size="sm" disabled={linkForm.state.isSubmitting || isLinking}>
+        {linkForm.state.isSubmitting || isLinking ? t('profile.linking') : t('profile.linkSubmit')}
       </Button>
     </form>
   );
@@ -386,10 +475,6 @@ function LinkingSection({ providers, onRefresh }: LinkingSectionProps) {
   const [linkSuccess, setLinkSuccess] = useState<string | null>(null);
   const [isLinking, setIsLinking] = useState(false);
   const [showEmailLinkForm, setShowEmailLinkForm] = useState(false);
-  const [linkEmail, setLinkEmail] = useState('');
-  const [linkPassword, setLinkPassword] = useState('');
-  const [linkConfirmPassword, setLinkConfirmPassword] = useState('');
-  const [showLinkPassword, setShowLinkPassword] = useState(false);
 
   const isGoogleLinked = providers.includes('google.com');
   const isPasswordLinked = providers.includes('password');
@@ -440,33 +525,11 @@ function LinkingSection({ providers, onRefresh }: LinkingSectionProps) {
     }
   };
 
-  const handleLinkEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLinkError(null);
-    setLinkSuccess(null);
-    if (linkPassword !== linkConfirmPassword) {
-      setLinkError(t('signin.errorPasswordMismatch'));
-      return;
-    }
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
-    setIsLinking(true);
-    try {
-      await linkWithCredential(currentUser, EmailAuthProvider.credential(linkEmail, linkPassword));
-      onRefresh();
-      setLinkSuccess(t('profile.linkSuccess'));
-      setShowEmailLinkForm(false);
-      setLinkPassword('');
-      setLinkConfirmPassword('');
-    } catch (err: unknown) {
-      setLinkError(mapLinkError((err as { code?: string }).code ?? '', t));
-    } finally {
-      setIsLinking(false);
-    }
+  const handleLinkEmailSuccess = () => {
+    setLinkSuccess(t('profile.linkSuccess'));
+    setShowEmailLinkForm(false);
   };
 
-  const showLabel = t('signin.showPassword');
-  const hideLabel = t('signin.hidePassword');
   const linkedBadge = (
     <Badge variant="secondary" className="text-xs">
       {t('profile.linked')}
@@ -515,7 +578,6 @@ function LinkingSection({ providers, onRefresh }: LinkingSectionProps) {
       disabled={isLinking}
       onClick={() => {
         setShowEmailLinkForm((v) => !v);
-        setLinkEmail(auth.currentUser?.email ?? '');
         setLinkError(null);
       }}
     >
@@ -578,17 +640,9 @@ function LinkingSection({ providers, onRefresh }: LinkingSectionProps) {
           {showEmailLinkForm && !isPasswordLinked && (
             <LinkEmailForm
               isLinking={isLinking}
-              onSubmit={handleLinkEmailSubmit}
-              linkEmail={linkEmail}
-              linkPassword={linkPassword}
-              onLinkPasswordChange={setLinkPassword}
-              linkConfirmPassword={linkConfirmPassword}
-              onLinkConfirmPasswordChange={setLinkConfirmPassword}
-              showLinkPassword={showLinkPassword}
-              onToggleShowLinkPassword={() => setShowLinkPassword((v) => !v)}
-              showLabel={showLabel}
-              hideLabel={hideLabel}
-              t={t}
+              onSuccess={handleLinkEmailSuccess}
+              onError={setLinkError}
+              onRefresh={onRefresh}
             />
           )}
         </div>
@@ -597,123 +651,6 @@ function LinkingSection({ providers, onRefresh }: LinkingSectionProps) {
         {linkSuccess && (
           <p className="text-sm text-emerald-600 dark:text-emerald-400">{linkSuccess}</p>
         )}
-      </div>
-    </div>
-  );
-}
-
-// ── Form field sub-sections ──────────────────────────────────────────────────
-
-interface ContactSectionProps {
-  readonly register: UseFormRegister<FormData>;
-  readonly errors: FieldErrors<FormData>;
-  readonly t: (key: string) => string;
-  readonly sectionLabel: string;
-}
-
-function ContactSection({ register, errors, t, sectionLabel }: ContactSectionProps) {
-  return (
-    <div className="mb-5">
-      <SectionDivider label={sectionLabel} />
-      <div className="space-y-3">
-        <div className="space-y-1.5">
-          <label htmlFor="pd-contactName" className="text-sm font-medium">
-            {t('register.contactName')}
-          </label>
-          <Input id="pd-contactName" {...register('contactName')} />
-          <FieldError message={errors.contactName?.message} t={t} />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <label htmlFor="pd-contactEmail" className="text-sm font-medium">
-              {t('register.contactEmail')}
-            </label>
-            <Input id="pd-contactEmail" type="email" {...register('contactEmail')} />
-            <FieldError message={errors.contactEmail?.message} t={t} />
-          </div>
-          <div className="space-y-1.5">
-            <label htmlFor="pd-contactPhone" className="text-sm font-medium">
-              {t('register.contactPhone')}
-            </label>
-            <Input id="pd-contactPhone" {...register('contactPhone')} />
-            <FieldError message={errors.contactPhone?.message} t={t} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface CompanySectionProps {
-  readonly register: UseFormRegister<FormData>;
-  readonly control: Control<FormData>;
-  readonly errors: FieldErrors<FormData>;
-  readonly t: (key: string) => string;
-  readonly sectionLabel: string;
-}
-
-function CompanySection({ register, control, errors, t, sectionLabel }: CompanySectionProps) {
-  return (
-    <div className="mb-5">
-      <SectionDivider label={sectionLabel} />
-      <div className="space-y-3">
-        <div className="space-y-1.5">
-          <label htmlFor="pd-companyName" className="text-sm font-medium">
-            {t('register.companyName')}
-          </label>
-          <Input id="pd-companyName" {...register('companyName')} />
-          <FieldError message={errors.companyName?.message} t={t} />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <label htmlFor="pd-industryType" className="text-sm font-medium">
-              {t('register.industryType')}
-            </label>
-            <Controller
-              name="industryType"
-              control={control}
-              render={({ field }) => (
-                <SelectField
-                  id="pd-industryType"
-                  value={field.value}
-                  placeholder={t('register.select')}
-                  options={industryKeys.map((key) => ({
-                    value: key,
-                    label: t(`industry.${key}`),
-                  }))}
-                  onValueChange={field.onChange}
-                  onBlur={field.onBlur}
-                  isInvalid={!!errors.industryType}
-                />
-              )}
-            />
-            <FieldError message={errors.industryType?.message} t={t} />
-          </div>
-          <div className="space-y-1.5">
-            <label htmlFor="pd-companySize" className="text-sm font-medium">
-              {t('register.companySize')}
-            </label>
-            <Controller
-              name="companySize"
-              control={control}
-              render={({ field }) => (
-                <SelectField
-                  id="pd-companySize"
-                  value={field.value}
-                  placeholder={t('register.select')}
-                  options={sizeKeys.map((key) => ({
-                    value: key,
-                    label: t(`size.${key}`),
-                  }))}
-                  onValueChange={field.onChange}
-                  onBlur={field.onBlur}
-                  isInvalid={!!errors.companySize}
-                />
-              )}
-            />
-            <FieldError message={errors.companySize?.message} t={t} />
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -738,14 +675,7 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
     setProviders(auth.currentUser?.providerData.map((p) => p.providerId) ?? []);
   }, []);
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting, isDirty },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  const form = useForm({
     defaultValues: {
       companyName: profile?.companyName || '',
       industryType: profile?.industryType || '',
@@ -755,11 +685,32 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
       contactPhone: profile?.contactPhone || '',
       emailNotifications: profile?.emailNotifications ?? false,
     },
+    onSubmit: async ({ value }) => {
+      setError(null);
+      setSuccess(false);
+      trackEvent('profile_save', { industry: value.industryType, size: value.companySize });
+      try {
+        const updated = await api.put<Profile>('/profile', value);
+        dispatch(setProfile(updated));
+        setSuccess(true);
+        trackEvent('profile_save_success', {
+          industry: value.industryType,
+          size: value.companySize,
+        });
+        setTimeout(() => setSuccess(false), 3000);
+      } catch (err) {
+        const msg = err instanceof ApiError ? err.message : t('profile.error');
+        setError(msg);
+        trackEvent('profile_save_error', {
+          error: err instanceof ApiError ? err.message : 'unknown',
+        });
+      }
+    },
   });
 
   useEffect(() => {
     if (open && profile) {
-      reset({
+      form.reset({
         companyName: profile.companyName || '',
         industryType: profile.industryType || '',
         companySize: profile.companySize || '',
@@ -772,26 +723,7 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
       setSuccess(false);
       refreshProviders();
     }
-  }, [open, profile, reset, refreshProviders]);
-
-  const onSubmit = async (data: FormData) => {
-    setError(null);
-    setSuccess(false);
-    trackEvent('profile_save', { industry: data.industryType, size: data.companySize });
-    try {
-      const updated = await api.put<Profile>('/profile', data);
-      dispatch(setProfile(updated));
-      setSuccess(true);
-      trackEvent('profile_save_success', { industry: data.industryType, size: data.companySize });
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
-      const msg = err instanceof ApiError ? err.message : t('profile.error');
-      setError(msg);
-      trackEvent('profile_save_error', {
-        error: err instanceof ApiError ? err.message : 'unknown',
-      });
-    }
-  };
+  }, [open, profile, form, refreshProviders]);
 
   const isPasswordLinked = providers.includes('password');
 
@@ -804,7 +736,7 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
     </span>
   ));
 
-  const submitLabel = isSubmitting ? (
+  const submitLabel = form.state.isSubmitting ? (
     <>
       <SpinnerIcon />
       {t('profile.saving')}
@@ -828,6 +760,16 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
     </div>
   );
 
+  const companyNameSchema = z.string().min(1, t('register.companyNameError'));
+  const industryTypeSchema = z.string().min(1, t('register.industryTypeError'));
+  const companySizeSchema = z.string().min(1, t('register.companySizeError'));
+  const contactNameSchema = z.string().min(1, t('register.contactNameError'));
+  const contactEmailSchema = z
+    .string()
+    .min(1, t('register.contactEmailError'))
+    .email(t('register.contactEmailError'));
+  const contactPhoneSchema = z.string().min(9, t('register.contactPhoneError'));
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -839,7 +781,15 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
           <DialogDescription>{t('profile.subtitle')}</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="px-6 pb-6" data-testid="profile-form">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+          className="px-6 pb-6"
+          data-testid="profile-form"
+        >
           {/* Section 1: User Account */}
           <div className="mb-5">
             <SectionDivider label={t('profile.userSection')} />
@@ -872,21 +822,181 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
           <LinkingSection providers={providers} onRefresh={refreshProviders} />
 
           {/* Section 3: Contact Person */}
-          <ContactSection
-            register={register}
-            errors={errors}
-            t={t}
-            sectionLabel={t('profile.contactSection')}
-          />
+          <div className="mb-5">
+            <SectionDivider label={t('profile.contactSection')} />
+            <FieldGroup className="gap-3">
+              <form.Field
+                name="contactName"
+                validators={{ onBlur: contactNameSchema, onSubmit: contactNameSchema }}
+              >
+                {(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="pd-contactName" className="text-sm font-medium">
+                        {t('register.contactName')}
+                      </FieldLabel>
+                      <Input
+                        id="pd-contactName"
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        aria-invalid={isInvalid}
+                      />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
+              </form.Field>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <form.Field
+                  name="contactEmail"
+                  validators={{ onBlur: contactEmailSchema, onSubmit: contactEmailSchema }}
+                >
+                  {(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="pd-contactEmail" className="text-sm font-medium">
+                          {t('register.contactEmail')}
+                        </FieldLabel>
+                        <Input
+                          id="pd-contactEmail"
+                          type="email"
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          aria-invalid={isInvalid}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.Field>
+
+                <form.Field
+                  name="contactPhone"
+                  validators={{ onBlur: contactPhoneSchema, onSubmit: contactPhoneSchema }}
+                >
+                  {(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="pd-contactPhone" className="text-sm font-medium">
+                          {t('register.contactPhone')}
+                        </FieldLabel>
+                        <Input
+                          id="pd-contactPhone"
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          aria-invalid={isInvalid}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.Field>
+              </div>
+            </FieldGroup>
+          </div>
 
           {/* Section 4: Company Profile */}
-          <CompanySection
-            register={register}
-            control={control}
-            errors={errors}
-            t={t}
-            sectionLabel={t('profile.companySection')}
-          />
+          <div className="mb-5">
+            <SectionDivider label={t('profile.companySection')} />
+            <FieldGroup className="gap-3">
+              <form.Field
+                name="companyName"
+                validators={{ onBlur: companyNameSchema, onSubmit: companyNameSchema }}
+              >
+                {(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="pd-companyName" className="text-sm font-medium">
+                        {t('register.companyName')}
+                      </FieldLabel>
+                      <Input
+                        id="pd-companyName"
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        aria-invalid={isInvalid}
+                      />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
+              </form.Field>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <form.Field
+                  name="industryType"
+                  validators={{ onBlur: industryTypeSchema, onSubmit: industryTypeSchema }}
+                >
+                  {(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="pd-industryType" className="text-sm font-medium">
+                          {t('register.industryType')}
+                        </FieldLabel>
+                        <SelectField
+                          id="pd-industryType"
+                          value={field.state.value}
+                          placeholder={t('register.select')}
+                          options={industryKeys.map((key) => ({
+                            value: key,
+                            label: t(`industry.${key}`),
+                          }))}
+                          onValueChange={(val) => field.handleChange(val)}
+                          onBlur={field.handleBlur}
+                          isInvalid={isInvalid}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.Field>
+
+                <form.Field
+                  name="companySize"
+                  validators={{ onBlur: companySizeSchema, onSubmit: companySizeSchema }}
+                >
+                  {(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="pd-companySize" className="text-sm font-medium">
+                          {t('register.companySize')}
+                        </FieldLabel>
+                        <SelectField
+                          id="pd-companySize"
+                          value={field.state.value}
+                          placeholder={t('register.select')}
+                          options={sizeKeys.map((key) => ({
+                            value: key,
+                            label: t(`size.${key}`),
+                          }))}
+                          onValueChange={(val) => field.handleChange(val)}
+                          onBlur={field.handleBlur}
+                          isInvalid={isInvalid}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </form.Field>
+              </div>
+            </FieldGroup>
+          </div>
 
           {/* Section 5: Preferences */}
           <div className="mb-5">
@@ -903,17 +1013,15 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
                   {t('profile.emailNotificationsDesc')}
                 </p>
               </div>
-              <Controller
-                name="emailNotifications"
-                control={control}
-                render={({ field }) => (
+              <form.Field name="emailNotifications">
+                {(field) => (
                   <Switch
                     id="pd-emailNotifications"
-                    checked={field.value ?? false}
-                    onCheckedChange={field.onChange}
+                    checked={field.state.value ?? false}
+                    onCheckedChange={(val) => field.handleChange(val)}
                   />
                 )}
-              />
+              </form.Field>
             </div>
           </div>
 
@@ -951,7 +1059,7 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
           <Button
             type="submit"
             className="w-full h-11 font-semibold"
-            disabled={isSubmitting || !isDirty}
+            disabled={form.state.isSubmitting || !form.state.isDirty}
             data-testid="profile-submit-btn"
           >
             {submitLabel}

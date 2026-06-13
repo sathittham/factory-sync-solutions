@@ -8,24 +8,22 @@ test.describe('Navigation', () => {
 
   test('unknown routes show 404 page', async ({ page }) => {
     await page.goto('/nonexistent-page');
-    await expect(page.locator('text=404')).toBeVisible();
+    await expect(page.getByText('404')).toBeVisible();
   });
 
   test('unauthenticated user cannot access /quiz', async ({ page }) => {
     await page.goto('/quiz');
-    // Should redirect to landing or show auth guard
-    await page.waitForURL((url) => url.pathname === '/' || url.pathname === '/quiz');
+    await expect(page).toHaveURL('/');
   });
 
   test('unauthenticated user cannot access /admin', async ({ page }) => {
     await page.goto('/admin');
-    // Should redirect to landing or show auth guard
-    await page.waitForURL((url) => url.pathname === '/' || url.pathname === '/admin');
+    await expect(page).toHaveURL('/');
   });
 
   test('unauthenticated user cannot access /results', async ({ page }) => {
     await page.goto('/results');
-    await page.waitForURL((url) => url.pathname === '/' || url.pathname === '/results');
+    await expect(page).toHaveURL('/');
   });
 
   test('header is visible on all pages', async ({ page }) => {

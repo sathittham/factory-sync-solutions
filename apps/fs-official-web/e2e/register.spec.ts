@@ -38,34 +38,21 @@ test.describe("Register page — form", () => {
 		await expect(page.locator("[data-testid='registration-form']")).toBeVisible();
 	});
 
-	test("registration form card is present", async ({ page }) => {
-		await expect(page.locator("[data-testid='registration-form']")).toBeVisible();
+	test("step 1 — email, password, and confirm inputs are present", async ({ page }) => {
+		await expect(page.locator("#auth-email")).toBeVisible();
+		await expect(page.locator("#auth-password")).toBeVisible();
+		await expect(page.locator("#auth-confirm")).toBeVisible();
 	});
 
-	test("company reg ID input is present on company info step", async ({ page }) => {
-		const form = page.locator("[data-testid='registration-form']");
-		await expect(form).toBeVisible();
-	});
-
-	test("DBD lookup button is disabled when reg ID is empty", async ({ page }) => {
-		const lookupBtn = page.locator("[data-testid='reg-dbd-lookup-btn']");
-		const count = await lookupBtn.count();
-		if (count > 0) {
-			await expect(lookupBtn).toBeDisabled();
-		}
-	});
-
-	test("submit button is present when company form is shown", async ({ page }) => {
-		const submitBtn = page.locator("[data-testid='registration-submit-btn']");
-		const count = await submitBtn.count();
-		if (count > 0) {
-			await expect(submitBtn).toBeVisible();
-		}
+	test("step 1 — create account button is present and enabled", async ({ page }) => {
+		const createBtn = page.getByRole("button", { name: /สร้างบัญชี|create account/i });
+		await expect(createBtn).toBeVisible();
+		await expect(createBtn).toBeEnabled();
 	});
 });
 
 test.describe("Register page — layout", () => {
-	test("page has hero background (no broken layout)", async ({ page }) => {
+	test("page has no JS errors on load", async ({ page }) => {
 		await page.goto("/register");
 		const errors: string[] = [];
 		page.on("pageerror", (e) => errors.push(e.message));

@@ -29,7 +29,7 @@ test.describe('Landing Page', () => {
     await expect(lineBtn).toBeVisible();
   });
 
-  test('has features section and footer', async ({ page }) => {
+  test('has footer', async ({ page }) => {
     await expect(page.locator('footer')).toBeVisible();
   });
 });

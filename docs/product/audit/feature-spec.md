@@ -61,6 +61,7 @@ endpoint.
 | Wired in `quiz.Service` | `apps/fs-backend/services/quiz/service.go` | ✅ Built |
 | `auditLogger` init in `main.go` | line 69–70 | ✅ Built |
 | `SetAuditLogger` called in `main.go` | lines 119, 130 | ✅ Built |
+| Wired in `admin.Handler` | `apps/fs-backend/services/admin/handler.go` | ✅ Built |
 | Project event constants | `apps/fs-backend/services/audit/audit.go` | ⏳ Planned |
 | Wired in `project.Service` | `apps/fs-backend/services/project/service.go` | ⏳ Planned |
 | `GET /project/audit` query endpoint | `apps/fs-backend/services/project/handler.go` | ⏳ Planned |
@@ -79,7 +80,7 @@ endpoint.
 | `EventUserProfileUpdated` | `"user.profile_updated"` | `profile.Service.UpdateProfile` — after Firestore write |
 | `EventUserRoleChanged` | `"user.role_changed"` | `profile.Service.SetRole` — after Firestore write |
 | `EventAssessmentSubmitted` | `"assessment.submitted"` | `quiz.Service.SubmitQuiz` — after assessment stored |
-| `EventAdminExport` | `"admin.export"` | Defined but **not yet called** — see §8 |
+| `EventAdminExport` | `"admin.export"` | `admin.Handler.ExportCSV` — after CSV streamed |
 
 ### 4.2 Planned — project & RBAC
 
@@ -215,27 +216,20 @@ Project-scoped audit query endpoint in `project.Handler`. Returns events where
 
 See §9.5 for full spec.
 
-### Not yet called
+### `admin.Handler`
 
-`EventAdminExport` is defined but `admin.Handler.ExportCSV` does not call
-`auditLogger.Log`. See §9.1.
+```
+ExportCSV      → Log(ctx, uid, EventAdminExport, "export", "assessments.csv", {count})
+```
 
 ---
 
 ## 9. Open Tasks
 
-### 9.1 Wire `EventAdminExport`
+### 9.1 ~~Wire `EventAdminExport`~~ — Done
 
-`EventAdminExport` is declared in `audit.go` but has no call site.
-`admin.Handler` does not currently have an `auditLogger` dependency.
-
-**Fix:** Inject `*audit.Logger` into `admin.Handler` (similar to how it is
-injected into `profile.Service` and `quiz.Service`) and call:
-```go
-auditLogger.Log(ctx, uid, audit.EventAdminExport, "export", "assessments.csv",
-    map[string]any{"count": len(enriched)})
-```
-in `ExportCSV` after the CSV is streamed.
+`EventAdminExport` is wired. `admin.Handler` receives `*audit.Logger` via
+`NewHandler` and calls it in `ExportCSV` after streaming the CSV.
 
 ### 9.2 Consider async logging
 

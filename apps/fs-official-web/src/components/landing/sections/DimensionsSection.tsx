@@ -14,7 +14,7 @@ function RadarChart() {
 	const cx = 110;
 	const cy = 110;
 	const maxR = 80;
-	const rings = [0.25, 0.5, 0.75, 1.0];
+	const rings = [0.25, 0.5, 0.75, 1];
 	const angles = [-90, -45, 0, 45, 90, 135, 180, 225].map((deg) => (deg * Math.PI) / 180);
 	const factoryValues = [0.85, 0.7, 0.6, 0.75, 0.9, 0.65, 0.8, 0.7];
 	const benchmarkValues = [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7];

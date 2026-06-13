@@ -1,10 +1,11 @@
 import { useAppSelector } from '@/store';
+import { canManageUsers } from '@/store/authSlice';
 import { Navigate, Outlet } from 'react-router';
 
 export function AdminGuard() {
-  const { isAdmin } = useAppSelector((s) => s.auth);
+  const { isAdmin, profile } = useAppSelector((s) => s.auth);
 
-  if (!isAdmin) {
+  if (!canManageUsers(profile, isAdmin)) {
     return <Navigate to="/" replace />;
   }
 

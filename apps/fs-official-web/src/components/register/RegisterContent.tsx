@@ -65,11 +65,11 @@ interface CheckRegIdResponse {
 
 const schema = z.object({
 	companyName: z.string().min(1, "register.companyNameError"),
-	companyRegId: z.string().regex(/^\d{13}$/, { message: "register.regIdError" }),
+	companyRegId: z.string().regex(/^\d{13}$/, "register.regIdError"),
 	industryType: z.string().min(1, "register.industryTypeError"),
 	companySize: z.string().min(1, "register.companySizeError"),
 	contactName: z.string().min(1, "register.contactNameError"),
-	contactEmail: z.string().email({ message: "register.contactEmailError" }),
+	contactEmail: z.email("register.contactEmailError"),
 	contactPhone: z.string().min(9, "register.contactPhoneError"),
 	acceptTerms: z.literal(true, { error: "register.acceptTermsError" }),
 	marketingConsent: z.boolean().optional(),
@@ -143,6 +143,11 @@ function mapFirebaseError(code: string, t: (key: string) => string): string {
 			return t("signin.errorTooManyRequests");
 		case "auth/network-request-failed":
 			return t("signin.errorNetwork");
+		case "auth/popup-blocked":
+		case "auth/unauthorized-domain":
+			return t("signin.errorPopupBlocked");
+		case "auth/operation-not-allowed":
+			return t("signin.errorOperationNotAllowed");
 		default:
 			return t("signin.errorGeneric");
 	}
@@ -277,8 +282,10 @@ function AuthStep({ onAuthenticated }: { readonly onAuthenticated: (user: User) 
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
+	const [localAcceptTerms, setLocalAcceptTerms] = useState(false);
 
 	const isAnyLoading = isEmailLoading || isGoogleLoading;
+	const termsNotAccepted = mode === "signup" && !localAcceptTerms;
 
 	const switchMode = (next: AuthMode) => {
 		setEmail("");
@@ -286,10 +293,15 @@ function AuthStep({ onAuthenticated }: { readonly onAuthenticated: (user: User) 
 		setConfirmPassword("");
 		setError(null);
 		setSuccessMessage(null);
+		setLocalAcceptTerms(false);
 		setMode(next);
 	};
 
 	const handleGoogleSignIn = async () => {
+		if (!auth) {
+			setError(t("signin.errorGeneric"));
+			return;
+		}
 		setIsGoogleLoading(true);
 		setError(null);
 		try {
@@ -464,12 +476,48 @@ function AuthStep({ onAuthenticated }: { readonly onAuthenticated: (user: User) 
 					</div>
 				)}
 
+				{mode === "signup" && (
+					<div className="flex items-start gap-2.5 pt-1">
+						<input
+							type="checkbox"
+							id="auth-accept-terms"
+							className="mt-1 h-4 w-4 rounded border-gray-300 accent-primary"
+							checked={localAcceptTerms}
+							onChange={(e) => setLocalAcceptTerms(e.target.checked)}
+						/>
+						<label htmlFor="auth-accept-terms" className="text-sm leading-relaxed">
+							{t("register.acceptTerms")}{" "}
+							<a
+								href="/terms"
+								target="_blank"
+								rel="noreferrer"
+								className="text-primary hover:underline font-medium"
+							>
+								{t("register.termsLink")}
+							</a>{" "}
+							{t("register.and")}{" "}
+							<a
+								href="/privacy"
+								target="_blank"
+								rel="noreferrer"
+								className="text-primary hover:underline font-medium"
+							>
+								{t("register.privacyLink")}
+							</a>
+						</label>
+					</div>
+				)}
+
 				{error && <p className="text-sm text-destructive text-center">{error}</p>}
 				{successMessage && (
 					<p className="text-sm text-green-600 dark:text-green-400 text-center">{successMessage}</p>
 				)}
 
-				<Button type="submit" className="w-full h-11 font-semibold" disabled={isAnyLoading}>
+				<Button
+					type="submit"
+					className="w-full h-11 font-semibold"
+					disabled={isAnyLoading || termsNotAccepted}
+				>
 					{isEmailLoading ? (
 						<>
 							<Spinner />
@@ -509,7 +557,8 @@ function AuthStep({ onAuthenticated }: { readonly onAuthenticated: (user: User) 
 						variant="outline"
 						className="w-full h-11 font-semibold gap-2"
 						onClick={handleGoogleSignIn}
-						disabled={isAnyLoading}
+						disabled={isAnyLoading || termsNotAccepted}
+						data-testid="google-signin-btn"
 					>
 						{isGoogleLoading ? (
 							<Spinner />
@@ -662,6 +711,7 @@ function RegistrationForm({
 			contactName: user.displayName ?? "",
 			contactEmail: user.email ?? "",
 			contactPhone: "",
+			acceptTerms: true,
 			marketingConsent: false,
 		},
 	});
@@ -702,14 +752,14 @@ function RegistrationForm({
 
 			// Check existing profile
 			const checkRes = await fetch(`${apiBaseUrl}/profile/check/${regId}`, { headers });
-			const check: CheckRegIdResponse | null = checkRes.ok ? await checkRes.json() : null;
+			const check: CheckRegIdResponse | null = checkRes.ok ? (await checkRes.json()).data : null;
 			const hasExisting = check?.registered === true;
 			if (hasExisting && check) prefillFromExisting(check);
 
 			// DBD lookup
 			const dbdRes = await fetch(`${apiBaseUrl}/dbd/${regId}`, { headers });
 			if (dbdRes.ok) {
-				const dbdData: DbdCompanyProfile = await dbdRes.json();
+				const { data: dbdData }: { data: DbdCompanyProfile } = await dbdRes.json();
 				setDbdInfo(dbdData);
 				if (!hasExisting) prefillFromDbd(dbdData);
 			}
@@ -917,40 +967,6 @@ function RegistrationForm({
 
 			{/* Consent checkboxes */}
 			<div className="space-y-3 pt-1">
-				<div className="flex items-start gap-2.5">
-					<input
-						type="checkbox"
-						id="acceptTerms"
-						className="mt-1 h-4 w-4 rounded border-gray-300 accent-primary"
-						{...formRegister("acceptTerms")}
-					/>
-					<label htmlFor="acceptTerms" className="text-sm leading-relaxed">
-						{t("register.acceptTerms")}{" "}
-						<a
-							href="/terms"
-							target="_blank"
-							rel="noreferrer"
-							className="text-primary hover:underline font-medium"
-						>
-							{t("register.termsLink")}
-						</a>{" "}
-						{t("register.and")}{" "}
-						<a
-							href="/privacy"
-							target="_blank"
-							rel="noreferrer"
-							className="text-primary hover:underline font-medium"
-						>
-							{t("register.privacyLink")}
-						</a>
-					</label>
-				</div>
-				{errors.acceptTerms && (
-					<p className="text-xs text-destructive ml-6">
-						{t(errors.acceptTerms.message ?? "register.acceptTermsError")}
-					</p>
-				)}
-
 				<div className="flex items-start gap-2.5">
 					<input
 						type="checkbox"
@@ -1164,8 +1180,8 @@ function RegisterInner({ appUrl, apiBaseUrl, turnstileSiteKey }: RegisterContent
 	}, []);
 
 	const handleSuccess = useCallback(() => {
-		setPageStep(4);
-	}, []);
+		window.location.href = appUrl;
+	}, [appUrl]);
 
 	// Loading spinner while Firebase resolves auth state
 	if (authUser === null) {

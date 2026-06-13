@@ -20,10 +20,9 @@ export function FadeIn({
 	delay = 0,
 	className,
 }: {
-	children: ReactNode;
-	delay?: number;
-	y?: number;
-	className?: string;
+	readonly children: ReactNode;
+	readonly delay?: number;
+	readonly className?: string;
 }) {
 	return <div className={cn("fade-in", delayClass(delay), className)}>{children}</div>;
 }
@@ -32,9 +31,8 @@ export function StaggerChildren({
 	children,
 	className,
 }: {
-	children: ReactNode;
-	stagger?: number;
-	className?: string;
+	readonly children: ReactNode;
+	readonly className?: string;
 }) {
 	return <div className={className}>{children}</div>;
 }
@@ -43,8 +41,8 @@ export function StaggerItem({
 	children,
 	className,
 }: {
-	children: ReactNode;
-	className?: string;
+	readonly children: ReactNode;
+	readonly className?: string;
 }) {
 	return <div className={cn("stagger-item", className)}>{children}</div>;
 }

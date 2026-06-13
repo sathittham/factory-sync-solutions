@@ -1,6 +1,6 @@
 ---
-version: 1.3.0
-lastUpdated: 2026-06-11
+version: 1.4.0
+lastUpdated: 2026-06-13
 author: Sathittham Sangthong
 ---
 
@@ -465,6 +465,44 @@ the in-app `/admin` page for platform management. See
 
 ---
 
+---
+
+## Security Backlog
+
+Low-priority improvements to harden account security. Not needed for MVP — revisit after user growth picks up or enterprise customers request it.
+
+### SB-1 · New-device login alert email
+
+Send a one-time email when the user logs in from a browser/OS combination that hasn't been seen before.
+
+**Why not yet:** requires a per-user device registry in Firestore (store hashed UA strings per UID). Adds complexity with low ROI for the current user base.
+
+**What's already done:**
+- `POST /api/v1/profile/activity/login` records `userAgent` in Firestore `audit_events`
+- Activity tab in Profile page parses and displays browser · OS per login
+
+**To implement:**
+1. Firestore: add `knownDevices` array to the `users` document (hashed UA strings)
+2. Backend: `LogLogin` checks if current UA hash is in `knownDevices`; if not, add it and trigger a `notification.SendNewDeviceAlert(ctx, profile, browser, os)`
+3. Email template: "New sign-in detected from Chrome · macOS" with timestamp
+4. Respect `emailNotifications` preference before sending
+
+---
+
+### SB-2 · Two-Factor Authentication (2FA)
+
+Add TOTP-based 2FA (Google Authenticator / Authy) as an optional security layer.
+
+**Why not yet:** Firebase Auth doesn't support TOTP 2FA natively (only SMS MFA on Identity Platform plan). Implementing custom TOTP requires storing secrets securely and adds significant backend + UI work.
+
+**Options when ready:**
+- **Firebase Identity Platform** (paid) — enables built-in MFA with minimal custom code
+- **Custom TOTP** — `pquerna/otp` Go library, store encrypted secret in Firestore, verify at login via a middleware challenge step
+
+**UI entry point:** add a "Two-Factor Authentication" card to the Security tab in `ProfilePage.tsx` (beside the existing Sign-in Methods card).
+
+---
+
 ## Changelog
 
 | Version | Date | Description |
@@ -473,3 +511,4 @@ the in-app `/admin` page for platform management. See
 | 1.1.0 | 2026-03-07 | Updated Cloud Functions → Cloud Run, fixed deploy triggers (tag-based), GitHub Secrets instead of GCP Secret Manager |
 | 1.2.0 | 2026-06-11 | Add ISO 29110 Basic Profile quiz variant (Phase 10) |
 | 1.3.0 | 2026-06-11 | Add Phase 11 (backoffice web app); fix stale `apps/web/` → `apps/fs-app-web/` paths throughout; update current-state table |
+| 1.4.0 | 2026-06-13 | Add Security Backlog section (SB-1 new-device login alert, SB-2 2FA) |

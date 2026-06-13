@@ -2,11 +2,11 @@ import { auth } from './firebase';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
-async function getAuthHeaders(): Promise<HeadersInit> {
+async function getAuthHeaders(includeContentType = true): Promise<HeadersInit> {
   const user = auth.currentUser;
   if (!user) {
     console.warn('[api] getAuthHeaders — auth.currentUser is null, sending request without token');
-    return { 'Content-Type': 'application/json' };
+    return includeContentType ? { 'Content-Type': 'application/json' } : {};
   }
   const token = await user.getIdToken();
   console.debug(
@@ -15,10 +15,11 @@ async function getAuthHeaders(): Promise<HeadersInit> {
     '(first 20):',
     token.slice(0, 20),
   );
-  return {
-    'Content-Type': 'application/json',
+  const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
   };
+  if (includeContentType) headers['Content-Type'] = 'application/json';
+  return headers;
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -34,9 +35,31 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new ApiError(res.status, typeof errMsg === 'string' ? errMsg : res.statusText);
   }
 
+  if (res.status === 204) return undefined as T;
+
   const json = await res.json();
   // API wraps all responses as { success, data, ... } — unwrap automatically
-  return json.data !== undefined ? json.data : json;
+  return json.data === undefined ? json : json.data;
+}
+
+async function requestForm<T>(path: string, body: FormData): Promise<T> {
+  const headers = await getAuthHeaders(false);
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    body,
+    headers,
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({ error: { message: res.statusText } }));
+    const errMsg = errorBody.error?.message || errorBody.error || res.statusText;
+    throw new ApiError(res.status, typeof errMsg === 'string' ? errMsg : res.statusText);
+  }
+
+  if (res.status === 204) return undefined as T;
+
+  const json = await res.json();
+  return json.data === undefined ? json : json.data;
 }
 
 export class ApiError extends Error {
@@ -58,9 +81,13 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
+  postForm: <T>(path: string, body: FormData) => requestForm<T>(path, body),
+
   put: <T>(path: string, body: unknown) =>
     request<T>(path, {
       method: 'PUT',
       body: JSON.stringify(body),
     }),
+
+  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 };

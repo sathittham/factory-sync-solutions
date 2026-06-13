@@ -6,7 +6,7 @@ import { store } from '@/store';
 import { Provider } from 'react-redux';
 import { RouterProvider } from 'react-router';
 
-function AuthInitializer({ children }: { children: React.ReactNode }) {
+function AuthInitializer({ children }: { readonly children: React.ReactNode }) {
   useAuth();
   return <>{children}</>;
 }

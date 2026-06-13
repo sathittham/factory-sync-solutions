@@ -10,6 +10,7 @@ interface LocaleContextValue {
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 const STORAGE_KEY = "fss-locale";
+const LOCALE_CHANGE_EVENT = "fss-locale-change";
 
 export function getInitialLocale(): Locale {
 	try {
@@ -193,11 +194,11 @@ const translations: Record<Locale, Record<string, string>> = {
 		"signin.resetSubtitle": "เราจะส่งลิงก์รีเซ็ตไปยังอีเมลของคุณ",
 		"signin.emailLabel": "อีเมล",
 		"signin.passwordLabel": "รหัสผ่าน",
-		"signin.confirmPasswordLabel": "ยืนยันรหัสผ่าน",
+		"signin.confirmPasswordLabel": "ยืนยันรหัสผ่าน", // NOSONAR S2068 — i18n label, not a credential
 		"signin.signInWithEmail": "เข้าสู่ระบบ",
 		"signin.signInWithGoogle": "เข้าสู่ระบบด้วย Google",
 		"signin.createAccount": "สร้างบัญชี",
-		"signin.forgotPassword": "ลืมรหัสผ่าน?",
+		"signin.forgotPassword": "ลืมรหัสผ่าน?", // NOSONAR S2068 — i18n label, not a credential
 		"signin.sendResetEmail": "ส่งลิงก์รีเซ็ต",
 		"signin.resetEmailSent": "ส่งลิงก์รีเซ็ตรหัสผ่านแล้ว กรุณาตรวจสอบอีเมล",
 		"signin.backToSignIn": "กลับสู่การเข้าสู่ระบบ",
@@ -207,8 +208,8 @@ const translations: Record<Locale, Record<string, string>> = {
 		"signin.signInLink": "เข้าสู่ระบบ",
 		"signin.signUpLink": "สร้างบัญชี",
 		"signin.loading": "กำลังโหลด...",
-		"signin.showPassword": "แสดงรหัสผ่าน",
-		"signin.hidePassword": "ซ่อนรหัสผ่าน",
+		"signin.showPassword": "แสดงรหัสผ่าน", // NOSONAR S2068 — i18n label, not a credential
+		"signin.hidePassword": "ซ่อนรหัสผ่าน", // NOSONAR S2068 — i18n label, not a credential
 		"signin.errorInvalidEmail": "รูปแบบอีเมลไม่ถูกต้อง",
 		"signin.errorInvalidCredential": "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
 		"signin.errorEmailInUse": "อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ",
@@ -216,8 +217,10 @@ const translations: Record<Locale, Record<string, string>> = {
 		"signin.errorTooManyRequests": "ลองผิดหลายครั้งเกินไป กรุณาลองใหม่ภายหลัง",
 		"signin.errorNetwork": "เกิดข้อผิดพลาดเครือข่าย กรุณาตรวจสอบการเชื่อมต่อ",
 		"signin.errorGeneric": "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง",
-		"signin.errorPasswordMismatch": "รหัสผ่านไม่ตรงกัน",
+		"signin.errorPasswordMismatch": "รหัสผ่านไม่ตรงกัน", // NOSONAR S2068 — i18n label, not a credential
 		"signin.errorAccountExistsOtherProvider": "อีเมลนี้ใช้วิธีการเข้าสู่ระบบอื่น ลองเข้าสู่ระบบด้วย Google แทน",
+		"signin.errorPopupBlocked": "ป๊อปอัปถูกบล็อก กรุณาอนุญาตป๊อปอัปสำหรับเว็บไซต์นี้แล้วลองอีกครั้ง",
+		"signin.errorOperationNotAllowed": "การเข้าสู่ระบบด้วย Google ยังไม่เปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ",
 
 		// --- industry types ---
 		"industry.manufacturing": "การผลิต",
@@ -278,6 +281,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.step.contact": "ข้อมูลผู้ติดต่อ",
 		"register.next": "ถัดไป",
 		"register.back": "ย้อนกลับ",
+		"topbar.cta": "สนใจตรวจสุขภาพโรงงาน? ติดต่อ Line @factorysyncsolutions",
 	},
 	en: {
 		// --- existing keys ---
@@ -479,6 +483,8 @@ const translations: Record<Locale, Record<string, string>> = {
 		"signin.errorPasswordMismatch": "Passwords do not match",
 		"signin.errorAccountExistsOtherProvider":
 			"This email uses a different sign-in method. Try signing in with Google.",
+		"signin.errorPopupBlocked": "Popup was blocked. Please allow popups for this site and try again.",
+		"signin.errorOperationNotAllowed": "Google sign-in is not enabled. Please contact the administrator.",
 
 		// --- industry types ---
 		"industry.manufacturing": "Manufacturing",
@@ -540,15 +546,24 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.step.contact": "Contact Info",
 		"register.next": "Next",
 		"register.back": "Back",
+		"topbar.cta": "Interested in a factory health check? Contact Line @factorysyncsolutions",
 	},
 };
 
-export function LocaleProvider({ children }: { children: ReactNode }) {
-	const [locale, setLocaleState] = useState<Locale>("th");
+export function LocaleProvider({ children }: { readonly children: ReactNode }) {
+	const [localeState, setLocaleState] = useState<Locale>("th");
 
 	useEffect(() => {
 		const stored = getInitialLocale();
 		if (stored !== "th") setLocaleState(stored);
+
+		// Sync locale changes broadcast by other islands on this page
+		const handleLocaleChange = (e: Event) => {
+			const detail = (e as CustomEvent<string>).detail;
+			if (detail === "en" || detail === "th") setLocaleState(detail);
+		};
+		globalThis.addEventListener(LOCALE_CHANGE_EVENT, handleLocaleChange);
+		return () => globalThis.removeEventListener(LOCALE_CHANGE_EVENT, handleLocaleChange);
 	}, []);
 
 	const setLocale = useCallback((l: Locale) => {
@@ -558,16 +573,18 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 		} catch {
 			// ignore
 		}
+		// Broadcast to other islands on the same page (storage event doesn't fire in same window)
+		globalThis.dispatchEvent(new CustomEvent(LOCALE_CHANGE_EVENT, { detail: l }));
 	}, []);
 
 	const t = useCallback(
 		(key: string): string => {
-			return translations[locale][key] ?? key;
+			return translations[localeState][key] ?? key;
 		},
-		[locale]
+		[localeState]
 	);
 
-	const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
+	const value = useMemo(() => ({ locale: localeState, setLocale, t }), [localeState, setLocale, t]);
 
 	return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }

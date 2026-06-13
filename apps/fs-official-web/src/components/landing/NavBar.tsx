@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from "react";
 // NavBar-local icons
 // ---------------------------------------------------------------------------
 
-function LogoIcon({ theme = "dark" }: { theme?: "dark" | "light" }) {
+function LogoIcon({ theme = "dark" }: { readonly theme?: "dark" | "light" }) {
 	const logo = theme === "dark" ? fsDarkLogo : fsLightLogo;
 
 	return (
@@ -172,9 +172,9 @@ function ThemeSwitcher({
 	setTheme,
 	className,
 }: {
-	theme: Theme;
-	setTheme: (theme: Theme) => void;
-	className?: string;
+	readonly theme: Theme;
+	readonly setTheme: (theme: Theme) => void;
+	readonly className?: string;
 }) {
 	const { t } = useLocale();
 	const [open, setOpen] = useState(false);
@@ -255,7 +255,7 @@ const LOCALE_OPTIONS: Array<{ value: Locale; code: string; label: string }> = [
 	{ value: "en", code: "EN", label: "English" },
 ];
 
-function LocaleSwitcher({ className }: { className?: string }) {
+function LocaleSwitcher({ className }: { readonly className?: string }) {
 	const { locale, setLocale, t } = useLocale();
 	const [open, setOpen] = useState(false);
 	const ref = useRef<HTMLDivElement>(null);
@@ -350,10 +350,10 @@ export function NavBar({
 	setTheme,
 	resolvedTheme,
 }: {
-	appUrl: string;
-	theme: Theme;
-	setTheme: (theme: Theme) => void;
-	resolvedTheme: ResolvedTheme;
+	readonly appUrl: string;
+	readonly theme: Theme;
+	readonly setTheme: (theme: Theme) => void;
+	readonly resolvedTheme: ResolvedTheme;
 }) {
 	const { t } = useLocale();
 	const [mobileOpen, setMobileOpen] = useState(false);
@@ -385,7 +385,7 @@ export function NavBar({
 				>
 					<LogoIcon theme={resolvedTheme} />
 					<span className="text-lg leading-tight">
-						FactorySync
+						{"FactorySync"}
 						<span className="block text-sm font-extrabold text-cyan-400 -mt-1">Solutions</span>
 					</span>
 				</a>

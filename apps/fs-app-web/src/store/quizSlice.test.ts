@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import quizReducer, {
+  setQuizId,
   setQuestions,
+  setAvailableQuizzes,
   setAnswer,
   setCurrentStep,
   setSubmitting,
@@ -11,11 +13,27 @@ describe('quizSlice', () => {
   const initial = quizReducer(undefined, { type: 'unknown' });
 
   it('has correct initial state', () => {
+    expect(initial.quizId).toBe('shindan');
     expect(initial.questions).toEqual([]);
+    expect(initial.availableQuizzes).toEqual([]);
     expect(initial.answers).toEqual({});
     expect(initial.currentStep).toBe(0);
     expect(initial.isSubmitting).toBe(false);
     expect(initial.questionsLoaded).toBe(false);
+  });
+
+  it('setQuizId', () => {
+    const state = quizReducer(initial, setQuizId('factory'));
+    expect(state.quizId).toBe('factory');
+  });
+
+  it('setAvailableQuizzes', () => {
+    const state = quizReducer(
+      initial,
+      setAvailableQuizzes([{ id: 'shindan', nameTh: 'ชินดัน', nameEn: 'Shindan' }]),
+    );
+    expect(state.availableQuizzes).toHaveLength(1);
+    expect(state.availableQuizzes[0].id).toBe('shindan');
   });
 
   it('setQuestions', () => {
@@ -47,11 +65,20 @@ describe('quizSlice', () => {
   });
 
   it('resetQuiz', () => {
-    let state = quizReducer(initial, setAnswer({ questionId: 'q1', value: 3 }));
+    let state = quizReducer(
+      initial,
+      setQuestions({
+        questions: [{ id: 'q1', dimensionId: 'd1', textTh: 'T', textEn: 'E' }],
+        dimensions: [{ id: 'd1', nameTh: 'T', nameEn: 'E', weight: 1 }],
+      }),
+    );
+    state = quizReducer(state, setAnswer({ questionId: 'q1', value: 3 }));
     state = quizReducer(state, setCurrentStep(2));
     state = quizReducer(state, resetQuiz());
     expect(state.answers).toEqual({});
     expect(state.currentStep).toBe(0);
     expect(state.isSubmitting).toBe(false);
+    expect(state.questions).toHaveLength(1);
+    expect(state.questionsLoaded).toBe(false);
   });
 });

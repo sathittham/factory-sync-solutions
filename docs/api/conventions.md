@@ -141,9 +141,11 @@ Handlers import and call: `pkg.RespondJSON(w, http.StatusOK, data)`
 | Code | HTTP Status | Description |
 |------|-------------|-------------|
 | `VALIDATION_ERROR` | 400 | Invalid input data |
+| `CAPTCHA_FAILED` | 400 | Cloudflare Turnstile verification failed |
 | `UNAUTHORIZED` | 401 | Missing/invalid Firebase ID token |
 | `FORBIDDEN` | 403 | Authenticated but not authorized (e.g., not admin) |
 | `NOT_FOUND` | 404 | Resource not found |
+| `INVITATION_EXPIRED` | 410 | Invitation link has passed its expiry time |
 | `CONFLICT` | 409 | Resource already exists |
 | `RATE_LIMIT_EXCEEDED` | 429 | Too many requests |
 | `INTERNAL_ERROR` | 500 | Unexpected server error |

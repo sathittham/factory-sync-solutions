@@ -1,3 +1,4 @@
+import { PageLayout } from '@/components/PageLayout';
 import { FadeIn, ScaleIn, StaggerChildren, StaggerItem } from '@/components/motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -444,7 +445,7 @@ export function ResultPage() {
         .catch(() => {})
         .finally(() => dispatch(setLoading(false)));
     }
-  }, [assessment, loading, dispatch]);
+  }, [assessment, dispatch]);
 
   // Fetch available quizzes for tab names
   useEffect(() => {
@@ -541,20 +542,22 @@ export function ResultPage() {
 
   if (loading) {
     return (
-      <div className="container max-w-5xl py-10 space-y-6">
-        <Skeleton className="h-10 w-64" />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Skeleton className="h-44 rounded-lg" />
-          <Skeleton className="h-44 rounded-lg col-span-2" />
+      <PageLayout>
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-64" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Skeleton className="h-44 rounded-lg" />
+            <Skeleton className="h-44 rounded-lg col-span-2" />
+          </div>
+          <Skeleton className="h-80 rounded-lg" />
         </div>
-        <Skeleton className="h-80 rounded-lg" />
-      </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)]">
-      <div className="container max-w-5xl py-6 sm:py-8 space-y-5" data-testid="result-summary">
+    <PageLayout>
+      <div className="space-y-5" data-testid="result-summary">
         {allQuizIds.length > 0 && (
           <Tabs value={activeQuizId ?? allQuizIds[0]} onValueChange={handleTabChange}>
             <TabsList className="h-auto w-full justify-start overflow-x-auto scrollbar-none">
@@ -665,6 +668,6 @@ export function ResultPage() {
           </Tabs>
         )}
       </div>
-    </div>
+    </PageLayout>
   );
 }

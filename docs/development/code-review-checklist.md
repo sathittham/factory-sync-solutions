@@ -1,12 +1,12 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-03-07
+version: 1.2.0
+lastUpdated: 2026-06-13
 author: Sathittham Sangthong
 ---
 
 # Code Review Checklist
 
-All code must strictly adhere to the [Engineering Principles](development.md#engineering-principles): enterprise-grade production quality, long-term maintainability, best performance, cost optimization, and security first.
+All code must strictly adhere to the [Engineering Principles](setup.md#engineering-principles): enterprise-grade production quality, long-term maintainability, best performance, cost optimization, and security first.
 
 Check every item below when writing or modifying code. For new endpoints or services, verify ALL items before completing.
 
@@ -14,7 +14,7 @@ Check every item below when writing or modifying code. For new endpoints or serv
 
 ## 1. Security
 
-> Reference: [security-guide.md](security-guide.md)
+> Reference: [security-guide.md](../operations/security.md)
 
 - [ ] Firebase ID token verified via `auth.VerifyIDToken` on all authenticated endpoints
 - [ ] User UID extracted from verified token — never from request body or query params
@@ -32,15 +32,15 @@ Check every item below when writing or modifying code. For new endpoints or serv
 
 ## 2. API Conventions
 
-> Reference: [api-conventions.md](api-conventions.md)
+> Reference: [api-conventions.md](../api/conventions.md)
 
 - [ ] Follows handler → service → repository layer pattern
 - [ ] Named sentinel errors: `var ErrXxx = errors.New("...")` in service package
-- [ ] Uses standard response helpers (`respondJSON`, `respondError`, `respondList`)
+- [ ] Uses standard response helpers (`pkg.RespondJSON`, `pkg.RespondError`, `pkg.RespondList`)
 - [ ] camelCase for JSON tags and Firestore field names
 - [ ] HTTP status codes match convention (200/201/400/401/403/404/409/500)
 - [ ] Error codes match convention: `VALIDATION_ERROR`, `NOT_FOUND`, `CONFLICT`, `FORBIDDEN`, `INTERNAL_ERROR`
-- [ ] Swagger annotations on handler functions (when swaggo is implemented — see [swagger-openapi.md](swagger-openapi.md))
+- [ ] Swagger annotations on handler functions (when swaggo is implemented — see [swagger-openapi.md](../api/swagger.md))
 - [ ] Timestamps use UTC RFC3339 format
 
 ---
@@ -89,7 +89,7 @@ Check every item below when writing or modifying code. For new endpoints or serv
 - [ ] WCAG 2.1 AA accessibility (semantic HTML, ARIA labels, keyboard navigation)
 - [ ] Loading/skeleton states for all async operations
 - [ ] Error boundaries on major route components
-- [ ] Form validation with `react-hook-form` + `zod`
+- [ ] Form validation with `@tanstack/react-form` + shadcn `Field`/`FieldGroup`/`FieldLabel`/`FieldError` components
 - [ ] No secrets or API keys in frontend code (`VITE_` prefix only for public config)
 
 ---
@@ -123,13 +123,13 @@ After implementing fixes:
 
 ```bash
 # Backend
-cd apps/api
+cd apps/fs-backend
 go build ./...
 go test -race ./...
 golangci-lint run ./...
 
 # Frontend
-cd apps/web
+cd apps/fs-app-web
 npx biome check .
 npm run test
 npx tsc --noEmit
@@ -147,3 +147,7 @@ make test
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated: Swagger note, Cloud Functions → Cloud Run, GCP Secret Manager → GitHub Secrets, turbo → Makefile |
+| 1.2.0 | 2026-06-13 | Fix broken links; update form validation to @tanstack/react-form; fix verification paths |
+
+*Version: 1.2.0*
+*Last updated: 13 June 2026*

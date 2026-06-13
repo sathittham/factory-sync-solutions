@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-06-04
+version: 1.1.0
+lastUpdated: 2026-06-13
 ---
 
 # Admin API Reference
@@ -141,19 +141,107 @@ Set a user's role. Updates both the Firestore profile and Firebase custom claims
 
 **Request body**
 ```json
-{ "role": "admin" }
+{ "role": "manager" }
 ```
 
-`role` must be `"admin"` or `"user"`.
+`role` must be one of: `"user"`, `"manager"`, `"system_admin"`, `"owner"`.
 
 **Response 200**
 ```json
-{ "success": true, "data": { "uid": "firebase-uid", "role": "admin" } }
+{ "success": true, "data": { "uid": "firebase-uid", "role": "manager" } }
 ```
 
-**Errors:** `400 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND`
+**Errors:** `400 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`
 
 **Side effects:** Audit event `user.role_changed` written.
+
+---
+
+## Invitations
+
+### `POST /admin/invitations`
+
+Invite a new member by email. Creates a Firebase Auth account (if not already
+present), stores an `invitations/{uid}` Firestore document, and sends a bilingual
+(TH + EN) invitation email with a 24-hour password-setup link.
+
+**Request body**
+```json
+{ "email": "new.member@example.com", "role": "manager" }
+```
+
+`role` must be one of: `"user"`, `"manager"`, `"system_admin"`, `"owner"`.
+
+**Response 200**
+```json
+{ "success": true, "data": { "email": "new.member@example.com", "role": "manager" } }
+```
+
+**Errors:** `400 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `409 CONFLICT` (email already has a completed profile)
+
+**Side effects:**
+- Firebase Auth user created (or re-used if pending).
+- `invitations/{uid}` written with `invitedAt`, `expiresAt` (`+24h`), and a
+  snapshot of the inviter's company fields.
+- Invitation email sent via Resend. Silently skipped if `RESEND_API_KEY` is absent.
+
+---
+
+### `DELETE /manage/invitations/{uid}`
+
+Cancel a pending invitation. Deletes the `invitations/{uid}` Firestore document
+and the Firebase Auth account for the invited user.
+
+**Path param:** `uid` — Firebase UID of the pending invite (from `GET /admin/users`
+`isPending: true` entries).
+
+**Response 200**
+```json
+{ "success": true, "data": { "uid": "firebase-uid" } }
+```
+
+**Errors:** `400 BAD_REQUEST`, `401 UNAUTHORIZED`, `403 FORBIDDEN`
+
+---
+
+### `POST /manage/invitations/{uid}/resend`
+
+Resend a pending invitation. Generates a new password-reset link, resets
+`expiresAt` to a fresh 24 hours from now, updates `invitedAt`, and sends a new
+invitation email.
+
+**Path param:** `uid` — Firebase UID of the pending invite.
+
+**Response 200**
+```json
+{ "success": true, "data": { "uid": "firebase-uid", "email": "new.member@example.com" } }
+```
+
+**Errors:** `400 BAD_REQUEST`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND`
+
+---
+
+### `POST /invitations/accept`
+
+Accept a pending invitation. Authenticated — no admin role required (the invited
+user has no profile yet when they first sign in). Creates a Firestore profile
+from the invitation snapshot and deletes the invitation document (single-use).
+
+**Auth:** Bearer token required. No admin role check.
+
+**Response 200** — returns the newly created profile object.
+
+**Errors:**
+| Code | Meaning |
+|------|---------|
+| `401 UNAUTHORIZED` | No valid Bearer token |
+| `404 NOT_FOUND` | No pending invitation for this UID |
+| `410 INVITATION_EXPIRED` | `expiresAt` is in the past — user must ask admin to resend |
+| `500 INTERNAL_ERROR` | Firestore write failed |
+
+**Side effects:**
+- `users/{uid}` Firestore profile created with company fields from the invitation snapshot.
+- `invitations/{uid}` document deleted on success.
 
 ---
 

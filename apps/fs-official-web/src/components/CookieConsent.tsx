@@ -170,7 +170,7 @@ function Modal({
 				className="absolute inset-0 bg-black/50"
 			/>
 			{/* biome-ignore lint/a11y/useSemanticElements: native <dialog> is disallowed by project UI rules */}
-			<div
+			<div // NOSONAR S6819 — native <dialog> disallowed by project shadcn/ui rules; dialog.tsx not installed in this app
 				role="dialog"
 				aria-modal="true"
 				className="relative z-10 max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg border bg-card text-card-foreground shadow-lg"

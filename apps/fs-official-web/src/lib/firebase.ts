@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { getApp, getApps, initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth } from "firebase/auth";
 
 const firebaseConfig = {
@@ -12,10 +12,11 @@ const firebaseConfig = {
 
 // Guard against SSR — firebase/auth is browser-only; client:only islands still
 // have their modules evaluated in Node during Vite's SSR pass.
-const app =
-	globalThis.window !== undefined && firebaseConfig.apiKey
-		? initializeApp(firebaseConfig)
-		: null;
+// getApps() check prevents "duplicate-app" errors on Vite HMR re-evaluation.
+let app = null;
+if (globalThis.window !== undefined && firebaseConfig.apiKey) {
+	app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+}
 
 // biome-ignore lint/suspicious/noExplicitAny: null placeholder for SSR; always a real Auth in browser
 export const auth: ReturnType<typeof getAuth> = app ? getAuth(app) : (null as any);

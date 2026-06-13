@@ -5,6 +5,7 @@ type Profile struct {
 	UID                string `json:"uid" firestore:"uid"`
 	Email              string `json:"email" firestore:"email"`
 	DisplayName        string `json:"displayName" firestore:"displayName"`
+	AvatarURL          string `json:"avatarURL" firestore:"avatarURL"`
 	CompanyName        string `json:"companyName" firestore:"companyName"`
 	CompanyRegID       string `json:"companyRegId" firestore:"companyRegId"`
 	IndustryType       string `json:"industryType" firestore:"industryType"`
@@ -44,11 +45,20 @@ type UpdateProfileRequest struct {
 	EmailNotifications *bool  `json:"emailNotifications"`
 }
 
+// ActivityEventResponse is a single entry in the user's activity log.
+type ActivityEventResponse struct {
+	ID        string         `json:"id"`
+	EventType string         `json:"eventType"`
+	CreatedAt string         `json:"createdAt"`
+	Metadata  map[string]any `json:"metadata,omitempty"`
+}
+
 // ProfileResponse is the public API response (omits internal fields).
 type ProfileResponse struct {
 	UID                string `json:"uid"`
 	Email              string `json:"email"`
 	DisplayName        string `json:"displayName"`
+	AvatarURL          string `json:"avatarURL"`
 	CompanyName        string `json:"companyName"`
 	CompanyRegID       string `json:"companyRegId"`
 	IndustryType       string `json:"industryType"`

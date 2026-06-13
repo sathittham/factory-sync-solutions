@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-03-07
+version: 1.2.0
+lastUpdated: 2026-06-13
 author: Sathittham Sangthong
 ---
 
@@ -351,10 +351,10 @@ func securityHeaders(next http.Handler) http.Handler {
 
 ## See Also
 
-- [go-patterns.md](go-patterns.md) — Firebase Auth middleware implementation
-- [code-review-checklist.md](code-review-checklist.md) — Security review checklist
+- [../development/go-patterns.md](../development/go-patterns.md) — Firebase Auth middleware implementation
+- [../development/code-review-checklist.md](../development/code-review-checklist.md) — Security review checklist
 - [env-variables.md](env-variables.md) — All required environment variables and secrets
-- [architecture.md](architecture.md) — CORS origins and Turnstile integration
+- [../architecture/overview.md](../architecture/overview.md) — CORS origins and Turnstile integration
 
 ---
 
@@ -364,3 +364,4 @@ func securityHeaders(next http.Handler) http.Handler {
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated rate limiting values, Cloud Functions → Cloud Run, GCP Secret Manager → GitHub Secrets, removed max=255 from ContactEmail |
+| 1.2.0 | 2026-06-13 | Fix broken See Also links (go-patterns, code-review-checklist, architecture all moved to sibling dirs) |

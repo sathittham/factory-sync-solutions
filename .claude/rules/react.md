@@ -20,6 +20,7 @@ paths:
 - **Framework**: React 19 + Vite (`fs-app-web`) · Astro 6 + React 19 islands (`fs-official-web`)
 - **State**: Redux Toolkit
 - **UI**: shadcn/ui (Radix-based) + Tailwind CSS
+- **Forms**: `@tanstack/react-form` + shadcn `Field`/`FieldGroup` (`fs-app-web` only)
 - **i18n**: custom `useLocale()` hook — TH/EN in `apps/fs-app-web/src/lib/i18n.tsx`
 - **Date**: `dayjs` with `buddhistEra` plugin — utility at `apps/fs-app-web/src/lib/dayjs.ts`
 - **Linter**: Biome
@@ -30,21 +31,76 @@ paths:
 
 ## shadcn/ui — ALWAYS use instead of native HTML
 
-Available components: `Button`, `Badge`, `Card`, `Dialog`, `Input`, `Select`, `Skeleton`, `Tabs`
+Available components: `Button`, `Badge`, `Card`, `Dialog`, `Field`, `FieldGroup`, `Input`, `Select`, `Skeleton`, `Tabs`
 
 ```tsx
 // ✅ Use shadcn/ui Select for controlled selects (filters, dropdowns)
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-// ✅ Use native-select wrapper ONLY for react-hook-form register() pattern
-import { NativeSelect } from "@/components/ui/native-select"
 
 // ❌ Never use native <select> or window.confirm()
 ```
 
 Component paths:
 - `apps/fs-app-web/src/components/ui/select.tsx` — Radix-based shadcn Select
-- `apps/fs-app-web/src/components/ui/native-select.tsx` — Native `<select>` wrapper (react-hook-form only)
+- `apps/fs-app-web/src/components/ui/field.tsx` — `Field`, `FieldGroup`, `FieldLabel`, `FieldError`, `FieldDescription`
+
+## Forms (fs-app-web only) — ALWAYS use TanStack Form
+
+All forms in `apps/fs-app-web` use `@tanstack/react-form` with shadcn `Field`/`FieldGroup` components.
+Reference implementation: `apps/fs-app-web/src/components/login-form.tsx`.
+
+```tsx
+import { useForm } from '@tanstack/react-form'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
+import * as z from 'zod'
+
+export function MyForm() {
+  const { t } = useLocale()
+
+  const emailSchema = z.string().min(1, t('...')).email(t('...'))
+
+  const form = useForm({
+    defaultValues: { email: '' },
+    onSubmit: async ({ value }) => {
+      // call API, set Firebase error via setError state
+    },
+  })
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit() }}>
+      <FieldGroup>
+        <form.Field name="email" validators={{ onBlur: emailSchema, onSubmit: emailSchema }}>
+          {(field) => {
+            const isInvalid = field.state.meta.isTouched && field.state.meta.errors.length > 0
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name}>{t('...')}</FieldLabel>
+                <Input
+                  id={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  aria-invalid={isInvalid}
+                />
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            )
+          }}
+        </form.Field>
+      </FieldGroup>
+    </form>
+  )
+}
+```
+
+Rules:
+- Zod validators go on **field-level** `validators.onBlur` + `validators.onSubmit` (not form-level) — allows conditional fields (e.g. signin vs reset mode)
+- `form.state.isSubmitting` replaces manual `isLoading` state for form submission
+- Async/Firebase errors (not validation errors) stay in local `useState`
+- `form.reset()` to clear form state on mode/step changes
+- `field.state.meta.errors` contains `{ message: string }` objects from Zod — pass directly to `<FieldError errors={...} />`
+- All validator error messages must go through `t()` — define zod schemas inside the component where `t` is available
+- **Never use `react-hook-form`** in `fs-app-web`
 
 ## i18n
 
@@ -112,10 +168,11 @@ make test-web       # npx vitest run
 ## Rules
 
 - ALWAYS use shadcn/ui components — never native `<select>`, `<dialog>`, or `window.confirm()`
+- ALWAYS use `@tanstack/react-form` + `Field`/`FieldGroup` for forms in `fs-app-web` — never `react-hook-form`
 - ALWAYS use `useLocale()` for text — never hardcode strings in JSX
 - ALWAYS use `formatDateTime()` from `@/lib/dayjs` — never raw `toLocaleDateString()`
 - No nested ternaries — extract to named variables
 - Min font size `text-sm` for labels, `text-base` for content
 
-*Version: 1.0.0*
-*Last updated: 04 June 2026*
+*Version: 1.1.0*
+*Last updated: 12 June 2026*

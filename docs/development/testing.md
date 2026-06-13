@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-03-07
+version: 1.2.0
+lastUpdated: 2026-06-13
 author: Sathittham Sangthong
 ---
 
@@ -93,7 +93,7 @@ Use the standard `testing` package with **manual mocks** (function fields patter
 Place test files alongside the code they test using Go convention:
 
 ```
-apps/api/services/
+apps/fs-backend/services/
 ├── profile/
 │   ├── handler.go
 │   ├── handler_test.go
@@ -122,7 +122,7 @@ apps/api/services/
 ### Running Tests
 
 ```bash
-cd apps/api
+cd apps/fs-backend
 go test ./...                    # Run all tests
 go test ./services/scoring/...   # Specific package
 go test -v ./...                 # Verbose output
@@ -281,9 +281,9 @@ jobs:
         with:
           filters: |
             api:
-              - 'apps/api/**'
+              - 'apps/fs-backend/**'
             web:
-              - 'apps/web/**'
+              - 'apps/fs-app-web/**'
 
   backend:
     name: Backend Tests
@@ -292,13 +292,13 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/api
+        working-directory: apps/fs-backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: "1.26.4"
-          cache-dependency-path: apps/api/go.sum
+          cache-dependency-path: apps/fs-backend/go.sum
       - run: go mod download
       - run: go vet ./...
       - run: go test -race -cover ./...
@@ -311,14 +311,14 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/web
+        working-directory: apps/fs-app-web
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: apps/web/package-lock.json
+          cache-dependency-path: apps/fs-app-web/package-lock.json
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npx vitest run
@@ -345,3 +345,7 @@ jobs:
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated CI/CD workflow to match actual test.yml (path-based jobs, Node 22, no turbo), fixed vitest.config.ts example, added coverage note |
+| 1.2.0 | 2026-06-13 | Fix CI YAML paths: apps/api → apps/fs-backend, apps/web → apps/fs-app-web |
+
+*Version: 1.2.0*
+*Last updated: 13 June 2026*

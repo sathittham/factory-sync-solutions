@@ -20,6 +20,7 @@ export function useAuth() {
       console.debug('[useAuth] onAuthStateChanged fired — user:', firebaseUser?.uid ?? null);
 
       if (firebaseUser) {
+        dispatch(setLoading(true));
         dispatch(
           setUser({
             uid: firebaseUser.uid,
@@ -38,6 +39,7 @@ export function useAuth() {
           const profile = await api.get<Profile>('/profile');
           console.debug('[useAuth] profile fetched:', profile);
           dispatch(setProfile(profile));
+          api.post('/profile/activity/login', {}).catch(() => {});
 
           try {
             const results = await api.get<unknown[]>('/results');
@@ -49,10 +51,27 @@ export function useAuth() {
         } catch (err) {
           console.warn('[useAuth] profile fetch error:', err);
           if (err instanceof ApiError && err.status === 404) {
-            console.debug(
-              '[useAuth] no profile → RegisterGuard will redirect to official-web /register',
-            );
-            dispatch(setProfile(null));
+            try {
+              const inviteProfile = await api.post<Profile>('/invitations/accept', {});
+              dispatch(setProfile(inviteProfile));
+              // also check for completed quizzes
+              try {
+                const results = await api.get<unknown[]>('/results');
+                dispatch(setHasCompletedQuiz(results.length > 0));
+              } catch {
+                dispatch(setHasCompletedQuiz(false));
+              }
+            } catch (invErr) {
+              // 404 = no invitation; anything else = log and treat as no profile
+              if (!(invErr instanceof ApiError && invErr.status === 404)) {
+                console.warn('[useAuth] invitation accept error:', invErr);
+              } else {
+                console.debug(
+                  '[useAuth] no profile, no invitation → RegisterGuard will redirect to official-web /register',
+                );
+              }
+              dispatch(setProfile(null));
+            }
           } else if (err instanceof ApiError && err.status === 401) {
             console.warn('[useAuth] 401 on profile — token rejected, signing out Firebase session');
             await auth.signOut();

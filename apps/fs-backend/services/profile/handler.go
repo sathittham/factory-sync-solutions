@@ -33,6 +33,8 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Post("/", h.CreateProfile)
 	r.Put("/", h.UpdateProfile)
 	r.Get("/check/{regId}", h.CheckRegID)
+	r.Get("/activity", h.GetActivity)
+	r.Post("/activity/login", h.LogLogin)
 }
 
 // GetProfile godoc
@@ -173,6 +175,48 @@ func (h *Handler) CheckRegID(w http.ResponseWriter, r *http.Request) {
 	pkg.RespondJSON(w, http.StatusOK, map[string]any{
 		"registered": false,
 	})
+}
+
+// GetActivity godoc
+// @Summary      Get user activity log
+// @Description  Returns the authenticated user's recent audit events (max 50)
+// @Tags         Profile
+// @Produce      json
+// @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  map[string]any
+// @Security     BearerAuth
+// @Router       /api/v1/profile/activity [get]
+func (h *Handler) GetActivity(w http.ResponseWriter, r *http.Request) {
+	uid := middleware.GetUID(r)
+
+	events, err := h.service.GetActivity(r.Context(), uid)
+	if err != nil {
+		slog.Error("get activity failed", "error", err.Error(), "uid", uid)
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "internal error")
+		return
+	}
+	pkg.RespondList(w, events, len(events))
+}
+
+// LogLogin godoc
+// @Summary      Record a login event
+// @Description  Records a user.login audit event for the authenticated user
+// @Tags         Profile
+// @Produce      json
+// @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
+// @Success      204
+// @Failure      401  {object}  map[string]any
+// @Security     BearerAuth
+// @Router       /api/v1/profile/activity/login [post]
+func (h *Handler) LogLogin(w http.ResponseWriter, r *http.Request) {
+	uid := middleware.GetUID(r)
+	var metadata map[string]any
+	if ua := r.Header.Get("User-Agent"); ua != "" {
+		metadata = map[string]any{"userAgent": ua}
+	}
+	h.service.LogLogin(r.Context(), uid, metadata)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func handleError(w http.ResponseWriter, r *http.Request, err error) {

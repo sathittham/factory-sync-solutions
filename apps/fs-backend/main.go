@@ -33,6 +33,7 @@ import (
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/quiz"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/result"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/scoring"
+	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/upload"
 )
 
 const msgQuizConfigLoaded = "quiz config loaded"
@@ -129,7 +130,7 @@ func main() {
 	// Notification
 	var emailClient *notification.EmailClient
 	if apiKey := os.Getenv("RESEND_API_KEY"); apiKey != "" {
-		emailClient = notification.NewEmailClient(apiKey, "FactorySync Solutions <noreply@factorysyncsolutions.com>")
+		emailClient = notification.NewEmailClient(apiKey, "FactorySync Solutions <no-reply@factorysyncsolutions.com>")
 	}
 	slackClient := notification.NewSlackClient()
 	notifSvc := notification.NewService(emailClient, slackClient, firestoreClient)
@@ -152,7 +153,7 @@ func main() {
 	quizHandler := quiz.NewHandler(quizSvc, profileAdapter)
 
 	// Admin
-	adminHandler := admin.NewHandler(resultSvc, profileSvc, authClient, auditLogger)
+	adminHandler := admin.NewHandler(resultSvc, profileSvc, authClient, auditLogger, notifSvc, firestoreClient)
 
 	// Backoffice
 	backofficeHandler := backoffice.NewHandler(resultSvc, profileSvc, authClient, firestoreClient)
@@ -160,6 +161,13 @@ func main() {
 	// DBD
 	dbdSvc := dbd.NewDefaultService()
 	dbdHandler := dbd.NewHandler(dbdSvc)
+
+	// Upload
+	uploadSvc := upload.NewServiceFromEnv(firestoreClient)
+	if reason := uploadSvc.DisabledReason(); reason != "" {
+		slog.Warn("upload service disabled", "reason", reason)
+	}
+	uploadHandler := upload.NewHandler(uploadSvc)
 
 	// --- Configure router ---
 
@@ -198,11 +206,25 @@ func main() {
 			r.Route("/quiz", quizHandler.Routes)
 			r.Route("/results", resultHandler.Routes)
 			r.Route("/dbd", dbdHandler.Routes)
+			r.Route("/upload", uploadHandler.Routes)
+
+			// Invitation acceptance — authenticated but no role check (invited user has no profile yet)
+			r.Post("/invitations/accept", adminHandler.AcceptInvitation)
 
 			// Admin routes (additional role check)
 			r.Route("/admin", func(r chi.Router) {
 				r.Use(appMiddleware.RequireAdmin(authClient))
 				adminHandler.Routes(r)
+			})
+
+			// Manage routes — owner / system_admin / admin (Firestore role check)
+			r.Route("/manage", func(r chi.Router) {
+				r.Use(appMiddleware.RequireFirestoreRole(firestoreClient, "owner", "system_admin", "admin"))
+				r.Get("/users", adminHandler.ListUsers)
+				r.Put("/users/{uid}/role", adminHandler.SetUserRole)
+				r.Post("/invitations", adminHandler.InviteMember)
+				r.Delete("/invitations/{uid}", adminHandler.CancelInvitation)
+				r.Post("/invitations/{uid}/resend", adminHandler.ResendInvitation)
 			})
 
 			// Backoffice routes (backoffice staff only)

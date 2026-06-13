@@ -178,7 +178,7 @@ describe("CookieConsent", () => {
 
 		// Dispatch the custom event to reopen settings
 		act(() => {
-			window.dispatchEvent(new CustomEvent(OPEN_SETTINGS_EVENT));
+			globalThis.dispatchEvent(new CustomEvent(OPEN_SETTINGS_EVENT));
 		});
 
 		// Settings panel should now be visible
