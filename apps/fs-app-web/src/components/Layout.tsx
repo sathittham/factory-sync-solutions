@@ -2,7 +2,6 @@ import { CONSENT_KEY, CookieConsent } from '@/components/CookieConsent';
 import type { LegalType } from '@/components/LegalModal';
 import { LegalModal } from '@/components/LegalModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -38,6 +37,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { Skeleton } from '@/components/ui/skeleton';
 import { trackEvent, trackPageView } from '@/lib/analytics';
 import { auth } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
@@ -67,7 +67,7 @@ import {
   User,
   UsersRound,
 } from 'lucide-react';
-import { Fragment, type CSSProperties, useEffect, useState } from 'react';
+import { type CSSProperties, Fragment, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 
 /* ─── Types & constants ─── */
@@ -536,7 +536,13 @@ function AppSidebar({
 /* ─── Main Layout ─── */
 
 export function Layout() {
-  const { isAuthenticated, isAdmin, profile, user, loading: authLoading } = useAppSelector((s) => s.auth);
+  const {
+    isAuthenticated,
+    isAdmin,
+    profile,
+    user,
+    loading: authLoading,
+  } = useAppSelector((s) => s.auth);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -575,7 +581,7 @@ export function Layout() {
     setCookieSettings(false);
   };
 
-  const isAuthPage = location.pathname === '/';
+  const isAuthPage = location.pathname === '/' || location.pathname === '/register';
   const breadcrumbSegments = (() => {
     const path = location.pathname;
     const adminTab = new URLSearchParams(location.search).get('tab');
@@ -587,17 +593,15 @@ export function Layout() {
       return [{ label: t('nav.adminMenu') }, { label: t('nav.companySettings') }];
     }
     if (path === '/admin') {
-      const showManageUsers = adminTab === 'users' || (!isAdmin && canManageUsers(profile, isAdmin));
+      const showManageUsers =
+        adminTab === 'users' || (!isAdmin && canManageUsers(profile, isAdmin));
       return [
         { label: t('nav.adminMenu') },
         { label: showManageUsers ? t('nav.manageUsers') : t('admin.title') },
       ];
     }
     const navItem = getNavItems().find((item) => item.path === path);
-    return [
-      { label: t('nav.main') },
-      { label: navItem ? t(navItem.labelKey) : t('nav.appName') },
-    ];
+    return [{ label: t('nav.main') }, { label: navItem ? t(navItem.labelKey) : t('nav.appName') }];
   })();
 
   if (isAuthPage) {

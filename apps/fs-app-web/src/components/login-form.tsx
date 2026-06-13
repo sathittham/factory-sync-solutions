@@ -5,20 +5,23 @@ import { trackEvent } from '@/lib/analytics';
 import { auth, googleProvider } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme';
-import { useForm } from '@tanstack/react-form';
 import fsDarkLogo from '@shared/brand/fs-dark.png';
 import fsLightLogo from '@shared/brand/fs-light.png';
 import { mapFirebaseError } from '@shared/lib/firebaseErrors';
 import { GoogleSignInButton } from '@shared/ui/GoogleSignInButton';
 import { LoginPageLayout } from '@shared/ui/LoginPageLayout';
-import { sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { useForm } from '@tanstack/react-form';
+import {
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+} from 'firebase/auth';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import * as z from 'zod';
 
-const OFFICIAL_WEB_URL = import.meta.env.VITE_OFFICIAL_WEB_URL ?? '';
-
-type Mode = 'signin' | 'reset';
+type Mode = 'signin' | 'signup' | 'reset';
 
 export function LoginForm() {
   const { t } = useLocale();
@@ -37,13 +40,23 @@ export function LoginForm() {
     .email(t('signin.errorInvalidEmail'));
 
   const passwordSchema = z.string().min(1, t('signin.errorPasswordRequired'));
+  const confirmPasswordSchema = z.string().min(1, t('signin.errorPasswordRequired'));
 
   const form = useForm({
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: '', password: '', confirmPassword: '' },
     onSubmit: async ({ value }) => {
       setError(null);
       try {
-        if (mode === 'signin') {
+        if (mode === 'signup') {
+          if (value.password !== value.confirmPassword) {
+            setError(t('signin.errorPasswordMismatch'));
+            return;
+          }
+          trackEvent('sign_up_click', { method: 'email' });
+          await createUserWithEmailAndPassword(auth, value.email, value.password);
+          trackEvent('sign_up_success', { method: 'email' });
+          // useAuth detects the new user → RegisterGuard routes to /register automatically
+        } else if (mode === 'signin') {
           trackEvent('sign_in_click', { method: 'email' });
           await signInWithEmailAndPassword(auth, value.email, value.password);
           trackEvent('sign_in_success', { method: 'email' });
@@ -53,7 +66,8 @@ export function LoginForm() {
         }
       } catch (err: unknown) {
         const code = (err as { code?: string }).code ?? '';
-        if (mode === 'signin') trackEvent('sign_in_error', { method: 'email' });
+        if (mode === 'signup') trackEvent('sign_up_error', { method: 'email' });
+        else if (mode === 'signin') trackEvent('sign_in_error', { method: 'email' });
         setError(mapFirebaseError(code, t));
       }
     },
@@ -86,9 +100,24 @@ export function LoginForm() {
     }
   };
 
-  const heading = mode === 'reset' ? t('signin.resetTitle') : t('signin.title');
-  const subheading = mode === 'reset' ? t('signin.resetSubtitle') : t('signin.subtitle');
-  const idleLabel = mode === 'reset' ? t('signin.sendResetEmail') : t('signin.signInWithEmail');
+  const modeConfig = {
+    signin: {
+      heading: t('signin.title'),
+      subheading: t('signin.subtitle'),
+      idleLabel: t('signin.signInWithEmail'),
+    },
+    signup: {
+      heading: t('signin.createAccountTitle'),
+      subheading: t('signin.createAccountSubtitle'),
+      idleLabel: t('signin.createAccount'),
+    },
+    reset: {
+      heading: t('signin.resetTitle'),
+      subheading: t('signin.resetSubtitle'),
+      idleLabel: t('signin.sendResetEmail'),
+    },
+  };
+  const { heading, subheading, idleLabel } = modeConfig[mode];
   const submitLabel = form.state.isSubmitting ? t('signin.loading') : idleLabel;
 
   return (
@@ -115,10 +144,7 @@ export function LoginForm() {
           className="flex flex-col gap-3"
         >
           <FieldGroup>
-            <form.Field
-              name="email"
-              validators={{ onBlur: emailSchema, onSubmit: emailSchema }}
-            >
+            <form.Field name="email" validators={{ onBlur: emailSchema, onSubmit: emailSchema }}>
               {(field) => {
                 const isInvalid = field.state.meta.isTouched && field.state.meta.errors.length > 0;
                 return (
@@ -152,22 +178,22 @@ export function LoginForm() {
                   return (
                     <Field data-invalid={isInvalid}>
                       <div className="flex items-center justify-between">
-                        <FieldLabel htmlFor="auth-password">
-                          {t('signin.passwordLabel')}
-                        </FieldLabel>
-                        <button
-                          type="button"
-                          className="text-xs text-muted-foreground underline underline-offset-2 hover:text-primary"
-                          onClick={() => switchMode('reset')}
-                        >
-                          {t('signin.forgotPassword')}
-                        </button>
+                        <FieldLabel htmlFor="auth-password">{t('signin.passwordLabel')}</FieldLabel>
+                        {mode === 'signin' && (
+                          <button
+                            type="button"
+                            className="text-xs text-muted-foreground underline underline-offset-2 hover:text-primary"
+                            onClick={() => switchMode('reset')}
+                          >
+                            {t('signin.forgotPassword')}
+                          </button>
+                        )}
                       </div>
                       <div className="relative">
                         <Input
                           id="auth-password"
                           type={showPassword ? 'text' : 'password'}
-                          autoComplete="current-password"
+                          autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                           placeholder="••••••••"
                           value={field.state.value}
                           onBlur={field.handleBlur}
@@ -191,6 +217,37 @@ export function LoginForm() {
                           )}
                         </button>
                       </div>
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
+              </form.Field>
+            )}
+
+            {mode === 'signup' && (
+              <form.Field
+                name="confirmPassword"
+                validators={{ onBlur: confirmPasswordSchema, onSubmit: confirmPasswordSchema }}
+              >
+                {(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="auth-confirm">
+                        {t('signin.confirmPasswordLabel')}
+                      </FieldLabel>
+                      <Input
+                        id="auth-confirm"
+                        type={showPassword ? 'text' : 'password'}
+                        autoComplete="new-password"
+                        placeholder="••••••••"
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        aria-invalid={isInvalid}
+                        disabled={isAnyLoading}
+                      />
                       {isInvalid && <FieldError errors={field.state.meta.errors} />}
                     </Field>
                   );
@@ -243,13 +300,14 @@ export function LoginForm() {
             </GoogleSignInButton>
 
             <p className="text-center text-sm text-muted-foreground">
-              {t('signin.noAccount')}{' '}
-              <a
-                href={`${OFFICIAL_WEB_URL}/register`}
+              {mode === 'signup' ? t('signin.haveAccount') : t('signin.noAccount')}{' '}
+              <button
+                type="button"
                 className="font-medium underline underline-offset-4 hover:text-primary"
+                onClick={() => switchMode(mode === 'signup' ? 'signin' : 'signup')}
               >
-                {t('signin.signUpLink')}
-              </a>
+                {mode === 'signup' ? t('signin.signInLink') : t('signin.signUpLink')}
+              </button>
             </p>
           </>
         )}

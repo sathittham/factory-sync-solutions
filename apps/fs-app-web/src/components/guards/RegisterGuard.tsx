@@ -10,19 +10,14 @@ import {
 import { auth } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
 import { useAppSelector } from '@/store';
-import { Outlet } from 'react-router';
-
-const OFFICIAL_WEB_URL = import.meta.env.VITE_OFFICIAL_WEB_URL ?? '';
+import { Outlet, useNavigate } from 'react-router';
 
 export function RegisterGuard() {
   const { isRegistered } = useAppSelector((s) => s.auth);
   const { t } = useLocale();
+  const navigate = useNavigate();
 
-  const handleCreateCompany = () => {
-    const dest = OFFICIAL_WEB_URL ? `${OFFICIAL_WEB_URL}/register` : '/';
-    globalThis.location.replace(dest);
-  };
-
+  const handleCreateCompany = () => navigate('/register');
   const handleSignOut = () => auth.signOut();
 
   if (isRegistered) return <Outlet />;
