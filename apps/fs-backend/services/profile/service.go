@@ -185,6 +185,34 @@ func (s *Service) UpdateProfile(ctx context.Context, uid string, req *UpdateProf
 	return existing, nil
 }
 
+// LogLogin records a user.login audit event for the given uid.
+func (s *Service) LogLogin(ctx context.Context, uid string, metadata map[string]any) {
+	s.logAudit(ctx, uid, audit.EventUserLogin, "user", uid, metadata)
+}
+
+// GetActivity returns the most recent audit events for the given user (max 50).
+func (s *Service) GetActivity(ctx context.Context, uid string) ([]ActivityEventResponse, error) {
+	if s.auditLogger == nil {
+		return []ActivityEventResponse{}, nil
+	}
+
+	docs, err := s.auditLogger.QueryByActor(ctx, uid, 50)
+	if err != nil {
+		return nil, fmt.Errorf("get activity for user %s: %w", uid, err)
+	}
+
+	events := make([]ActivityEventResponse, 0, len(docs))
+	for _, d := range docs {
+		events = append(events, ActivityEventResponse{
+			ID:        d.ID,
+			EventType: string(d.EventType),
+			CreatedAt: d.CreatedAt,
+			Metadata:  d.Metadata,
+		})
+	}
+	return events, nil
+}
+
 func (s *Service) logAudit(ctx context.Context, actorUID string, eventType audit.EventType, resourceType, resourceID string, metadata map[string]any) {
 	if s.auditLogger == nil {
 		return

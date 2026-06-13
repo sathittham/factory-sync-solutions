@@ -33,6 +33,7 @@ import (
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/quiz"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/result"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/scoring"
+	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/upload"
 )
 
 const msgQuizConfigLoaded = "quiz config loaded"
@@ -129,7 +130,7 @@ func main() {
 	// Notification
 	var emailClient *notification.EmailClient
 	if apiKey := os.Getenv("RESEND_API_KEY"); apiKey != "" {
-		emailClient = notification.NewEmailClient(apiKey, "FactorySync Solutions <noreply@factorysyncsolutions.com>")
+		emailClient = notification.NewEmailClient(apiKey, "FactorySync Solutions <no-reply@factorysyncsolutions.com>")
 	}
 	slackClient := notification.NewSlackClient()
 	notifSvc := notification.NewService(emailClient, slackClient, firestoreClient)
@@ -160,6 +161,13 @@ func main() {
 	// DBD
 	dbdSvc := dbd.NewDefaultService()
 	dbdHandler := dbd.NewHandler(dbdSvc)
+
+	// Upload
+	uploadSvc := upload.NewServiceFromEnv(firestoreClient)
+	if reason := uploadSvc.DisabledReason(); reason != "" {
+		slog.Warn("upload service disabled", "reason", reason)
+	}
+	uploadHandler := upload.NewHandler(uploadSvc)
 
 	// --- Configure router ---
 
@@ -198,6 +206,7 @@ func main() {
 			r.Route("/quiz", quizHandler.Routes)
 			r.Route("/results", resultHandler.Routes)
 			r.Route("/dbd", dbdHandler.Routes)
+			r.Route("/upload", uploadHandler.Routes)
 
 			// Invitation acceptance — authenticated but no role check (invited user has no profile yet)
 			r.Post("/invitations/accept", adminHandler.AcceptInvitation)

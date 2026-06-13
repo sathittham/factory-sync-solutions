@@ -72,7 +72,6 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Get("/export", h.ExportCSV)
 	r.Get("/users", h.ListUsers)
 	r.Put("/users/{uid}/role", h.SetUserRole)
-	r.Post("/invitations", h.InviteMember)
 }
 
 // enrichedAssessment extends Assessment with profile data for admin views.
@@ -102,6 +101,7 @@ type pendingInvitation struct {
 	Role         string `firestore:"role"`
 	InvitedBy    string `firestore:"invitedBy"`
 	InvitedAt    string `firestore:"invitedAt"`
+	ExpiresAt    string `firestore:"expiresAt"`
 	CompanyName  string `firestore:"companyName"`
 	CompanyRegID string `firestore:"companyRegId"`
 	IndustryType string `firestore:"industryType"`
@@ -382,7 +382,10 @@ func (h *Handler) appendPendingInvitations(ctx context.Context, users []enriched
 		profileUIDs[p.UID] = true
 	}
 
-	invDocs, err := h.fsClient.Collection("invitations").Documents(ctx).GetAll()
+	invDocs, err := h.fsClient.Collection("invitations").
+		Where("expiresAt", ">", time.Now().UTC().Format(time.RFC3339)).
+		Limit(500).
+		Documents(ctx).GetAll()
 	if err != nil {
 		slog.Warn("list users: fetch invitations failed", "error", err.Error())
 		return users
@@ -454,7 +457,6 @@ func (h *Handler) SetUserRole(w http.ResponseWriter, r *http.Request) {
 		pkg.RespondError(w, http.StatusBadRequest, "BAD_REQUEST", "invalid request body")
 		return
 	}
-	validRoles := map[string]bool{"user": true, "manager": true, "system_admin": true, "owner": true}
 	if !validRoles[req.Role] {
 		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", "role must be one of: user, manager, system_admin, owner")
 		return
@@ -479,7 +481,7 @@ func (h *Handler) SetUserRole(w http.ResponseWriter, r *http.Request) {
 	pkg.RespondJSON(w, http.StatusOK, map[string]string{"uid": uid, "role": req.Role})
 }
 
-var allowedInviteRoles = map[string]bool{
+var validRoles = map[string]bool{
 	"user": true, "manager": true, "system_admin": true, "owner": true,
 }
 
@@ -501,6 +503,9 @@ func (h *Handler) resolveOrCreateAuthUser(ctx context.Context, email string) (ui
 			profileDoc, ferr := h.fsClient.Collection("users").Doc(existingUser.UID).Get(ctx)
 			if ferr == nil && profileDoc.Exists() {
 				return "", true, nil
+			}
+			if ferr != nil && status.Code(ferr) != codes.NotFound {
+				return "", false, fmt.Errorf("check existing profile for %s: %w", existingUser.UID, ferr)
 			}
 		}
 		// No profile → pending/orphan; re-use their existing UID.
@@ -539,12 +544,13 @@ func (h *Handler) fetchInviterCompanySnapshot(ctx context.Context, inviterUID st
 	return p
 }
 
-// persistInvitation purges stale invitation docs for the email, then writes the new one.
-func (h *Handler) persistInvitation(ctx context.Context, inv pendingInvitation) {
-	h.purgeStaleInvitations(ctx, inv.Email)
+// persistInvitation purges stale invitation docs for the email asynchronously, then writes the new one.
+func (h *Handler) persistInvitation(ctx context.Context, inv pendingInvitation) error {
+	go h.purgeStaleInvitations(context.Background(), inv.Email)
 	if _, err := h.fsClient.Collection("invitations").Doc(inv.UID).Set(ctx, inv); err != nil {
-		slog.Error("invite: save invitation to firestore failed", "uid", inv.UID, "error", err.Error())
+		return fmt.Errorf("persist invitation: %w", err)
 	}
+	return nil
 }
 
 // InviteMember godoc
@@ -571,7 +577,7 @@ func (h *Handler) InviteMember(w http.ResponseWriter, r *http.Request) {
 		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid email address")
 		return
 	}
-	if !allowedInviteRoles[req.Role] {
+	if !validRoles[req.Role] {
 		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid role")
 		return
 	}
@@ -592,13 +598,17 @@ func (h *Handler) InviteMember(w http.ResponseWriter, r *http.Request) {
 	// Set the initial role via custom claims.
 	if err := h.authClient.SetCustomUserClaims(ctx, targetUID, map[string]any{"role": req.Role}); err != nil {
 		slog.Error("invite: set custom claims failed", "uid", targetUID, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
 	}
 
 	// Generate the password-reset link before writing to Firestore so that a failed
 	// link generation does not leave a stale invitation document behind.
 	appURL := os.Getenv("APP_URL")
 	if appURL == "" {
-		appURL = "https://app.factorysyncsolutions.com"
+		slog.Error("invite: APP_URL env var not set; refusing to generate invite link")
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
 	}
 	link, err := h.authClient.PasswordResetLinkWithSettings(ctx, req.Email,
 		&firebaseAuth.ActionCodeSettings{URL: appURL})
@@ -611,21 +621,29 @@ func (h *Handler) InviteMember(w http.ResponseWriter, r *http.Request) {
 	inviterEmail := middleware.GetEmail(r)
 	inviterSnapshot := h.fetchInviterCompanySnapshot(ctx, middleware.GetUID(r))
 
+	now := time.Now().UTC()
+	expiresAt := now.Add(24 * time.Hour)
+
 	if h.fsClient != nil {
-		h.persistInvitation(ctx, pendingInvitation{
+		if err := h.persistInvitation(ctx, pendingInvitation{
 			UID:          targetUID,
 			Email:        req.Email,
 			Role:         req.Role,
 			InvitedBy:    inviterEmail,
-			InvitedAt:    time.Now().UTC().Format(time.RFC3339),
+			InvitedAt:    now.Format(time.RFC3339),
+			ExpiresAt:    expiresAt.Format(time.RFC3339),
 			CompanyName:  inviterSnapshot.CompanyName,
 			CompanyRegID: inviterSnapshot.CompanyRegID,
 			IndustryType: inviterSnapshot.IndustryType,
 			CompanySize:  inviterSnapshot.CompanySize,
-		})
+		}); err != nil {
+			slog.Error("invite: persist invitation failed", "uid", targetUID, "error", err.Error())
+			pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+			return
+		}
 	}
 
-	h.notifSvc.SendInvitation(ctx, req.Email, inviterEmail, req.Role, link)
+	go h.notifSvc.SendInvitation(context.Background(), req.Email, inviterEmail, inviterSnapshot.CompanyName, req.Role, expiresAt, link)
 
 	slog.Info("member invited", "email", req.Email, "role", req.Role, "invitedBy", inviterEmail)
 	pkg.RespondJSON(w, http.StatusOK, map[string]string{"email": req.Email, "role": req.Role})
@@ -673,6 +691,14 @@ func (h *Handler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 		slog.Error("accept invitation: decode invitation failed", "uid", uid, "error", err.Error())
 		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 		return
+	}
+
+	if inv.ExpiresAt != "" {
+		expiresAt, parseErr := time.Parse(time.RFC3339, inv.ExpiresAt)
+		if parseErr == nil && time.Now().UTC().After(expiresAt) {
+			pkg.RespondError(w, http.StatusGone, "INVITATION_EXPIRED", "invitation link has expired")
+			return
+		}
 	}
 
 	email := middleware.GetEmail(r)
@@ -732,19 +758,34 @@ func (h *Handler) CancelInvitation(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
+	// SEC-001: Verify this is a pending invitation before deleting anything.
 	if h.fsClient != nil {
-		if _, err := h.fsClient.Collection("invitations").Doc(uid).Delete(ctx); err != nil {
-			slog.Error("cancel invitation: delete firestore doc failed", "uid", uid, "error", err.Error())
+		_, err := h.fsClient.Collection("invitations").Doc(uid).Get(ctx)
+		if status.Code(err) == codes.NotFound {
+			pkg.RespondError(w, http.StatusNotFound, "NOT_FOUND", "no pending invitation found")
+			return
+		}
+		if err != nil {
+			slog.Error("cancel invitation: fetch invitation failed", "uid", uid, "error", err.Error())
 			pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 			return
 		}
 	}
 
+	// CORRECTNESS-004: Delete Firebase Auth user first so Firestore doc remains as a tombstone if Firebase fails.
 	if err := h.authClient.DeleteUser(ctx, uid); err != nil {
 		if firebaseAuth.IsUserNotFound(err) {
 			slog.Warn("cancel invitation: firebase user not found, continuing", "uid", uid)
 		} else {
 			slog.Error("cancel invitation: delete firebase user failed", "uid", uid, "error", err.Error())
+			pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+			return
+		}
+	}
+
+	if h.fsClient != nil {
+		if _, err := h.fsClient.Collection("invitations").Doc(uid).Delete(ctx); err != nil {
+			slog.Error("cancel invitation: delete firestore doc failed", "uid", uid, "error", err.Error())
 			pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 			return
 		}
@@ -798,7 +839,9 @@ func (h *Handler) ResendInvitation(w http.ResponseWriter, r *http.Request) {
 
 	appURL := os.Getenv("APP_URL")
 	if appURL == "" {
-		appURL = "https://app.factorysyncsolutions.com"
+		slog.Error("resend invitation: APP_URL env var not set; refusing to generate invite link")
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
 	}
 	settings := &firebaseAuth.ActionCodeSettings{URL: appURL}
 	link, err := h.authClient.PasswordResetLinkWithSettings(ctx, inv.Email, settings)
@@ -808,11 +851,16 @@ func (h *Handler) ResendInvitation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.notifSvc.SendInvitation(ctx, inv.Email, middleware.GetEmail(r), inv.Role, link)
+	resendNow := time.Now().UTC()
+	resendExpiresAt := resendNow.Add(24 * time.Hour)
 
-	now := time.Now().UTC().Format(time.RFC3339)
-	if _, err := doc.Ref.Set(ctx, map[string]any{"invitedAt": now}, firestore.MergeAll); err != nil {
-		slog.Error("resend invitation: update invitedAt failed", "uid", uid, "error", err.Error())
+	go h.notifSvc.SendInvitation(context.Background(), inv.Email, middleware.GetEmail(r), inv.CompanyName, inv.Role, resendExpiresAt, link)
+
+	if _, err := doc.Ref.Set(ctx, map[string]any{
+		"invitedAt": resendNow.Format(time.RFC3339),
+		"expiresAt": resendExpiresAt.Format(time.RFC3339),
+	}, firestore.MergeAll); err != nil {
+		slog.Error("resend invitation: update timestamps failed", "uid", uid, "error", err.Error())
 	}
 
 	slog.Info("invitation resent", "uid", uid, "email", inv.Email)

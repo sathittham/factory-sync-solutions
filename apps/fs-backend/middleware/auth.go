@@ -8,6 +8,8 @@ import (
 
 	"cloud.google.com/go/firestore"
 	firebaseAuth "firebase.google.com/go/v4/auth"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/pkg"
 )
@@ -118,12 +120,12 @@ func RequireFirestoreRole(fsClient *firestore.Client, roles ...string) func(http
 
 			doc, err := fsClient.Collection("users").Doc(uid).Get(r.Context())
 			if err != nil {
+				if status.Code(err) == codes.NotFound {
+					pkg.RespondError(w, http.StatusForbidden, "FORBIDDEN", msgAccessDenied)
+					return
+				}
 				slog.Error("RequireFirestoreRole: firestore fetch failed", "uid", uid, "error", err.Error())
 				pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "internal error")
-				return
-			}
-			if !doc.Exists() {
-				pkg.RespondError(w, http.StatusForbidden, "FORBIDDEN", msgAccessDenied)
 				return
 			}
 
