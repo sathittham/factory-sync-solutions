@@ -105,6 +105,65 @@ var resultEmailTmpl = template.Must(template.New("result").Parse(`<!DOCTYPE html
 </body>
 </html>`))
 
+// SendInvitation sends a member invitation email with a sign-in link.
+func (e *EmailClient) SendInvitation(ctx context.Context, to, inviterEmail, role, link string) error {
+	body, err := buildInviteEmailHTML(inviterEmail, role, link)
+	if err != nil {
+		return fmt.Errorf("build invite email html: %w", err)
+	}
+
+	params := &resend.SendEmailRequest{
+		From:    e.from,
+		To:      []string{to},
+		Subject: "คุณได้รับคำเชิญเข้าร่วม FactorySync Solutions",
+		Html:    body,
+	}
+
+	_, err = e.client.Emails.Send(params)
+	if err != nil {
+		return fmt.Errorf("resend send invitation: %w", err)
+	}
+	return nil
+}
+
+// inviteEmailData holds template data for invitation emails.
+type inviteEmailData struct {
+	InviterEmail string
+	Role         string
+	InviteLink   string
+}
+
+var inviteEmailTmpl = template.Must(template.New("invite").Parse(`<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;color:#333;">
+<h1 style="color:#1a56db;">FactorySync Solutions</h1>
+<p>คุณได้รับคำเชิญให้เข้าร่วม <strong>FactorySync Solutions</strong> โดย <strong>{{.InviterEmail}}</strong></p>
+<p>บทบาท: <strong>{{.Role}}</strong></p>
+<div style="margin:30px 0;text-align:center;">
+  <a href="{{.InviteLink}}" style="background:#1a56db;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:16px;font-weight:bold;">
+    ตั้งรหัสผ่านและเข้าสู่ระบบ
+  </a>
+</div>
+<p style="color:#6b7280;font-size:13px;">หากคุณไม่ได้ร้องขอ กรุณาเพิกเฉยต่ออีเมลนี้</p>
+<hr style="border:none;border-top:1px solid #e5e7eb;margin:30px 0;">
+<p style="color:#6b7280;font-size:12px;">FactorySync Solutions — ระบบประเมินสุขภาพโรงงาน</p>
+</body>
+</html>`))
+
+func buildInviteEmailHTML(inviterEmail, role, link string) (string, error) {
+	data := inviteEmailData{
+		InviterEmail: inviterEmail,
+		Role:         role,
+		InviteLink:   link,
+	}
+	var buf bytes.Buffer
+	if err := inviteEmailTmpl.Execute(&buf, data); err != nil {
+		return "", fmt.Errorf("execute invite email template: %w", err)
+	}
+	return buf.String(), nil
+}
+
 func buildResultEmailHTML(contactName, companyName string, overallScore float64, diagnosis string, scores []scoring.DimensionScore, strengths, weaknesses []string) (string, error) {
 	data := resultEmailData{
 		ContactName:  contactName,

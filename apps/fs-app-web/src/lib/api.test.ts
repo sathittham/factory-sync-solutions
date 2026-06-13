@@ -74,4 +74,11 @@ describe('api', () => {
     expect(opts.method).toBe('PUT');
     expect(JSON.parse(opts.body as string)).toEqual({ name: 'y' });
   });
+
+  it('api.delete sends method DELETE', async () => {
+    respond(200, { data: {} });
+    await api.delete('/items/1');
+    const [, opts] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(opts.method).toBe('DELETE');
+  });
 });

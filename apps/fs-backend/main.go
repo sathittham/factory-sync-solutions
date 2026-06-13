@@ -152,7 +152,7 @@ func main() {
 	quizHandler := quiz.NewHandler(quizSvc, profileAdapter)
 
 	// Admin
-	adminHandler := admin.NewHandler(resultSvc, profileSvc, authClient, auditLogger)
+	adminHandler := admin.NewHandler(resultSvc, profileSvc, authClient, auditLogger, notifSvc, firestoreClient)
 
 	// Backoffice
 	backofficeHandler := backoffice.NewHandler(resultSvc, profileSvc, authClient, firestoreClient)
@@ -199,10 +199,23 @@ func main() {
 			r.Route("/results", resultHandler.Routes)
 			r.Route("/dbd", dbdHandler.Routes)
 
+			// Invitation acceptance — authenticated but no role check (invited user has no profile yet)
+			r.Post("/invitations/accept", adminHandler.AcceptInvitation)
+
 			// Admin routes (additional role check)
 			r.Route("/admin", func(r chi.Router) {
 				r.Use(appMiddleware.RequireAdmin(authClient))
 				adminHandler.Routes(r)
+			})
+
+			// Manage routes — owner / system_admin / admin (Firestore role check)
+			r.Route("/manage", func(r chi.Router) {
+				r.Use(appMiddleware.RequireFirestoreRole(firestoreClient, "owner", "system_admin", "admin"))
+				r.Get("/users", adminHandler.ListUsers)
+				r.Put("/users/{uid}/role", adminHandler.SetUserRole)
+				r.Post("/invitations", adminHandler.InviteMember)
+				r.Delete("/invitations/{uid}", adminHandler.CancelInvitation)
+				r.Post("/invitations/{uid}/resend", adminHandler.ResendInvitation)
 			})
 
 			// Backoffice routes (backoffice staff only)

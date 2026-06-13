@@ -74,6 +74,17 @@ func (s *Service) NotifyQuizResult(ctx context.Context, assessment *result.Asses
 	}
 }
 
+// SendInvitation sends a member invitation email. Failures are logged, not returned.
+func (s *Service) SendInvitation(ctx context.Context, to, inviterEmail, role, link string) {
+	if s.email == nil {
+		slog.Warn("email client not configured; skipping invitation email", "to", to)
+		return
+	}
+	if err := s.email.SendInvitation(ctx, to, inviterEmail, role, link); err != nil {
+		slog.Error("invitation email failed", "error", err.Error(), "to", to)
+	}
+}
+
 func (s *Service) createEmailJob(ctx context.Context, job *EmailJob) {
 	if s.fsClient == nil {
 		return

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"cloud.google.com/go/firestore"
 	firebaseAuth "firebase.google.com/go/v4/auth"
 
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/pkg"
@@ -16,6 +17,9 @@ type contextKey string
 const uidContextKey contextKey = "uid"
 const emailContextKey contextKey = "email"
 const displayNameContextKey contextKey = "displayName"
+
+const msgMissingAuth = "missing auth"
+const msgAccessDenied = "access denied"
 
 // FirebaseAuth verifies the Firebase ID token from the Authorization header
 // and injects the verified UID, email, and displayName into the request context.
@@ -58,13 +62,13 @@ func RequireAdmin(authClient *firebaseAuth.Client) func(http.Handler) http.Handl
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			uid := GetUID(r)
 			if uid == "" {
-				pkg.RespondError(w, http.StatusUnauthorized, "UNAUTHORIZED", "missing auth")
+				pkg.RespondError(w, http.StatusUnauthorized, "UNAUTHORIZED", msgMissingAuth)
 				return
 			}
 
 			user, err := authClient.GetUser(r.Context(), uid)
 			if err != nil {
-				pkg.RespondError(w, http.StatusForbidden, "FORBIDDEN", "access denied")
+				pkg.RespondError(w, http.StatusForbidden, "FORBIDDEN", msgAccessDenied)
 				return
 			}
 
@@ -96,6 +100,44 @@ func GetDisplayName(r *http.Request) string {
 	return name
 }
 
+// RequireFirestoreRole returns a middleware that allows only requests whose
+// Firestore profile role matches one of the given roles.
+// Must be used after FirebaseAuth.
+func RequireFirestoreRole(fsClient *firestore.Client, roles ...string) func(http.Handler) http.Handler {
+	allowed := make(map[string]bool, len(roles))
+	for _, r := range roles {
+		allowed[r] = true
+	}
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			uid := GetUID(r)
+			if uid == "" {
+				pkg.RespondError(w, http.StatusUnauthorized, "UNAUTHORIZED", msgMissingAuth)
+				return
+			}
+
+			doc, err := fsClient.Collection("users").Doc(uid).Get(r.Context())
+			if err != nil {
+				slog.Error("RequireFirestoreRole: firestore fetch failed", "uid", uid, "error", err.Error())
+				pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "internal error")
+				return
+			}
+			if !doc.Exists() {
+				pkg.RespondError(w, http.StatusForbidden, "FORBIDDEN", msgAccessDenied)
+				return
+			}
+
+			role, _ := doc.Data()["role"].(string)
+			if !allowed[role] {
+				pkg.RespondError(w, http.StatusForbidden, "FORBIDDEN", "insufficient role")
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 // RequireBackofficeRole returns a middleware that allows only requests whose
 // token's backofficeRole custom claim matches one of the given roles.
 // Must be used after FirebaseAuth.
@@ -116,13 +158,13 @@ func RequireBackofficeRole(authClient *firebaseAuth.Client, roles ...string) fun
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			uid := GetUID(r)
 			if uid == "" {
-				pkg.RespondError(w, http.StatusUnauthorized, "UNAUTHORIZED", "missing auth")
+				pkg.RespondError(w, http.StatusUnauthorized, "UNAUTHORIZED", msgMissingAuth)
 				return
 			}
 
 			user, err := authClient.GetUser(r.Context(), uid)
 			if err != nil {
-				pkg.RespondError(w, http.StatusForbidden, "FORBIDDEN", "access denied")
+				pkg.RespondError(w, http.StatusForbidden, "FORBIDDEN", msgAccessDenied)
 				return
 			}
 

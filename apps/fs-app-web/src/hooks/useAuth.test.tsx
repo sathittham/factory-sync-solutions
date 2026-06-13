@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   onAuthStateChanged: vi.fn(),
   authSignOut: vi.fn(),
   apiGet: vi.fn(),
+  apiPost: vi.fn(),
 }));
 
 vi.mock('firebase/auth', () => ({
@@ -32,7 +33,7 @@ vi.mock('@/lib/api', () => {
       this.status = status;
     }
   }
-  return { ApiError, api: { get: mocks.apiGet } };
+  return { ApiError, api: { get: mocks.apiGet, post: mocks.apiPost } };
 });
 
 const mockProfile = {
@@ -66,6 +67,8 @@ describe('useAuth', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
     mocks.authSignOut.mockResolvedValue(undefined);
+    // Default: no pending invitation — existing tests that only set up apiGet still pass
+    mocks.apiPost.mockRejectedValue(new ApiError(404, 'Not found'));
     mocks.onAuthStateChanged.mockImplementation((_auth: unknown, cb: typeof triggerAuth) => {
       triggerAuth = cb;
       return vi.fn();
@@ -138,8 +141,11 @@ describe('useAuth', () => {
     expect(store.getState().auth.hasCompletedQuiz).toBe(false);
   });
 
-  it('sets profile=null and does not sign out on 404 profile fetch', async () => {
-    mocks.apiGet.mockRejectedValueOnce(new ApiError(404, 'Not found'));
+  it('on 404 profile + successful invitation accept — sets profile and isRegistered', async () => {
+    mocks.apiGet
+      .mockRejectedValueOnce(new ApiError(404, 'Not found')) // profile fetch
+      .mockResolvedValueOnce([]); // results fetch after accept
+    mocks.apiPost.mockResolvedValueOnce(mockProfile); // POST /invitations/accept
 
     const { store } = renderAuth();
 
@@ -149,9 +155,44 @@ describe('useAuth', () => {
 
     await waitFor(() => expect(store.getState().auth.loading).toBe(false));
 
-    expect(store.getState().auth.profile).toBeNull();
-    expect(store.getState().auth.isRegistered).toBe(false);
+    const state = store.getState().auth;
+    expect(state.isRegistered).toBe(true);
+    expect(state.profile?.uid).toBe('u-1');
     expect(mocks.authSignOut).not.toHaveBeenCalled();
+  });
+
+  it('on 404 profile + 404 invitation accept — sets profile null (no invitation)', async () => {
+    mocks.apiGet.mockRejectedValueOnce(new ApiError(404, 'Not found'));
+    // apiPost already defaults to 404 reject in beforeEach
+
+    const { store } = renderAuth();
+
+    await act(async () => {
+      await triggerAuth(mockFirebaseUser);
+    });
+
+    await waitFor(() => expect(store.getState().auth.loading).toBe(false));
+
+    const state = store.getState().auth;
+    expect(state.profile).toBeNull();
+    expect(state.isRegistered).toBe(false);
+  });
+
+  it('on 404 profile + invitation accept error — sets profile null', async () => {
+    mocks.apiGet.mockRejectedValueOnce(new ApiError(404, 'Not found'));
+    mocks.apiPost.mockRejectedValueOnce(new ApiError(500, 'Internal error'));
+
+    const { store } = renderAuth();
+
+    await act(async () => {
+      await triggerAuth(mockFirebaseUser);
+    });
+
+    await waitFor(() => expect(store.getState().auth.loading).toBe(false));
+
+    const state = store.getState().auth;
+    expect(state.profile).toBeNull();
+    expect(state.isRegistered).toBe(false);
   });
 
   it('calls signOut and dispatches logout on 401 profile fetch', async () => {

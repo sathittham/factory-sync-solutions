@@ -7,6 +7,19 @@ interface AuthUser {
   photoURL: string | null;
 }
 
+interface CompanyOption {
+  companyName: string;
+  companyRegId: string;
+  industryType: string;
+  companySize: string;
+}
+
+interface ProfilePermissions {
+  canManageUsers?: boolean;
+  canEditCompany?: boolean;
+  canManageCompanySettings?: boolean;
+}
+
 interface Profile {
   uid: string;
   email: string;
@@ -15,10 +28,14 @@ interface Profile {
   companyRegId: string;
   industryType: string;
   companySize: string;
+  companies?: CompanyOption[];
+  activeCompanyRegId?: string;
   contactName: string;
   contactEmail: string;
   contactPhone: string;
   role: string;
+  projectRole?: string;
+  permissions?: ProfilePermissions;
   emailNotifications?: boolean;
 }
 
@@ -42,6 +59,72 @@ const initialState: AuthState = {
   loading: true,
 };
 
+function getCompanyCandidates(profile: Profile): CompanyOption[] {
+  const candidates = [
+    {
+      companyName: profile.companyName,
+      companyRegId: profile.companyRegId,
+      industryType: profile.industryType,
+      companySize: profile.companySize,
+    },
+    ...(profile.companies ?? []),
+  ];
+  const seen = new Set<string>();
+
+  return candidates.filter((company) => {
+    if (!company.companyRegId || seen.has(company.companyRegId)) return false;
+    seen.add(company.companyRegId);
+    return true;
+  });
+}
+
+function normalizeProfile(profile: Profile | null): Profile | null {
+  if (!profile) return null;
+
+  const companies = getCompanyCandidates(profile);
+  const activeCompanyRegId = profile.activeCompanyRegId || profile.companyRegId;
+  const activeCompany =
+    companies.find((company) => company.companyRegId === activeCompanyRegId) ?? companies[0];
+
+  if (!activeCompany) return profile;
+
+  return {
+    ...profile,
+    companyName: activeCompany.companyName,
+    companyRegId: activeCompany.companyRegId,
+    industryType: activeCompany.industryType,
+    companySize: activeCompany.companySize,
+    companies,
+    activeCompanyRegId: activeCompany.companyRegId,
+  };
+}
+
+const userManagementRoles = new Set(['admin', 'owner', 'system_admin']);
+const companySettingsRoles = new Set(['admin', 'owner', 'system_admin', 'manager']);
+
+function getEffectiveRole(profile: Profile): string {
+  return profile.projectRole || profile.role;
+}
+
+function canManageUsers(profile: Profile | null, isAdmin = false): boolean {
+  if (!profile) return isAdmin;
+  return (
+    isAdmin ||
+    profile.permissions?.canManageUsers === true ||
+    userManagementRoles.has(getEffectiveRole(profile))
+  );
+}
+
+function canManageCompanySettings(profile: Profile | null, isAdmin = false): boolean {
+  if (!profile) return isAdmin;
+  return (
+    isAdmin ||
+    profile.permissions?.canEditCompany === true ||
+    profile.permissions?.canManageCompanySettings === true ||
+    companySettingsRoles.has(getEffectiveRole(profile))
+  );
+}
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -51,9 +134,23 @@ const authSlice = createSlice({
       state.isAuthenticated = action.payload !== null;
     },
     setProfile(state, action: PayloadAction<Profile | null>) {
-      state.profile = action.payload;
+      state.profile = normalizeProfile(action.payload);
       state.isRegistered = action.payload !== null;
       state.isAdmin = action.payload?.role === 'admin';
+    },
+    setActiveCompany(state, action: PayloadAction<string>) {
+      if (!state.profile) return;
+
+      const selected = getCompanyCandidates(state.profile).find(
+        (company) => company.companyRegId === action.payload,
+      );
+      if (!selected) return;
+
+      state.profile.companyName = selected.companyName;
+      state.profile.companyRegId = selected.companyRegId;
+      state.profile.industryType = selected.industryType;
+      state.profile.companySize = selected.companySize;
+      state.profile.activeCompanyRegId = selected.companyRegId;
     },
     setHasCompletedQuiz(state, action: PayloadAction<boolean>) {
       state.hasCompletedQuiz = action.payload;
@@ -73,6 +170,8 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, setProfile, setHasCompletedQuiz, setLoading, logout } = authSlice.actions;
+export const { setUser, setProfile, setActiveCompany, setHasCompletedQuiz, setLoading, logout } =
+  authSlice.actions;
 export default authSlice.reducer;
-export type { AuthUser, Profile };
+export { canManageCompanySettings, canManageUsers };
+export type { AuthUser, CompanyOption, Profile, ProfilePermissions };

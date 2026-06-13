@@ -13,7 +13,7 @@ import {
   setAssessments,
   setLoading as setResultLoading,
 } from '@/store/resultSlice';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 const diagnosisConfig: Record<string, { color: string; bg: string; border: string }> = {
@@ -79,6 +79,7 @@ export function DashboardPage() {
   const { assessments, loading: resultLoading } = useAppSelector((s) => s.result);
   const { availableQuizzes } = useAppSelector((s) => s.quiz);
   const { locale, t } = useLocale();
+  const [quizzesLoading, setQuizzesLoading] = useState(false);
 
   useEffect(() => {
     if (assessments.length === 0 && !resultLoading) {
@@ -96,10 +97,12 @@ export function DashboardPage() {
 
   useEffect(() => {
     if (availableQuizzes.length === 0) {
+      setQuizzesLoading(true);
       api
         .get<QuizListItem[]>('/quiz/quizzes')
         .then((data) => dispatch(setAvailableQuizzes(data)))
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setQuizzesLoading(false));
     }
   }, [availableQuizzes.length, dispatch]);
 
@@ -133,6 +136,90 @@ export function DashboardPage() {
     dispatch(setQuizId(quizId));
     navigate('/quiz');
   };
+
+  const uncompletedSection = (() => {
+    if (quizzesLoading) {
+      return (
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-20 w-full rounded-xl" />
+          <Skeleton className="h-20 w-full rounded-xl" />
+        </div>
+      );
+    }
+    if (uncompletedQuizzes.length > 0) {
+      return (
+        <FadeIn delay={0.25}>
+          <div className="space-y-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t('quiz.otherAssessments')}
+            </h2>
+            {uncompletedQuizzes.map((q) => (
+              <button
+                key={q.id}
+                type="button"
+                onClick={() => handleStartQuiz(q.id)}
+                className="w-full group bg-card rounded-xl border p-6 text-left hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md transition-all duration-200"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="h-11 w-11 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center shrink-0 group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/30 transition-colors">
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      className="text-emerald-600 dark:text-emerald-400"
+                    >
+                      <path
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M9 14l2 2 4-4"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-foreground mb-0.5">
+                      {locale === 'th' ? q.nameTh : q.nameEn}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {t('quiz.startNewAssessment')}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                    {t('quiz.start')}
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      className="group-hover:translate-x-0.5 transition-transform"
+                    >
+                      <path
+                        d="M6 4l4 4-4 4"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </FadeIn>
+      );
+    }
+    return null;
+  })();
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)]">
@@ -331,76 +418,8 @@ export function DashboardPage() {
           </StaggerItem>
         </StaggerChildren>
 
-        {/* Uncompleted quizzes */}
-        {uncompletedQuizzes.length > 0 && (
-          <FadeIn delay={0.25}>
-            <div className="space-y-3">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {t('quiz.otherAssessments')}
-              </h2>
-              {uncompletedQuizzes.map((q) => (
-                <button
-                  key={q.id}
-                  type="button"
-                  onClick={() => handleStartQuiz(q.id)}
-                  className="w-full group bg-card rounded-xl border p-6 text-left hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md transition-all duration-200"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="h-11 w-11 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center shrink-0 group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/30 transition-colors">
-                      <svg
-                        width="22"
-                        height="22"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        className="text-emerald-600 dark:text-emerald-400"
-                      >
-                        <path
-                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                        />
-                        <path
-                          d="M9 14l2 2 4-4"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-foreground mb-0.5">
-                        {locale === 'th' ? q.nameTh : q.nameEn}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {t('quiz.startNewAssessment')}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1 text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                      {t('quiz.start')}
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        className="group-hover:translate-x-0.5 transition-transform"
-                      >
-                        <path
-                          d="M6 4l4 4-4 4"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </FadeIn>
-        )}
+        {/* Uncompleted quizzes / loading skeleton */}
+        {uncompletedSection}
 
         {/* No quizzes completed yet */}
         {!resultLoading && assessments.length === 0 && (

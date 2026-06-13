@@ -67,6 +67,12 @@ const translations: Record<Locale, Record<string, string>> = {
     'nav.admin': 'แอดมิน',
     'nav.signOut': 'ออกจากระบบ',
     'nav.profile': 'โปรไฟล์',
+    'nav.brandName': 'FactorySync',
+    'nav.brandUnit': 'Solutions',
+    'nav.main': 'เมนูหลัก',
+    'nav.adminMenu': 'การจัดการระบบ',
+    'nav.manageUsers': 'จัดการผู้ใช้งาน',
+    'nav.companySettings': 'ตั้งค่าบริษัท',
 
     // Landing
     'landing.title': 'FactorySync Solutions',
@@ -273,21 +279,62 @@ const translations: Record<Locale, Record<string, string>> = {
     'admin.promoteAdmin': 'ตั้งเป็นแอดมิน',
     'admin.demoteUser': 'ลดเป็นผู้ใช้',
     'admin.roleAdmin': 'แอดมิน',
+    'admin.roleOwner': 'เจ้าของ',
+    'admin.roleSystemAdmin': 'ผู้ดูแลระบบ',
+    'admin.roleManager': 'ผู้จัดการ',
     'admin.roleUser': 'ผู้ใช้',
     'admin.noUsers': 'ไม่พบข้อมูลผู้ใช้',
     'admin.confirmPromote': 'ยืนยันตั้ง {name} เป็นแอดมิน?',
     'admin.confirmDemote': 'ยืนยันลด {name} เป็นผู้ใช้ปกติ?',
+    'admin.editRole': 'แก้ไขบทบาท',
+    'admin.saveRole': 'บันทึก',
     'admin.roleUpdated': 'อัปเดตบทบาทเรียบร้อย',
     'admin.roleError': 'อัปเดตบทบาทไม่สำเร็จ',
     'admin.cancel': 'ยกเลิก',
+    'admin.searchPlaceholder': 'ค้นหาชื่อ หรืออีเมล',
+    'admin.manageUsersTitle': 'จัดการผู้ใช้งาน',
+    'admin.manageUsersSubtitle': 'ดูและจัดการบัญชีผู้ใช้ในระบบ',
+    'admin.allUsers': 'ทั้งหมด',
     'admin.allRoles': 'บทบาททั้งหมด',
     'admin.filterAdmin': 'เฉพาะแอดมิน',
+    'admin.filterOwner': 'เฉพาะเจ้าของ',
+    'admin.filterManager': 'เฉพาะผู้จัดการ',
     'admin.filterUser': 'เฉพาะผู้ใช้',
     'admin.userDetail': 'รายละเอียดผู้ใช้',
     'admin.regId': 'เลขทะเบียนนิติบุคคล',
     'admin.phone': 'เบอร์โทรศัพท์',
     'admin.lastUpdated': 'อัปเดตล่าสุด',
     'admin.accountEmail': 'อีเมลบัญชี',
+    'admin.inviteMember': 'เชิญสมาชิก',
+    'admin.inviteMemberTitle': 'เชิญสมาชิกใหม่',
+    'admin.inviteMemberDesc': 'สมาชิกจะได้รับอีเมลพร้อมลิงก์ตั้งรหัสผ่านและเข้าสู่ระบบ',
+    'admin.inviteEmail': 'อีเมล',
+    'admin.inviteRole': 'บทบาท',
+    'admin.inviteSend': 'ส่งคำเชิญ',
+    'admin.inviteSending': 'กำลังส่ง...',
+    'admin.inviteSent': 'ส่งคำเชิญเรียบร้อย',
+    'admin.inviteError': 'ส่งคำเชิญไม่สำเร็จ กรุณาลองอีกครั้ง',
+    'admin.inviteAlreadyExists': 'อีเมลนี้มีบัญชีในระบบแล้ว',
+    'admin.inviteForbidden': 'คุณไม่มีสิทธิ์เชิญสมาชิก กรุณาตรวจสอบบทบาทของคุณ',
+    'admin.pendingInvite': 'รอการยืนยัน',
+    'admin.inviteEmailRequired': 'กรุณากรอกอีเมล',
+    'admin.inviteEmailInvalid': 'รูปแบบอีเมลไม่ถูกต้อง',
+    'admin.inviteResent': 'ส่งคำเชิญอีกครั้งแล้ว',
+    'admin.cancelInvite': 'ยกเลิกคำเชิญ',
+    'admin.resendInvite': 'ส่งคำเชิญอีกครั้ง',
+
+    // Permissions matrix
+    'permissions.title': 'สิทธิ์การใช้งาน',
+    'permissions.desc': 'สิทธิ์การเข้าถึงฟีเจอร์ตามบทบาท: User < Manager < System Admin < Owner',
+    'permissions.feature': 'ฟีเจอร์',
+    'permissions.takeAssessment': 'ทำแบบประเมิน',
+    'permissions.viewOwnResults': 'ดูผลการประเมินของตัวเอง',
+    'permissions.viewCompanyResults': 'ดูผลการประเมินของทีม',
+    'permissions.manageUsers': 'จัดการสมาชิก',
+    'permissions.inviteMembers': 'เชิญสมาชิกใหม่',
+    'permissions.editRoles': 'แก้ไขบทบาทสมาชิก',
+    'permissions.viewAllAssessments': 'ดูผลการประเมินทั้งหมด (ทุกบริษัท)',
+    'permissions.exportCsv': 'ส่งออกข้อมูล CSV',
 
     // Profile
     'profile.title': 'โปรไฟล์',
@@ -333,6 +380,14 @@ const translations: Record<Locale, Record<string, string>> = {
     'profile.emailPasswordProvider': 'อีเมล & รหัสผ่าน',
     'profile.errorCredentialInUse': 'บัญชีนี้เชื่อมต่อกับบัญชีอื่นอยู่แล้ว',
 
+    // Company Settings page
+    'companySettings.title': 'ตั้งค่าบริษัท',
+    'companySettings.subtitle': 'แก้ไขข้อมูลบริษัทและการติดต่อ',
+    'companySettings.saved': 'บันทึกข้อมูลเรียบร้อยแล้ว',
+    'companySettings.error': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง',
+    'companySettings.save': 'บันทึก',
+    'companySettings.saving': 'กำลังบันทึก...',
+
     // Top bar
     'topbar.cta': 'สนใจตรวจสุขภาพโรงงาน? ติดต่อ Line @factorysyncsolutions',
 
@@ -342,6 +397,9 @@ const translations: Record<Locale, Record<string, string>> = {
     'theme.dark': 'มืด',
     'theme.system': 'ตามระบบ',
 
+    // Company switcher
+    'companySwitcher.label': 'บริษัท',
+
     // Footer
     'footer.terms': 'ข้อกำหนดการใช้งาน',
     'footer.privacy': 'นโยบายความเป็นส่วนตัว',
@@ -349,6 +407,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'footer.cookiePolicy': 'นโยบายคุกกี้',
     'footer.marketing': 'นโยบายการตลาด',
     'footer.contact': 'ติดต่อเรา',
+    'footer.lineContact': 'Line @factorysyncsolutions',
 
     // Export
     'export.error': 'ส่งออกข้อมูลไม่สำเร็จ กรุณาลองอีกครั้ง',
@@ -357,6 +416,20 @@ const translations: Record<Locale, Record<string, string>> = {
     'locale.label': 'ภาษา',
     'locale.th': 'ภาษาไทย',
     'locale.en': 'English',
+
+    // Auth action (password reset / invite)
+    'auth.setPassword.title': 'ตั้งรหัสผ่านของคุณ', // NOSONAR typescript:S2068
+    'auth.setPassword.subtitle': 'ตั้งรหัสผ่านเพื่อเข้าใช้งาน FactorySync Solutions',
+    'auth.setPassword.passwordLabel': 'รหัสผ่านใหม่', // NOSONAR typescript:S2068
+    'auth.setPassword.confirmLabel': 'ยืนยันรหัสผ่าน', // NOSONAR typescript:S2068
+    'auth.setPassword.submit': 'บันทึกรหัสผ่าน', // NOSONAR typescript:S2068
+    'auth.setPassword.minLength': 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร',
+    'auth.setPassword.passwordMismatch': 'รหัสผ่านไม่ตรงกัน', // NOSONAR typescript:S2068
+    'auth.setPassword.success': 'ตั้งรหัสผ่านเรียบร้อยแล้ว กรุณาเข้าสู่ระบบ', // NOSONAR typescript:S2068
+    'auth.setPassword.expiredLink': 'ลิงก์หมดอายุแล้ว กรุณาขอคำเชิญใหม่',
+    'auth.setPassword.invalidLink': 'ลิงก์ไม่ถูกต้อง กรุณาตรวจสอบอีเมลอีกครั้ง',
+    'auth.setPassword.genericError': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง',
+    'auth.setPassword.goSignIn': 'ไปยังหน้าเข้าสู่ระบบ',
 
     // 404
     'notFound.title': 'ไม่พบหน้าที่ค้นหา',
@@ -375,6 +448,12 @@ const translations: Record<Locale, Record<string, string>> = {
     'nav.admin': 'Admin',
     'nav.signOut': 'Sign Out',
     'nav.profile': 'Profile',
+    'nav.brandName': 'FactorySync',
+    'nav.brandUnit': 'Solutions',
+    'nav.main': 'Main',
+    'nav.adminMenu': 'Administration',
+    'nav.manageUsers': 'Manage users',
+    'nav.companySettings': 'Company settings',
 
     // Landing
     'landing.title': 'FactorySync Solutions',
@@ -584,21 +663,62 @@ const translations: Record<Locale, Record<string, string>> = {
     'admin.promoteAdmin': 'Promote to Admin',
     'admin.demoteUser': 'Demote to User',
     'admin.roleAdmin': 'Admin',
+    'admin.roleOwner': 'Owner',
+    'admin.roleSystemAdmin': 'System Admin',
+    'admin.roleManager': 'Manager',
     'admin.roleUser': 'User',
     'admin.noUsers': 'No users found.',
     'admin.confirmPromote': 'Promote {name} to admin?',
     'admin.confirmDemote': 'Demote {name} to regular user?',
+    'admin.editRole': 'Edit Role',
+    'admin.saveRole': 'Save',
     'admin.roleUpdated': 'Role updated successfully',
     'admin.roleError': 'Failed to update role',
     'admin.cancel': 'Cancel',
+    'admin.searchPlaceholder': 'Search name or email',
+    'admin.manageUsersTitle': 'Manage Users',
+    'admin.manageUsersSubtitle': 'View and manage user accounts',
+    'admin.allUsers': 'All',
     'admin.allRoles': 'All Roles',
     'admin.filterAdmin': 'Admins Only',
+    'admin.filterOwner': 'Owners Only',
+    'admin.filterManager': 'Managers Only',
     'admin.filterUser': 'Users Only',
     'admin.userDetail': 'User Detail',
     'admin.regId': 'Registration ID',
     'admin.phone': 'Phone',
     'admin.lastUpdated': 'Last Updated',
     'admin.accountEmail': 'Account Email',
+    'admin.inviteMember': 'Invite Member',
+    'admin.inviteMemberTitle': 'Invite a New Member',
+    'admin.inviteMemberDesc': 'They will receive an email with a link to set their password and sign in.',
+    'admin.inviteEmail': 'Email',
+    'admin.inviteRole': 'Role',
+    'admin.inviteSend': 'Send Invite',
+    'admin.inviteSending': 'Sending...',
+    'admin.inviteSent': 'Invitation sent',
+    'admin.inviteError': 'Failed to send invite. Please try again.',
+    'admin.inviteAlreadyExists': 'This email already has an account.',
+    'admin.inviteForbidden': 'You do not have permission to invite members. Check your role.',
+    'admin.pendingInvite': 'Pending',
+    'admin.inviteEmailRequired': 'Email is required',
+    'admin.inviteEmailInvalid': 'Invalid email address',
+    'admin.inviteResent': 'Invitation resent',
+    'admin.cancelInvite': 'Cancel invitation',
+    'admin.resendInvite': 'Resend invitation',
+
+    // Permissions matrix
+    'permissions.title': 'Permissions',
+    'permissions.desc': 'Feature access by role: User < Manager < System Admin < Owner',
+    'permissions.feature': 'Feature',
+    'permissions.takeAssessment': 'Take assessment',
+    'permissions.viewOwnResults': 'View own results',
+    'permissions.viewCompanyResults': 'View team results',
+    'permissions.manageUsers': 'Manage members',
+    'permissions.inviteMembers': 'Invite new members',
+    'permissions.editRoles': 'Edit member roles',
+    'permissions.viewAllAssessments': 'View all assessments (all companies)',
+    'permissions.exportCsv': 'Export CSV',
 
     // 404
     // Profile
@@ -645,6 +765,14 @@ const translations: Record<Locale, Record<string, string>> = {
     'profile.emailPasswordProvider': 'Email & Password',
     'profile.errorCredentialInUse': 'This account is already linked to another user',
 
+    // Company Settings page
+    'companySettings.title': 'Company settings',
+    'companySettings.subtitle': 'Update your company profile and contact details',
+    'companySettings.saved': 'Settings saved successfully',
+    'companySettings.error': 'Something went wrong, please try again',
+    'companySettings.save': 'Save',
+    'companySettings.saving': 'Saving...',
+
     // Top bar
     'topbar.cta': 'Interested in a factory health check? Contact Line @factorysyncsolutions',
 
@@ -654,6 +782,9 @@ const translations: Record<Locale, Record<string, string>> = {
     'theme.dark': 'Dark',
     'theme.system': 'System',
 
+    // Company switcher
+    'companySwitcher.label': 'Company',
+
     // Footer
     'footer.terms': 'Terms & Conditions',
     'footer.privacy': 'Privacy Policy',
@@ -661,6 +792,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'footer.cookiePolicy': 'Cookie Policy',
     'footer.marketing': 'Marketing Policy',
     'footer.contact': 'Contact Us',
+    'footer.lineContact': 'Line @factorysyncsolutions',
 
     // Export
     'export.error': 'Export failed. Please try again.',
@@ -669,6 +801,20 @@ const translations: Record<Locale, Record<string, string>> = {
     'locale.label': 'Language',
     'locale.th': 'Thai',
     'locale.en': 'English',
+
+    // Auth action (password reset / invite)
+    'auth.setPassword.title': 'Set your password', // NOSONAR typescript:S2068
+    'auth.setPassword.subtitle': 'Create a password to access FactorySync Solutions',
+    'auth.setPassword.passwordLabel': 'New password', // NOSONAR typescript:S2068
+    'auth.setPassword.confirmLabel': 'Confirm password', // NOSONAR typescript:S2068
+    'auth.setPassword.submit': 'Save password', // NOSONAR typescript:S2068
+    'auth.setPassword.minLength': 'Password must be at least 8 characters',
+    'auth.setPassword.passwordMismatch': 'Passwords do not match', // NOSONAR typescript:S2068
+    'auth.setPassword.success': 'Password set successfully. Please sign in.', // NOSONAR typescript:S2068
+    'auth.setPassword.expiredLink': 'This link has expired. Please request a new invitation.',
+    'auth.setPassword.invalidLink': 'Invalid link. Please check your email again.',
+    'auth.setPassword.genericError': 'Something went wrong. Please try again.',
+    'auth.setPassword.goSignIn': 'Go to sign in',
 
     // 404
     'notFound.title': 'Page not found',

@@ -281,6 +281,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.step.contact": "ข้อมูลผู้ติดต่อ",
 		"register.next": "ถัดไป",
 		"register.back": "ย้อนกลับ",
+		"topbar.cta": "สนใจตรวจสุขภาพโรงงาน? ติดต่อ Line @factorysyncsolutions",
 	},
 	en: {
 		// --- existing keys ---
@@ -545,6 +546,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.step.contact": "Contact Info",
 		"register.next": "Next",
 		"register.back": "Back",
+		"topbar.cta": "Interested in a factory health check? Contact Line @factorysyncsolutions",
 	},
 };
 

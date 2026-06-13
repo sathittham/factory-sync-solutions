@@ -1,21 +1,29 @@
 package admin
 
 import (
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/mail"
+	"os"
 	"regexp"
 	"strconv"
+	"time"
 
+	"cloud.google.com/go/firestore"
 	firebaseAuth "firebase.google.com/go/v4/auth"
 	"github.com/go-chi/chi/v5"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/middleware"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/pkg"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/audit"
+	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/notification"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/profile"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/result"
 )
@@ -49,10 +57,12 @@ type Handler struct {
 	profileSvc  *profile.Service
 	authClient  *firebaseAuth.Client
 	auditLogger *audit.Logger
+	notifSvc    *notification.Service
+	fsClient    *firestore.Client
 }
 
-func NewHandler(resultSvc *result.Service, profileSvc *profile.Service, authClient *firebaseAuth.Client, auditLogger *audit.Logger) *Handler {
-	return &Handler{resultSvc: resultSvc, profileSvc: profileSvc, authClient: authClient, auditLogger: auditLogger}
+func NewHandler(resultSvc *result.Service, profileSvc *profile.Service, authClient *firebaseAuth.Client, auditLogger *audit.Logger, notifSvc *notification.Service, fsClient *firestore.Client) *Handler {
+	return &Handler{resultSvc: resultSvc, profileSvc: profileSvc, authClient: authClient, auditLogger: auditLogger, notifSvc: notifSvc, fsClient: fsClient}
 }
 
 // Routes registers all admin routes on the given router.
@@ -62,6 +72,7 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Get("/export", h.ExportCSV)
 	r.Get("/users", h.ListUsers)
 	r.Put("/users/{uid}/role", h.SetUserRole)
+	r.Post("/invitations", h.InviteMember)
 }
 
 // enrichedAssessment extends Assessment with profile data for admin views.
@@ -72,6 +83,55 @@ type enrichedAssessment struct {
 	CompanySize  string `json:"companySize"`
 	ContactName  string `json:"contactName"`
 	ContactEmail string `json:"contactEmail"`
+}
+
+// enrichedUser extends Profile with Firebase Auth data.
+type enrichedUser struct {
+	profile.Profile
+	PhotoURL  string `json:"photoURL"`
+	IsPending bool   `json:"isPending,omitempty"`
+	InvitedAt string `json:"invitedAt,omitempty"`
+}
+
+// pendingInvitation mirrors the Firestore document stored under the "invitations" collection.
+// Company fields are snapshotted from the inviter's profile at invite time and used to
+// populate the new member's profile when they accept the invitation.
+type pendingInvitation struct {
+	UID          string `firestore:"uid"`
+	Email        string `firestore:"email"`
+	Role         string `firestore:"role"`
+	InvitedBy    string `firestore:"invitedBy"`
+	InvitedAt    string `firestore:"invitedAt"`
+	CompanyName  string `firestore:"companyName"`
+	CompanyRegID string `firestore:"companyRegId"`
+	IndustryType string `firestore:"industryType"`
+	CompanySize  string `firestore:"companySize"`
+}
+
+// fetchPhotoURLs returns a uid→photoURL map via Firebase Auth batch lookup.
+// UIDs are chunked to respect the 100-identifier limit per call.
+func fetchPhotoURLs(ctx context.Context, authClient *firebaseAuth.Client, uids []string) map[string]string {
+	photos := make(map[string]string, len(uids))
+	const chunkSize = 100
+	for i := 0; i < len(uids); i += chunkSize {
+		end := min(i+chunkSize, len(uids))
+		chunk := uids[i:end]
+		ids := make([]firebaseAuth.UserIdentifier, len(chunk))
+		for j, uid := range chunk {
+			ids[j] = firebaseAuth.UIDIdentifier{UID: uid}
+		}
+		result, err := authClient.GetUsers(ctx, ids)
+		if err != nil {
+			slog.Error("fetchPhotoURLs: GetUsers failed", "error", err.Error())
+			continue
+		}
+		for _, u := range result.Users {
+			if u.PhotoURL != "" {
+				photos[u.UID] = u.PhotoURL
+			}
+		}
+	}
+	return photos
 }
 
 // collectUIDs extracts unique UIDs from assessments.
@@ -293,7 +353,72 @@ func (h *Handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	if profiles == nil {
 		profiles = []*profile.Profile{}
 	}
-	pkg.RespondList(w, profiles, len(profiles))
+
+	uids := make([]string, len(profiles))
+	for i, p := range profiles {
+		uids[i] = p.UID
+	}
+	photos := fetchPhotoURLs(r.Context(), h.authClient, uids)
+
+	users := make([]enrichedUser, len(profiles))
+	for i, p := range profiles {
+		users[i] = enrichedUser{Profile: *p, PhotoURL: photos[p.UID]}
+	}
+
+	users = h.appendPendingInvitations(r.Context(), users, profiles)
+
+	pkg.RespondList(w, users, len(users))
+}
+
+// appendPendingInvitations fetches the "invitations" collection and appends any invited users
+// whose UID is not already present in profiles (i.e. they haven't registered yet).
+func (h *Handler) appendPendingInvitations(ctx context.Context, users []enrichedUser, profiles []*profile.Profile) []enrichedUser {
+	if h.fsClient == nil {
+		return users
+	}
+
+	profileUIDs := make(map[string]bool, len(profiles))
+	for _, p := range profiles {
+		profileUIDs[p.UID] = true
+	}
+
+	invDocs, err := h.fsClient.Collection("invitations").Documents(ctx).GetAll()
+	if err != nil {
+		slog.Warn("list users: fetch invitations failed", "error", err.Error())
+		return users
+	}
+
+	for _, doc := range invDocs {
+		var inv pendingInvitation
+		if err := doc.DataTo(&inv); err != nil || profileUIDs[inv.UID] {
+			continue
+		}
+		users = append(users, enrichedUser{
+			Profile: profile.Profile{
+				UID:   inv.UID,
+				Email: inv.Email,
+				Role:  inv.Role,
+			},
+			IsPending: true,
+			InvitedAt: inv.InvitedAt,
+		})
+	}
+	return users
+}
+
+// purgeStaleInvitations deletes all invitation documents whose email matches,
+// cleaning up orphans left by previously failed invite attempts.
+func (h *Handler) purgeStaleInvitations(ctx context.Context, email string) {
+	docs, err := h.fsClient.Collection("invitations").Where("email", "==", email).Documents(ctx).GetAll()
+	if err != nil {
+		slog.Warn("invite: purge stale invitations query failed", "email", email, "error", err.Error())
+		return
+	}
+	for _, doc := range docs {
+		if _, err := doc.Ref.Delete(ctx); err != nil {
+			slog.Warn("invite: delete stale invitation failed", "id", doc.Ref.ID, "error", err.Error())
+		}
+	}
 }
 
 // setRoleRequest is the payload for role changes.
@@ -329,8 +454,9 @@ func (h *Handler) SetUserRole(w http.ResponseWriter, r *http.Request) {
 		pkg.RespondError(w, http.StatusBadRequest, "BAD_REQUEST", "invalid request body")
 		return
 	}
-	if req.Role != "admin" && req.Role != "user" {
-		pkg.RespondError(w, http.StatusBadRequest, "BAD_REQUEST", "role must be 'admin' or 'user'")
+	validRoles := map[string]bool{"user": true, "manager": true, "system_admin": true, "owner": true}
+	if !validRoles[req.Role] {
+		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", "role must be one of: user, manager, system_admin, owner")
 		return
 	}
 
@@ -351,4 +477,344 @@ func (h *Handler) SetUserRole(w http.ResponseWriter, r *http.Request) {
 
 	slog.Info("user role updated", "uid", uid, "role", req.Role)
 	pkg.RespondJSON(w, http.StatusOK, map[string]string{"uid": uid, "role": req.Role})
+}
+
+var allowedInviteRoles = map[string]bool{
+	"user": true, "manager": true, "system_admin": true, "owner": true,
+}
+
+// inviteRequest is the payload for member invitations.
+type inviteRequest struct {
+	Email string `json:"email"`
+	Role  string `json:"role"`
+}
+
+// resolveOrCreateAuthUser ensures a Firebase Auth account exists for the given email.
+// Returns the UID and a boolean indicating whether the caller should abort with a 409 (user
+// already has a completed Firestore profile). Any other error is returned wrapped.
+func (h *Handler) resolveOrCreateAuthUser(ctx context.Context, email string) (uid string, conflict bool, err error) {
+	existingUser, authErr := h.authClient.GetUserByEmail(ctx, email)
+	switch {
+	case authErr == nil:
+		// Auth user exists — only block if they also have a Firestore profile (i.e. are a member).
+		if h.fsClient != nil {
+			profileDoc, ferr := h.fsClient.Collection("users").Doc(existingUser.UID).Get(ctx)
+			if ferr == nil && profileDoc.Exists() {
+				return "", true, nil
+			}
+		}
+		// No profile → pending/orphan; re-use their existing UID.
+		slog.Info("invite: re-inviting pending user", "email", email, "uid", existingUser.UID)
+		return existingUser.UID, false, nil
+	case firebaseAuth.IsUserNotFound(authErr):
+		newUser, cerr := h.authClient.CreateUser(ctx, (&firebaseAuth.UserToCreate{}).Email(email))
+		if cerr != nil {
+			return "", false, fmt.Errorf("create firebase user: %w", cerr)
+		}
+		return newUser.UID, false, nil
+	default:
+		return "", false, fmt.Errorf("lookup user by email: %w", authErr)
+	}
+}
+
+// fetchInviterCompanySnapshot loads the inviter's profile from Firestore and returns the
+// company fields to snapshot into the invitation document.
+// Failures are non-fatal — an empty profile is returned so the invite is not blocked.
+func (h *Handler) fetchInviterCompanySnapshot(ctx context.Context, inviterUID string) profile.Profile {
+	if h.fsClient == nil || inviterUID == "" {
+		return profile.Profile{}
+	}
+	doc, err := h.fsClient.Collection("users").Doc(inviterUID).Get(ctx)
+	if err != nil {
+		slog.Warn("invite: fetch inviter profile failed, continuing with empty company fields",
+			"inviterUID", inviterUID, "error", err.Error())
+		return profile.Profile{}
+	}
+	var p profile.Profile
+	if err := doc.DataTo(&p); err != nil {
+		slog.Warn("invite: decode inviter profile failed, continuing with empty company fields",
+			"inviterUID", inviterUID, "error", err.Error())
+		return profile.Profile{}
+	}
+	return p
+}
+
+// persistInvitation purges stale invitation docs for the email, then writes the new one.
+func (h *Handler) persistInvitation(ctx context.Context, inv pendingInvitation) {
+	h.purgeStaleInvitations(ctx, inv.Email)
+	if _, err := h.fsClient.Collection("invitations").Doc(inv.UID).Set(ctx, inv); err != nil {
+		slog.Error("invite: save invitation to firestore failed", "uid", inv.UID, "error", err.Error())
+	}
+}
+
+// InviteMember godoc
+// @Summary      Invite a new member
+// @Description  Creates a Firebase Auth user and sends a password-setup invite email
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Param        Authorization  header  string         true  "Bearer {firebase-id-token}"
+// @Param        body           body    inviteRequest  true  "Invitation payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]any
+// @Failure      409  {object}  map[string]any
+// @Failure      500  {object}  map[string]any
+// @Security     BearerAuth
+// @Router       /api/v1/admin/invitations [post]
+func (h *Handler) InviteMember(w http.ResponseWriter, r *http.Request) {
+	var req inviteRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		pkg.RespondError(w, http.StatusBadRequest, "BAD_REQUEST", "invalid request body")
+		return
+	}
+	if _, err := mail.ParseAddress(req.Email); err != nil {
+		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid email address")
+		return
+	}
+	if !allowedInviteRoles[req.Role] {
+		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid role")
+		return
+	}
+
+	ctx := r.Context()
+
+	targetUID, conflict, err := h.resolveOrCreateAuthUser(ctx, req.Email)
+	if err != nil {
+		slog.Error("invite: resolve auth user failed", "email", req.Email, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+	if conflict {
+		pkg.RespondError(w, http.StatusConflict, "CONFLICT", "user with this email already exists")
+		return
+	}
+
+	// Set the initial role via custom claims.
+	if err := h.authClient.SetCustomUserClaims(ctx, targetUID, map[string]any{"role": req.Role}); err != nil {
+		slog.Error("invite: set custom claims failed", "uid", targetUID, "error", err.Error())
+	}
+
+	// Generate the password-reset link before writing to Firestore so that a failed
+	// link generation does not leave a stale invitation document behind.
+	appURL := os.Getenv("APP_URL")
+	if appURL == "" {
+		appURL = "https://app.factorysyncsolutions.com"
+	}
+	link, err := h.authClient.PasswordResetLinkWithSettings(ctx, req.Email,
+		&firebaseAuth.ActionCodeSettings{URL: appURL})
+	if err != nil {
+		slog.Error("invite: generate password reset link failed", "email", req.Email, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+
+	inviterEmail := middleware.GetEmail(r)
+	inviterSnapshot := h.fetchInviterCompanySnapshot(ctx, middleware.GetUID(r))
+
+	if h.fsClient != nil {
+		h.persistInvitation(ctx, pendingInvitation{
+			UID:          targetUID,
+			Email:        req.Email,
+			Role:         req.Role,
+			InvitedBy:    inviterEmail,
+			InvitedAt:    time.Now().UTC().Format(time.RFC3339),
+			CompanyName:  inviterSnapshot.CompanyName,
+			CompanyRegID: inviterSnapshot.CompanyRegID,
+			IndustryType: inviterSnapshot.IndustryType,
+			CompanySize:  inviterSnapshot.CompanySize,
+		})
+	}
+
+	h.notifSvc.SendInvitation(ctx, req.Email, inviterEmail, req.Role, link)
+
+	slog.Info("member invited", "email", req.Email, "role", req.Role, "invitedBy", inviterEmail)
+	pkg.RespondJSON(w, http.StatusOK, map[string]string{"email": req.Email, "role": req.Role})
+}
+
+// AcceptInvitation godoc
+// @Summary      Accept a pending invitation
+// @Description  Creates a Firestore profile from the invitation document and deletes it
+// @Tags         Admin
+// @Produce      json
+// @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  map[string]any
+// @Failure      404  {object}  map[string]any
+// @Failure      500  {object}  map[string]any
+// @Security     BearerAuth
+// @Router       /api/v1/invitations/accept [post]
+func (h *Handler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
+	uid := middleware.GetUID(r)
+	if uid == "" {
+		pkg.RespondError(w, http.StatusUnauthorized, "UNAUTHORIZED", "authentication required")
+		return
+	}
+
+	if h.fsClient == nil {
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+
+	ctx := r.Context()
+
+	doc, err := h.fsClient.Collection("invitations").Doc(uid).Get(ctx)
+	if status.Code(err) == codes.NotFound {
+		pkg.RespondError(w, http.StatusNotFound, "NOT_FOUND", "no pending invitation found")
+		return
+	}
+	if err != nil {
+		slog.Error("accept invitation: fetch invitation failed", "uid", uid, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+
+	var inv pendingInvitation
+	if err := doc.DataTo(&inv); err != nil {
+		slog.Error("accept invitation: decode invitation failed", "uid", uid, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+
+	email := middleware.GetEmail(r)
+	displayName := middleware.GetDisplayName(r)
+	now := time.Now().UTC().Format(time.RFC3339)
+
+	p := profile.Profile{
+		UID:          uid,
+		Email:        email,
+		DisplayName:  displayName,
+		CompanyName:  inv.CompanyName,
+		CompanyRegID: inv.CompanyRegID,
+		IndustryType: inv.IndustryType,
+		CompanySize:  inv.CompanySize,
+		ContactName:  displayName, // editable via profile update later
+		ContactEmail: email,
+		Role:         inv.Role,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}
+
+	if _, err := h.fsClient.Collection("users").Doc(uid).Set(ctx, p); err != nil {
+		slog.Error("accept invitation: write profile failed", "uid", uid, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+
+	// Best-effort cleanup — a failure here does not undo the profile creation.
+	if _, err := h.fsClient.Collection("invitations").Doc(uid).Delete(ctx); err != nil {
+		slog.Warn("accept invitation: delete invitation doc failed", "uid", uid, "error", err.Error())
+	}
+
+	slog.Info("invitation accepted", "uid", uid, "email", email, "role", inv.Role)
+	pkg.RespondJSON(w, http.StatusOK, p)
+}
+
+// CancelInvitation godoc
+// @Summary      Cancel a pending invitation
+// @Description  Deletes the Firestore invitation document and the Firebase Auth user for a pending invite
+// @Tags         Admin
+// @Produce      json
+// @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
+// @Param        uid            path    string  true  "Firebase UID of the pending invite"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]any
+// @Failure      401  {object}  map[string]any
+// @Failure      403  {object}  map[string]any
+// @Failure      500  {object}  map[string]any
+// @Security     BearerAuth
+// @Router       /api/v1/manage/invitations/{uid} [delete]
+func (h *Handler) CancelInvitation(w http.ResponseWriter, r *http.Request) {
+	uid := chi.URLParam(r, "uid")
+	if uid == "" || len(uid) > 128 {
+		pkg.RespondError(w, http.StatusBadRequest, "BAD_REQUEST", "invalid uid")
+		return
+	}
+
+	ctx := r.Context()
+
+	if h.fsClient != nil {
+		if _, err := h.fsClient.Collection("invitations").Doc(uid).Delete(ctx); err != nil {
+			slog.Error("cancel invitation: delete firestore doc failed", "uid", uid, "error", err.Error())
+			pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+			return
+		}
+	}
+
+	if err := h.authClient.DeleteUser(ctx, uid); err != nil {
+		if firebaseAuth.IsUserNotFound(err) {
+			slog.Warn("cancel invitation: firebase user not found, continuing", "uid", uid)
+		} else {
+			slog.Error("cancel invitation: delete firebase user failed", "uid", uid, "error", err.Error())
+			pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+			return
+		}
+	}
+
+	slog.Info("invitation cancelled", "uid", uid)
+	pkg.RespondJSON(w, http.StatusOK, map[string]string{"uid": uid})
+}
+
+// ResendInvitation godoc
+// @Summary      Resend a pending invitation
+// @Description  Re-sends the password-setup invite email for an existing pending invitation
+// @Tags         Admin
+// @Produce      json
+// @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
+// @Param        uid            path    string  true  "Firebase UID of the pending invite"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]any
+// @Failure      401  {object}  map[string]any
+// @Failure      403  {object}  map[string]any
+// @Failure      404  {object}  map[string]any
+// @Failure      500  {object}  map[string]any
+// @Security     BearerAuth
+// @Router       /api/v1/manage/invitations/{uid}/resend [post]
+func (h *Handler) ResendInvitation(w http.ResponseWriter, r *http.Request) {
+	uid := chi.URLParam(r, "uid")
+	if uid == "" || len(uid) > 128 {
+		pkg.RespondError(w, http.StatusBadRequest, "BAD_REQUEST", "invalid uid")
+		return
+	}
+
+	ctx := r.Context()
+
+	doc, err := h.fsClient.Collection("invitations").Doc(uid).Get(ctx)
+	if status.Code(err) == codes.NotFound {
+		pkg.RespondError(w, http.StatusNotFound, "NOT_FOUND", "invitation not found")
+		return
+	}
+	if err != nil {
+		slog.Error("resend invitation: fetch firestore doc failed", "uid", uid, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+
+	var inv pendingInvitation
+	if err := doc.DataTo(&inv); err != nil {
+		slog.Error("resend invitation: decode invitation failed", "uid", uid, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+
+	appURL := os.Getenv("APP_URL")
+	if appURL == "" {
+		appURL = "https://app.factorysyncsolutions.com"
+	}
+	settings := &firebaseAuth.ActionCodeSettings{URL: appURL}
+	link, err := h.authClient.PasswordResetLinkWithSettings(ctx, inv.Email, settings)
+	if err != nil {
+		slog.Error("resend invitation: generate password reset link failed", "email", inv.Email, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+
+	h.notifSvc.SendInvitation(ctx, inv.Email, middleware.GetEmail(r), inv.Role, link)
+
+	now := time.Now().UTC().Format(time.RFC3339)
+	if _, err := doc.Ref.Set(ctx, map[string]any{"invitedAt": now}, firestore.MergeAll); err != nil {
+		slog.Error("resend invitation: update invitedAt failed", "uid", uid, "error", err.Error())
+	}
+
+	slog.Info("invitation resent", "uid", uid, "email", inv.Email)
+	pkg.RespondJSON(w, http.StatusOK, map[string]string{"uid": uid, "email": inv.Email})
 }
