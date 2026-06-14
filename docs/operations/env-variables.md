@@ -144,7 +144,7 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `ALLOWED_ORIGINS` | CORS allowed origins (comma-separated; include both app and backoffice) | `https://factory-sync-solutions.pages.dev,https://factory-sync-backoffice.pages.dev` |
+| `ALLOWED_ORIGINS` | CORS allowed origins (comma-separated; include Pages and custom domains for app, backoffice, and official site) | `https://factory-sync-solutions.pages.dev,https://app.factorysyncsolutions.com,https://backoffice.factorysyncsolutions.com,https://factorysyncsolutions.com` |
 | `VITE_FIREBASE_API_KEY` | Firebase API key | `AIza...` |
 | `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth domain | `project-id.firebaseapp.com` |
 | `VITE_FIREBASE_PROJECT_ID` | Firebase project ID | `factory-sync-solutions` |
@@ -173,7 +173,7 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | Variable | Development | Staging | Production |
 |----------|------------|---------|------------|
 | `ENVIRONMENT` | `development` | `staging` | `production` |
-| `ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:5174` | `https://factory-sync-solutions-staging.pages.dev,https://factory-sync-backoffice-staging.pages.dev` | `https://factory-sync-solutions.pages.dev,https://factory-sync-backoffice.pages.dev` |
+| `ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:5174` | `https://factory-sync-solutions-staging.pages.dev,https://factory-sync-backoffice-staging.pages.dev,https://app-staging.factorysyncsolutions.com,https://backoffice-staging.factorysyncsolutions.com,https://staging.factorysyncsolutions.com` | `https://factory-sync-solutions.pages.dev,https://factory-sync-backoffice.pages.dev,https://app.factorysyncsolutions.com,https://backoffice.factorysyncsolutions.com,https://factorysyncsolutions.com` |
 | `VITE_API_BASE_URL` | `http://localhost:8080/api/v1` | `https://api-staging.example.com/api/v1` | `https://api.example.com/api/v1` |
 
 ## Local Development Setup
