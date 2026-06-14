@@ -2,6 +2,10 @@ import { auth } from './firebase';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
+export function apiUrl(path: string): string {
+  return `${API_BASE}${path}`;
+}
+
 async function getAuthHeaders(includeContentType = true): Promise<HeadersInit> {
   const user = auth.currentUser;
   if (!user) {
@@ -24,7 +28,7 @@ async function getAuthHeaders(includeContentType = true): Promise<HeadersInit> {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = await getAuthHeaders();
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(apiUrl(path), {
     ...options,
     headers: { ...headers, ...options.headers },
   });
@@ -44,7 +48,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 async function requestForm<T>(path: string, body: FormData): Promise<T> {
   const headers = await getAuthHeaders(false);
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(apiUrl(path), {
     method: 'POST',
     body,
     headers,

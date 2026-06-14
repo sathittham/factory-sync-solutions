@@ -87,6 +87,8 @@ const sizeKeys = ['small', 'medium', 'large'] as const;
 
 type RegisterStep = 1 | 2 | 3;
 
+const httpStatusNotFound = 404;
+
 const STEP_KEYS = [
   'register.step.account',
   'register.step.company',
@@ -108,6 +110,7 @@ function estimateCompanySize(registerCapital: string): string {
 }
 
 type SetCompanyField = (field: keyof CompanyValues, value: string) => void;
+type Translate = (key: string) => string;
 
 function applyCheckResult(
   result: CheckRegIdResponse,
@@ -125,6 +128,37 @@ function applyDbdResult(dbd: DbdCompanyProfile, setField: SetCompanyField) {
   if (dbd.nameTh) setField('companyName', dbd.nameTh);
   const size = estimateCompanySize(dbd.registerCapital);
   if (size) setField('companySize', size);
+}
+
+function getRegisteredCompany(
+  result: PromiseSettledResult<CheckRegIdResponse>,
+): CheckRegIdResponse | null {
+  if (result.status !== 'fulfilled' || !result.value.registered) return null;
+  return result.value;
+}
+
+function getLookupErrorMessage(error: unknown, t: Translate) {
+  if (error instanceof ApiError && error.status === httpStatusNotFound) {
+    return t('register.lookupNotFound');
+  }
+  return t('register.lookupUnavailable');
+}
+
+function applyDbdLookupResult(
+  result: PromiseSettledResult<DbdCompanyProfile>,
+  hasExisting: boolean,
+  setDbdInfo: (info: DbdCompanyProfile) => void,
+  setField: SetCompanyField,
+  setLookupError: (message: string) => void,
+  t: Translate,
+) {
+  if (result.status === 'fulfilled') {
+    setDbdInfo(result.value);
+    if (!hasExisting) applyDbdResult(result.value, setField);
+    return;
+  }
+
+  if (!hasExisting) setLookupError(getLookupErrorMessage(result.reason, t));
 }
 
 // ---------------------------------------------------------------------------
@@ -366,6 +400,7 @@ export function RegisterPage() {
   const [dbdInfo, setDbdInfo] = useState<DbdCompanyProfile | null>(null);
   const [regIdTaken, setRegIdTaken] = useState<string | null>(null);
   const [isLookingUp, setIsLookingUp] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileError, setTurnstileError] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -435,6 +470,7 @@ export function RegisterPage() {
     setIsLookingUp(true);
     setDbdInfo(null);
     setRegIdTaken(null);
+    setLookupError(null);
 
     const setField: SetCompanyField = (field, value) => companyForm.setFieldValue(field, value);
 
@@ -444,23 +480,20 @@ export function RegisterPage() {
         api.get<DbdCompanyProfile>(`/dbd/${regId}`),
       ]);
 
-      const hasExisting = checkResult.status === 'fulfilled' && checkResult.value.registered;
-
-      if (hasExisting && checkResult.status === 'fulfilled') {
+      const registeredCompany = getRegisteredCompany(checkResult);
+      const hasExisting = registeredCompany !== null;
+      if (registeredCompany) {
         applyCheckResult(
-          checkResult.value,
+          registeredCompany,
           setField,
           setRegIdTaken,
           t('register.companyName.unknown'),
         );
       }
 
-      if (dbdResult.status === 'fulfilled') {
-        setDbdInfo(dbdResult.value);
-        if (!hasExisting) applyDbdResult(dbdResult.value, setField);
-      }
+      applyDbdLookupResult(dbdResult, hasExisting, setDbdInfo, setField, setLookupError, t);
     } catch {
-      // user fills manually
+      setLookupError(t('register.lookupUnavailable'));
     } finally {
       setIsLookingUp(false);
     }
@@ -524,6 +557,7 @@ export function RegisterPage() {
                           field.handleChange(e.target.value);
                           setDbdInfo(null);
                           setRegIdTaken(null);
+                          setLookupError(null);
                         }}
                         data-testid="reg-company-id-input"
                       />
@@ -554,6 +588,12 @@ export function RegisterPage() {
             )}
 
             {dbdInfo && <DbdInfoCard info={dbdInfo} />}
+
+            {lookupError && (
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                {lookupError}
+              </div>
+            )}
 
             <companyForm.Field
               name="companyName"

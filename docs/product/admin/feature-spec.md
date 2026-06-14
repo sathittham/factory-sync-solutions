@@ -444,7 +444,7 @@ The export button bypasses `api.get` and uses raw `fetch` to receive the binary
 blob:
 
 ```ts
-const res = await fetch("/api/v1/admin/export", {
+const res = await fetch(apiUrl("/admin/export"), {
   headers: { Authorization: `Bearer ${await auth.currentUser?.getIdToken()}` },
 })
 const blob = await res.blob()

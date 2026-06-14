@@ -1,4 +1,4 @@
-import { api } from '@/lib/api';
+import { api, apiUrl } from '@/lib/api';
 import type {
   ApiDocsMetadata,
   ApiDocsVersionsResponse,
@@ -64,7 +64,7 @@ export const backofficeApi = {
   exportCSV: async (): Promise<Response> => {
     const { auth } = await import('@/lib/firebase');
     const token = await auth.currentUser?.getIdToken();
-    const res = await fetch('/api/v1/backoffice/export', {
+    const res = await fetch(apiUrl('/backoffice/export'), {
       headers: { Authorization: `Bearer ${token ?? ''}` },
     });
     return res;
