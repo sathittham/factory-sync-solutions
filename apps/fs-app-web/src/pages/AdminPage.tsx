@@ -23,7 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { trackEvent } from '@/lib/analytics';
-import { api } from '@/lib/api';
+import { api, apiUrl } from '@/lib/api';
 import { formatDateTime } from '@/lib/dayjs';
 import { auth } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
@@ -1458,7 +1458,7 @@ export function AdminPage() {
         setExportError(t('export.error'));
         return;
       }
-      const res = await fetch('/api/v1/admin/export', {
+      const res = await fetch(apiUrl('/admin/export'), {
         headers: {
           Authorization: `Bearer ${token}`,
         },

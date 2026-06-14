@@ -157,6 +157,8 @@ const translations: Record<Locale, Record<string, string>> = {
     'register.lookup': 'ค้นหา',
     'register.lookupLoading': '...',
     'register.lookupFound': 'พบแล้ว',
+    'register.lookupNotFound': 'ไม่พบข้อมูลบริษัทจาก DBD กรุณากรอกข้อมูลเอง',
+    'register.lookupUnavailable': 'ไม่สามารถค้นหาข้อมูล DBD ได้ในขณะนี้ กรุณาลองใหม่หรือกรอกข้อมูลเอง',
     'register.regIdTaken.title': 'บริษัทลงทะเบียนแล้ว',
     'register.regIdTaken.desc':
       'มีบัญชีที่ใช้เลขทะเบียนนี้แล้ว ระบบได้กรอกข้อมูลบริษัทให้แล้ว คุณยังสามารถลงทะเบียนด้วยอีเมลของคุณได้',
@@ -592,6 +594,10 @@ const translations: Record<Locale, Record<string, string>> = {
     'register.lookup': 'Lookup',
     'register.lookupLoading': '...',
     'register.lookupFound': 'Found',
+    'register.lookupNotFound':
+      'No company data was found in DBD. Please enter the details manually.',
+    'register.lookupUnavailable':
+      'DBD lookup is unavailable right now. Please try again or enter the details manually.',
     'register.regIdTaken.title': 'Company already registered',
     'register.regIdTaken.desc':
       'already has an account with this registration ID. Company details have been prefilled. You can still register with your email.',

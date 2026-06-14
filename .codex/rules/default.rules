@@ -140,3 +140,57 @@ prefix_rule(
     justification = "Production deploys publish externally and should be confirmed.",
     match = ["npm run deploy:prod"],
 )
+
+prefix_rule(
+    pattern = [
+        "npx",
+        "wrangler",
+        "pages",
+        "deploy",
+        "dist",
+        "--project-name=factory-sync-solutions",
+        "--branch=main",
+        "--account-id=9cfbba8b3a373fdc0d11abaf64071719",
+    ],
+    decision = "allow",
+    justification = "Allow repeated production user-app Pages artifact deploys after explicit task approval.",
+    match = [
+        "npx wrangler pages deploy dist --project-name=factory-sync-solutions --branch=main --account-id=9cfbba8b3a373fdc0d11abaf64071719",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "npx",
+        "wrangler",
+        "pages",
+        "deploy",
+        "dist",
+        "--project-name=factory-sync-backoffice",
+        "--branch=main",
+        "--account-id=9cfbba8b3a373fdc0d11abaf64071719",
+    ],
+    decision = "allow",
+    justification = "Allow repeated production backoffice Pages artifact deploys after explicit task approval.",
+    match = [
+        "npx wrangler pages deploy dist --project-name=factory-sync-backoffice --branch=main --account-id=9cfbba8b3a373fdc0d11abaf64071719",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "npx",
+        "wrangler",
+        "pages",
+        "deploy",
+        "dist",
+        "--project-name=factory-sync-solutions-official",
+        "--branch=main",
+        "--account-id=9cfbba8b3a373fdc0d11abaf64071719",
+    ],
+    decision = "allow",
+    justification = "Allow repeated production official-site Pages artifact deploys after explicit task approval.",
+    match = [
+        "npx wrangler pages deploy dist --project-name=factory-sync-solutions-official --branch=main --account-id=9cfbba8b3a373fdc0d11abaf64071719",
+    ],
+)

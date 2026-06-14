@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, api } from './api';
+import { ApiError, api, apiUrl } from './api';
 
 vi.mock('./firebase', () => ({ auth: { currentUser: null } }));
 
@@ -10,6 +10,12 @@ describe('ApiError', () => {
     expect(err.status).toBe(404);
     expect(err.message).toBe('Not found');
     expect(err).toBeInstanceOf(Error);
+  });
+});
+
+describe('apiUrl', () => {
+  it('builds URLs from the configured API base', () => {
+    expect(apiUrl('/profile')).toBe('/api/v1/profile');
   });
 });
 

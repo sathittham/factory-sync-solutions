@@ -2,6 +2,10 @@ import { auth } from './firebase';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
+export function apiUrl(path: string): string {
+  return `${API_BASE}${path}`;
+}
+
 async function getAuthHeaders(): Promise<HeadersInit> {
   const user = auth.currentUser;
   if (!user) {
@@ -16,7 +20,7 @@ async function getAuthHeaders(): Promise<HeadersInit> {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = await getAuthHeaders();
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(apiUrl(path), {
     ...options,
     headers: { ...headers, ...options.headers },
   });
