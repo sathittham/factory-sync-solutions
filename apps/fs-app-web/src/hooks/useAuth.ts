@@ -51,6 +51,11 @@ export function useAuth() {
         } catch (err) {
           console.warn('[useAuth] profile fetch error:', err);
           if (err instanceof ApiError && err.status === 404) {
+            if (window.location.pathname === '/auth/action') {
+              dispatch(setProfile(null));
+              dispatch(setLoading(false));
+              return;
+            }
             try {
               const inviteProfile = await api.post<Profile>('/invitations/accept', {});
               dispatch(setProfile(inviteProfile));

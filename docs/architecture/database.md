@@ -138,7 +138,9 @@ The authoritative Firestore security rules are maintained in [../operations/secu
 | Contact phone | `contactPhone` | Required |
 | Turnstile token | *(not stored)* | Required, verified server-side |
 
-`email` and `displayName` are populated from the Firebase Auth profile (Google account).
+`email` is populated from the Firebase Auth profile. `displayName` comes from
+the Firebase profile for Google/self-registered users and from the invitation
+setup form's contact name for invited email/password users.
 
 ## Quiz Question Structure
 
