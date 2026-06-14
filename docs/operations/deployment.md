@@ -1,5 +1,5 @@
 ---
-version: 1.5.0
+version: 1.5.1
 lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
@@ -121,8 +121,10 @@ npm run deploy:staging
 npm run deploy:prod
 ```
 
-The Cloudflare API token used by GitHub Actions must be able to deploy Workers
-and manage custom domains/routes for the `factorysyncsolutions.com` zone.
+GitHub Actions deploys the Worker with `CLOUDFLARE_WORKERS_API_TOKEN`. Keep this
+separate from the Pages/R2 `CLOUDFLARE_API_TOKEN`; it must be able to edit
+Workers and manage custom domains/routes for the `factorysyncsolutions.com`
+zone.
 
 ### Manual Deployment
 

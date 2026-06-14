@@ -1,5 +1,5 @@
 ---
-version: 1.5.0
+version: 1.5.1
 lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
@@ -137,7 +137,8 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | Secret | Description |
 |--------|-------------|
 | `GCP_SA_KEY` | GCP service account key JSON (Cloud Run deployment) |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API token (Pages, Workers, and R2 deployment) |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token for Pages deploys and R2 API docs publishing |
+| `CLOUDFLARE_WORKERS_API_TOKEN` | Cloudflare API token for API gateway Worker deploys; must be able to edit Workers and custom domains/routes for `factorysyncsolutions.com` |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
 | `RESEND_API_KEY` | Resend email API key (injected into Cloud Run) |
 | `CF_TURNSTILE_SECRET` | Cloudflare Turnstile server secret (injected into Cloud Run) |
@@ -234,3 +235,4 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | 1.4.0 | 2026-06-14 | Add Cloudflare API gateway variables and CDN custom domain examples |
 | 1.4.1 | 2026-06-14 | Change deployed API base URLs from `/api/v1` to `/v1` |
 | 1.5.0 | 2026-06-14 | Move API gateway Worker references to the infrastructure layout |
+| 1.5.1 | 2026-06-14 | Split Worker deploy token from Pages and R2 deploy token |

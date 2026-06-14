@@ -27,8 +27,9 @@ npm run deploy:prod
 ## Cloudflare Setup
 
 The zone `factorysyncsolutions.com` must be active in Cloudflare. Deploy uses
-Wrangler `custom_domain` routes from `wrangler.toml`, so the Cloudflare token
-needs Workers script and zone route/domain permissions for this zone.
+Wrangler `custom_domain` routes from `wrangler.toml`. In GitHub Actions, set
+`CLOUDFLARE_WORKERS_API_TOKEN` to a Cloudflare token that can edit Workers and
+manage custom domains/routes for this zone.
 
 Frontend builds should use:
 
