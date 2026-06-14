@@ -61,6 +61,34 @@ prefix_rule(
 )
 
 prefix_rule(
+    pattern = ["gh", "run", "list"],
+    decision = "allow",
+    justification = "Release verification needs read-only GitHub Actions run summaries after pushes and tags.",
+    match = ["gh run list --repo sathittham/factory-sync-solutions --limit 10"],
+)
+
+prefix_rule(
+    pattern = ["gh", "run", "view"],
+    decision = "allow",
+    justification = "Release troubleshooting needs read-only access to failed GitHub Actions logs.",
+    match = ["gh run view 123456789 --repo sathittham/factory-sync-solutions --log-failed"],
+)
+
+prefix_rule(
+    pattern = ["gh", "run", "watch"],
+    decision = "allow",
+    justification = "Release verification needs to watch deploy workflows until completion.",
+    match = ["gh run watch 123456789 --repo sathittham/factory-sync-solutions --exit-status"],
+)
+
+prefix_rule(
+    pattern = ["gh", "secret", "list"],
+    decision = "allow",
+    justification = "Release troubleshooting may need to confirm secret names exist without reading secret values.",
+    match = ["gh secret list --repo sathittham/factory-sync-solutions"],
+)
+
+prefix_rule(
     pattern = ["python3", "/Users/sathittham/.codex/skills/.system/skill-creator/scripts/init_skill.py"],
     decision = "allow",
     justification = "Repo-local workflow setup may initialize project skills under .agents/skills.",
