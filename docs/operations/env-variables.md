@@ -20,6 +20,7 @@ Centralized reference for all environment variables used across the project.
 | `GCP_PROJECT_ID` | Yes | Google Cloud project ID. Auto-detected on GCP, required locally. | `factory-sync-solutions` |
 | `PORT` | No | HTTP server port. Defaults to `8080`. | `8080` |
 | `ENVIRONMENT` | Yes | Current environment. Controls Swagger UI visibility and log levels. | `development`, `staging`, `production` |
+| `APP_URL` | Yes | Authenticated app URL used to build branded invitation password setup links (`/auth/action`). | `https://app.factorysyncsolutions.com` |
 
 ### Secrets (API Keys)
 
@@ -164,7 +165,7 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | `VITE_FIREBASE_APP_ID` | Firebase app ID (fs-app-web) | `1:123:web:abc` |
 | `VITE_BACKOFFICE_APP_ID` | Firebase app ID (fs-backoffice-web) | `1:123:web:def` |
 | `VITE_API_BASE_URL` | Backend API URL | `https://api.factorysyncsolutions.com/v1` |
-| `BACKOFFICE_APP_URL` | Backoffice URL used for staff invitation password setup links; falls back to `APP_URL` if unset | `https://backoffice.example.com` |
+| `BACKOFFICE_APP_URL` | Backoffice URL used for staff invitation password setup links; falls back to `APP_URL` if unset. Customer owner/member invitations use `APP_URL/auth/action`. | `https://backoffice.example.com` |
 | `R2_ACCOUNT_ID` | Cloudflare account ID for upload storage | `9cfbba8b3a373fdc0d11abaf64071719` |
 | `R2_PUBLIC_BUCKET` | Public R2 bucket for avatar uploads | `uploads-factorysyncsolutions-com-staging` |
 | `R2_PUBLIC_BASE_URL` | Public base URL for uploaded avatars | `https://cdn-staging.factorysyncsolutions.com` |

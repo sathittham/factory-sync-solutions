@@ -126,6 +126,27 @@ custom claim — see §11.1.
 | `reset` | "Forgot password?" link | `sendPasswordResetEmail` |
 | — | Google button | `signInWithPopup(googleProvider)` |
 
+### Invitation Password Setup (`/auth/action`)
+
+Backend invitation emails for customer members and project owners link to the
+branded authenticated app route `/auth/action` instead of Firebase's hosted
+reset-password page. The page is public, uses the same visual shell as sign-in,
+and collects the invited user's setup fields in one flow:
+
+| Field | Validation |
+|-------|------------|
+| Contact name | Required, 2–100 chars |
+| Contact phone | Required, 9–30 chars |
+| New password | Required, min 8 chars |
+| Confirm password | Must match new password |
+
+On submit, the page verifies the Firebase `oobCode`, sets the password, signs
+the invited user in once, updates the Firebase display name, calls
+`POST /api/v1/invitations/accept` with `contactName` and `contactPhone`, then
+signs the user out and shows the success state. The global auth bootstrap skips
+automatic empty-body invitation acceptance while the browser is on `/auth/action`
+so this form payload is the source of truth for the new profile's contact fields.
+
 ```mermaid
 sequenceDiagram
     participant U as User
@@ -457,6 +478,8 @@ Never commit any of these values. They are git-ignored via `.env*` and
 - [ ] Entering a valid email + password and clicking "Sign In" authenticates the user.
 - [ ] Clicking "Sign up" shows the create-account form; submitting creates a Firebase Auth account and redirects to `/register`.
 - [ ] Clicking "Forgot password?" switches to the reset form; submitting a known email shows the confirmation message.
+- [ ] Invitation password setup links open `/auth/action`, not Firebase's default hosted reset-password page.
+- [ ] `/auth/action` requires contact name, contact phone, new password, and matching confirm password before accepting the invitation.
 - [ ] Firebase error codes map to human-readable messages (wrong password, weak password, email in use, etc.).
 - [ ] "Passwords do not match" error shows if the sign-up confirm field differs.
 - [ ] A new authenticated user with no profile is redirected to `/register`.

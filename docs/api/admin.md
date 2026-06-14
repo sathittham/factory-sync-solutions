@@ -159,7 +159,7 @@ Set a user's role. Updates both the Firestore profile and Firebase custom claims
 
 ## Invitations
 
-### `POST /admin/invitations`
+### `POST /manage/invitations`
 
 Invite a new member by email. Creates a Firebase Auth account (if not already
 present), stores an `invitations/{uid}` Firestore document, and sends a bilingual
@@ -229,11 +229,21 @@ from the invitation snapshot and deletes the invitation document (single-use).
 
 **Auth:** Bearer token required. No admin role check.
 
+**Request body** — optional; used by the branded invitation setup page.
+```json
+{
+  "contactName": "New Member",
+  "contactPhone": "0812345678"
+}
+```
+
 **Response 200** — returns the newly created profile object.
 
 **Errors:**
 | Code | Meaning |
 |------|---------|
+| `400 BAD_REQUEST` | Invalid JSON body |
+| `400 VALIDATION_ERROR` | `contactName` or `contactPhone` failed validation |
 | `401 UNAUTHORIZED` | No valid Bearer token |
 | `404 NOT_FOUND` | No pending invitation for this UID |
 | `410 INVITATION_EXPIRED` | `expiresAt` is in the past — user must ask admin to resend |

@@ -581,7 +581,10 @@ export function Layout() {
     setCookieSettings(false);
   };
 
-  const isAuthPage = location.pathname === '/' || location.pathname === '/register';
+  const isAuthPage =
+    location.pathname === '/' ||
+    location.pathname === '/register' ||
+    location.pathname === '/auth/action';
   const breadcrumbSegments = (() => {
     const path = location.pathname;
     const adminTab = new URLSearchParams(location.search).get('tab');

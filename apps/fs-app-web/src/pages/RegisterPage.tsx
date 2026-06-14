@@ -2,6 +2,14 @@ import { Turnstile } from '@/components/Turnstile';
 import { LoginForm } from '@/components/login-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import {
@@ -22,7 +30,16 @@ import fsDarkLogo from '@shared/brand/fs-dark.png';
 import fsLightLogo from '@shared/brand/fs-light.png';
 import { getOfficialWebUrl } from '@shared/lib/officialSite';
 import { useForm } from '@tanstack/react-form';
-import { ArrowLeft, Building2, Check, ClipboardCheck, FileText, ShieldCheck } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  Check,
+  CheckCircle2,
+  ClipboardCheck,
+  FileText,
+  ShieldCheck,
+} from 'lucide-react';
 import { type ReactNode, useCallback, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import * as z from 'zod';
@@ -404,6 +421,7 @@ export function RegisterPage() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileError, setTurnstileError] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [createdProfile, setCreatedProfile] = useState<Profile | null>(null);
 
   // Field-level Zod schemas (depend on t — defined before hooks per React rules)
   const companyRegIdSchema = z.string().regex(/^\d{13}$/, t('register.regIdError'));
@@ -445,13 +463,24 @@ export function RegisterPage() {
           marketingConsent: value.marketingConsent,
           turnstileToken: turnstileToken ?? '',
         });
+        setCreatedProfile(profile);
         dispatch(setProfile(profile));
-        navigate('/dashboard');
       } catch (err) {
         setSubmitError(err instanceof ApiError ? err.message : t('register.error'));
       }
     },
   });
+
+  const handleSuccessContinue = useCallback(() => {
+    navigate('/dashboard');
+  }, [navigate]);
+
+  const handleSuccessOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) handleSuccessContinue();
+    },
+    [handleSuccessContinue],
+  );
 
   const handleTurnstileVerify = useCallback((token: string) => {
     setTurnstileToken(token);
@@ -516,7 +545,7 @@ export function RegisterPage() {
     );
   }
 
-  if (isRegistered) return <Navigate to="/dashboard" replace />;
+  if (isRegistered && !createdProfile) return <Navigate to="/dashboard" replace />;
 
   function getLookupLabel() {
     if (dbdInfo) return t('register.lookupFound');
@@ -525,239 +554,248 @@ export function RegisterPage() {
   }
 
   return (
-    <RegisterShell step={(step + 1) as RegisterStep}>
-      {/* ── Step 1: Company info ── */}
-      {step === 1 && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            companyForm.handleSubmit();
-          }}
-          className="space-y-4"
-        >
-          <FieldGroup>
-            <companyForm.Field
-              name="companyRegId"
-              validators={{ onBlur: companyRegIdSchema, onSubmit: companyRegIdSchema }}
+    <>
+      <Dialog open={!!createdProfile} onOpenChange={handleSuccessOpenChange}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+          <div className="border-b bg-emerald-50 px-6 py-5 dark:bg-emerald-950/25">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm">
+              <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
+            </div>
+            <DialogHeader className="text-center sm:text-center">
+              <DialogTitle className="text-2xl leading-tight">
+                {t('register.success.title')}
+              </DialogTitle>
+              <DialogDescription className="text-base">
+                {t('register.success.desc')}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
+          <div className="space-y-4 px-6">
+            <div className="rounded-md border bg-muted/30 p-4">
+              <p className="text-sm font-medium text-muted-foreground">
+                {t('register.success.companyLabel')}
+              </p>
+              <p className="mt-1 text-lg font-semibold text-foreground">
+                {createdProfile?.companyName}
+              </p>
+            </div>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {t('register.success.nextStep')}
+            </p>
+          </div>
+
+          <DialogFooter className="px-6 pb-6 sm:justify-center">
+            <Button
+              type="button"
+              className="h-11 w-full gap-2 font-semibold"
+              onClick={handleSuccessContinue}
+              data-testid="registration-success-dashboard-btn"
             >
-              {(field) => {
-                const isInvalid = field.state.meta.isTouched && field.state.meta.errors.length > 0;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor="companyRegId">{t('register.regId')}</FieldLabel>
-                    <div className="flex gap-2">
+              {t('register.success.toDashboard')}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <RegisterShell step={(step + 1) as RegisterStep}>
+        {/* ── Step 1: Company info ── */}
+        {step === 1 && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              companyForm.handleSubmit();
+            }}
+            className="space-y-4"
+          >
+            <FieldGroup>
+              <companyForm.Field
+                name="companyRegId"
+                validators={{ onBlur: companyRegIdSchema, onSubmit: companyRegIdSchema }}
+              >
+                {(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="companyRegId">{t('register.regId')}</FieldLabel>
+                      <div className="flex gap-2">
+                        <Input
+                          id="companyRegId"
+                          placeholder="0115560016313"
+                          className="font-mono tracking-wide"
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => {
+                            field.handleChange(e.target.value);
+                            setDbdInfo(null);
+                            setRegIdTaken(null);
+                            setLookupError(null);
+                          }}
+                          data-testid="reg-company-id-input"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleDbdLookup}
+                          disabled={isLookingUp || !!dbdInfo}
+                          className="shrink-0 min-w-[80px]"
+                          data-testid="reg-dbd-lookup-btn"
+                        >
+                          {isLookingUp ? <Spinner /> : getLookupLabel()}
+                        </Button>
+                      </div>
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
+              </companyForm.Field>
+
+              {regIdTaken && (
+                <div className="rounded-md border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-3 text-sm text-blue-800 dark:text-blue-300">
+                  <p className="font-medium text-xs mb-0.5">{t('register.regIdTaken.title')}</p>
+                  <p className="text-blue-700 dark:text-blue-400 text-[13px]">
+                    &ldquo;{regIdTaken}&rdquo; {t('register.regIdTaken.desc')}
+                  </p>
+                </div>
+              )}
+
+              {dbdInfo && <DbdInfoCard info={dbdInfo} />}
+
+              {lookupError && (
+                <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                  {lookupError}
+                </div>
+              )}
+
+              <companyForm.Field
+                name="companyName"
+                validators={{ onBlur: companyNameSchema, onSubmit: companyNameSchema }}
+              >
+                {(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="companyName">{t('register.companyName')}</FieldLabel>
                       <Input
-                        id="companyRegId"
-                        placeholder="0115560016313"
-                        className="font-mono tracking-wide"
+                        id="companyName"
                         value={field.state.value}
                         onBlur={field.handleBlur}
-                        onChange={(e) => {
-                          field.handleChange(e.target.value);
-                          setDbdInfo(null);
-                          setRegIdTaken(null);
-                          setLookupError(null);
-                        }}
-                        data-testid="reg-company-id-input"
+                        onChange={(e) => field.handleChange(e.target.value)}
                       />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleDbdLookup}
-                        disabled={isLookingUp || !!dbdInfo}
-                        className="shrink-0 min-w-[80px]"
-                        data-testid="reg-dbd-lookup-btn"
-                      >
-                        {isLookingUp ? <Spinner /> : getLookupLabel()}
-                      </Button>
-                    </div>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                  </Field>
-                );
-              }}
-            </companyForm.Field>
-
-            {regIdTaken && (
-              <div className="rounded-md border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-3 text-sm text-blue-800 dark:text-blue-300">
-                <p className="font-medium text-xs mb-0.5">{t('register.regIdTaken.title')}</p>
-                <p className="text-blue-700 dark:text-blue-400 text-[13px]">
-                  &ldquo;{regIdTaken}&rdquo; {t('register.regIdTaken.desc')}
-                </p>
-              </div>
-            )}
-
-            {dbdInfo && <DbdInfoCard info={dbdInfo} />}
-
-            {lookupError && (
-              <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-                {lookupError}
-              </div>
-            )}
-
-            <companyForm.Field
-              name="companyName"
-              validators={{ onBlur: companyNameSchema, onSubmit: companyNameSchema }}
-            >
-              {(field) => {
-                const isInvalid = field.state.meta.isTouched && field.state.meta.errors.length > 0;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor="companyName">{t('register.companyName')}</FieldLabel>
-                    <Input
-                      id="companyName"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                    />
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                  </Field>
-                );
-              }}
-            </companyForm.Field>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <companyForm.Field
-                name="industryType"
-                validators={{ onBlur: industryTypeSchema, onSubmit: industryTypeSchema }}
-              >
-                {(field) => {
-                  const isInvalid =
-                    field.state.meta.isTouched && field.state.meta.errors.length > 0;
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor="industryType">{t('register.industryType')}</FieldLabel>
-                      <Select
-                        value={field.state.value}
-                        onValueChange={(v) => {
-                          field.handleChange(v);
-                          field.handleBlur();
-                        }}
-                      >
-                        <SelectTrigger id="industryType">
-                          <SelectValue placeholder={t('register.select')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {industryKeys.map((key) => (
-                              <SelectItem key={key} value={key}>
-                                {t(`industry.${key}`)}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
                       {isInvalid && <FieldError errors={field.state.meta.errors} />}
                     </Field>
                   );
                 }}
               </companyForm.Field>
 
-              <companyForm.Field
-                name="companySize"
-                validators={{ onBlur: companySizeSchema, onSubmit: companySizeSchema }}
-              >
-                {(field) => {
-                  const isInvalid =
-                    field.state.meta.isTouched && field.state.meta.errors.length > 0;
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor="companySize">{t('register.companySize')}</FieldLabel>
-                      <Select
-                        value={field.state.value}
-                        onValueChange={(v) => {
-                          field.handleChange(v);
-                          field.handleBlur();
-                        }}
-                      >
-                        <SelectTrigger id="companySize">
-                          <SelectValue placeholder={t('register.select')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {sizeKeys.map((key) => (
-                              <SelectItem key={key} value={key}>
-                                {t(`size.${key}`)}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                    </Field>
-                  );
-                }}
-              </companyForm.Field>
-            </div>
-          </FieldGroup>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <companyForm.Field
+                  name="industryType"
+                  validators={{ onBlur: industryTypeSchema, onSubmit: industryTypeSchema }}
+                >
+                  {(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="industryType">{t('register.industryType')}</FieldLabel>
+                        <Select
+                          value={field.state.value}
+                          onValueChange={(v) => {
+                            field.handleChange(v);
+                            field.handleBlur();
+                          }}
+                        >
+                          <SelectTrigger id="industryType">
+                            <SelectValue placeholder={t('register.select')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              {industryKeys.map((key) => (
+                                <SelectItem key={key} value={key}>
+                                  {t(`industry.${key}`)}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </companyForm.Field>
 
-          <Button type="submit" className="w-full h-11 font-semibold">
-            {t('register.next')} →
-          </Button>
-        </form>
-      )}
+                <companyForm.Field
+                  name="companySize"
+                  validators={{ onBlur: companySizeSchema, onSubmit: companySizeSchema }}
+                >
+                  {(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="companySize">{t('register.companySize')}</FieldLabel>
+                        <Select
+                          value={field.state.value}
+                          onValueChange={(v) => {
+                            field.handleChange(v);
+                            field.handleBlur();
+                          }}
+                        >
+                          <SelectTrigger id="companySize">
+                            <SelectValue placeholder={t('register.select')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              {sizeKeys.map((key) => (
+                                <SelectItem key={key} value={key}>
+                                  {t(`size.${key}`)}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </companyForm.Field>
+              </div>
+            </FieldGroup>
 
-      {/* ── Step 2: Contact info ── */}
-      {step === 2 && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            contactForm.handleSubmit();
-          }}
-          className="space-y-4"
-        >
-          <FieldGroup>
-            <contactForm.Field
-              name="contactName"
-              validators={{ onBlur: contactNameSchema, onSubmit: contactNameSchema }}
-            >
-              {(field) => {
-                const isInvalid = field.state.meta.isTouched && field.state.meta.errors.length > 0;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor="contactName">{t('register.contactName')}</FieldLabel>
-                    <Input
-                      id="contactName"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                    />
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                  </Field>
-                );
-              }}
-            </contactForm.Field>
+            <Button type="submit" className="w-full h-11 font-semibold">
+              {t('register.next')} →
+            </Button>
+          </form>
+        )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <contactForm.Field name="contactEmail">
-                {(field) => (
-                  <Field>
-                    <FieldLabel htmlFor="contactEmail">{t('register.contactEmail')}</FieldLabel>
-                    <Input
-                      id="contactEmail"
-                      type="email"
-                      readOnly
-                      tabIndex={-1}
-                      className="bg-muted/40 cursor-not-allowed opacity-60 text-muted-foreground"
-                      value={field.state.value}
-                    />
-                  </Field>
-                )}
-              </contactForm.Field>
-
+        {/* ── Step 2: Contact info ── */}
+        {step === 2 && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              contactForm.handleSubmit();
+            }}
+            className="space-y-4"
+          >
+            <FieldGroup>
               <contactForm.Field
-                name="contactPhone"
-                validators={{ onBlur: contactPhoneSchema, onSubmit: contactPhoneSchema }}
+                name="contactName"
+                validators={{ onBlur: contactNameSchema, onSubmit: contactNameSchema }}
               >
                 {(field) => {
                   const isInvalid =
                     field.state.meta.isTouched && field.state.meta.errors.length > 0;
                   return (
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor="contactPhone">{t('register.contactPhone')}</FieldLabel>
+                      <FieldLabel htmlFor="contactName">{t('register.contactName')}</FieldLabel>
                       <Input
-                        id="contactPhone"
+                        id="contactName"
                         value={field.state.value}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
@@ -767,92 +805,134 @@ export function RegisterPage() {
                   );
                 }}
               </contactForm.Field>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <contactForm.Field name="contactEmail">
+                  {(field) => (
+                    <Field>
+                      <FieldLabel htmlFor="contactEmail">{t('register.contactEmail')}</FieldLabel>
+                      <Input
+                        id="contactEmail"
+                        type="email"
+                        readOnly
+                        tabIndex={-1}
+                        className="bg-muted/40 cursor-not-allowed opacity-60 text-muted-foreground"
+                        value={field.state.value}
+                      />
+                    </Field>
+                  )}
+                </contactForm.Field>
+
+                <contactForm.Field
+                  name="contactPhone"
+                  validators={{ onBlur: contactPhoneSchema, onSubmit: contactPhoneSchema }}
+                >
+                  {(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="contactPhone">{t('register.contactPhone')}</FieldLabel>
+                        <Input
+                          id="contactPhone"
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
+                </contactForm.Field>
+              </div>
+
+              <contactForm.Field name="marketingConsent">
+                {(field) => (
+                  <div className="flex items-start gap-2.5 pt-1">
+                    <input
+                      type="checkbox"
+                      id="marketingConsent"
+                      className="mt-1 h-4 w-4 rounded border-gray-300 accent-primary"
+                      checked={field.state.value as boolean}
+                      onChange={(e) => field.handleChange(e.target.checked)}
+                    />
+                    <label htmlFor="marketingConsent" className="text-sm leading-relaxed">
+                      {t('register.marketingConsent')}
+                      <span className="block text-xs text-muted-foreground mt-0.5">
+                        {t('register.marketingConsentDetail')}{' '}
+                        <a
+                          href="https://factorysyncsolutions.com/marketing"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary hover:underline font-medium"
+                        >
+                          {t('register.marketingPolicyLink')}
+                        </a>
+                      </span>
+                    </label>
+                  </div>
+                )}
+              </contactForm.Field>
+            </FieldGroup>
+
+            {TURNSTILE_SITE_KEY && (
+              <div className="flex flex-col items-center gap-2">
+                <Turnstile
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onVerify={handleTurnstileVerify}
+                  onExpire={handleTurnstileExpire}
+                  onError={handleTurnstileError}
+                  language={locale}
+                />
+                {turnstileError && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    {t('register.captchaUnavailable')}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {submitError && (
+              <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm text-center">
+                {submitError}
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 gap-1.5"
+                onClick={() => {
+                  setStep(1);
+                  setSubmitError(null);
+                }}
+                disabled={contactForm.state.isSubmitting}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                {t('register.back')}
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 h-11 font-semibold"
+                disabled={
+                  contactForm.state.isSubmitting || (!!TURNSTILE_SITE_KEY && !turnstileToken)
+                }
+                data-testid="registration-submit-btn"
+              >
+                {contactForm.state.isSubmitting ? (
+                  <>
+                    <Spinner />
+                    <span className="ml-2">{t('register.submitting')}</span>
+                  </>
+                ) : (
+                  t('register.submit')
+                )}
+              </Button>
             </div>
-
-            <contactForm.Field name="marketingConsent">
-              {(field) => (
-                <div className="flex items-start gap-2.5 pt-1">
-                  <input
-                    type="checkbox"
-                    id="marketingConsent"
-                    className="mt-1 h-4 w-4 rounded border-gray-300 accent-primary"
-                    checked={field.state.value as boolean}
-                    onChange={(e) => field.handleChange(e.target.checked)}
-                  />
-                  <label htmlFor="marketingConsent" className="text-sm leading-relaxed">
-                    {t('register.marketingConsent')}
-                    <span className="block text-xs text-muted-foreground mt-0.5">
-                      {t('register.marketingConsentDetail')}{' '}
-                      <a
-                        href="https://factorysyncsolutions.com/marketing"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-primary hover:underline font-medium"
-                      >
-                        {t('register.marketingPolicyLink')}
-                      </a>
-                    </span>
-                  </label>
-                </div>
-              )}
-            </contactForm.Field>
-          </FieldGroup>
-
-          {TURNSTILE_SITE_KEY && (
-            <div className="flex flex-col items-center gap-2">
-              <Turnstile
-                siteKey={TURNSTILE_SITE_KEY}
-                onVerify={handleTurnstileVerify}
-                onExpire={handleTurnstileExpire}
-                onError={handleTurnstileError}
-                language={locale}
-              />
-              {turnstileError && (
-                <p className="text-xs text-muted-foreground text-center">
-                  {t('register.captchaUnavailable')}
-                </p>
-              )}
-            </div>
-          )}
-
-          {submitError && (
-            <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm text-center">
-              {submitError}
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11 gap-1.5"
-              onClick={() => {
-                setStep(1);
-                setSubmitError(null);
-              }}
-              disabled={contactForm.state.isSubmitting}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {t('register.back')}
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1 h-11 font-semibold"
-              disabled={contactForm.state.isSubmitting || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
-              data-testid="registration-submit-btn"
-            >
-              {contactForm.state.isSubmitting ? (
-                <>
-                  <Spinner />
-                  <span className="ml-2">{t('register.submitting')}</span>
-                </>
-              ) : (
-                t('register.submit')
-              )}
-            </Button>
-          </div>
-        </form>
-      )}
-    </RegisterShell>
+          </form>
+        )}
+      </RegisterShell>
+    </>
   );
 }

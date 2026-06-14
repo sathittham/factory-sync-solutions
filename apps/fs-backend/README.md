@@ -107,7 +107,7 @@ cp .env.example .env.development
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path to service account JSON |
 | `PORT` | Server port (default: `8080`) |
 | `ENVIRONMENT` | `development` / `production` |
-| `APP_URL` | Authenticated app URL used as Firebase password-reset / invite continue URL |
+| `APP_URL` | Authenticated app URL used to build branded invitation password setup links (`/auth/action`) |
 | `ALLOWED_ORIGINS` | CORS allowed origins (comma-separated) |
 | `CF_TURNSTILE_SECRET` | Cloudflare Turnstile server secret |
 | `RESEND_API_KEY` | Resend API key for email notifications |
@@ -188,7 +188,7 @@ All API routes are under `/api/v1`. Authenticated routes require a `Authorizatio
 | `GET` | `/api/v1/dbd/{regId}` | DBD company lookup |
 | `POST` | `/api/v1/upload/avatar` | Upload/replace caller avatar in R2 |
 | `DELETE` | `/api/v1/upload/avatar` | Delete caller avatar from R2 |
-| `POST` | `/api/v1/invitations/accept` | Accept a project invitation |
+| `POST` | `/api/v1/invitations/accept` | Accept a pending member invitation |
 
 ### Admin (requires `admin` role)
 

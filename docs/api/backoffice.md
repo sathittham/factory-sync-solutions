@@ -253,8 +253,9 @@ Remove a member from a project. Does not delete the user account.
 
 ### `POST /backoffice/projects/{projectID}/invite-owner`
 
-Send an owner invitation email to an existing user, adding them to the project
-with `role: "owner"`.
+Create or reuse a pending Firebase Auth user, assign the customer `owner` role
+claim, persist an `invitations/{uid}` document for the selected project, and send
+a branded `/auth/action` password setup invitation email.
 
 **Role**: staff+
 
@@ -267,11 +268,20 @@ with `role: "owner"`.
 
 **Response 200**
 ```json
-{ "success": true }
+{
+  "success": true,
+  "data": {
+    "uid": "firebase-uid",
+    "email": "newowner@acme.co",
+    "projectID": "0123456789012",
+    "projectRole": "owner",
+    "expiresAt": "2026-06-15T10:00:00Z"
+  }
+}
 ```
 
-**Error 404** — no user account found for that email
-**Error 409** — user is already a member of this project
+**Error 404** — project not found
+**Error 409** — user already has a completed profile or is already a member of this project
 
 ---
 

@@ -847,9 +847,15 @@ func (h *Handler) InviteOwner(w http.ResponseWriter, r *http.Request) {
 		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 		return
 	}
-	link, err := h.authClient.PasswordResetLinkWithSettings(ctx, req.Email, &firebaseAuth.ActionCodeSettings{URL: appURL})
+	firebaseLink, err := h.authClient.PasswordResetLinkWithSettings(ctx, req.Email, &firebaseAuth.ActionCodeSettings{URL: appURL})
 	if err != nil {
 		slog.Error("backoffice: generate owner invite link failed", "email", req.Email, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+	link, err := pkg.BuildPasswordResetActionURL(appURL, firebaseLink)
+	if err != nil {
+		slog.Error("backoffice: build branded owner invite link failed", "email", req.Email, "error", err.Error())
 		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 		return
 	}

@@ -200,6 +200,8 @@ const translations: Record<Locale, Record<string, string>> = {
     'register.companyName.unknown': 'บริษัทที่ลงทะเบียนแล้ว',
     'register.success.title': 'ลงทะเบียนสำเร็จ!',
     'register.success.desc': 'บัญชีบริษัทของคุณพร้อมใช้งานแล้ว',
+    'register.success.companyLabel': 'บริษัทที่สร้างเรียบร้อย',
+    'register.success.nextStep': 'คุณสามารถเข้าสู่แดชบอร์ดเพื่อเริ่มทำแบบประเมินและดูสถานะบริษัทได้ทันที',
     'register.success.toDashboard': 'ไปยังแดชบอร์ด',
 
     // Industry types
@@ -473,17 +475,27 @@ const translations: Record<Locale, Record<string, string>> = {
 
     // Auth action (password reset / invite)
     'auth.setPassword.title': 'ตั้งรหัสผ่านของคุณ', // NOSONAR typescript:S2068
+    'auth.setPassword.kicker': 'คำเชิญปลอดภัย',
     'auth.setPassword.subtitle': 'ตั้งรหัสผ่านเพื่อเข้าใช้งาน FactorySync Solutions',
     'auth.setPassword.passwordLabel': 'รหัสผ่านใหม่', // NOSONAR typescript:S2068
     'auth.setPassword.confirmLabel': 'ยืนยันรหัสผ่าน', // NOSONAR typescript:S2068
     'auth.setPassword.submit': 'บันทึกรหัสผ่าน', // NOSONAR typescript:S2068
     'auth.setPassword.minLength': 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร',
     'auth.setPassword.passwordMismatch': 'รหัสผ่านไม่ตรงกัน', // NOSONAR typescript:S2068
+    'auth.setPassword.showPassword': 'แสดงรหัสผ่าน', // NOSONAR typescript:S2068
+    'auth.setPassword.hidePassword': 'ซ่อนรหัสผ่าน', // NOSONAR typescript:S2068
+    'auth.setPassword.ready': 'พร้อมใช้งาน',
+    'auth.setPassword.successTitle': 'ตั้งรหัสผ่านสำเร็จ', // NOSONAR typescript:S2068
     'auth.setPassword.success': 'ตั้งรหัสผ่านเรียบร้อยแล้ว กรุณาเข้าสู่ระบบ', // NOSONAR typescript:S2068
     'auth.setPassword.expiredLink': 'ลิงก์หมดอายุแล้ว กรุณาขอคำเชิญใหม่',
     'auth.setPassword.invalidLink': 'ลิงก์ไม่ถูกต้อง กรุณาตรวจสอบอีเมลอีกครั้ง',
+    'auth.setPassword.invalidHelp': 'ลิงก์อาจหมดอายุ ถูกใช้ไปแล้ว หรือถูกคัดลอกมาไม่ครบ',
+    'auth.setPassword.linkProblem': 'ตรวจสอบลิงก์',
     'auth.setPassword.genericError': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง',
     'auth.setPassword.goSignIn': 'ไปยังหน้าเข้าสู่ระบบ',
+    'auth.setPassword.securityNote':
+      'ลิงก์นี้ใช้ได้ครั้งเดียวเท่านั้น หากมีปัญหา กรุณาขอคำเชิญใหม่จากผู้ดูแลระบบ',
+    'auth.setPassword.footer': 'FactorySync Solutions · @factorysyncsolutions',
 
     // 404
     'notFound.title': 'ไม่พบหน้าที่ค้นหา',
@@ -641,6 +653,9 @@ const translations: Record<Locale, Record<string, string>> = {
     'register.companyName.unknown': 'Unknown company',
     'register.success.title': 'Registration Successful!',
     'register.success.desc': 'Your company account is ready. Start your assessment now.',
+    'register.success.companyLabel': 'Created company',
+    'register.success.nextStep':
+      'Open the dashboard to start the assessment and review your company status.',
     'register.success.toDashboard': 'Go to Dashboard',
 
     // Industry types
@@ -917,17 +932,28 @@ const translations: Record<Locale, Record<string, string>> = {
 
     // Auth action (password reset / invite)
     'auth.setPassword.title': 'Set your password', // NOSONAR typescript:S2068
+    'auth.setPassword.kicker': 'Secure invitation',
     'auth.setPassword.subtitle': 'Create a password to access FactorySync Solutions',
     'auth.setPassword.passwordLabel': 'New password', // NOSONAR typescript:S2068
     'auth.setPassword.confirmLabel': 'Confirm password', // NOSONAR typescript:S2068
     'auth.setPassword.submit': 'Save password', // NOSONAR typescript:S2068
     'auth.setPassword.minLength': 'Password must be at least 8 characters',
     'auth.setPassword.passwordMismatch': 'Passwords do not match', // NOSONAR typescript:S2068
+    'auth.setPassword.showPassword': 'Show password', // NOSONAR typescript:S2068
+    'auth.setPassword.hidePassword': 'Hide password', // NOSONAR typescript:S2068
+    'auth.setPassword.ready': 'Ready',
+    'auth.setPassword.successTitle': 'Password saved', // NOSONAR typescript:S2068
     'auth.setPassword.success': 'Password set successfully. Please sign in.', // NOSONAR typescript:S2068
     'auth.setPassword.expiredLink': 'This link has expired. Please request a new invitation.',
     'auth.setPassword.invalidLink': 'Invalid link. Please check your email again.',
+    'auth.setPassword.invalidHelp':
+      'The link may have expired, already been used, or been copied incompletely.',
+    'auth.setPassword.linkProblem': 'Link check',
     'auth.setPassword.genericError': 'Something went wrong. Please try again.',
     'auth.setPassword.goSignIn': 'Go to sign in',
+    'auth.setPassword.securityNote':
+      'This link can only be used once. If it does not work, ask an administrator to send a new invitation.',
+    'auth.setPassword.footer': 'FactorySync Solutions · @factorysyncsolutions',
 
     // 404
     'notFound.title': 'Page not found',

@@ -12,6 +12,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -512,6 +513,11 @@ type inviteRequest struct {
 	Role  string `json:"role"`
 }
 
+type acceptInvitationRequest struct {
+	ContactName  string `json:"contactName" validate:"omitempty,min=2,max=100"`
+	ContactPhone string `json:"contactPhone" validate:"omitempty,min=9,max=30"`
+}
+
 // resolveOrCreateAuthUser ensures a Firebase Auth account exists for the given email.
 // Returns the UID and a boolean indicating whether the caller should abort with a 409 (user
 // already has a completed Firestore profile). Any other error is returned wrapped.
@@ -631,10 +637,16 @@ func (h *Handler) InviteMember(w http.ResponseWriter, r *http.Request) {
 		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 		return
 	}
-	link, err := h.authClient.PasswordResetLinkWithSettings(ctx, req.Email,
+	firebaseLink, err := h.authClient.PasswordResetLinkWithSettings(ctx, req.Email,
 		&firebaseAuth.ActionCodeSettings{URL: appURL})
 	if err != nil {
 		slog.Error("invite: generate password reset link failed", "email", req.Email, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+	link, err := pkg.BuildPasswordResetActionURL(appURL, firebaseLink)
+	if err != nil {
+		slog.Error("invite: build branded password reset link failed", "email", req.Email, "error", err.Error())
 		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 		return
 	}
@@ -674,11 +686,15 @@ func (h *Handler) InviteMember(w http.ResponseWriter, r *http.Request) {
 // @Summary      Accept a pending invitation
 // @Description  Creates a Firestore profile from the invitation document and deletes it
 // @Tags         Admin
+// @Accept       json
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
+// @Param        body           body    acceptInvitationRequest  false  "Invitation profile fields"
 // @Success      200  {object}  pkg.JSONResponse
+// @Failure      400  {object}  pkg.ErrorResponse
 // @Failure      401  {object}  pkg.ErrorResponse
 // @Failure      404  {object}  pkg.ErrorResponse
+// @Failure      410  {object}  pkg.ErrorResponse
 // @Failure      500  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
 // @Router       /invitations/accept [post]
@@ -687,6 +703,20 @@ func (h *Handler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 	if uid == "" {
 		pkg.RespondError(w, http.StatusUnauthorized, "UNAUTHORIZED", "authentication required")
 		return
+	}
+
+	var req acceptInvitationRequest
+	if r.Body != nil && r.ContentLength != 0 {
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			pkg.RespondError(w, http.StatusBadRequest, "BAD_REQUEST", "invalid JSON body")
+			return
+		}
+		req.ContactName = strings.TrimSpace(req.ContactName)
+		req.ContactPhone = strings.TrimSpace(req.ContactPhone)
+		if err := pkg.Validate.Struct(req); err != nil {
+			pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid invitation profile fields")
+			return
+		}
 	}
 
 	if h.fsClient == nil {
@@ -724,18 +754,23 @@ func (h *Handler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 
 	email := middleware.GetEmail(r)
 	displayName := middleware.GetDisplayName(r)
+	contactName := displayName
+	if req.ContactName != "" {
+		contactName = req.ContactName
+	}
 	now := time.Now().UTC().Format(time.RFC3339)
 
 	p := profile.Profile{
 		UID:          uid,
 		Email:        email,
-		DisplayName:  displayName,
+		DisplayName:  contactName,
 		CompanyName:  inv.CompanyName,
 		CompanyRegID: inv.CompanyRegID,
 		IndustryType: inv.IndustryType,
 		CompanySize:  inv.CompanySize,
-		ContactName:  displayName, // editable via profile update later
+		ContactName:  contactName,
 		ContactEmail: email,
+		ContactPhone: req.ContactPhone,
 		Role:         inv.Role,
 		CreatedAt:    now,
 		UpdatedAt:    now,
@@ -870,9 +905,15 @@ func (h *Handler) ResendInvitation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	settings := &firebaseAuth.ActionCodeSettings{URL: appURL}
-	link, err := h.authClient.PasswordResetLinkWithSettings(ctx, inv.Email, settings)
+	firebaseLink, err := h.authClient.PasswordResetLinkWithSettings(ctx, inv.Email, settings)
 	if err != nil {
 		slog.Error("resend invitation: generate password reset link failed", "email", inv.Email, "error", err.Error())
+		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
+		return
+	}
+	link, err := pkg.BuildPasswordResetActionURL(appURL, firebaseLink)
+	if err != nil {
+		slog.Error("resend invitation: build branded password reset link failed", "email", inv.Email, "error", err.Error())
 		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 		return
 	}
