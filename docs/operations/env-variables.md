@@ -58,7 +58,7 @@ deployed by Wrangler.
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
-| `UPSTREAM_ORIGIN` | Yes | Cloud Run origin that receives proxied API requests. Do not include `/api/v1`. | `https://factory-sync-solutions-api-staging-738710072389.asia-southeast3.run.app` |
+| `UPSTREAM_ORIGIN` | Yes | Cloud Run origin that receives proxied API requests. Do not include `/api/v1`. | `https://factory-sync-solutions-api-staging-awjl4b5skq-eu.a.run.app` |
 | `ALLOWED_ORIGINS` | Yes | Comma-separated browser origins allowed by the gateway CORS layer. | `https://app-staging.factorysyncsolutions.com,https://backoffice-staging.factorysyncsolutions.com` |
 
 ### API Documentation Artifacts

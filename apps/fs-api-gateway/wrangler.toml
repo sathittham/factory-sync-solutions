@@ -7,7 +7,7 @@ workers_dev = false
 name = "factory-sync-api-gateway"
 
 [env.production.vars]
-UPSTREAM_ORIGIN = "https://factory-sync-solutions-api-241196731341.asia-southeast3.run.app"
+UPSTREAM_ORIGIN = "https://factory-sync-solutions-api-lumldnu3vq-eu.a.run.app"
 ALLOWED_ORIGINS = "https://app.factorysyncsolutions.com,https://backoffice.factorysyncsolutions.com,https://factorysyncsolutions.com,https://factory-sync-solutions.pages.dev,https://factory-sync-backoffice.pages.dev"
 
 [[env.production.routes]]
@@ -18,7 +18,7 @@ custom_domain = true
 name = "factory-sync-api-gateway-staging"
 
 [env.staging.vars]
-UPSTREAM_ORIGIN = "https://factory-sync-solutions-api-staging-738710072389.asia-southeast3.run.app"
+UPSTREAM_ORIGIN = "https://factory-sync-solutions-api-staging-awjl4b5skq-eu.a.run.app"
 ALLOWED_ORIGINS = "https://app-staging.factorysyncsolutions.com,https://backoffice-staging.factorysyncsolutions.com,https://staging.factorysyncsolutions.com,https://factory-sync-solutions-staging.pages.dev,https://factory-sync-backoffice-staging.pages.dev"
 
 [[env.staging.routes]]
