@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.0.1
 lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
@@ -33,7 +33,7 @@ Preview without changing branches, tags, or remotes:
 .agents/skills/release-flow/scripts/release-flow.sh --target staging --feature feature/ux-improvements --version v0.8.1 --dry-run
 ```
 
-The script checks for a clean worktree, fetches branches and tags, rejects duplicate tags, promotes branches, creates tags, pushes to `origin`, and prints a final status summary.
+The script checks for a clean worktree, fetches branches and tags, rejects duplicate tags, promotes branches, deletes the merged feature branch after `develop` is pushed, creates tags, pushes to `origin`, and prints a final status summary.
 
 ## Manual Promotion
 
@@ -47,6 +47,8 @@ git switch develop
 git merge --ff-only origin/<feature-branch>
 git merge --no-edit origin/main   # only if main has production-only commits
 git push origin develop
+git branch -d <feature-branch>
+git push origin --delete <feature-branch>
 
 git switch staging
 git merge --ff-only develop
@@ -98,5 +100,6 @@ Expected final state:
 
 - Do not force-push release branches.
 - Do not delete or overwrite tags without a rollback plan.
+- Delete feature branches only after they have been merged into `develop` and `develop` has been pushed.
 - Do not use `git reset --hard` or `git clean` as part of normal release work.
 - Reconcile production-only `main` commits into `develop` before promoting to `staging`.

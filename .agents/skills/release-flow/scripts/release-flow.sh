@@ -15,6 +15,9 @@ Promotes:
   staging:    feature/* -> develop -> staging + vX.Y.Z-staging
   production: staging -> main + vX.Y.Z
   both:       staging flow, then production flow
+
+Staging cleanup:
+  after develop is pushed, deletes the merged feature branch locally and on origin
 USAGE
 }
 
@@ -131,6 +134,16 @@ require_tag_exists() {
   exit 1
 }
 
+cleanup_feature_branch() {
+  if git show-ref --verify --quiet "refs/heads/${feature_branch}"; then
+    run git branch -d "$feature_branch"
+  fi
+
+  if git show-ref --verify --quiet "refs/remotes/origin/${feature_branch}"; then
+    run git push origin --delete "$feature_branch"
+  fi
+}
+
 run_staging_release() {
   run git switch develop
   run git merge --ff-only "origin/${feature_branch}"
@@ -140,6 +153,7 @@ run_staging_release() {
     run git merge --no-edit origin/main
   fi
   run git push origin develop
+  cleanup_feature_branch
 
   run git switch staging
   run git merge --ff-only develop

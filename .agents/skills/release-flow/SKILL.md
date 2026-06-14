@@ -35,7 +35,7 @@ The script:
 - fetches `origin --prune --tags`;
 - verifies the required remote branches exist;
 - verifies the target tag does not already exist locally or remotely;
-- for `staging`, fast-forwards `develop` from the feature branch, reconciles `origin/main` into `develop` if needed, pushes `develop`, fast-forwards `staging`, and creates/pushes `vX.Y.Z-staging`;
+- for `staging`, fast-forwards `develop` from the feature branch, reconciles `origin/main` into `develop` if needed, pushes `develop`, deletes the merged feature branch locally and on `origin`, fast-forwards `staging`, and creates/pushes `vX.Y.Z-staging`;
 - for `production`, fast-forwards local `staging` from `origin/staging`, fast-forwards `main` from staging, and creates/pushes `vX.Y.Z`;
 - for `both`, runs the staging path and then the production path;
 - prints a final branch/tag summary.
@@ -56,6 +56,8 @@ git switch develop
 git merge --ff-only origin/<feature-branch>
 git merge --no-edit origin/main   # only if origin/main has commits not in develop
 git push origin develop
+git branch -d <feature-branch>
+git push origin --delete <feature-branch>
 
 git switch staging
 git merge --ff-only develop
@@ -83,6 +85,7 @@ For a full release, run staging first, verify staging, then run production.
 ## Guardrails
 
 - Never use `git reset --hard`, `git clean`, force-push, or delete tags unless the user explicitly requests a recovery or rollback plan.
+- Delete feature branches only after they have been merged into `develop` and `develop` has been pushed.
 - Do not create a production tag before the staging tag is pushed.
 - Do not skip the `origin/main` reconciliation check. This repo has had `main` production fixes that were not on `develop` or `staging`.
 - If any merge conflicts occur, stop and report the files. Resolve only after inspecting the conflict.
