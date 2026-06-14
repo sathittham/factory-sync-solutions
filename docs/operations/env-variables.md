@@ -1,5 +1,5 @@
 ---
-version: 1.4.1
+version: 1.5.0
 lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
@@ -51,9 +51,9 @@ Centralized reference for all environment variables used across the project.
 | `R2_PUBLIC_BUCKET` | When upload service enabled | Public R2 bucket used for CDN-served avatars. | `uploads-factorysyncsolutions-com-staging` |
 | `R2_PUBLIC_BASE_URL` | When upload service enabled | Public delivery base URL for avatar URLs stored in Firestore. | `https://cdn-staging.factorysyncsolutions.com` |
 
-## Cloudflare Worker — `fs-api-gateway`
+## Cloudflare Worker — API Gateway
 
-These values are configured in `apps/fs-api-gateway/wrangler.toml` and are
+These values are configured in `infra/cloudflare/workers/api-gateway/wrangler.toml` and are
 deployed by Wrangler.
 
 | Variable | Required | Description | Example |
@@ -233,3 +233,4 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | 1.3.0 | 2026-06-14 | Add API docs R2 publishing variables |
 | 1.4.0 | 2026-06-14 | Add Cloudflare API gateway variables and CDN custom domain examples |
 | 1.4.1 | 2026-06-14 | Change deployed API base URLs from `/api/v1` to `/v1` |
+| 1.5.0 | 2026-06-14 | Move API gateway Worker references to the infrastructure layout |

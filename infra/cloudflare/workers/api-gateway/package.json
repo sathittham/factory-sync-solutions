@@ -1,5 +1,5 @@
 {
-  "name": "fs-api-gateway",
+  "name": "factory-sync-api-gateway",
   "private": true,
   "type": "module",
   "scripts": {

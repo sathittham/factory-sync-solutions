@@ -1,5 +1,5 @@
 ---
-version: 1.7.1
+version: 1.8.0
 lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
@@ -40,8 +40,8 @@ factory-sync-solutions/
 │   ├── fs-app-web/         # React + Vite SPA (authenticated app)
 │   ├── fs-backoffice-web/  # React + Vite SPA (internal backoffice)
 │   ├── fs-official-web/    # Astro 6 + React islands (public marketing site)
-│   ├── fs-api-gateway/     # Cloudflare Worker API gateway
 │   └── fs-backend/         # Go Cloud Run service (backend API)
+├── infra/                  # Cloudflare/GCP infrastructure config and Workers
 ├── packages/               # Shared scripts/assets
 ├── Makefile                # Monorepo task runner
 ├── package.json            # Root workspace config

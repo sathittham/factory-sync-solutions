@@ -29,7 +29,7 @@ jobs:
             web:
               - 'apps/fs-app-web/**'
             gateway:
-              - 'apps/fs-api-gateway/**'
+              - 'infra/cloudflare/workers/api-gateway/**'
               - '.github/workflows/test.yml'
 
   backend:
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/fs-api-gateway
+        working-directory: infra/cloudflare/workers/api-gateway
     steps:
       - uses: actions/checkout@v4
 

@@ -1,5 +1,5 @@
 ---
-version: 1.4.1
+version: 1.5.0
 lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
@@ -13,7 +13,7 @@ author: Sathittham Sangthong
 | `fs-app-web` (user app) | Cloudflare Pages | GitHub Actions (`cloudflare/wrangler-action`) |
 | `fs-backoffice-web` (staff backoffice) | Cloudflare Pages + Cloudflare Access | GitHub Actions (`cloudflare/wrangler-action`) |
 | `fs-official-web` (public site) | Cloudflare Pages | GitHub Actions (`cloudflare/wrangler-action`) |
-| `fs-api-gateway` (API custom domain) | Cloudflare Workers | GitHub Actions (`cloudflare/wrangler-action`) |
+| API gateway Worker | Cloudflare Workers | GitHub Actions (`cloudflare/wrangler-action`) |
 | `fs-backend` (Go API) | Google Cloud Run | Docker container via GitHub Actions |
 | Public upload CDN | Cloudflare R2 custom domain | Cloudflare zone/R2 bucket configuration |
 | Database | Firestore | Managed service (no deployment needed) |
@@ -101,8 +101,9 @@ gcloud services enable firestore.googleapis.com
 
 ## API Gateway (Cloudflare Workers)
 
-The public API hostname is served by `apps/fs-api-gateway`, a Cloudflare Worker
-that proxies to Cloud Run and handles browser CORS preflight at the edge.
+The public API hostname is served by `infra/cloudflare/workers/api-gateway`, a
+Cloudflare Worker that proxies to Cloud Run and handles browser CORS preflight
+at the edge.
 Authentication, authorization, validation, and response formatting remain in the
 Go backend.
 
@@ -114,7 +115,7 @@ Go backend.
 Manual deploy:
 
 ```bash
-cd apps/fs-api-gateway
+cd infra/cloudflare/workers/api-gateway
 npm test
 npm run deploy:staging
 npm run deploy:prod
@@ -223,7 +224,7 @@ Tag v*-staging (staging deploy):
   3. Build & push Docker image to Artifact Registry
   4. Deploy fs-backend to Cloud Run (staging)
   5. Publish Swagger/OpenAPI docs to staging R2
-  6. Deploy fs-api-gateway Worker (api-staging.factorysyncsolutions.com)
+  6. Deploy API gateway Worker (api-staging.factorysyncsolutions.com)
   7. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions-staging)
   8. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice-staging)
   9. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official-staging)
@@ -234,7 +235,7 @@ Tag v*.*.* (production deploy):
   3. Build & push Docker image to Artifact Registry
   4. Deploy fs-backend to Cloud Run (production)
   5. Publish Swagger/OpenAPI docs to production R2
-  6. Deploy fs-api-gateway Worker (api.factorysyncsolutions.com)
+  6. Deploy API gateway Worker (api.factorysyncsolutions.com)
   7. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions)
   8. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice)
   9. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official)
@@ -360,3 +361,4 @@ See [monitoring.md](monitoring.md) for detailed monitoring setup.
 | 1.3.0 | 2026-06-13 | Fix manual deploy backend path; fix broken monitoring doc link |
 | 1.4.0 | 2026-06-14 | Add Cloudflare API gateway deployment and R2 CDN custom domain guidance |
 | 1.4.1 | 2026-06-14 | Change public API gateway base path from `/api/v1` to `/v1` |
+| 1.5.0 | 2026-06-14 | Move API gateway Worker documentation to the infrastructure layout |

@@ -41,7 +41,7 @@ jobs:
           echo "Changed files:"; echo "$CHANGED"
           api=false; gateway=false; web=false; official=false; backoffice=false
           if echo "$CHANGED" | grep -q '^apps/fs-backend/';                                                then api=true;        fi
-          if echo "$CHANGED" | grep -qE '^apps/fs-api-gateway/|^\.github/workflows/deploy-production\.yml'; then gateway=true;    fi
+          if echo "$CHANGED" | grep -qE '^infra/cloudflare/workers/api-gateway/|^\.github/workflows/deploy-production\.yml'; then gateway=true; fi
           if echo "$CHANGED" | grep -q '^apps/fs-app-web/';                                                then web=true;        fi
           if echo "$CHANGED" | grep -qE '^apps/fs-official-web/|^\.github/workflows/deploy-production\.yml'; then official=true; fi
           if echo "$CHANGED" | grep -q '^apps/fs-backoffice-web/';                                         then backoffice=true; fi
@@ -124,7 +124,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --config apps/fs-api-gateway/wrangler.toml --env production
+          command: deploy --config infra/cloudflare/workers/api-gateway/wrangler.toml --env production
 
   deploy-frontend:
     name: Deploy Frontend to Production
