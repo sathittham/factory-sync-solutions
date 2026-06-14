@@ -559,8 +559,8 @@ export function ProjectDetailPage() {
       ));
 
   return (
-    <PageLayout className="max-w-6xl">
-      <PageHeader title={pageTitle} description={t('projects.title')} actions={toggleButton} />
+    <PageLayout fluid>
+      <PageHeader title={pageTitle} description={project?.companyRegId} actions={toggleButton} />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
       {inviteSuccess && <p className="text-sm text-primary">{inviteSuccess}</p>}

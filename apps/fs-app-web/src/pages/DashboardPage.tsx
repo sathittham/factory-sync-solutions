@@ -205,7 +205,7 @@ export function DashboardPage() {
     <div className="min-h-[calc(100vh-3.5rem)]">
       {/* Page header */}
       <div className="bg-linear-to-b from-primary/4 to-transparent border-b">
-        <div className="container max-w-5xl py-6 sm:py-8 px-4 sm:px-6">
+        <div className="w-full py-6 sm:py-8 px-4 sm:px-6">
           <FadeIn>
             <p className="text-sm text-muted-foreground mb-0.5">{t('quiz.welcomeBack')},</p>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
@@ -215,7 +215,7 @@ export function DashboardPage() {
         </div>
       </div>
 
-      <div className="container max-w-5xl py-6 sm:py-8 px-4 sm:px-6 space-y-6">
+      <div className="w-full py-6 sm:py-8 px-4 sm:px-6 space-y-6">
         {/* ─── LOADING ─── */}
         {isLoading && (
           <div className="space-y-5">

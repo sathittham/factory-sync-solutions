@@ -120,7 +120,7 @@ export function CompanySettingsPage() {
 
   if (!profile) {
     return (
-      <PageLayout>
+      <PageLayout fluid>
         <PageHeader
           title={t('companySettings.title')}
           description={t('companySettings.subtitle')}
@@ -144,7 +144,7 @@ export function CompanySettingsPage() {
   }
 
   return (
-    <PageLayout>
+    <PageLayout fluid>
       <PageHeader title={t('companySettings.title')} description={t('companySettings.subtitle')} />
 
       <div className="bg-card border rounded-lg p-6">

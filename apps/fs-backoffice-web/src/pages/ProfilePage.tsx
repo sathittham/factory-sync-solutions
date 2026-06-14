@@ -47,7 +47,7 @@ export function ProfilePage() {
   const initial = getInitial(user.displayName, user.email);
 
   return (
-    <PageLayout className="max-w-3xl">
+    <PageLayout fluid>
       <PageHeader title={t('profile.title')} description={t('profile.subtitle')} />
 
       <div className="flex flex-col gap-6">

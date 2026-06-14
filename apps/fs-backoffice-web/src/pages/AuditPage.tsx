@@ -103,9 +103,10 @@ export function AuditPage() {
   }
 
   return (
-    <PageLayout className="max-w-7xl">
+    <PageLayout fluid>
       <PageHeader
         title={t('audit.title')}
+        description={t('audit.subtitle')}
         actions={
           <Button
             size="sm"

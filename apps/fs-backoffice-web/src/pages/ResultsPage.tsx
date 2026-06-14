@@ -179,9 +179,10 @@ export function ResultsPage() {
   }
 
   return (
-    <PageLayout className="max-w-6xl">
+    <PageLayout fluid>
       <PageHeader
         title={t('results.title')}
+        description={t('results.subtitle')}
         actions={
           <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
             <Download data-icon="inline-start" />

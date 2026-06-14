@@ -1,4 +1,4 @@
-import { PageLayout } from '@/components/PageLayout';
+import { PageHeader, PageLayout } from '@/components/PageLayout';
 import { AnimatePresence, motion } from '@/components/motion';
 import { Button } from '@/components/ui/button';
 import {
@@ -376,7 +376,7 @@ export function QuizPage() {
 
   if (!questionsLoaded) {
     return (
-      <PageLayout className="max-w-2xl">
+      <PageLayout fluid>
         <div className="space-y-4">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-2.5 w-full rounded-full" />
@@ -465,7 +465,7 @@ export function QuizPage() {
   };
 
   return (
-    <PageLayout className="max-w-2xl" data-testid="quiz-stepper">
+    <PageLayout fluid data-testid="quiz-stepper">
       <>
         {/* Post-submit celebration overlay */}
         {showCelebration && (
@@ -518,9 +518,10 @@ export function QuizPage() {
         )}
 
         {/* Header + Progress */}
-        <div className="mb-6">
-          <div className="flex items-end justify-between mb-3">
-            <h1 className="text-2xl font-bold">{t('quiz.title')}</h1>
+        <PageHeader
+          title={t('quiz.title')}
+          description={t('quiz.subtitle')}
+          actions={
             <div className="flex items-center gap-3">
               <span className="text-sm font-mono text-primary tabular-nums">
                 {answeredCount}
@@ -543,13 +544,13 @@ export function QuizPage() {
                 {t('quiz.exit')}
               </Button>
             </div>
-          </div>
-          <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
-            <div
-              className="absolute inset-y-0 left-0 bg-primary rounded-full transition-all duration-700 ease-out"
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
+          }
+        />
+        <div className="relative h-2 bg-secondary rounded-full overflow-hidden mb-6">
+          <div
+            className="absolute inset-y-0 left-0 bg-primary rounded-full transition-all duration-700 ease-out"
+            style={{ width: `${progressPct}%` }}
+          />
         </div>
 
         <DimensionTabs
