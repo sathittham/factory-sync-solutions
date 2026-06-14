@@ -12,6 +12,10 @@ and adds conservative `Cache-Control: no-store` headers for API responses.
 Firebase Auth, authorization, validation, and API response shaping remain in the
 Go backend.
 
+Only `/v1` is exposed publicly. The Worker rewrites `/v1/...` to the backend's
+internal `/api/v1/...` route before proxying. Requests to `/api/v1/...` on the
+gateway hostname return a gateway 404.
+
 ## Commands
 
 ```bash

@@ -22,6 +22,9 @@ export async function handleRequest(request, env = {}) {
   }
 
   const targetURL = new URL(request.url);
+  if (!isPublicAPIPath(targetURL.pathname)) {
+    return jsonError('Not found', 404, request, env);
+  }
   targetURL.protocol = upstreamOrigin.protocol;
   targetURL.host = upstreamOrigin.host;
   targetURL.pathname = upstreamPathname(targetURL.pathname);
@@ -83,14 +86,15 @@ function normalizeOrigin(value) {
   }
 }
 
+function isPublicAPIPath(pathname) {
+  return pathname === '/v1' || pathname.startsWith('/v1/');
+}
+
 function upstreamPathname(pathname) {
   if (pathname === '/v1') {
     return '/api/v1';
   }
-  if (pathname.startsWith('/v1/')) {
-    return `/api${pathname}`;
-  }
-  return pathname;
+  return `/api${pathname}`;
 }
 
 function corsHeaders(request, env) {

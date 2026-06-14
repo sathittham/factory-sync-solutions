@@ -73,21 +73,16 @@ test('rewrites public v1 path and query to the configured upstream', async (t) =
   assert.equal(response.headers.get('Cache-Control'), 'no-store');
 });
 
-test('keeps api v1 path backward compatible', async (t) => {
+test('rejects api v1 path at the gateway', async (t) => {
   const originalFetch = globalThis.fetch;
   t.after(() => {
     globalThis.fetch = originalFetch;
   });
 
-  let proxiedRequest;
-  globalThis.fetch = async (request) => {
-    proxiedRequest = request;
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  let fetchCalled = false;
+  globalThis.fetch = async () => {
+    fetchCalled = true;
+    return new Response();
   };
 
   const request = new Request('https://api.factorysyncsolutions.com/api/v1/profile', {
@@ -96,9 +91,12 @@ test('keeps api v1 path backward compatible', async (t) => {
     },
   });
 
-  await handleRequest(request, env);
+  const response = await handleRequest(request, env);
+  const body = await response.json();
 
-  assert.equal(proxiedRequest.url, 'https://cloud-run.example.run.app/api/v1/profile');
+  assert.equal(response.status, 404);
+  assert.equal(fetchCalled, false);
+  assert.equal(body.success, false);
 });
 
 test('returns a JSON 502 when upstream fetch fails', async (t) => {
