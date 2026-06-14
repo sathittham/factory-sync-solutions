@@ -16,10 +16,8 @@ export function PageLayout({
   'data-testid': testId,
 }: Readonly<PageLayoutProps>) {
   return (
-    <div className="min-h-[calc(100vh-3.5rem)]">
-      <div className={cn('container max-w-5xl py-6 sm:py-8', className)} data-testid={testId}>
-        {children}
-      </div>
+    <div className={cn('container max-w-5xl py-6 sm:py-8', className)} data-testid={testId}>
+      {children}
     </div>
   );
 }

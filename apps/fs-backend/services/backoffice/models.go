@@ -35,6 +35,7 @@ type StaffMember struct {
 	UID            string `json:"uid"`
 	Email          string `json:"email"`
 	DisplayName    string `json:"displayName"`
+	PhotoURL       string `json:"photoURL"`
 	BackofficeRole string `json:"backofficeRole"`
 }
 

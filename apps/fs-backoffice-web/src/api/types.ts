@@ -75,6 +75,7 @@ export interface StaffMember {
   uid: string;
   email: string;
   displayName: string;
+  photoURL?: string;
   backofficeRole: string;
 }
 
