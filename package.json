@@ -2,7 +2,7 @@
   "name": "factory-sync-solutions",
   "private": true,
   "license": "MIT",
-  "author": "Sathittham Sangthong",
+  "author": "Sathittham Sangthong <s.sathittham@gmail.com>",
   "scripts": {
     "dev": "make dev",
     "build": "make build",

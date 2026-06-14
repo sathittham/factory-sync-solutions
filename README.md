@@ -1,6 +1,6 @@
 ---
-version: 1.5.0
-lastUpdated: 2026-06-09
+version: 1.6.1
+lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
 
@@ -322,6 +322,10 @@ See [docs/README.md](docs/README.md) for the full index.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the Git workflow and coding standards.
 
+## Contributors
+
+See [CONTRIBUTORS.md](CONTRIBUTORS.md) for the maintained contributor list.
+
 ## License
 
 MIT License. Copyright (c) 2026 Sathittham Sangthong. See [LICENSE](LICENSE) for details.
@@ -343,3 +347,4 @@ Active development — core user flow implemented (auth, registration, quiz, res
 | 1.4.0 | 2026-06-04 | Rebranded to FactorySync Solutions — updated brand name, abbreviation (FS), localStorage prefix (fss-), Go module path, email domain, CI/CD service names |
 | 1.5.0 | 2026-06-09 | Synced README with actual monorepo layout — corrected legacy app/backend dir names, documented the Astro `fs-official-web` public site (structure, tech stack, scripts), fixed env-setup paths and backend dev command |
 | 1.6.0 | 2026-06-14 | Added backoffice app, clarified Makefile scope, updated env vars, routes, scripts, and docs links |
+| 1.6.1 | 2026-06-14 | Added maintained contributor list and clarified license ownership |
