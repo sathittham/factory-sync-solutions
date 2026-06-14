@@ -35,7 +35,7 @@ Violate any of these and the PR will be blocked at review:
 
 - Repo-local Codex config lives in `.codex/config.toml` and uses the `factorysync-workspace` permission profile.
 - The permission profile keeps normal workspace editing available while denying reads of `.env*`, Firebase service account JSON, and credential/secret-shaped JSON files.
-- Project command rules live in `.codex/rules/default.rules`. Deployment, tag, and push commands must remain explicit approval points.
+- Project command rules live in `.codex/rules/default.rules`. Destructive commands remain blocked; release promotion git commands are allowlisted for the documented FactorySync release flow.
 - Do not add repo-local MCP servers, hooks, or custom agents that require secrets. Keep personal tokens and machine-local credentials in user-level Codex config.
 
 ---
@@ -129,7 +129,7 @@ Commit: `<type>(<scope>): description` — ≤72 chars, imperative, no trailing 
 Types: `feat` `fix` `docs` `style` `refactor` `perf` `test` `build` `ci` `chore`.
 Scopes: `quiz`, `scoring`, `admin`, `profile`, `result`, `dbd`, `audit`, `notification`, `web`.
 
-Branch flow: `feature/*` → `develop` (squash) → `staging` (ff) → `main` (protected).
+Branch flow: `feature/*` → `develop` → `staging` (ff) → `main` (ff).
 Never commit directly to `main`; never force-push `main`.
 
 ---

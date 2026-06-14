@@ -106,11 +106,11 @@ author: Sathittham Sangthong
 - Built-in middleware support (CORS, logging, auth, rate limiting)
 - Route grouping for API versioning (`/api/v1/`)
 
-## ADR-011: Swagger/OpenAPI via swaggo (Planned)
+## ADR-011: Swagger/OpenAPI via swaggo
 
 **Decision**: Auto-generate API documentation from Go source code using `swaggo/swag`.
 
-**Status**: Not yet implemented. Swagger annotations exist in handler code as comments, but swaggo is not installed (not in go.mod) and the Swagger UI route is commented out in `main.go`. See [swagger-openapi.md](swagger-openapi.md) for the planned setup.
+**Status**: Implemented. Swagger annotations are generated with `swaggo/swag`; non-production backend environments serve Swagger UI at `/api/v1/swagger/index.html`, and deploy workflows publish generated artifacts to R2.
 
 **Rationale**:
 - Docs stay in sync with code via source annotations

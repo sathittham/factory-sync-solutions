@@ -48,10 +48,17 @@ type UpdateProfileRequest struct {
 
 // ActivityEventResponse is a single entry in the user's activity log.
 type ActivityEventResponse struct {
-	ID        string         `json:"id"`
-	EventType string         `json:"eventType"`
-	CreatedAt string         `json:"createdAt"`
-	Metadata  map[string]any `json:"metadata,omitempty"`
+	ID           string         `json:"id"`
+	ActorUID     string         `json:"actorUID,omitempty"`
+	ActorEmail   string         `json:"actorEmail,omitempty"`
+	ActorName    string         `json:"actorName,omitempty"`
+	EventType    string         `json:"eventType"`
+	ResourceType string         `json:"resourceType,omitempty"`
+	ResourceID   string         `json:"resourceID,omitempty"`
+	TargetUID    string         `json:"targetUID,omitempty"`
+	ProjectID    string         `json:"projectID,omitempty"`
+	CreatedAt    string         `json:"createdAt"`
+	Metadata     map[string]any `json:"metadata,omitempty"`
 }
 
 // ProfileResponse is the public API response (omits internal fields).

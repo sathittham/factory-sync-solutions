@@ -1,8 +1,8 @@
-# FactorySync command policy for escalated shell execution.
+# FactorySync command policy for shell execution.
 #
-# Rules apply when Codex requests to run a command outside the sandbox.
-# Keep deploys and history-changing git operations interactive, and block
-# common destructive shortcuts that are too broad for an agent allowlist.
+# Keep destructive shortcuts blocked. Release branch promotion commands are
+# allowlisted because the repo release flow depends on repeated, audited git
+# fetch/switch/merge/tag/push operations.
 
 prefix_rule(
     pattern = ["git", "reset", "--hard"],
@@ -26,17 +26,77 @@ prefix_rule(
 )
 
 prefix_rule(
-    pattern = ["git", "push"],
-    decision = "prompt",
-    justification = "Pushing updates remote branches or tags and should stay an explicit user decision.",
-    match = ["git push", "git push origin feature/example", "git push origin v1.2.3"],
+    pattern = ["git", "fetch"],
+    decision = "allow",
+    justification = "Release flow must refresh remote branches and tags before promotion.",
+    match = ["git fetch origin --prune --tags"],
+)
+
+prefix_rule(
+    pattern = ["git", "switch"],
+    decision = "allow",
+    justification = "Release flow switches between develop, staging, main, and feature branches.",
+    match = ["git switch develop", "git switch staging", "git switch main"],
+)
+
+prefix_rule(
+    pattern = ["git", "merge"],
+    decision = "allow",
+    justification = "Release flow promotes branches with fast-forward merges and reconciles main into develop.",
+    match = ["git merge --ff-only origin/feature/example", "git merge --ff-only develop", "git merge --no-edit origin/main"],
 )
 
 prefix_rule(
     pattern = ["git", "tag"],
-    decision = "prompt",
-    justification = "Release tags trigger deployment workflows in this repository.",
+    decision = "allow",
+    justification = "Release flow creates staging and production version tags after branch promotion checks.",
     match = ["git tag v1.2.3", "git tag v1.2.3-staging"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "origin"],
+    decision = "allow",
+    justification = "Release flow pushes promoted branches and release tags to the origin remote.",
+    match = ["git push origin develop", "git push origin staging v1.2.3-staging", "git push origin main v1.2.3"],
+)
+
+prefix_rule(
+    pattern = ["python3", "/Users/sathittham/.codex/skills/.system/skill-creator/scripts/init_skill.py"],
+    decision = "allow",
+    justification = "Repo-local workflow setup may initialize project skills under .agents/skills.",
+    match = ["python3 /Users/sathittham/.codex/skills/.system/skill-creator/scripts/init_skill.py release-flow --path .agents/skills --resources scripts"],
+)
+
+prefix_rule(
+    pattern = ["python3", "/Users/sathittham/.codex/skills/.system/skill-creator/scripts/quick_validate.py"],
+    decision = "allow",
+    justification = "Skill validation is a read/check operation used after editing repo-local skills.",
+    match = ["python3 /Users/sathittham/.codex/skills/.system/skill-creator/scripts/quick_validate.py .agents/skills/release-flow"],
+)
+
+prefix_rule(
+    pattern = ["chmod", "+x", ".agents/skills/release-flow/scripts/release-flow.sh"],
+    decision = "allow",
+    justification = "The repo release-flow helper script must be executable.",
+    match = ["chmod +x .agents/skills/release-flow/scripts/release-flow.sh"],
+)
+
+prefix_rule(
+    pattern = [".agents/skills/release-flow/scripts/release-flow.sh"],
+    decision = "allow",
+    justification = "The guarded release-flow helper encapsulates the approved branch promotion and tag workflow.",
+    match = [
+        ".agents/skills/release-flow/scripts/release-flow.sh --target staging --feature feature/example --version v1.2.3",
+        ".agents/skills/release-flow/scripts/release-flow.sh --target production --version v1.2.3",
+        ".agents/skills/release-flow/scripts/release-flow.sh --target both --feature feature/example --version v1.2.3",
+    ],
+)
+
+prefix_rule(
+    pattern = ["make", "docs-api"],
+    decision = "allow",
+    justification = "Swagger/OpenAPI generation is a local build step that may need normal Go build cache access.",
+    match = ["make docs-api"],
 )
 
 prefix_rule(

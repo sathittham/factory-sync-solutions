@@ -1,0 +1,4 @@
+interface:
+  display_name: "FactorySync Release Flow"
+  short_description: "Promote branches and tag FactorySync releases"
+  default_prompt: "Use $release-flow to run a staging, production, or full FactorySync release promotion."

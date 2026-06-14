@@ -1,16 +1,17 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-06-11
+version: 1.2.0
+lastUpdated: 2026-06-14
 author: Sathittham Sangthong
-status: In Progress — scaffold + all pages built; E2E tests pending
+status: In Progress - scaffold + pages built; audit UI/API planned
 ---
 
 # Backoffice — Feature Spec
 
 > Separate web app (`apps/fs-backoffice-web`) for FactorySync staff to manage
 > the platform: CRUD projects, invite owners, manage project members, view all
-> quiz results, and manage backoffice staff roles. Backed by a new route group
-> `/api/v1/backoffice/` protected by the `backofficeRole` Firebase custom claim.
+> quiz results, manage backoffice staff roles, and let superadmins audit
+> user/staff activity. Backed by a new route group `/api/v1/backoffice/`
+> protected by the `backofficeRole` Firebase custom claim.
 
 ---
 
@@ -45,6 +46,8 @@ See [ADR-021](../../architecture/decisions.md#adr-021) and
 - Remove a user account (superadmin only).
 - View all quiz results across all projects with filtering and CSV export.
 - Manage backoffice staff — grant / revoke `backofficeRole` claims (superadmin only).
+- Let superadmins search the platform audit log.
+- Let superadmins view each user's or staff member's own activity timeline.
 - Bilingual (TH/EN) via `useLocale()`.
 - Consistent design with `fs-app-web` (same shadcn/ui, same Tailwind config).
 
@@ -53,7 +56,6 @@ See [ADR-021](../../architecture/decisions.md#adr-021) and
 - Self-service claim assignment (claims are set by superadmin only).
 - Editing or deleting individual quiz submissions.
 - Billing, seat limits, or subscription management.
-- Audit log UI (future work).
 - SSO / SAML for backoffice login.
 
 ---
@@ -79,6 +81,8 @@ See [ADR-021](../../architecture/decisions.md#adr-021) and
 | Grant `backofficeRole` claim | ✅ | — |
 | Revoke `backofficeRole` claim | ✅ | — |
 | Change staff role (superadmin ↔ staff) | ✅ | — |
+| View platform audit log | ✅ | — |
+| View any user's activity timeline | ✅ | — |
 
 ---
 
@@ -99,12 +103,13 @@ See [ADR-021](../../architecture/decisions.md#adr-021) and
 │  │ Users      │  │                                        │  │
 │  │ Results    │  │                                        │  │
 │  │ Staff*     │  │                                        │  │
+│  │ Audit*     │  │                                        │  │
 │  │ ──────── │  │                                        │  │
 │  │ [user name]│  │                                        │  │
 │  │ [Sign Out] │  │                                        │  │
 │  └────────────┘  └────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────┘
-* Staff menu item shown only to superadmin
+* Staff and Audit menu items shown only to superadmin
 ```
 
 Mobile: sidebar collapses; hamburger opens a shadcn `Sheet`.
@@ -189,6 +194,8 @@ Row action menu (⋯ dropdown): View Detail | Deactivate (superadmin only).
 ```
 
 Clicking a row or **View** opens a `Dialog` with full profile fields.
+Superadmins also see **View Activity**, which opens that user's activity
+timeline from `GET /backoffice/users/{uid}/activity`.
 
 ### Results page (`/results`)
 
@@ -216,6 +223,25 @@ Clicking a row or **View** opens a `Dialog` with full profile fields.
 ```
 
 "Add Staff" opens a Dialog to enter a Firebase UID or email + select role.
+Each row has **View Activity** for superadmins to inspect staff account changes
+and actions.
+
+### Audit page (`/audit`) — superadmin only
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Audit Log                                                   │
+│  [Event Type ▾] [Actor UID] [Target UID] [Project ID]        │
+├──────────────────────────────────────────────────────────────┤
+│  Time              Event                    Actor   Target   │
+│  14 Jun 2026 15:30 backoffice.staff_role... alice   bob      │
+│  14 Jun 2026 15:12 project.member_removed   staff1  user2    │
+└──────────────────────────────────────────────────────────────┘
+```
+
+The page lists audit events newest first and supports filters for event type,
+actor UID, target UID, resource type, and project ID. Metadata is rendered as a
+compact key/value block in an expandable row or detail dialog.
 
 ---
 
@@ -266,7 +292,14 @@ middleware). Superadmin-only routes use an additional `RequireBackofficeRole` fo
 | `PUT` | `/backoffice/staff/{uid}` | superadmin | Set `backofficeRole` claim |
 | `DELETE` | `/backoffice/staff/{uid}` | superadmin | Revoke `backofficeRole` claim |
 
-### 5.5 Dashboard stats
+### 5.5 Audit
+
+| Method | Path | Role | Description |
+|--------|------|------|-------------|
+| `GET` | `/backoffice/audit` | superadmin | Search platform audit events |
+| `GET` | `/backoffice/users/{uid}/activity` | superadmin | View actor/target events for a single user or staff member |
+
+### 5.6 Dashboard stats
 
 | Method | Path | Role | Description |
 |--------|------|------|-------------|
@@ -288,6 +321,7 @@ services/backoffice/
 Reuses existing services internally:
 - `result.Service` for quiz results
 - `profile.Service` for user profiles
+- `audit.Logger` / audit query service for activity events
 - Firebase Admin SDK (`authClient`) for claim management
 
 Middleware wiring in `main.go`:
@@ -334,6 +368,10 @@ follow the same `namespace.key` pattern as `fs-app-web`.
 - Cloudflare Access adds a network-layer gate: only users on the FactorySync email allowlist can reach `backoffice.factorysync.com` at all.
 - Claims are set via Firebase Admin SDK server-side only — never from a client request body.
 - Destructive routes (deactivate, delete, staff management) require `"superadmin"` claim — enforced per-route with a nested `RequireBackofficeRole(authClient, "superadmin")` middleware.
+- Audit routes require `"superadmin"`; regular backoffice staff must not be able
+  to query platform-wide user/staff activity.
+- Backoffice mutation handlers must write audit events with the actor UID from
+  `middleware.GetUID(r)` and target UID from the affected user/staff record.
 
 ---
 
@@ -390,6 +428,17 @@ follow the same `namespace.key` pattern as `fs-app-web`.
 - [ ] "Change Role" button opens a dialog pre-filled with the current role; confirming calls `PUT /backoffice/staff/{uid}` and updates the role badge.
 - [ ] "Revoke Access" button opens a confirmation dialog; confirming calls `DELETE /backoffice/staff/{uid}` and removes the row.
 - [ ] Error state (e.g. unknown UID on add) shows an inline error message in the dialog.
+- [ ] "View Activity" opens the selected staff member's timeline.
+
+### Audit page (superadmin only)
+
+- [ ] Audit page is only accessible to superadmin; staff users are redirected to `/unauthorized`.
+- [ ] Audit page calls `GET /backoffice/audit` and renders events newest first.
+- [ ] Filters update query params for event type, actor UID, target UID, project ID, and resource type.
+- [ ] User detail dialog exposes "View Activity" for superadmins and calls `GET /backoffice/users/{uid}/activity`.
+- [ ] Backoffice staff CRUD writes `backoffice.staff_role_granted`, `backoffice.staff_role_changed`, or `backoffice.staff_role_revoked`.
+- [ ] Backoffice user CRUD writes `backoffice.user_deleted` and `backoffice.user_role_changed`.
+- [ ] Project/member changes made from backoffice include `projectID`, actor UID, target UID where applicable, and old/new values in metadata.
 
 ### General
 
@@ -421,3 +470,4 @@ follow the same `namespace.key` pattern as `fs-app-web`.
 - ADR-022 (backofficeRole claim): [decisions.md](../../architecture/decisions.md#adr-022)
 - Existing admin spec: [admin/feature-spec.md](../admin/feature-spec.md)
 - Project & RBAC spec: [project/feature-spec.md](../project/feature-spec.md)
+- Audit logging spec: [audit/feature-spec.md](../audit/feature-spec.md)

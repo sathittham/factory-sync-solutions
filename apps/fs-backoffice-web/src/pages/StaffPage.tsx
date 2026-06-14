@@ -1,11 +1,13 @@
 import { backofficeApi } from '@/api/backoffice';
 import type { StaffMember } from '@/api/types';
+import { AuditActivityDialog } from '@/components/AuditActivityDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -20,16 +22,115 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ApiError } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { PageHeader, PageLayout } from '@shared/ui/PageLayout';
-import { UserPlus } from 'lucide-react';
+import { Check, ShieldCheck, UserPlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 type BackofficeRole = 'superadmin' | 'staff';
+type PermissionMatrixRole = BackofficeRole;
+
+const permissionMatrixColumns: PermissionMatrixRole[] = ['staff', 'superadmin'];
+
+const permissionColumnLabelKeys: Record<PermissionMatrixRole, string> = {
+  staff: 'backofficePermissions.roleStaff',
+  superadmin: 'backofficePermissions.roleSuperAdmin',
+};
+
+const permissionMatrix = [
+  { featureKey: 'backofficePermissions.dashboard', staff: true, superadmin: true },
+  { featureKey: 'backofficePermissions.projects', staff: true, superadmin: true },
+  { featureKey: 'backofficePermissions.projectSettings', staff: true, superadmin: true },
+  { featureKey: 'backofficePermissions.projectLifecycle', staff: false, superadmin: true },
+  { featureKey: 'backofficePermissions.projectMembers', staff: true, superadmin: true },
+  { featureKey: 'backofficePermissions.users', staff: true, superadmin: true },
+  { featureKey: 'backofficePermissions.deleteUsers', staff: false, superadmin: true },
+  { featureKey: 'backofficePermissions.resultsExport', staff: true, superadmin: true },
+  { featureKey: 'backofficePermissions.staffManagement', staff: false, superadmin: true },
+  { featureKey: 'backofficePermissions.apiDocs', staff: false, superadmin: true },
+] as const;
 
 function roleBadge(role: string) {
   if (role === 'superadmin') return <Badge>superadmin</Badge>;
   return <Badge variant="secondary">staff</Badge>;
+}
+
+function PermissionIndicator({ granted }: Readonly<{ granted: boolean }>) {
+  if (granted) {
+    return (
+      <span className="mx-auto inline-flex size-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+        <Check aria-hidden="true" className="size-3" />
+      </span>
+    );
+  }
+
+  return <span className="mx-auto block h-1 w-4 rounded-full bg-muted-foreground/25" />;
+}
+
+function PermissionMatrixDialog({
+  open,
+  onClose,
+  t,
+}: Readonly<{ open: boolean; onClose: () => void; t: (key: string) => string }>) {
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
+      }}
+    >
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ShieldCheck aria-hidden="true" className="size-5 text-primary" />
+            {t('backofficePermissions.title')}
+          </DialogTitle>
+          <DialogDescription>{t('backofficePermissions.description')}</DialogDescription>
+        </DialogHeader>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/40">
+                <th className="w-[52%] px-4 py-3 text-left font-medium text-muted-foreground">
+                  {t('backofficePermissions.feature')}
+                </th>
+                {permissionMatrixColumns.map((column) => (
+                  <th
+                    key={column}
+                    className="px-4 py-3 text-center font-medium text-muted-foreground"
+                  >
+                    {t(permissionColumnLabelKeys[column])}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {permissionMatrix.map((row) => (
+                <tr key={row.featureKey} className="border-b last:border-0 hover:bg-muted/30">
+                  <td className="px-4 py-3">{t(row.featureKey)}</td>
+                  {permissionMatrixColumns.map((column) => (
+                    <td
+                      key={column}
+                      className="px-4 py-3 text-center data-[role=superadmin]:bg-primary/5"
+                      data-role={column}
+                    >
+                      <PermissionIndicator granted={row[column]} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 export function StaffPage() {
@@ -38,6 +139,8 @@ export function StaffPage() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [activityTarget, setActivityTarget] = useState<StaffMember | null>(null);
 
   // Change role dialog
   const [changeTarget, setChangeTarget] = useState<StaffMember | null>(null);
@@ -50,9 +153,11 @@ export function StaffPage() {
 
   // Add staff dialog
   const [addOpen, setAddOpen] = useState(false);
-  const [addUID, setAddUID] = useState('');
+  const [addEmail, setAddEmail] = useState('');
   const [addRole, setAddRole] = useState<BackofficeRole>('staff');
+  const [addError, setAddError] = useState('');
   const [adding, setAdding] = useState(false);
+  const [permissionsOpen, setPermissionsOpen] = useState(false);
 
   useEffect(() => {
     backofficeApi
@@ -96,19 +201,35 @@ export function StaffPage() {
   }
 
   async function handleAddStaff() {
-    if (!addUID.trim()) return;
+    const email = addEmail.trim();
+    if (!email) {
+      setAddError(t('staff.inviteEmailRequired'));
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setAddError(t('staff.inviteEmailInvalid'));
+      return;
+    }
+
     setAdding(true);
+    setAddError('');
+    setSuccessMessage('');
     try {
-      const member = await backofficeApi.setStaffRole(addUID.trim(), addRole);
+      const member = await backofficeApi.inviteStaff({ email, backofficeRole: addRole });
       setStaff((prev) => {
         const exists = prev.some((s) => s.uid === member.uid);
         return exists ? prev.map((s) => (s.uid === member.uid ? member : s)) : [...prev, member];
       });
       setAddOpen(false);
-      setAddUID('');
+      setAddEmail('');
       setAddRole('staff');
-    } catch {
-      setError(t('common.error'));
+      setSuccessMessage(t('staff.inviteSent'));
+    } catch (err: unknown) {
+      if (err instanceof ApiError && err.status === 403) {
+        setAddError(t('staff.inviteForbidden'));
+      } else {
+        setAddError(t('staff.inviteError'));
+      }
     } finally {
       setAdding(false);
     }
@@ -147,6 +268,9 @@ export function StaffPage() {
         <td className="px-4 py-3">{roleBadge(s.backofficeRole)}</td>
         <td className="px-4 py-3 text-right">
           <div className="flex justify-end gap-2">
+            <Button size="sm" variant="outline" onClick={() => setActivityTarget(s)}>
+              {t('audit.viewActivity')}
+            </Button>
             <Button size="sm" variant="outline" onClick={() => openChangeRole(s)}>
               {t('staff.changeRole')}
             </Button>
@@ -164,14 +288,21 @@ export function StaffPage() {
       <PageHeader
         title={t('staff.title')}
         actions={
-          <Button size="sm" onClick={() => setAddOpen(true)}>
-            <UserPlus data-icon="inline-start" />
-            {t('staff.addStaff')}
-          </Button>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button size="sm" variant="outline" onClick={() => setPermissionsOpen(true)}>
+              <ShieldCheck data-icon="inline-start" />
+              {t('backofficePermissions.title')}
+            </Button>
+            <Button size="sm" onClick={() => setAddOpen(true)}>
+              <UserPlus data-icon="inline-start" />
+              {t('staff.addStaff')}
+            </Button>
+          </div>
         }
       />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
+      {successMessage && <p className="text-sm text-primary">{successMessage}</p>}
 
       <div className="flex flex-col gap-6">
         <Card>
@@ -254,27 +385,37 @@ export function StaffPage() {
         onOpenChange={(open) => {
           if (!open) {
             setAddOpen(false);
-            setAddUID('');
+            setAddEmail('');
+            setAddError('');
           }
         }}
       >
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{t('staff.addStaff')}</DialogTitle>
+            <DialogDescription>{t('staff.inviteStaffDesc')}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>{t('staff.uid')}</Label>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="staff-invite-email">{t('staff.email')}</Label>
               <Input
-                placeholder="Firebase UID"
-                value={addUID}
-                onChange={(e) => setAddUID(e.target.value)}
+                id="staff-invite-email"
+                type="email"
+                autoComplete="email"
+                placeholder={t('staff.inviteEmailPlaceholder')}
+                value={addEmail}
+                onChange={(e) => {
+                  setAddEmail(e.target.value);
+                  setAddError('');
+                }}
+                aria-invalid={Boolean(addError)}
+                disabled={adding}
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="flex flex-col gap-1.5">
               <Label>{t('staff.selectRole')}</Label>
               <Select value={addRole} onValueChange={(v) => setAddRole(v as BackofficeRole)}>
-                <SelectTrigger>
+                <SelectTrigger disabled={adding}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -284,16 +425,36 @@ export function StaffPage() {
               </Select>
             </div>
           </div>
+          {addError && (
+            <p role="alert" className="text-sm text-destructive">
+              {addError}
+            </p>
+          )}
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setAddOpen(false)} disabled={adding}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={handleAddStaff} disabled={adding || !addUID.trim()}>
-              {adding ? '…' : t('common.add')}
+            <Button onClick={handleAddStaff} disabled={adding || !addEmail.trim()}>
+              {adding ? t('staff.inviteSending') : t('staff.inviteSend')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PermissionMatrixDialog
+        open={permissionsOpen}
+        onClose={() => setPermissionsOpen(false)}
+        t={t}
+      />
+      <AuditActivityDialog
+        open={activityTarget !== null}
+        uid={activityTarget?.uid ?? ''}
+        title={t('audit.staffActivity')}
+        description={activityTarget?.email}
+        onOpenChange={(open) => {
+          if (!open) setActivityTarget(null);
+        }}
+      />
     </PageLayout>
   );
 }

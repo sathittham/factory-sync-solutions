@@ -31,10 +31,10 @@ func (h *Handler) Routes(r chi.Router) {
 // @Tags         Results
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
-// @Success      200  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
+// @Success      200  {object}  pkg.ListResponse
+// @Failure      401  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/results [get]
+// @Router       /results [get]
 func (h *Handler) GetUserResults(w http.ResponseWriter, r *http.Request) {
 	uid := middleware.GetUID(r)
 
@@ -56,11 +56,11 @@ func (h *Handler) GetUserResults(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
 // @Param        assessmentId   path    string  true  "Assessment ID (UUIDv4)"
-// @Success      200  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      404  {object}  map[string]any
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      404  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/results/{assessmentId} [get]
+// @Router       /results/{assessmentId} [get]
 func (h *Handler) GetResult(w http.ResponseWriter, r *http.Request) {
 	uid := middleware.GetUID(r)
 	assessmentID := chi.URLParam(r, "assessmentId")

@@ -1,16 +1,16 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-06-10
+version: 1.1.0
+lastUpdated: 2026-06-14
 author: Sathittham Sangthong
-status: Done — ProfileDialog active, ProfilePage unrouted
+status: Done - ProfileDialog and ProfilePage active; activity tab needs date cleanup
 ---
 
 # User Profile — Feature Spec
 
 > Authenticated users can update their company and contact information after
-> registration. Two editing surfaces exist: a **`ProfileDialog`** (the active
-> path — opened from the nav) and a **`ProfilePage`** (built but not yet routed).
-> Both call `PUT /api/v1/profile` and update Redux on success.
+> registration and review their own activity log. Two editing surfaces exist:
+> a **`ProfileDialog`** opened from navigation and a routed **`ProfilePage`** at
+> `/profile`. Both call `PUT /api/v1/profile` and update Redux on success.
 
 ---
 
@@ -18,19 +18,20 @@ status: Done — ProfileDialog active, ProfilePage unrouted
 
 The profile feature lets registered users keep their company and contact
 information up to date. Registration captures these fields once; the profile
-editor allows changing them at any time without re-registering.
+editor allows changing them at any time without re-registering. The standalone
+profile page also shows a personal activity log backed by audit events.
 
 Two surfaces exist for the same action:
 
 | Surface | File | Access | Status |
 |---------|------|--------|--------|
 | `ProfileDialog` | `apps/fs-app-web/src/components/ProfileDialog.tsx` | Nav dropdown / mobile drawer | ✅ Active — mounted in `Layout` |
-| `ProfilePage` | `apps/fs-app-web/src/pages/ProfilePage.tsx` | No route | ⚠️ Built — not in `router.tsx` |
+| `ProfilePage` | `apps/fs-app-web/src/pages/ProfilePage.tsx` | `/profile` | ✅ Active |
 
 `ProfileDialog` is the current editing surface. It is opened by the user's
 avatar/name in the nav header or by the "Profile" link in the mobile drawer.
-`ProfilePage` contains identical form logic in a standalone page layout and is
-ready to be routed at `/profile` when needed.
+`ProfilePage` contains account, profile, notification, activity, and security
+tabs. The Activity tab is the user-facing audit log for that authenticated user.
 
 **Immutable fields** (set at registration — never editable via this feature):
 `companyRegId`, `uid`, `email`, `displayName`, `role`, `consentVersion`, `consentAt`.
@@ -49,6 +50,7 @@ ready to be routed at `/profile` when needed.
 - Update Redux `authSlice` (`setProfile`) immediately on success — no page
   reload needed for the nav to reflect the new company name.
 - Track `profile_save`, `profile_save_success`, `profile_save_error` via analytics.
+- Show each user their own recent activity log from `GET /api/v1/profile/activity`.
 - Bilingual (TH/EN) via `useLocale()`.
 
 ### Non-Goals
@@ -59,6 +61,8 @@ ready to be routed at `/profile` when needed.
   the backend model but is not exposed in the form UI (future work, see §10).
 - Deleting the account or profile.
 - Profile picture upload (Google avatar is shown read-only).
+- Viewing another user's activity from `fs-app-web`; only backoffice superadmins
+  can inspect other users' activity.
 
 ---
 
@@ -67,8 +71,10 @@ ready to be routed at `/profile` when needed.
 | Component | Location | Status |
 |-----------|----------|--------|
 | `ProfileDialog` | `apps/fs-app-web/src/components/ProfileDialog.tsx` | ✅ Built + mounted in Layout |
-| `ProfilePage` | `apps/fs-app-web/src/pages/ProfilePage.tsx` | ✅ Built — ❌ no route |
+| `ProfilePage` | `apps/fs-app-web/src/pages/ProfilePage.tsx` | ✅ Built + routed at `/profile` |
 | Backend `UpdateProfile` handler | `apps/fs-backend/services/profile/handler.go` | ✅ Built |
+| Backend `GetActivity` handler | `apps/fs-backend/services/profile/handler.go` | ✅ Built |
+| Profile Activity tab | `apps/fs-app-web/src/pages/ProfilePage.tsx` | ✅ Built - date formatting cleanup needed |
 | `UpdateProfileRequest` model | `apps/fs-backend/services/profile/models.go` | ✅ Built |
 | `emailNotifications` field | `UpdateProfileRequest` + `Profile` struct | ✅ Backend — ❌ not in form UI |
 
@@ -106,32 +112,24 @@ ready to be routed at `/profile` when needed.
 
 Max width: `max-w-lg`. Max height: `max-h-[90vh]` with `overflow-y-auto`.
 
-### `ProfilePage` (standalone card)
+### `ProfilePage` (standalone account page)
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  [icon]  Update Profile                                      │
-│          Edit your company and contact information           │
+│  Update Profile                                              │
+│  Edit your company and contact information                   │
 │                                                              │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │ Email       email@example.com                        │    │
-│  │ ─────────────────────────────────────────────────   │    │
-│  │ Reg. ID     0123456789012                            │    │
-│  └──────────────────────────────────────────────────────┘    │
+│  Account summary card                                        │
+│  [Profile] [Notifications] [Activity] [Security]             │
 │                                                              │
-│  [Company Name input]                                        │
-│  [Industry Type ▾]    [Company Size ▾]                       │
-│                                                              │
-│  ─── Contact ────────────────────────────────────────────   │
-│  [Contact Name input]                                        │
-│  [Contact Email input]  [Contact Phone input]                │
-│                                                              │
-│  [✓ Saved!]  / [Error message]                               │
-│  [Save Changes]  ← disabled if no changes                    │
+│  Profile tab: company/contact form                           │
+│  Activity tab: recent audit events for this signed-in user    │
+│  Security tab: sign-in methods and password controls          │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-Max width: `max-w-lg`, vertically centred in the viewport.
+Max width: `max-w-2xl`. Activity events render newest first with localized
+labels and timestamps formatted through `formatDateTime()` from `@/lib/dayjs`.
 
 ---
 
@@ -292,6 +290,52 @@ profile editor.
 
 ---
 
+### GET `/api/v1/profile/activity`
+
+Return the authenticated user's own activity log. The API must use the UID from
+`middleware.GetUID(r)` and must never accept a UID in the request body or path.
+
+Events include actions where the caller is the actor and actions where the
+caller is the target of another actor, such as a superadmin changing their role.
+
+**Query params**
+
+| Param | Default | Description |
+|-------|---------|-------------|
+| `limit` | `50` | Max `100` |
+| `before` | none | RFC3339 cursor for older events |
+| `eventType` | none | Optional exact event type |
+
+**Response - 200**
+```jsonc
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "eventType": "user.profile_updated",
+      "resourceType": "profile",
+      "resourceID": "firebase-uid",
+      "targetUID": "firebase-uid",
+      "projectID": "0105567001234",
+      "metadata": { "changedFields": ["contactPhone"] },
+      "createdAt": "2026-06-14T08:30:00Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+---
+
+### POST `/api/v1/profile/activity/login`
+
+Record a `user.login` event for the authenticated user. The frontend calls this
+after successful Firebase auth/profile bootstrap. Failures should be ignored by
+the client so login UX is not blocked by audit logging.
+
+---
+
 ## 9. Firestore Document (`users/{uid}`)
 
 | Field | Type | Mutable via editor |
@@ -317,12 +361,16 @@ profile editor.
 
 ## 10. Open Tasks
 
-### 10.1 Route `ProfilePage`
+### 10.1 Activity tab cleanup
 
-`ProfilePage` is a fully functional standalone edit form but has no entry in
-`router.tsx`. If a dedicated settings page is preferred over the modal pattern,
-add `{ path: "profile", element: <ProfilePage /> }` inside the `RegisterGuard`
-children.
+`ProfilePage` already includes an Activity tab. Before shipping it as the main
+personal audit surface:
+
+- Replace raw `new Date(...).toLocaleString()` with `formatDateTime()` from
+  `@/lib/dayjs`.
+- Replace icon emoji with consistent icon components if the surrounding profile
+  UI moves to icon buttons.
+- Add loading, empty, and error tests.
 
 ### 10.2 Expose `emailNotifications` in the UI
 
@@ -369,6 +417,13 @@ avoid drift.
 | `profile.saving` | กำลังบันทึก… | Saving… |
 | `profile.saved` | บันทึกสำเร็จแล้ว | Saved successfully! |
 | `profile.error` | เกิดข้อผิดพลาด กรุณาลองใหม่ | An error occurred, please try again |
+| `profile.tabActivity` | กิจกรรม | Activity |
+| `profile.activityEmpty` | ยังไม่มีประวัติการใช้งาน | No activity yet. |
+| `profile.activity.user_login` | เข้าสู่ระบบ | Signed in |
+| `profile.activity.user_registered` | ลงทะเบียนบัญชี | Registered account |
+| `profile.activity.user_profile_updated` | อัปเดตข้อมูลโปรไฟล์ | Updated profile |
+| `profile.activity.user_role_changed` | เปลี่ยนสิทธิ์ผู้ใช้ | Role changed |
+| `profile.activity.assessment_submitted` | ส่งแบบประเมิน | Submitted assessment |
 
 ---
 
@@ -385,6 +440,9 @@ avoid drift.
 - [ ] The registration ID and email fields are read-only and not included in the PUT body.
 - [ ] Closing the dialog via X, backdrop, or Escape discards unsaved changes without an API call.
 - [ ] All copy renders in the active locale (TH/EN).
+- [ ] `/profile` Activity tab calls `GET /api/v1/profile/activity`.
+- [ ] Activity tab only displays the authenticated user's own actor/target events.
+- [ ] Activity timestamps use `formatDateTime()` from `@/lib/dayjs`.
 - [ ] `make lint-web` and `make test-api` pass.
 
 ---
@@ -406,6 +464,9 @@ avoid drift.
   - Change company name → click save → assert success banner visible and nav company name updated.
   - Submit without changes → assert button is `disabled`.
   - API returns 500 → assert error message visible.
+  - Activity tab loading state renders while `/profile/activity` is pending.
+  - Activity tab renders localized labels and formatted timestamps.
+  - Empty activity response renders `profile.activityEmpty`.
 
 ---
 

@@ -100,11 +100,11 @@ gcloud services enable firestore.googleapis.com
 ### Manual Deployment
 
 ```bash
-cd apps/fs-backend
+make build-api
 
 # Build and push Docker image
 IMAGE=asia-southeast3-docker.pkg.dev/<PROJECT_ID>/cloud-run/factory-sync-solutions-api:latest
-docker build -t $IMAGE .
+docker build -t $IMAGE apps/fs-backend
 docker push $IMAGE
 
 # Deploy to Cloud Run
@@ -115,6 +115,49 @@ gcloud run deploy factory-sync-solutions-api \
   --allow-unauthenticated \
   --set-env-vars="ENVIRONMENT=staging,ALLOWED_ORIGINS=https://factory-sync-solutions-staging.pages.dev"
 ```
+
+### API Docs Publishing
+
+Every backend build regenerates Swagger/OpenAPI artifacts from Go annotations before compilation:
+
+```bash
+make docs-api
+make build-api
+```
+
+Backend deploy workflows publish the generated artifacts to the environment-specific private R2 bucket after Cloud Run deploy succeeds. Objects are written first to a commit-specific path, then to the stable `current` path:
+
+```text
+openapi/v1/versions/<git-sha>/metadata.json
+openapi/v1/versions/<git-sha>/swagger.json
+openapi/v1/versions/<git-sha>/swagger.yaml
+openapi/v1/current/metadata.json
+openapi/v1/current/swagger.json
+openapi/v1/current/swagger.yaml
+```
+
+Generated API docs are published to:
+
+| Environment | R2 bucket |
+|---|---|
+| Staging | `apidoc-factorysyncsolutions-com-staging` |
+| Production | `apidoc-factorysyncsolutions-com` |
+
+Required per-environment GitHub Actions secrets for the Cloud Run API docs reader:
+
+| Secret | Description |
+|---|---|
+| `API_DOCS_R2_ACCOUNT_ID` | Cloudflare account ID for API docs R2 reads. |
+| `API_DOCS_R2_ACCESS_KEY_ID` | R2 access key ID scoped to read the target docs bucket. |
+| `API_DOCS_R2_ACCESS_KEY_SECRET` | R2 access key secret scoped to read the target docs bucket. |
+
+Required per-environment GitHub Actions variables:
+
+| Variable | Description |
+|---|---|
+| `API_DOCS_R2_PREFIX` | Optional object prefix; defaults to `openapi`. |
+
+The Cloudflare API token used by deploy workflows must have permission to write R2 objects in the target bucket.
 
 ### Secrets Management
 
@@ -135,19 +178,23 @@ Secrets are injected as environment variables from **GitHub Secrets** at deploy 
 ```
 Tag v*-staging (staging deploy):
   1. Run tests (reusable test.yml)
-  2. Build & push Docker image to Artifact Registry
-  3. Deploy fs-backend to Cloud Run (staging)
-  4. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions-staging)
-  5. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice-staging)
-  6. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official-staging)
+  2. Generate Swagger/OpenAPI docs
+  3. Build & push Docker image to Artifact Registry
+  4. Deploy fs-backend to Cloud Run (staging)
+  5. Publish Swagger/OpenAPI docs to staging R2
+  6. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions-staging)
+  7. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice-staging)
+  8. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official-staging)
 
 Tag v*.*.* (production deploy):
   1. Run tests (reusable test.yml)
-  2. Build & push Docker image to Artifact Registry
-  3. Deploy fs-backend to Cloud Run (production)
-  4. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions)
-  5. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice)
-  6. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official)
+  2. Generate Swagger/OpenAPI docs
+  3. Build & push Docker image to Artifact Registry
+  4. Deploy fs-backend to Cloud Run (production)
+  5. Publish Swagger/OpenAPI docs to production R2
+  6. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions)
+  7. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice)
+  8. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official)
 ```
 
 ### Required GitHub Secrets

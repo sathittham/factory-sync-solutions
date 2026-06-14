@@ -213,6 +213,60 @@
   }
 }
 
+@layer components {
+  .api-docs-swagger .swagger-ui {
+    color: var(--foreground);
+    font-family: "Noto Sans Thai", system-ui, -apple-system, sans-serif;
+  }
+
+  .api-docs-swagger .swagger-ui .info {
+    margin: 1.25rem 0;
+  }
+
+  .api-docs-swagger .swagger-ui .info .title {
+    color: var(--foreground);
+    font-family: "Noto Sans Thai", system-ui, -apple-system, sans-serif;
+    font-size: 1.35rem;
+    letter-spacing: 0;
+  }
+
+  .api-docs-swagger .swagger-ui .scheme-container,
+  .api-docs-swagger .swagger-ui .opblock,
+  .api-docs-swagger .swagger-ui section.models {
+    border-color: var(--border);
+    border-radius: var(--radius);
+    box-shadow: none;
+  }
+
+  .api-docs-swagger .swagger-ui .scheme-container {
+    background: var(--muted);
+  }
+
+  .api-docs-swagger .swagger-ui .opblock-tag,
+  .api-docs-swagger .swagger-ui section.models h4 {
+    color: var(--foreground);
+    font-family: "Noto Sans Thai", system-ui, -apple-system, sans-serif;
+    letter-spacing: 0;
+  }
+
+  .api-docs-swagger .swagger-ui .opblock-summary-description,
+  .api-docs-swagger .swagger-ui .opblock-summary-path,
+  .api-docs-swagger .swagger-ui .parameter__name,
+  .api-docs-swagger .swagger-ui .parameter__type,
+  .api-docs-swagger .swagger-ui .response-col_description,
+  .api-docs-swagger .swagger-ui .response-col_status,
+  .api-docs-swagger .swagger-ui table thead tr td,
+  .api-docs-swagger .swagger-ui table thead tr th {
+    color: var(--foreground);
+  }
+
+  .api-docs-swagger .swagger-ui .btn {
+    border-color: var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    color: var(--foreground);
+  }
+}
+
 :root {
   --sidebar: hsl(0 0% 98%);
   --sidebar-foreground: hsl(240 5.3% 26.1%);

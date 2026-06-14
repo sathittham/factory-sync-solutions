@@ -193,7 +193,7 @@ Playwright E2E tests cover mobile via the `Mobile Chrome` project (Pixel 5). Add
 
 ## API Documentation (Swagger)
 
-> **Status**: Not yet implemented. Swagger annotations exist in handler source code but swaggo is not installed and the Swagger UI route is commented out. See [swagger-openapi.md](../api/swagger.md) for the planned setup.
+> **Status**: Active. Swagger/OpenAPI docs are regenerated from backend annotations during backend builds, CI, and deploys. See [swagger.md](../api/swagger.md) for the current workflow.
 
 ## API Versioning
 

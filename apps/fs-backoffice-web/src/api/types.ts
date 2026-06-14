@@ -11,6 +11,13 @@ export interface Project {
   updatedAt: string;
 }
 
+export interface CreateProjectInput {
+  name: string;
+  companyRegId: string;
+  industryType: string;
+  companySize: string;
+}
+
 export interface Member {
   uid: string;
   email: string;
@@ -71,9 +78,77 @@ export interface StaffMember {
   backofficeRole: string;
 }
 
+export interface OwnerInvitation {
+  uid: string;
+  email: string;
+  projectID: string;
+  projectRole: string;
+  expiresAt: string;
+}
+
+export interface AuditEvent {
+  id: string;
+  actorUID: string;
+  actorEmail?: string;
+  actorName?: string;
+  eventType: string;
+  resourceType: string;
+  resourceID: string;
+  targetUID?: string;
+  projectID?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface AuditFilters {
+  limit?: number;
+  before?: string;
+  eventType?: string;
+  actorUID?: string;
+  targetUID?: string;
+  projectID?: string;
+  resourceType?: string;
+}
+
 export interface BackofficeStats {
   totalProjects: number;
   totalUsers: number;
   avgScore: number;
   staffCount: number;
+}
+
+export interface ApiDocsVersion {
+  apiVersion: string;
+  label: string;
+  isCurrent: boolean;
+}
+
+export interface ApiDocsVersionsResponse {
+  versions: ApiDocsVersion[];
+}
+
+export interface ApiDocsMetadata {
+  environment: string;
+  apiVersion: string;
+  gitSHA: string;
+  generatedAt: string;
+  openapiVersion: string;
+  jsonKey: string;
+  yamlKey: string;
+}
+
+export interface OpenApiOperation {
+  summary?: string;
+  description?: string;
+  tags?: string[];
+}
+
+export interface OpenApiSpec {
+  openapi?: string;
+  swagger?: string;
+  info?: {
+    title?: string;
+    version?: string;
+  };
+  paths?: Record<string, Record<string, OpenApiOperation>>;
 }

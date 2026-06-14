@@ -5,6 +5,31 @@ import (
 	"net/http"
 )
 
+// JSONResponse documents the standard single-resource success envelope.
+type JSONResponse struct {
+	Success bool `json:"success"`
+	Data    any  `json:"data"`
+}
+
+// ListResponse documents the standard collection success envelope.
+type ListResponse struct {
+	Success bool `json:"success"`
+	Data    any  `json:"data"`
+	Count   int  `json:"count"`
+}
+
+// ErrorBody documents the standard API error payload.
+type ErrorBody struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// ErrorResponse documents the standard error envelope.
+type ErrorResponse struct {
+	Success bool      `json:"success"`
+	Error   ErrorBody `json:"error"`
+}
+
 func RespondJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

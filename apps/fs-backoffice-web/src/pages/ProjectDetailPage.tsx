@@ -1,11 +1,12 @@
 import { backofficeApi } from '@/api/backoffice';
-import type { Member, Project } from '@/api/types';
+import type { Assessment, Member, Project } from '@/api/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -25,7 +26,8 @@ import { formatDateTime } from '@/lib/dayjs';
 import { useLocale } from '@/lib/i18n';
 import { useAppSelector } from '@/store';
 import { PageHeader, PageLayout } from '@shared/ui/PageLayout';
-import { useEffect, useState } from 'react';
+import { ChevronDown, ChevronRight, UserPlus } from 'lucide-react';
+import { Fragment, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 
 type ProjectRole = 'owner' | 'system_admin' | 'manager' | 'general_user';
@@ -39,6 +41,27 @@ const ROLE_BADGE_VARIANT: Record<ProjectRole, 'default' | 'secondary' | 'outline
 
 function roleBadgeVariant(role: string): 'default' | 'secondary' | 'outline' {
   return ROLE_BADGE_VARIANT[role as ProjectRole] ?? ROLE_BADGE_VARIANT.general_user;
+}
+
+function diagnosisBadge(diagnosis: string) {
+  const map: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    Beginning: 'destructive',
+    Developing: 'secondary',
+    Established: 'outline',
+    Advanced: 'default',
+  };
+  return <Badge variant={map[diagnosis] ?? 'secondary'}>{diagnosis}</Badge>;
+}
+
+function scoreClassName(score: number): string {
+  if (score >= 4) return 'font-semibold text-primary';
+  if (score >= 3) return 'font-semibold';
+  if (score >= 2) return 'font-semibold text-muted-foreground';
+  return 'font-semibold text-destructive';
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 interface ChangeRoleDialogProps {
@@ -144,6 +167,189 @@ function RemoveMemberDialog({ member, onClose, onConfirm }: RemoveMemberDialogPr
   );
 }
 
+interface ProjectQuizTabProps {
+  readonly loading: boolean;
+  readonly results: Assessment[];
+  readonly expandedResultID: string | null;
+  readonly setExpandedResultID: (id: string | null) => void;
+  readonly t: (key: string) => string;
+  readonly locale: string;
+}
+
+interface ProjectQuizResultRowsProps {
+  readonly result: Assessment;
+  readonly expanded: boolean;
+  readonly onToggle: () => void;
+  readonly t: (key: string) => string;
+  readonly locale: string;
+}
+
+function ProjectQuizResultRows({
+  result,
+  expanded,
+  onToggle,
+  t,
+  locale,
+}: ProjectQuizResultRowsProps) {
+  return (
+    <Fragment>
+      <tr className="border-b last:border-0 hover:bg-muted/30">
+        <td className="px-4 py-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="-ml-2 justify-start px-2"
+            onClick={onToggle}
+          >
+            {expanded ? (
+              <ChevronDown data-icon="inline-start" />
+            ) : (
+              <ChevronRight data-icon="inline-start" />
+            )}
+            {result.quizId || t('common.notAvailable')}
+          </Button>
+        </td>
+        <td className={`px-4 py-3 ${scoreClassName(result.overallScore)}`}>
+          {result.overallScore.toFixed(2)}
+        </td>
+        <td className="px-4 py-3">{diagnosisBadge(result.diagnosis)}</td>
+        <td className="px-4 py-3 text-muted-foreground text-sm">
+          {formatDateTime(result.submittedAt, locale, false)}
+        </td>
+      </tr>
+      {expanded && (
+        <tr className="bg-muted/20">
+          <td colSpan={4} className="px-6 py-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {result.scores?.length > 0 && (
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                    {t('results.dimensions')}
+                  </p>
+                  <div className="flex flex-col gap-1">
+                    {result.scores.map((score) => (
+                      <div key={score.dimensionID} className="flex justify-between gap-3 text-sm">
+                        <span>{score.dimensionName || score.dimensionID}</span>
+                        <span className={scoreClassName(score.score)}>
+                          {score.score.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex flex-col gap-3">
+                {result.strengths?.length > 0 && (
+                  <div>
+                    <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+                      {t('results.strengths')}
+                    </p>
+                    <ul className="flex list-disc flex-col gap-0.5 pl-4 text-sm">
+                      {result.strengths.map((strength) => (
+                        <li key={strength}>{strength}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {result.weaknesses?.length > 0 && (
+                  <div>
+                    <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+                      {t('results.weaknesses')}
+                    </p>
+                    <ul className="flex list-disc flex-col gap-0.5 pl-4 text-sm">
+                      {result.weaknesses.map((weakness) => (
+                        <li key={weakness}>{weakness}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </Fragment>
+  );
+}
+
+function ProjectQuizTab({
+  loading,
+  results,
+  expandedResultID,
+  setExpandedResultID,
+  t,
+  locale,
+}: ProjectQuizTabProps) {
+  let tableBody = ['sk-q1', 'sk-q2', 'sk-q3'].map((id) => (
+    <tr key={id} className="border-b">
+      <td className="px-4 py-3">
+        <Skeleton className="h-5 w-28" />
+      </td>
+      <td className="px-4 py-3">
+        <Skeleton className="h-5 w-16" />
+      </td>
+      <td className="px-4 py-3">
+        <Skeleton className="h-5 w-24" />
+      </td>
+      <td className="px-4 py-3">
+        <Skeleton className="h-5 w-28" />
+      </td>
+    </tr>
+  ));
+
+  if (!loading && results.length === 0) {
+    tableBody = [
+      <tr key="empty-quiz">
+        <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+          {t('common.noData')}
+        </td>
+      </tr>,
+    ];
+  }
+
+  if (!loading && results.length > 0) {
+    tableBody = results.map((result) => {
+      const expanded = expandedResultID === result.id;
+      return (
+        <ProjectQuizResultRows
+          key={result.id}
+          result={result}
+          expanded={expanded}
+          onToggle={() => setExpandedResultID(expanded ? null : result.id)}
+          t={t}
+          locale={locale}
+        />
+      );
+    });
+  }
+
+  return (
+    <TabsContent value="quiz">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t('projects.quizTab')}</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="px-4 py-3 text-left font-medium">{t('results.quizId')}</th>
+                  <th className="px-4 py-3 text-left font-medium">{t('results.score')}</th>
+                  <th className="px-4 py-3 text-left font-medium">{t('results.diagnosis')}</th>
+                  <th className="px-4 py-3 text-left font-medium">{t('results.date')}</th>
+                </tr>
+              </thead>
+              <tbody>{tableBody}</tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </TabsContent>
+  );
+}
+
 export function ProjectDetailPage() {
   const { projectID } = useParams<{ projectID: string }>();
   const { t, locale } = useLocale();
@@ -151,6 +357,7 @@ export function ProjectDetailPage() {
 
   const [project, setProject] = useState<Project | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
+  const [results, setResults] = useState<Assessment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -163,6 +370,12 @@ export function ProjectDetailPage() {
   // Dialog state
   const [changeRoleMember, setChangeRoleMember] = useState<Member | null>(null);
   const [removeMember, setRemoveMember] = useState<Member | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteError, setInviteError] = useState('');
+  const [inviteSuccess, setInviteSuccess] = useState('');
+  const [inviting, setInviting] = useState(false);
+  const [expandedResultID, setExpandedResultID] = useState<string | null>(null);
 
   // Deactivate/reactivate
   const [togglingStatus, setTogglingStatus] = useState(false);
@@ -175,13 +388,15 @@ export function ProjectDetailPage() {
       setLoading(true);
       setError(null);
       try {
-        const [proj, mems] = await Promise.all([
+        const [proj, mems, projectResults] = await Promise.all([
           backofficeApi.getProject(projectID as string),
           backofficeApi.listMembers(projectID as string),
+          backofficeApi.listResults({ projectID: projectID as string }),
         ]);
         if (!cancelled) {
           setProject(proj);
           setMembers(mems);
+          setResults(projectResults);
           setSettingsName(proj.name);
           setSettingsIndustry(proj.industryType);
           setSettingsSize(proj.companySize);
@@ -255,6 +470,33 @@ export function ProjectDetailPage() {
     }
   };
 
+  const handleInviteOwner = async () => {
+    if (!projectID) return;
+    const email = inviteEmail.trim();
+    if (!email) {
+      setInviteError(t('projects.ownerEmailRequired'));
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setInviteError(t('projects.ownerEmailInvalid'));
+      return;
+    }
+
+    setInviting(true);
+    setInviteError('');
+    setInviteSuccess('');
+    try {
+      await backofficeApi.inviteOwner(projectID, email);
+      setInviteOpen(false);
+      setInviteEmail('');
+      setInviteSuccess(t('projects.ownerInviteSent'));
+    } catch {
+      setInviteError(t('projects.ownerInviteError'));
+    } finally {
+      setInviting(false);
+    }
+  };
+
   const pageTitle = loading ? (
     <Skeleton className="h-7 w-48" />
   ) : (
@@ -321,16 +563,34 @@ export function ProjectDetailPage() {
       <PageHeader title={pageTitle} description={t('projects.title')} actions={toggleButton} />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
+      {inviteSuccess && <p className="text-sm text-primary">{inviteSuccess}</p>}
 
       <div className="flex flex-col gap-6">
-        <Tabs defaultValue="members">
+        <Tabs defaultValue="quiz">
           <TabsList>
+            <TabsTrigger value="quiz">{t('projects.quizTab')}</TabsTrigger>
             <TabsTrigger value="members">{t('projects.membersTab')}</TabsTrigger>
             <TabsTrigger value="settings">{t('projects.settingsTab')}</TabsTrigger>
           </TabsList>
 
+          <ProjectQuizTab
+            loading={loading}
+            results={results}
+            expandedResultID={expandedResultID}
+            setExpandedResultID={setExpandedResultID}
+            t={t}
+            locale={locale}
+          />
+
           <TabsContent value="members">
             <Card>
+              <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <CardTitle className="text-base">{t('projects.membersTab')}</CardTitle>
+                <Button size="sm" onClick={() => setInviteOpen(true)} disabled={loading}>
+                  <UserPlus data-icon="inline-start" />
+                  {t('projects.inviteOwner')}
+                </Button>
+              </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -414,6 +674,52 @@ export function ProjectDetailPage() {
         onClose={() => setRemoveMember(null)}
         onConfirm={handleRemoveMemberConfirm}
       />
+
+      <Dialog
+        open={inviteOpen}
+        onOpenChange={(open) => {
+          setInviteOpen(open);
+          if (!open) {
+            setInviteEmail('');
+            setInviteError('');
+          }
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('projects.inviteOwner')}</DialogTitle>
+            <DialogDescription>{t('projects.inviteOwnerDesc')}</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="project-owner-email">{t('projects.ownerEmail')}</Label>
+            <Input
+              id="project-owner-email"
+              type="email"
+              autoComplete="email"
+              value={inviteEmail}
+              onChange={(e) => {
+                setInviteEmail(e.target.value);
+                setInviteError('');
+              }}
+              aria-invalid={Boolean(inviteError)}
+              disabled={inviting}
+            />
+          </div>
+          {inviteError && (
+            <p role="alert" className="text-sm text-destructive">
+              {inviteError}
+            </p>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setInviteOpen(false)} disabled={inviting}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={handleInviteOwner} disabled={inviting || !inviteEmail.trim()}>
+              {inviting ? t('common.sending') : t('projects.sendOwnerInvite')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageLayout>
   );
 }

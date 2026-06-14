@@ -52,6 +52,34 @@ type BackofficeStats struct {
 	StaffCount    int     `json:"staffCount"`
 }
 
+type APIDocsVersion struct {
+	APIVersion string `json:"apiVersion"`
+	Label      string `json:"label"`
+	IsCurrent  bool   `json:"isCurrent"`
+}
+
+type APIDocsVersionsResponse struct {
+	Versions []APIDocsVersion `json:"versions"`
+}
+
+type APIDocsMetadata struct {
+	Environment    string `json:"environment"`
+	APIVersion     string `json:"apiVersion"`
+	GitSHA         string `json:"gitSHA"`
+	GeneratedAt    string `json:"generatedAt"`
+	OpenAPIVersion string `json:"openapiVersion"`
+	JSONKey        string `json:"jsonKey"`
+	YAMLKey        string `json:"yamlKey"`
+}
+
+type APIDocsSpecResponse struct {
+	Spec any `json:"spec"`
+}
+
+type APIDocsYAMLResponse struct {
+	YAML string `json:"yaml"`
+}
+
 // CreateProjectRequest is the payload for POST /backoffice/projects.
 type CreateProjectRequest struct {
 	Name         string `json:"name" validate:"required,min=2,max=200"`
@@ -72,8 +100,33 @@ type ChangeMemberRoleRequest struct {
 	ProjectRole string `json:"projectRole" validate:"required,oneof=owner system_admin manager general_user"`
 }
 
+// InviteOwnerRequest is the payload for POST /backoffice/projects/{id}/invite-owner.
+type InviteOwnerRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+// InviteOwnerResponse confirms the owner invitation target.
+type InviteOwnerResponse struct {
+	UID         string `json:"uid"`
+	Email       string `json:"email"`
+	ProjectID   string `json:"projectID"`
+	ProjectRole string `json:"projectRole"`
+	ExpiresAt   string `json:"expiresAt"`
+}
+
+// SetUserRoleRequest is the payload for PUT /backoffice/users/{uid}/role.
+type SetUserRoleRequest struct {
+	Role string `json:"role" validate:"required,oneof=admin user owner system_admin manager general_user"`
+}
+
 // SetStaffRoleRequest is the payload for PUT /backoffice/staff/{uid}.
 type SetStaffRoleRequest struct {
+	BackofficeRole string `json:"backofficeRole" validate:"required,oneof=superadmin staff"`
+}
+
+// InviteStaffRequest is the payload for POST /backoffice/staff/invitations.
+type InviteStaffRequest struct {
+	Email          string `json:"email" validate:"required,email"`
 	BackofficeRole string `json:"backofficeRole" validate:"required,oneof=superadmin staff"`
 }
 

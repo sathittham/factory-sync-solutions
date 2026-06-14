@@ -36,13 +36,13 @@ func (h *Handler) Routes(r chi.Router) {
 // @Produce      json
 // @Param        Authorization  header    string  true  "Bearer {firebase-id-token}"
 // @Param        file           formData  file    true  "Avatar image"
-// @Success      200  {object}  map[string]any
-// @Failure      400  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      404  {object}  map[string]any
-// @Failure      503  {object}  map[string]any
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      400  {object}  pkg.ErrorResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      404  {object}  pkg.ErrorResponse
+// @Failure      503  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/upload/avatar [post]
+// @Router       /upload/avatar [post]
 func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	uid := middleware.GetUID(r)
 	r.Body = http.MaxBytesReader(w, r.Body, AvatarMaxBytes+multipartMemory)
@@ -83,11 +83,11 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 // @Tags         Upload
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
 // @Success      204
-// @Failure      401  {object}  map[string]any
-// @Failure      404  {object}  map[string]any
-// @Failure      503  {object}  map[string]any
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      404  {object}  pkg.ErrorResponse
+// @Failure      503  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/upload/avatar [delete]
+// @Router       /upload/avatar [delete]
 func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 	uid := middleware.GetUID(r)
 	if err := h.service.DeleteAvatar(r.Context(), uid); err != nil {

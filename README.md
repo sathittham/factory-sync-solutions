@@ -172,7 +172,7 @@ Root-level commands run across all packages via Makefile:
 - **Monorepo**: Makefile
 - **Routing**: React Router v7
 - **Go Framework**: Chi (lightweight HTTP router)
-- **API Docs**: Swagger/OpenAPI via swaggo (planned — not yet implemented)
+- **API Docs**: Swagger/OpenAPI via swaggo, regenerated during backend builds and deploys
 - **Notifications**: Slack (Incoming Webhooks)
 - **i18n**: Thai/English via `useLocale()` hook
 - **Theming**: Light/dark/system via `useTheme()` hook with FOUC prevention

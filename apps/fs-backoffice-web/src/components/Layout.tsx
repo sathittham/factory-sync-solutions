@@ -1,6 +1,8 @@
+import { backofficeApi } from '@/api/backoffice';
 import {
   Breadcrumb,
   BreadcrumbItem,
+  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -12,10 +14,75 @@ import { useTheme } from '@/lib/theme';
 import { LocaleSwitcher } from '@shared/ui/LocaleSwitcher';
 import { ThemeSwitcher } from '@shared/ui/ThemeSwitcher';
 import { ShieldCheck } from 'lucide-react';
-import { Fragment } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { Outlet, useLocation } from 'react-router';
+import { Link, Outlet, useLocation } from 'react-router';
 import { AppSidebar } from './Sidebar';
+
+interface BreadcrumbSegment {
+  label: string;
+  href?: string;
+}
+
+interface BreadcrumbDefinition {
+  key: string;
+  href?: string;
+}
+
+const exactBreadcrumbs: Record<string, BreadcrumbDefinition[]> = {
+  '/dashboard': [{ key: 'nav.main' }, { key: 'nav.dashboard' }],
+  '/profile': [{ key: 'nav.main', href: '/dashboard' }, { key: 'nav.profile' }],
+  '/staff': [{ key: 'nav.administrator' }, { key: 'nav.staff' }],
+};
+
+const prefixBreadcrumbs: Array<{ prefix: string; segments: BreadcrumbDefinition[] }> = [
+  {
+    prefix: '/help/api-docs',
+    segments: [{ key: 'nav.administrator' }, { key: 'nav.apiDocs' }],
+  },
+  {
+    prefix: '/projects',
+    segments: [{ key: 'nav.main', href: '/dashboard' }, { key: 'nav.projects' }],
+  },
+  { prefix: '/users', segments: [{ key: 'nav.main', href: '/dashboard' }, { key: 'nav.users' }] },
+  {
+    prefix: '/results',
+    segments: [{ key: 'nav.main', href: '/dashboard' }, { key: 'nav.results' }],
+  },
+];
+
+function labelsFromDefinitions(
+  segments: BreadcrumbDefinition[],
+  t: (key: string) => string,
+): BreadcrumbSegment[] {
+  return segments.map(({ key, href }) => ({ label: t(key), href }));
+}
+
+function buildBreadcrumbSegments(
+  path: string,
+  projectID: string,
+  projectName: string,
+  t: (key: string) => string,
+): BreadcrumbSegment[] {
+  if (projectID) {
+    return [
+      { label: t('nav.main'), href: '/dashboard' },
+      { label: t('nav.projects'), href: '/projects' },
+      { label: projectName || projectID },
+    ];
+  }
+
+  const exactSegments = exactBreadcrumbs[path];
+  if (exactSegments) return labelsFromDefinitions(exactSegments, t);
+
+  const prefixMatch = prefixBreadcrumbs.find(({ prefix }) => path.startsWith(prefix));
+  if (prefixMatch) return labelsFromDefinitions(prefixMatch.segments, t);
+
+  return labelsFromDefinitions(
+    [{ key: 'nav.main', href: '/dashboard' }, { key: 'nav.appName' }],
+    t,
+  );
+}
 
 function TopBar({ t }: Readonly<{ t: (key: string) => string }>) {
   return (
@@ -47,17 +114,40 @@ export function Layout() {
   const { locale, setLocale, t } = useLocale();
   const { theme, setTheme } = useTheme();
   const location = useLocation();
+  const [breadcrumbProjectName, setBreadcrumbProjectName] = useState('');
 
-  const breadcrumbSegments = (() => {
-    const path = location.pathname;
-    if (path === '/dashboard') return [{ label: t('nav.main') }, { label: t('nav.dashboard') }];
-    if (path.startsWith('/projects'))
-      return [{ label: t('nav.main') }, { label: t('nav.projects') }];
-    if (path.startsWith('/users')) return [{ label: t('nav.main') }, { label: t('nav.users') }];
-    if (path.startsWith('/results')) return [{ label: t('nav.main') }, { label: t('nav.results') }];
-    if (path === '/staff') return [{ label: t('nav.main') }, { label: t('nav.staff') }];
-    return [{ label: t('nav.main') }, { label: t('nav.appName') }];
-  })();
+  const projectIDForBreadcrumb = useMemo(() => {
+    const match = /^\/projects\/([^/]+)$/.exec(location.pathname);
+    return match ? decodeURIComponent(match[1]) : '';
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!projectIDForBreadcrumb) {
+      setBreadcrumbProjectName('');
+      return;
+    }
+
+    let cancelled = false;
+    setBreadcrumbProjectName('');
+    backofficeApi
+      .getProject(projectIDForBreadcrumb)
+      .then((project) => {
+        if (!cancelled) setBreadcrumbProjectName(project.name);
+      })
+      .catch(() => {
+        if (!cancelled) setBreadcrumbProjectName(projectIDForBreadcrumb);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectIDForBreadcrumb]);
+
+  const breadcrumbSegments = useMemo(
+    () =>
+      buildBreadcrumbSegments(location.pathname, projectIDForBreadcrumb, breadcrumbProjectName, t),
+    [breadcrumbProjectName, location.pathname, projectIDForBreadcrumb, t],
+  );
 
   return (
     <div className="flex h-svh flex-col overflow-hidden">
@@ -82,6 +172,10 @@ export function Layout() {
                       <BreadcrumbItem className={isLast ? 'min-w-0' : 'hidden md:block'}>
                         {isLast ? (
                           <BreadcrumbPage className="truncate">{seg.label}</BreadcrumbPage>
+                        ) : seg.href ? (
+                          <BreadcrumbLink asChild className="text-sm truncate">
+                            <Link to={seg.href}>{seg.label}</Link>
+                          </BreadcrumbLink>
                         ) : (
                           <span className="text-muted-foreground text-sm truncate">
                             {seg.label}

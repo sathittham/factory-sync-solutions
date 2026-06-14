@@ -180,11 +180,13 @@ func (h *Handler) enrichAssessments(r *http.Request, assessments []result.Assess
 // @Produce      json
 // @Param        Authorization  header  string  true   "Bearer {firebase-id-token}"
 // @Param        limit          query   int     false  "Max results (default 100, max 500)"
-// @Success      200  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      403  {object}  map[string]any
+// @Param        industryType   query   string  false  "Filter by industry type"
+// @Param        companySize    query   string  false  "Filter by company size"
+// @Success      200  {object}  pkg.ListResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      403  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/admin/assessments [get]
+// @Router       /admin/assessments [get]
 func (h *Handler) ListAssessments(w http.ResponseWriter, r *http.Request) {
 	limit := parseLimit(r.URL.Query().Get("limit"), 100, maxAssessmentLimit)
 	industryType := r.URL.Query().Get("industryType")
@@ -247,12 +249,12 @@ func (h *Handler) ListAssessments(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
 // @Param        assessmentId   path    string  true  "Assessment ID (UUIDv4)"
-// @Success      200  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      403  {object}  map[string]any
-// @Failure      404  {object}  map[string]any
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      403  {object}  pkg.ErrorResponse
+// @Failure      404  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/admin/assessments/{assessmentId} [get]
+// @Router       /admin/assessments/{assessmentId} [get]
 func (h *Handler) GetAssessment(w http.ResponseWriter, r *http.Request) {
 	assessmentID := chi.URLParam(r, "assessmentId")
 	if !uuidPattern.MatchString(assessmentID) {
@@ -283,10 +285,10 @@ func (h *Handler) GetAssessment(w http.ResponseWriter, r *http.Request) {
 // @Produce      text/csv
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
 // @Success      200  {file}    csv
-// @Failure      401  {object}  map[string]any
-// @Failure      403  {object}  map[string]any
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      403  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/admin/export [get]
+// @Router       /admin/export [get]
 func (h *Handler) ExportCSV(w http.ResponseWriter, r *http.Request) {
 	results, err := h.resultSvc.ListResults(r.Context(), nil, maxExportRows)
 	if err != nil {
@@ -336,11 +338,12 @@ func (h *Handler) ExportCSV(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string  true   "Bearer {firebase-id-token}"
 // @Param        limit          query   int     false  "Max results (default 200, max 500)"
-// @Success      200  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      403  {object}  map[string]any
+// @Success      200  {object}  pkg.ListResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      403  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/admin/users [get]
+// @Router       /admin/users [get]
+// @Router       /manage/users [get]
 func (h *Handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	limit := parseLimit(r.URL.Query().Get("limit"), 200, maxUserLimit)
 
@@ -438,13 +441,14 @@ type setRoleRequest struct {
 // @Param        Authorization  header  string          true  "Bearer {firebase-id-token}"
 // @Param        uid            path    string          true  "Firebase UID"
 // @Param        body           body    setRoleRequest  true  "Role payload"
-// @Success      200  {object}  map[string]string
-// @Failure      400  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      403  {object}  map[string]any
-// @Failure      500  {object}  map[string]any
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      400  {object}  pkg.ErrorResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      403  {object}  pkg.ErrorResponse
+// @Failure      500  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/admin/users/{uid}/role [put]
+// @Router       /admin/users/{uid}/role [put]
+// @Router       /manage/users/{uid}/role [put]
 func (h *Handler) SetUserRole(w http.ResponseWriter, r *http.Request) {
 	uid := chi.URLParam(r, "uid")
 	if uid == "" || len(uid) > 128 {
@@ -460,6 +464,13 @@ func (h *Handler) SetUserRole(w http.ResponseWriter, r *http.Request) {
 	if !validRoles[req.Role] {
 		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", "role must be one of: user, manager, system_admin, owner")
 		return
+	}
+
+	var oldRole string
+	if p, err := h.profileSvc.GetProfile(r.Context(), uid); err == nil {
+		oldRole = p.Role
+	} else if !errors.Is(err, profile.ErrProfileNotFound) {
+		slog.Warn("set role: load old profile role failed", "uid", uid, "error", err.Error())
 	}
 
 	// Update Firebase custom claims first (authoritative source for RequireAdmin middleware)
@@ -478,6 +489,16 @@ func (h *Handler) SetUserRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slog.Info("user role updated", "uid", uid, "role", req.Role)
+	if h.auditLogger != nil {
+		h.auditLogger.LogWithDetails(r.Context(), middleware.GetUID(r), audit.EventUserRoleChanged, "profile", uid, map[string]any{
+			"oldRole": oldRole,
+			"newRole": req.Role,
+		}, audit.EventDetails{
+			ActorEmail: middleware.GetEmail(r),
+			ActorName:  middleware.GetDisplayName(r),
+			TargetUID:  uid,
+		})
+	}
 	pkg.RespondJSON(w, http.StatusOK, map[string]string{"uid": uid, "role": req.Role})
 }
 
@@ -561,12 +582,12 @@ func (h *Handler) persistInvitation(ctx context.Context, inv pendingInvitation) 
 // @Produce      json
 // @Param        Authorization  header  string         true  "Bearer {firebase-id-token}"
 // @Param        body           body    inviteRequest  true  "Invitation payload"
-// @Success      200  {object}  map[string]string
-// @Failure      400  {object}  map[string]any
-// @Failure      409  {object}  map[string]any
-// @Failure      500  {object}  map[string]any
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      400  {object}  pkg.ErrorResponse
+// @Failure      409  {object}  pkg.ErrorResponse
+// @Failure      500  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/admin/invitations [post]
+// @Router       /manage/invitations [post]
 func (h *Handler) InviteMember(w http.ResponseWriter, r *http.Request) {
 	var req inviteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -655,12 +676,12 @@ func (h *Handler) InviteMember(w http.ResponseWriter, r *http.Request) {
 // @Tags         Admin
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
-// @Success      200  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      404  {object}  map[string]any
-// @Failure      500  {object}  map[string]any
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      404  {object}  pkg.ErrorResponse
+// @Failure      500  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/invitations/accept [post]
+// @Router       /invitations/accept [post]
 func (h *Handler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 	uid := middleware.GetUID(r)
 	if uid == "" {
@@ -720,7 +741,12 @@ func (h *Handler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:    now,
 	}
 
-	if _, err := h.fsClient.Collection("users").Doc(uid).Set(ctx, p); err != nil {
+	createdProfile, err := h.profileSvc.CreateInvitedProfile(ctx, &p)
+	if errors.Is(err, profile.ErrAlreadyRegistered) {
+		pkg.RespondError(w, http.StatusConflict, "CONFLICT", "user is already registered")
+		return
+	}
+	if err != nil {
 		slog.Error("accept invitation: write profile failed", "uid", uid, "error", err.Error())
 		pkg.RespondError(w, http.StatusInternalServerError, "INTERNAL_ERROR", msgInternalError)
 		return
@@ -732,7 +758,7 @@ func (h *Handler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slog.Info("invitation accepted", "uid", uid, "email", email, "role", inv.Role)
-	pkg.RespondJSON(w, http.StatusOK, p)
+	pkg.RespondJSON(w, http.StatusOK, createdProfile)
 }
 
 // CancelInvitation godoc
@@ -742,13 +768,13 @@ func (h *Handler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
 // @Param        uid            path    string  true  "Firebase UID of the pending invite"
-// @Success      200  {object}  map[string]string
-// @Failure      400  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      403  {object}  map[string]any
-// @Failure      500  {object}  map[string]any
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      400  {object}  pkg.ErrorResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      403  {object}  pkg.ErrorResponse
+// @Failure      500  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/manage/invitations/{uid} [delete]
+// @Router       /manage/invitations/{uid} [delete]
 func (h *Handler) CancelInvitation(w http.ResponseWriter, r *http.Request) {
 	uid := chi.URLParam(r, "uid")
 	if uid == "" || len(uid) > 128 {
@@ -802,14 +828,14 @@ func (h *Handler) CancelInvitation(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
 // @Param        uid            path    string  true  "Firebase UID of the pending invite"
-// @Success      200  {object}  map[string]string
-// @Failure      400  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      403  {object}  map[string]any
-// @Failure      404  {object}  map[string]any
-// @Failure      500  {object}  map[string]any
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      400  {object}  pkg.ErrorResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      403  {object}  pkg.ErrorResponse
+// @Failure      404  {object}  pkg.ErrorResponse
+// @Failure      500  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/manage/invitations/{uid}/resend [post]
+// @Router       /manage/invitations/{uid}/resend [post]
 func (h *Handler) ResendInvitation(w http.ResponseWriter, r *http.Request) {
 	uid := chi.URLParam(r, "uid")
 	if uid == "" || len(uid) > 128 {

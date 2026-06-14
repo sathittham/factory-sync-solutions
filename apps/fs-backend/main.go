@@ -1,5 +1,5 @@
 // @title        FactorySync Solutions API
-// @version      0.1.0
+// @version      v1
 // @description  REST API for the FactorySync Solutions assessment platform
 // @host         localhost:8080
 // @BasePath     /api/v1
@@ -21,7 +21,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
+	httpSwagger "github.com/swaggo/http-swagger"
 
+	_ "github.com/sathittham/factory-sync-solutions/apps/fs-backend/docs/v1"
 	appMiddleware "github.com/sathittham/factory-sync-solutions/apps/fs-backend/middleware"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/pkg"
 	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/admin"
@@ -156,7 +158,7 @@ func main() {
 	adminHandler := admin.NewHandler(resultSvc, profileSvc, authClient, auditLogger, notifSvc, firestoreClient)
 
 	// Backoffice
-	backofficeHandler := backoffice.NewHandler(resultSvc, profileSvc, authClient, firestoreClient)
+	backofficeHandler := backoffice.NewHandler(resultSvc, profileSvc, authClient, firestoreClient, auditLogger, notifSvc)
 
 	// DBD
 	dbdSvc := dbd.NewDefaultService()
@@ -194,7 +196,9 @@ func main() {
 		r.Group(func(r chi.Router) {
 			// Swagger UI (non-production only)
 			if os.Getenv("ENVIRONMENT") != "production" {
-				// r.Get("/swagger/*", swaggerHandler) // uncomment when swaggo is set up
+				r.Get("/swagger/*", httpSwagger.Handler(
+					httpSwagger.URL("/api/v1/swagger/doc.json"),
+				))
 			}
 		})
 

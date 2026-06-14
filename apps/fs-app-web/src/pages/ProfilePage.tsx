@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ApiError, api } from '@/lib/api';
+import { formatDateTime } from '@/lib/dayjs';
 import { auth, googleProvider } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -24,7 +25,6 @@ import {
 import { Camera, Eye, EyeOff, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as z from 'zod';
-
 
 function mapPasswordError(code: string, t: (key: string) => string): string {
   if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
@@ -160,7 +160,12 @@ function AvatarUpload({
     <div className="flex flex-col items-center gap-1">
       <div className="relative group">
         <Avatar className="size-16">
-          <AvatarImage src={src} alt={displayName} referrerPolicy="no-referrer" className="object-cover" />
+          <AvatarImage
+            src={src}
+            alt={displayName}
+            referrerPolicy="no-referrer"
+            className="object-cover"
+          />
           <AvatarFallback className="text-lg font-semibold bg-primary/10 text-primary">
             {initial}
           </AvatarFallback>
@@ -173,9 +178,30 @@ function AvatarUpload({
           className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
           aria-label={t('profile.avatarUpload')}
         >
-          {uploading
-            ? <svg className="animate-spin size-4 text-white" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-            : <Camera className="size-4 text-white" />}
+          {uploading ? (
+            <svg
+              className="animate-spin size-4 text-white"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
+            </svg>
+          ) : (
+            <Camera className="size-4 text-white" />
+          )}
         </button>
 
         {hasCustomAvatar && !uploading && (
@@ -845,8 +871,7 @@ function ProfileTab() {
               validators={{ onBlur: contactNameSchema, onSubmit: contactNameSchema }}
             >
               {(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                const isInvalid = field.state.meta.isTouched && field.state.meta.errors.length > 0;
                 return (
                   <Field data-invalid={isInvalid}>
                     <FieldLabel htmlFor="pp-contactName">{t('register.contactName')}</FieldLabel>
@@ -1067,7 +1092,7 @@ function parseUserAgent(ua: string): string {
 }
 
 function ActivityTab() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
@@ -1122,9 +1147,10 @@ function ActivityTab() {
         !fetchError &&
         events.map((ev) => {
           const icon = EVENT_ICONS[ev.eventType] ?? '📄';
-          const ua = ev.eventType === 'user.login' && typeof ev.metadata?.userAgent === 'string'
-            ? parseUserAgent(ev.metadata.userAgent)
-            : null;
+          const ua =
+            ev.eventType === 'user.login' && typeof ev.metadata?.userAgent === 'string'
+              ? parseUserAgent(ev.metadata.userAgent)
+              : null;
           return (
             <div key={ev.id} className="flex items-center gap-3 px-5 py-4">
               <span className="text-lg shrink-0" aria-hidden="true">
@@ -1134,7 +1160,7 @@ function ActivityTab() {
                 <p className="text-sm font-medium">{formatLabel(ev.eventType)}</p>
                 {ua && <p className="text-xs text-muted-foreground">{ua}</p>}
                 <p className="text-xs text-muted-foreground">
-                  {new Date(ev.createdAt).toLocaleString()}
+                  {formatDateTime(ev.createdAt, locale)}
                 </p>
               </div>
             </div>
@@ -1188,10 +1214,7 @@ export function ProfilePage() {
   const initial = displayName.charAt(0).toUpperCase();
 
   const providerBadges = providers.map((pid) => (
-    <span
-      key={pid}
-      className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full"
-    >
+    <span key={pid} className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
       {pid === 'google.com' ? t('profile.googleProvider') : t('profile.emailPasswordProvider')}
     </span>
   ));

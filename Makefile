@@ -1,4 +1,4 @@
-.PHONY: dev dev-api dev-web build build-api build-web test test-api test-web lint lint-api lint-web lint-fix clean install
+.PHONY: dev dev-api dev-web build build-api build-web docs-api publish-api-docs-staging publish-api-docs-prod test test-api test-web lint lint-api lint-web lint-fix clean install
 
 # --- Development ---
 
@@ -16,7 +16,16 @@ dev-web:
 
 build: build-api build-web
 
-build-api:
+docs-api:
+	API_DOCS_API_VERSION=v1 ./scripts/generate-api-docs.sh
+
+publish-api-docs-staging: docs-api
+	API_DOCS_ENVIRONMENT=staging API_DOCS_API_VERSION=v1 ./scripts/publish-api-docs-r2.sh
+
+publish-api-docs-prod: docs-api
+	API_DOCS_ENVIRONMENT=production API_DOCS_API_VERSION=v1 ./scripts/publish-api-docs-r2.sh
+
+build-api: docs-api
 	cd apps/fs-backend && go build ./...
 
 build-web:

@@ -34,9 +34,12 @@ import {
   BarChart3,
   Building2,
   ChevronsUpDown,
+  CircleHelp,
   LayoutDashboard,
   LogOut,
+  ScrollText,
   ShieldCheck,
+  User,
   Users,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
@@ -67,7 +70,12 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     { to: '/projects', icon: Building2, labelKey: 'nav.projects' },
     { to: '/users', icon: Users, labelKey: 'nav.users' },
     { to: '/results', icon: BarChart3, labelKey: 'nav.results' },
-    ...(isSuperAdmin ? [{ to: '/staff', icon: ShieldCheck, labelKey: 'nav.staff' }] : []),
+  ];
+
+  const administratorNavItems = [
+    { to: '/staff', icon: ShieldCheck, labelKey: 'nav.staff' },
+    { to: '/audit', icon: ScrollText, labelKey: 'nav.audit' },
+    { to: '/help/api-docs', icon: CircleHelp, labelKey: 'nav.apiDocs' },
   ];
 
   return (
@@ -118,6 +126,30 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isSuperAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>{t('nav.administrator')}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {administratorNavItems.map((item) => (
+                  <SidebarMenuItem key={item.to}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === item.to || pathname.startsWith(`${item.to}/`)}
+                      tooltip={t(item.labelKey)}
+                    >
+                      <Link to={item.to} onClick={onNavigate}>
+                        <item.icon />
+                        <span>{t(item.labelKey)}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter>
@@ -160,6 +192,12 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" onClick={onNavigate}>
+                      <User />
+                      {t('nav.profile')}
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem disabled>
                     <ShieldCheck />
                     {isSuperAdmin ? t('nav.superAdmin') : t('nav.staffRole')}

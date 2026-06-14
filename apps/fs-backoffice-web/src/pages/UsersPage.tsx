@@ -1,5 +1,6 @@
 import { backofficeApi } from '@/api/backoffice';
 import type { UserProfile } from '@/api/types';
+import { AuditActivityDialog } from '@/components/AuditActivityDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,9 +21,9 @@ import { PageHeader, PageLayout } from '@shared/ui/PageLayout';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-function roleBadge(role: string) {
+function roleBadge(role: string, fallback: string) {
   if (role === 'owner' || role === 'admin' || role === 'system_admin') return <Badge>{role}</Badge>;
-  return <Badge variant="secondary">{role || 'user'}</Badge>;
+  return <Badge variant="secondary">{role || fallback}</Badge>;
 }
 
 function getAvatarURL(user: UserProfile) {
@@ -38,6 +39,158 @@ function getInitials(user: UserProfile) {
   return source.slice(0, 2).toUpperCase() || '?';
 }
 
+function SectionDivider({ label }: { readonly label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="h-px flex-1 bg-border" />
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        {label}
+      </p>
+      <span className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
+interface ProfileValueProps {
+  readonly label: string;
+  readonly value?: string | null;
+  readonly fallback: string;
+  readonly className?: string;
+}
+
+function ProfileValue({ label, value, fallback, className }: ProfileValueProps) {
+  return (
+    <div className={className}>
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="mt-1 break-words text-sm font-medium">{value || fallback}</p>
+    </div>
+  );
+}
+
+interface UserProfileDialogProps {
+  readonly user: UserProfile | null;
+  readonly locale: string;
+  readonly t: (key: string) => string;
+  readonly onOpenChange: (open: boolean) => void;
+}
+
+function UserProfileDialog({ user, locale, t, onOpenChange }: UserProfileDialogProps) {
+  const fallback = t('common.notAvailable');
+
+  return (
+    <Dialog open={user !== null} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle>{t('users.profileDetail')}</DialogTitle>
+        </DialogHeader>
+        {user && (
+          <div className="flex flex-col gap-5 px-6 pb-6">
+            <section className="flex flex-col gap-4">
+              <SectionDivider label={t('users.userSection')} />
+              <div className="flex flex-col gap-3 rounded-md border bg-muted/30 p-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="size-10">
+                    <AvatarImage src={getAvatarURL(user)} alt={user.displayName || user.email} />
+                    <AvatarFallback className="text-sm font-medium">
+                      {getInitials(user)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{user.displayName || fallback}</p>
+                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                  <div className="shrink-0">{roleBadge(user.role, t('users.roleUser'))}</div>
+                </div>
+                <div className="h-px bg-border" />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <ProfileValue
+                    label={t('users.accountEmail')}
+                    value={user.email}
+                    fallback={fallback}
+                  />
+                  <ProfileValue
+                    label={t('users.registered')}
+                    value={formatDateTime(user.createdAt, locale, false)}
+                    fallback={fallback}
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section className="flex flex-col gap-4">
+              <SectionDivider label={t('users.contactSection')} />
+              <div className="rounded-md border bg-muted/30 p-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <ProfileValue
+                    className="sm:col-span-2"
+                    label={t('users.contactName')}
+                    value={user.contactName}
+                    fallback={fallback}
+                  />
+                  <ProfileValue
+                    label={t('users.contactEmail')}
+                    value={user.contactEmail}
+                    fallback={fallback}
+                  />
+                  <ProfileValue
+                    label={t('users.contactPhone')}
+                    value={user.contactPhone}
+                    fallback={fallback}
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section className="flex flex-col gap-4">
+              <SectionDivider label={t('users.companySection')} />
+              <div className="rounded-md border bg-muted/30 p-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <ProfileValue
+                    className="sm:col-span-2"
+                    label={t('users.company')}
+                    value={user.companyName}
+                    fallback={fallback}
+                  />
+                  <ProfileValue
+                    label={t('users.regId')}
+                    value={user.companyRegId}
+                    fallback={fallback}
+                  />
+                  <ProfileValue
+                    label={t('users.industry')}
+                    value={user.industryType}
+                    fallback={fallback}
+                  />
+                  <ProfileValue
+                    label={t('users.size')}
+                    value={user.companySize}
+                    fallback={fallback}
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section className="flex flex-col gap-4">
+              <SectionDivider label={t('users.preferencesSection')} />
+              <div className="flex items-center justify-between gap-4 rounded-md border bg-muted/30 p-4">
+                <div>
+                  <p className="text-sm font-medium">{t('users.emailNotifications')}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('users.emailNotificationsDesc')}
+                  </p>
+                </div>
+                <Badge variant={user.emailNotifications ? 'default' : 'secondary'}>
+                  {user.emailNotifications ? t('common.active') : t('common.inactive')}
+                </Badge>
+              </div>
+            </section>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function UsersPage() {
   const { t, locale } = useLocale();
   const { isSuperAdmin } = useAppSelector((s) => s.auth);
@@ -47,6 +200,7 @@ export function UsersPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [detailUser, setDetailUser] = useState<UserProfile | null>(null);
+  const [activityUser, setActivityUser] = useState<UserProfile | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserProfile | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -153,7 +307,15 @@ export function UsersPage() {
                       );
                     }
                     return filtered.map((u) => (
-                      <tr key={u.uid} className="border-b hover:bg-muted/30">
+                      <tr
+                        key={u.uid}
+                        className="cursor-pointer border-b hover:bg-muted/30"
+                        onClick={() => setDetailUser(u)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') setDetailUser(u);
+                        }}
+                        tabIndex={0}
+                      >
                         <td className="px-4 py-3">
                           <div className="flex min-w-48 items-center gap-3">
                             <Avatar className="size-10">
@@ -162,30 +324,54 @@ export function UsersPage() {
                                 {getInitials(u)}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="font-medium">{u.displayName || '—'}</span>
+                            <span className="font-medium">
+                              {u.displayName || t('common.notAvailable')}
+                            </span>
                           </div>
                         </td>
                         <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
                           {u.email}
                         </td>
                         <td className="px-4 py-3">{u.companyName}</td>
-                        <td className="px-4 py-3">{roleBadge(u.role)}</td>
+                        <td className="px-4 py-3">{roleBadge(u.role, t('users.roleUser'))}</td>
                         <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
                           {formatDateTime(u.createdAt, locale, false)}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex justify-end gap-2">
-                            <Button size="sm" variant="outline" onClick={() => setDetailUser(u)}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setDetailUser(u);
+                              }}
+                            >
                               {t('common.view')}
                             </Button>
                             {isSuperAdmin && (
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => setDeleteTarget(u)}
-                              >
-                                {t('common.delete')}
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setActivityUser(u);
+                                  }}
+                                >
+                                  {t('audit.viewActivity')}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setDeleteTarget(u);
+                                  }}
+                                >
+                                  {t('common.delete')}
+                                </Button>
+                              </>
                             )}
                           </div>
                         </td>
@@ -199,57 +385,24 @@ export function UsersPage() {
         </Card>
       </div>
 
-      {/* User detail dialog */}
-      <Dialog
-        open={detailUser !== null}
+      <UserProfileDialog
+        user={detailUser}
+        locale={locale}
+        t={t}
         onOpenChange={(open) => {
           if (!open) setDetailUser(null);
         }}
-      >
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{t('users.profileDetail')}</DialogTitle>
-          </DialogHeader>
-          {detailUser && (
-            <div className="flex flex-col gap-5">
-              <div className="flex items-center gap-3">
-                <Avatar className="size-12">
-                  <AvatarImage
-                    src={getAvatarURL(detailUser)}
-                    alt={detailUser.displayName || detailUser.email}
-                  />
-                  <AvatarFallback className="text-base font-medium">
-                    {getInitials(detailUser)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{detailUser.displayName || '—'}</p>
-                  <p className="truncate text-sm text-muted-foreground">{detailUser.email}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                {(
-                  [
-                    ['users.company', detailUser.companyName],
-                    ['users.regId', detailUser.companyRegId],
-                    ['users.industry', detailUser.industryType],
-                    ['users.size', detailUser.companySize],
-                    ['users.contactName', detailUser.contactName],
-                    ['users.contactEmail', detailUser.contactEmail],
-                    ['users.contactPhone', detailUser.contactPhone],
-                    ['users.role', detailUser.role],
-                  ] as [string, string][]
-                ).map(([key, val]) => (
-                  <div key={key}>
-                    <p className="text-xs text-muted-foreground">{t(key)}</p>
-                    <p className="font-medium">{val || '—'}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      />
+
+      <AuditActivityDialog
+        open={activityUser !== null}
+        uid={activityUser?.uid ?? ''}
+        title={t('audit.userActivity')}
+        description={activityUser?.email}
+        onOpenChange={(open) => {
+          if (!open) setActivityUser(null);
+        }}
+      />
 
       {/* Delete confirmation dialog */}
       <Dialog

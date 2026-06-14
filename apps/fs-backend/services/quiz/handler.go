@@ -39,9 +39,9 @@ func (h *Handler) Routes(r chi.Router) {
 // @Tags         Quiz
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
-// @Success      200  {object}  map[string]any
+// @Success      200  {object}  pkg.JSONResponse
 // @Security     BearerAuth
-// @Router       /api/v1/quiz/quizzes [get]
+// @Router       /quiz/quizzes [get]
 func (h *Handler) ListQuizzes(w http.ResponseWriter, r *http.Request) {
 	pkg.RespondJSON(w, http.StatusOK, h.service.ListQuizzes())
 }
@@ -53,11 +53,11 @@ func (h *Handler) ListQuizzes(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
 // @Param        quizId         query   string  false "Quiz ID (default: shindan)"
-// @Success      200  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      404  {object}  map[string]any
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      404  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/quiz/questions [get]
+// @Router       /quiz/questions [get]
 func (h *Handler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 	quizID := r.URL.Query().Get("quizId")
 	if quizID == "" {
@@ -80,12 +80,12 @@ func (h *Handler) GetQuestions(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string           true  "Bearer {firebase-id-token}"
 // @Param        request        body    SubmitQuizRequest true  "Quiz answers"
-// @Success      201  {object}  map[string]any
-// @Failure      400  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      500  {object}  map[string]any
+// @Success      201  {object}  pkg.JSONResponse
+// @Failure      400  {object}  pkg.ErrorResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      500  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/quiz/submit [post]
+// @Router       /quiz/submit [post]
 func (h *Handler) SubmitQuiz(w http.ResponseWriter, r *http.Request) {
 	uid := middleware.GetUID(r)
 

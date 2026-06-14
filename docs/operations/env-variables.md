@@ -41,6 +41,20 @@ Centralized reference for all environment variables used across the project.
 | `SLACK_WEBHOOK_REGISTRATION` | Yes | Webhook URL for `#registrations` channel | GitHub Secrets |
 | `SLACK_WEBHOOK_QUIZ_RESULT` | Yes | Webhook URL for `#quiz-results` channel | GitHub Secrets |
 
+### API Documentation Artifacts
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `API_DOCS_SOURCE` | No | Source used by backend API docs readers. Local development defaults to filesystem; deployed environments should use R2 when API docs endpoints are enabled. | `filesystem`, `r2` |
+| `API_DOCS_R2_ACCOUNT_ID` | When `API_DOCS_SOURCE=r2` | Cloudflare account ID for the API docs R2 reader credentials. | `9cfbba8b3a373fdc0d11abaf64071719` |
+| `API_DOCS_R2_ACCESS_KEY_ID` | When `API_DOCS_SOURCE=r2` | R2 access key ID scoped to read the API docs bucket. | GitHub Secret / Cloud Run env |
+| `API_DOCS_R2_ACCESS_KEY_SECRET` | When `API_DOCS_SOURCE=r2` | R2 access key secret scoped to read the API docs bucket. | GitHub Secret / Cloud Run env |
+| `API_DOCS_R2_BUCKET` | Deploy only | Environment-specific private R2 bucket for generated Swagger/OpenAPI artifacts. | `apidoc-factorysyncsolutions-com-staging` |
+| `API_DOCS_R2_PREFIX` | No | R2 prefix for API docs artifacts. Defaults to `openapi`. | `openapi` |
+| `API_DOCS_SUPPORTED_VERSIONS` | No | Comma-separated API versions exposed by docs tooling. | `v1` |
+| `API_DOCS_DEFAULT_VERSION` | No | Default API docs version. | `v1` |
+| `API_DOCS_LOCAL_DIR` | Dev only | Local generated docs directory relative to `apps/fs-backend`. | `docs` |
+
 ## Frontend — `fs-app-web` (User App)
 
 Only `VITE_` prefixed variables are exposed to the browser. Never put secrets here.
@@ -102,6 +116,9 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | `VITE_FIREBASE_APP_ID` | Firebase app ID (fs-app-web) | `1:123:web:abc` |
 | `VITE_BACKOFFICE_APP_ID` | Firebase app ID (fs-backoffice-web) | `1:123:web:def` |
 | `VITE_API_BASE_URL` | Backend API URL | `https://api.example.com/api/v1` |
+| `BACKOFFICE_APP_URL` | Backoffice URL used for staff invitation password setup links; falls back to `APP_URL` if unset | `https://backoffice.example.com` |
+| `API_DOCS_R2_BUCKET` | Private R2 bucket receiving generated API docs for this environment | `apidoc-factorysyncsolutions-com-staging` |
+| `API_DOCS_R2_PREFIX` | R2 object prefix for generated API docs. Defaults to `openapi` in workflows. | `openapi` |
 
 ### Workflow Triggers
 
@@ -160,3 +177,4 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-06-11 | Added fs-backoffice-web env vars; updated ALLOWED_ORIGINS to include backoffice origins; updated local dev setup; updated app path references |
 | 1.2.0 | 2026-06-13 | Fix stale project ID examples; update storage bucket format to firebasestorage.app; add SLACK_WEBHOOK_DEPLOY secret |
+| 1.3.0 | 2026-06-14 | Add API docs R2 publishing variables |

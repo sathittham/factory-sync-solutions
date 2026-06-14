@@ -57,11 +57,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.4"
+          cache-dependency-path: apps/fs-backend/go.sum
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Generate Swagger docs
+        run: API_DOCS_API_VERSION=v1 ./scripts/generate-api-docs.sh
 
       - name: Configure Docker for GCR
         run: gcloud auth configure-docker asia-southeast3-docker.pkg.dev --quiet
@@ -72,6 +84,16 @@ jobs:
           docker build -t $IMAGE apps/fs-backend
           docker push $IMAGE
 
+      - name: Publish Swagger docs to R2
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          API_DOCS_ENVIRONMENT: production
+          API_DOCS_API_VERSION: v1
+          API_DOCS_R2_BUCKET: apidoc-factorysyncsolutions-com
+          API_DOCS_R2_PREFIX: ${{ vars.API_DOCS_R2_PREFIX || 'openapi' }}
+        run: ./scripts/publish-api-docs-r2.sh
+
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy factory-sync-solutions-api \
@@ -80,7 +102,7 @@ jobs:
             --platform=managed \
             --allow-unauthenticated \
             --service-account=deployer@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
-            --set-env-vars="^@^ENVIRONMENT=production@APP_URL=https://app.factorysyncsolutions.com@RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}@CF_TURNSTILE_SECRET=${{ secrets.CF_TURNSTILE_SECRET }}@SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }}@SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }}@ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }}"
+            --set-env-vars="^@^ENVIRONMENT=production@APP_URL=https://app.factorysyncsolutions.com@RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}@CF_TURNSTILE_SECRET=${{ secrets.CF_TURNSTILE_SECRET }}@SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }}@SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }}@ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }}@API_DOCS_SOURCE=r2@API_DOCS_R2_ACCOUNT_ID=${{ secrets.API_DOCS_R2_ACCOUNT_ID }}@API_DOCS_R2_ACCESS_KEY_ID=${{ secrets.API_DOCS_R2_ACCESS_KEY_ID }}@API_DOCS_R2_ACCESS_KEY_SECRET=${{ secrets.API_DOCS_R2_ACCESS_KEY_SECRET }}@API_DOCS_R2_BUCKET=apidoc-factorysyncsolutions-com@API_DOCS_R2_PREFIX=openapi@API_DOCS_SUPPORTED_VERSIONS=v1@API_DOCS_DEFAULT_VERSION=v1@API_DOCS_LOCAL_DIR=docs"
 
   deploy-frontend:
     name: Deploy Frontend to Production

@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-06-11
+version: 1.1.0
+lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
 
@@ -356,6 +356,9 @@ Permanently delete a user account (Firebase Auth + Firestore profile).
 **Error 403** — caller is `staff`, not `superadmin`
 **Error 404** — user not found
 
+**Side effects:** Audit event `backoffice.user_deleted` written with actor UID
+from auth context and `targetUID` equal to `{uid}`.
+
 ---
 
 ### `PUT /backoffice/users/{uid}/role`
@@ -378,6 +381,9 @@ Valid values: `"admin"`, `"user"`
 ```json
 { "success": true }
 ```
+
+**Side effects:** Audit event `backoffice.user_role_changed` written with old
+and new role metadata.
 
 ---
 
@@ -507,6 +513,40 @@ List all users who hold a `backofficeRole` claim.
 
 ---
 
+### `POST /backoffice/staff/invitations`
+
+Create or reuse a Firebase Auth account, assign a `backofficeRole` custom claim,
+and send a password setup invitation email.
+
+**Role**: superadmin only
+
+**Request body**
+```json
+{
+  "email": "alice@factorysync.com",
+  "backofficeRole": "staff"
+}
+```
+
+Valid role values: `"superadmin"`, `"staff"`
+
+The email link uses `BACKOFFICE_APP_URL` when set, falling back to `APP_URL`.
+
+**Response 200**
+```json
+{
+  "success": true,
+  "data": {
+    "uid": "firebase-uid-xyz",
+    "email": "alice@factorysync.com",
+    "displayName": "",
+    "backofficeRole": "staff"
+  }
+}
+```
+
+---
+
 ### `PUT /backoffice/staff/{uid}`
 
 Grant or update the `backofficeRole` claim for a Firebase user. Creates the
@@ -525,10 +565,22 @@ Valid values: `"superadmin"`, `"staff"`
 
 **Response 200**
 ```json
-{ "success": true }
+{
+  "success": true,
+  "data": {
+    "uid": "firebase-uid-xyz",
+    "email": "alice@factorysync.com",
+    "displayName": "Alice T.",
+    "backofficeRole": "staff"
+  }
+}
 ```
 
 **Error 404** — Firebase user UID not found
+
+**Side effects:** Audit event `backoffice.staff_role_granted` or
+`backoffice.staff_role_changed` written with old and new `backofficeRole`
+metadata.
 
 ---
 
@@ -544,6 +596,82 @@ Revoke the `backofficeRole` claim, removing backoffice access entirely.
 ```
 
 **Error 404** — user has no backoffice claim to revoke
+
+**Side effects:** Audit event `backoffice.staff_role_revoked` written with
+actor UID and target UID.
+
+---
+
+## 6. Audit
+
+All endpoints in this section require `backofficeRole: "superadmin"`. Staff
+callers receive **403 FORBIDDEN**.
+
+### `GET /backoffice/audit`
+
+Search platform-wide audit events. Results are ordered by `createdAt`
+descending.
+
+**Role**: superadmin only
+
+**Query params**
+
+| Param | Default | Description |
+|-------|---------|-------------|
+| `limit` | `100` | Max `500` |
+| `before` | — | RFC3339 cursor; return events older than this value |
+| `eventType` | — | Exact event type filter |
+| `actorUID` | — | UID that performed the action |
+| `targetUID` | — | UID affected by the action |
+| `projectID` | — | Company/project scope |
+| `resourceType` | — | Resource category such as `staff`, `profile`, `project` |
+
+**Response 200**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "audit-event-id",
+      "actorUID": "superadmin-uid",
+      "actorEmail": "alice@factorysync.com",
+      "eventType": "backoffice.staff_role_changed",
+      "resourceType": "staff",
+      "resourceID": "staff-uid",
+      "targetUID": "staff-uid",
+      "projectID": "",
+      "metadata": {
+        "oldRole": "staff",
+        "newRole": "superadmin"
+      },
+      "createdAt": "2026-06-14T08:30:00Z"
+    }
+  ],
+  "total": 1,
+  "hasMore": false,
+  "nextCursor": null
+}
+```
+
+---
+
+### `GET /backoffice/users/{uid}/activity`
+
+Return events where the selected UID is either the actor or the target. This is
+the backoffice equivalent of a user's own activity log and powers "View
+Activity" in user/staff detail views.
+
+**Role**: superadmin only
+
+**Query params**
+
+| Param | Default | Description |
+|-------|---------|-------------|
+| `limit` | `50` | Max `200` |
+| `before` | — | RFC3339 cursor |
+| `eventType` | — | Exact event type filter |
+
+**Response 200** — same event shape as `GET /backoffice/audit`.
 
 ---
 
@@ -575,4 +703,5 @@ See [api/conventions.md](conventions.md) for full response format.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.1.0 | 2026-06-14 | Add audit query endpoints and audit side effects |
 | 1.0.0 | 2026-06-11 | Initial version — all backoffice endpoints |

@@ -34,13 +34,13 @@ func (h *Handler) Routes(r chi.Router) {
 // @Produce      json
 // @Param        Authorization  header  string  true   "Bearer {firebase-id-token}"
 // @Param        regId          path    string  true   "Company registration ID (13 digits)"
-// @Success      200  {object}  map[string]any  "success response with company profile"
-// @Failure      400  {object}  map[string]any  "invalid registration ID"
-// @Failure      401  {object}  map[string]any  "unauthorized"
-// @Failure      404  {object}  map[string]any  "company not found"
-// @Failure      502  {object}  map[string]any  "DBD API unavailable"
+// @Success      200  {object}  pkg.JSONResponse  "success response with company profile"
+// @Failure      400  {object}  pkg.ErrorResponse  "invalid registration ID"
+// @Failure      401  {object}  pkg.ErrorResponse  "unauthorized"
+// @Failure      404  {object}  pkg.ErrorResponse  "company not found"
+// @Failure      502  {object}  pkg.ErrorResponse  "DBD API unavailable"
 // @Security     BearerAuth
-// @Router       /api/v1/dbd/{regId} [get]
+// @Router       /dbd/{regId} [get]
 func (h *Handler) GetCompanyProfile(w http.ResponseWriter, r *http.Request) {
 	regID := chi.URLParam(r, "regId")
 	if !regIDPattern.MatchString(regID) {

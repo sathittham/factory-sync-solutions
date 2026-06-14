@@ -30,6 +30,10 @@ func roleDisplayNames(role string) (th, en string) {
 		return "ผู้จัดการ", "Manager"
 	case "user":
 		return "สมาชิก", "Member"
+	case "staff":
+		return "ทีมงาน", "Staff"
+	case "superadmin":
+		return "ผู้ดูแลระบบสูงสุด", "Super Admin"
 	default:
 		slog.Warn("roleDisplayNames: unknown role, using fallback", "role", role)
 		return "สมาชิก", "Member"

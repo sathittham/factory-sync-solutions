@@ -43,11 +43,11 @@ func (h *Handler) Routes(r chi.Router) {
 // @Tags         Profile
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
-// @Success      200  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      404  {object}  map[string]any
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      404  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/profile [get]
+// @Router       /profile [get]
 func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	uid := middleware.GetUID(r)
 
@@ -67,12 +67,12 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string               true  "Bearer {firebase-id-token}"
 // @Param        request        body    CreateProfileRequest  true  "Registration details"
-// @Success      201  {object}  map[string]any
-// @Failure      400  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      409  {object}  map[string]any
+// @Success      201  {object}  pkg.JSONResponse
+// @Failure      400  {object}  pkg.ErrorResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      409  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/profile [post]
+// @Router       /profile [post]
 func (h *Handler) CreateProfile(w http.ResponseWriter, r *http.Request) {
 	uid := middleware.GetUID(r)
 	email := middleware.GetEmail(r)
@@ -111,12 +111,12 @@ func (h *Handler) CreateProfile(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string               true  "Bearer {firebase-id-token}"
 // @Param        request        body    UpdateProfileRequest  true  "Update fields"
-// @Success      200  {object}  map[string]any
-// @Failure      400  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
-// @Failure      404  {object}  map[string]any
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      400  {object}  pkg.ErrorResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      404  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/profile [put]
+// @Router       /profile [put]
 func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	uid := middleware.GetUID(r)
 
@@ -145,10 +145,10 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 // @Tags         Profile
 // @Produce      json
 // @Param        regId  path  string  true  "13-digit company registration ID"
-// @Success      200  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      401  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/profile/check/{regId} [get]
+// @Router       /profile/check/{regId} [get]
 func (h *Handler) CheckRegID(w http.ResponseWriter, r *http.Request) {
 	regID := chi.URLParam(r, "regId")
 	if len(regID) != 13 {
@@ -184,10 +184,10 @@ func (h *Handler) CheckRegID(w http.ResponseWriter, r *http.Request) {
 // @Tags         Profile
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
-// @Success      200  {object}  map[string]any
-// @Failure      401  {object}  map[string]any
+// @Success      200  {object}  pkg.ListResponse
+// @Failure      401  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/profile/activity [get]
+// @Router       /profile/activity [get]
 func (h *Handler) GetActivity(w http.ResponseWriter, r *http.Request) {
 	uid := middleware.GetUID(r)
 
@@ -207,9 +207,9 @@ func (h *Handler) GetActivity(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
 // @Success      204
-// @Failure      401  {object}  map[string]any
+// @Failure      401  {object}  pkg.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/profile/activity/login [post]
+// @Router       /profile/activity/login [post]
 func (h *Handler) LogLogin(w http.ResponseWriter, r *http.Request) {
 	uid := middleware.GetUID(r)
 	var metadata map[string]any

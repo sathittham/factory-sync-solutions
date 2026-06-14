@@ -44,8 +44,15 @@ jobs:
           go-version: "1.26.4"
           cache-dependency-path: apps/fs-backend/go.sum
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - name: Download dependencies
         run: go mod download
+
+      - name: Generate Swagger docs
+        run: API_DOCS_API_VERSION=v1 ../../scripts/generate-api-docs.sh
 
       - name: Vet
         run: go vet ./...

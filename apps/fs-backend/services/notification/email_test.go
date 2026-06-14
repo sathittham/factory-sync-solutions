@@ -44,8 +44,20 @@ func TestRoleDisplayNames(t *testing.T) {
 			wantEN: "Member",
 		},
 		{
-			name:   "unknown role falls back to Member without panicking",
+			name:   "staff",
+			role:   "staff",
+			wantTH: "ทีมงาน",
+			wantEN: "Staff",
+		},
+		{
+			name:   "superadmin",
 			role:   "superadmin",
+			wantTH: "ผู้ดูแลระบบสูงสุด",
+			wantEN: "Super Admin",
+		},
+		{
+			name:   "unknown role falls back to Member without panicking",
+			role:   "unknown_role",
 			wantTH: "สมาชิก",
 			wantEN: "Member",
 		},

@@ -62,7 +62,8 @@ test-results/
 
 
 # Go
-apps/api/docs/          # auto-generated Swagger docs
+# Auto-generated Swagger docs
+apps/fs-backend/docs/
 
 # Logs
 *.log

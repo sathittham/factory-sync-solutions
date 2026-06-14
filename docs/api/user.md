@@ -1,6 +1,6 @@
 ---
-version: 1.2.0
-lastUpdated: 2026-06-13
+version: 1.3.0
+lastUpdated: 2026-06-14
 ---
 
 # User API Reference
@@ -140,6 +140,59 @@ Check whether a 13-digit company registration ID is already registered.
 ```
 
 **Errors:** `400 VALIDATION_ERROR` (not 13 digits), `401 UNAUTHORIZED`
+
+---
+
+### `GET /profile/activity`
+
+Return the authenticated user's own activity log. The backend derives the UID
+from the Firebase token and must not accept a UID from the request.
+
+Events include actions performed by the user and actions where the user is the
+target, such as a superadmin changing their role.
+
+**Query params**
+
+| Param | Default | Description |
+|-------|---------|-------------|
+| `limit` | `50` | Max `100` |
+| `before` | — | RFC3339 cursor for older events |
+| `eventType` | — | Exact event type filter |
+
+**Response 200**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "audit-event-id",
+      "eventType": "user.profile_updated",
+      "resourceType": "profile",
+      "resourceID": "firebase-uid",
+      "targetUID": "firebase-uid",
+      "projectID": "0105567001234",
+      "metadata": { "changedFields": ["contactPhone"] },
+      "createdAt": "2026-06-14T08:30:00Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+**Errors:** `401 UNAUTHORIZED`
+
+---
+
+### `POST /profile/activity/login`
+
+Record a `user.login` audit event for the authenticated user.
+
+The endpoint returns no body. Frontends should treat failures as non-blocking so
+sign-in is not interrupted by audit logging.
+
+**Response 204**
+
+**Errors:** `401 UNAUTHORIZED`
 
 ---
 

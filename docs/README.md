@@ -62,6 +62,7 @@ docs/
 | [product/wireframes.md](product/wireframes.md) | Screen layouts for all pages |
 | [product/roadmap.md](product/roadmap.md) | Phased roadmap with milestones |
 | [product/backoffice/feature-spec.md](product/backoffice/feature-spec.md) | Backoffice web app — RBAC, pages, API, deployment |
+| [product/api-docs/feature-spec.md](product/api-docs/feature-spec.md) | Versioned Swagger/OpenAPI publishing to R2 and superadmin Help |
 
 ## Reference
 

@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-03-06
+version: 1.1.0
+lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
 
@@ -8,55 +8,46 @@ author: Sathittham Sangthong
 
 ## Overview
 
-> **Status: NOT YET IMPLEMENTED**
+> **Status: Active**
 >
-> Swagger annotations exist in handler source code, but swaggo is not installed (`go.mod` does not include it), the Swagger UI route is commented out in `main.go`, and CI does not run `swag init`. This document describes the planned setup for when Swagger is enabled.
+> Swagger/OpenAPI generation is wired into backend builds and deploy workflows. Generated artifacts are published to R2 during staging and production backend deploys.
 
-Use **swaggo/swag** to auto-generate OpenAPI documentation from Go code annotations. Swagger UI is served at `/api/v1/swagger/` in non-production environments.
+Use **swaggo/swag** to auto-generate Swagger/OpenAPI documentation from Go code annotations. For v1, the generated artifact is Swagger/OpenAPI 2.0 (`"swagger": "2.0"`). Swagger UI is served at `/api/v1/swagger/` in non-production environments.
 
 ## Setup
 
 ### Installation
 
 ```bash
-# Install swag CLI
-go install github.com/swaggo/swag/cmd/swag@latest
-
-# Verify installation
-swag --version
+# Generate with the pinned swag version used by CI
+make docs-api
 ```
 
 ### Generate Documentation
 
 ```bash
-cd apps/api
-
-# Generate from main.go
-swag init
-
-# Format swagger comments
-swag fmt
+make docs-api
 ```
 
 ### Output Files
 
 ```
-apps/api/docs/
+apps/fs-backend/docs/
 ├── docs.go       # Go file to embed in your app
-├── swagger.json  # OpenAPI spec (JSON)
-└── swagger.yaml  # OpenAPI spec (YAML)
+├── swagger.json  # Swagger/OpenAPI 2.0 spec (JSON)
+└── swagger.yaml  # Swagger/OpenAPI 2.0 spec (YAML)
 ```
 
-> Note: `apps/api/docs/` would be gitignored — not yet generated.
+The generated Go package is imported by the backend so local builds and CI can serve Swagger UI in non-production environments.
 
 ## Main API Annotation
 
-Add to `apps/api/main.go`:
+The top-level API annotation lives in `apps/fs-backend/main.go`:
 
 ```go
-// @title           Factory Health Check API
-// @version         1.0.0
-// @description     API for factory health check quiz, scoring, and result management
+// @title           FactorySync Solutions API
+// @version         v1
+// @description     REST API for the FactorySync Solutions assessment platform
 
 // @contact.name   API Support
 
@@ -267,15 +258,25 @@ if os.Getenv("ENVIRONMENT") != "production" {
 
 ## CI/CD Integration
 
-When implemented, Swagger docs will be regenerated in CI before each build. See [testing.md](testing.md) for the full workflow.
+Swagger docs are regenerated in CI before backend vet/test/build and during backend deploys. Deploy workflows upload `swagger.json`, `swagger.yaml`, and `metadata.json` to the environment-specific R2 bucket.
 
 ```yaml
-# In the build job
-- name: Install swag
-  run: go install github.com/swaggo/swag/cmd/swag@latest
-
 - name: Generate Swagger docs
-  run: cd apps/api && swag init
+  run: API_DOCS_API_VERSION=v1 ./scripts/generate-api-docs.sh
+
+- name: Publish Swagger docs to R2
+  run: ./scripts/publish-api-docs-r2.sh
+```
+
+R2 layout:
+
+```text
+openapi/v1/current/swagger.json
+openapi/v1/current/swagger.yaml
+openapi/v1/current/metadata.json
+openapi/v1/versions/<git-sha>/swagger.json
+openapi/v1/versions/<git-sha>/swagger.yaml
+openapi/v1/versions/<git-sha>/metadata.json
 ```
 
 ## Best Practices

@@ -162,10 +162,11 @@ func (r *Repository) Create(ctx context.Context, profile *Profile) error {
 			return fmt.Errorf("get project member document: %w", err)
 		}
 
+		projectRole := projectRoleFromProfile(profile)
 		if profile.ProjectRoles == nil {
 			profile.ProjectRoles = map[string]string{}
 		}
-		profile.ProjectRoles[profile.CompanyRegID] = "owner"
+		profile.ProjectRoles[profile.CompanyRegID] = projectRole
 
 		if err := tx.Set(userRef, profile); err != nil {
 			return fmt.Errorf("set user document: %w", err)
@@ -210,13 +211,17 @@ func (r *Repository) Update(ctx context.Context, uid string, updates []firestore
 }
 
 func projectFromProfile(profile *Profile) projectDocument {
+	ownerUID := ""
+	if projectRoleFromProfile(profile) == "owner" {
+		ownerUID = profile.UID
+	}
 	return projectDocument{
 		ProjectID:    profile.CompanyRegID,
 		Name:         profile.CompanyName,
 		CompanyRegID: profile.CompanyRegID,
 		IndustryType: profile.IndustryType,
 		CompanySize:  profile.CompanySize,
-		OwnerUID:     profile.UID,
+		OwnerUID:     ownerUID,
 		MemberCount:  1,
 		IsActive:     true,
 		CreatedAt:    profile.CreatedAt,
@@ -229,11 +234,18 @@ func memberFromProfile(profile *Profile) memberDocument {
 		UID:         profile.UID,
 		Email:       profile.Email,
 		DisplayName: profile.DisplayName,
-		ProjectRole: "owner",
+		ProjectRole: projectRoleFromProfile(profile),
 		JoinMethod:  "registration",
 		JoinedAt:    profile.CreatedAt,
 		IsActive:    true,
 	}
+}
+
+func projectRoleFromProfile(profile *Profile) string {
+	if profile.Role != "" {
+		return profile.Role
+	}
+	return "owner"
 }
 
 func projectUpdatesFromProfile(snap *firestore.DocumentSnapshot, profile *Profile) []firestore.Update {
@@ -258,7 +270,7 @@ func projectUpdatesFromProfile(snap *firestore.DocumentSnapshot, profile *Profil
 	if existing.CompanySize == "" {
 		updates = append(updates, firestore.Update{Path: "companySize", Value: profile.CompanySize})
 	}
-	if existing.OwnerUID == "" {
+	if existing.OwnerUID == "" && projectRoleFromProfile(profile) == "owner" {
 		updates = append(updates, firestore.Update{Path: "ownerUID", Value: profile.UID})
 	}
 	if existing.CreatedAt == "" {
