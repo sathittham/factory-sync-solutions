@@ -18,15 +18,15 @@ on:
       deploy_web:
         description: "Force-deploy app web"
         type: boolean
-        default: false
+        default: true
       deploy_official:
         description: "Force-deploy official site"
         type: boolean
-        default: false
+        default: true
       deploy_backoffice:
         description: "Force-deploy backoffice web"
         type: boolean
-        default: false
+        default: true
 
 jobs:
   test:

@@ -5,6 +5,28 @@ on:
     tags:
       - "v*.*.*"
       - "!v*-*"
+  workflow_dispatch:
+    inputs:
+      deploy_api:
+        description: "Force-deploy backend API"
+        type: boolean
+        default: true
+      deploy_gateway:
+        description: "Force-deploy Cloudflare API gateway"
+        type: boolean
+        default: true
+      deploy_web:
+        description: "Force-deploy app web"
+        type: boolean
+        default: true
+      deploy_official:
+        description: "Force-deploy official site"
+        type: boolean
+        default: true
+      deploy_backoffice:
+        description: "Force-deploy backoffice web"
+        type: boolean
+        default: true
 
 jobs:
   test:
@@ -28,6 +50,15 @@ jobs:
       - name: Detect changed apps since previous production tag
         id: detect
         run: |
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            echo "Manual dispatch — honoring force-deploy inputs."
+            { echo "api=${{ inputs.deploy_api }}";
+              echo "gateway=${{ inputs.deploy_gateway }}";
+              echo "web=${{ inputs.deploy_web }}";
+              echo "official=${{ inputs.deploy_official }}";
+              echo "backoffice=${{ inputs.deploy_backoffice }}"; } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           CURRENT="${GITHUB_REF_NAME}"
           # Previous production tag = latest plain semver tag (vN.N.N, no pre-release suffix)
           PREV=$(git tag -l 'v*.*.*' --sort=-creatordate | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -vx "$CURRENT" | head -1)
