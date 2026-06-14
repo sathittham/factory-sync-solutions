@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       api: ${{ steps.detect.outputs.api }}
+      gateway: ${{ steps.detect.outputs.gateway }}
       web: ${{ steps.detect.outputs.web }}
       official: ${{ steps.detect.outputs.official }}
       backoffice: ${{ steps.detect.outputs.backoffice }}
@@ -32,19 +33,20 @@ jobs:
           PREV=$(git tag -l 'v*.*.*' --sort=-creatordate | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -vx "$CURRENT" | head -1)
           if [ -z "$PREV" ]; then
             echo "No previous production tag — deploying all apps."
-            { echo "api=true"; echo "web=true"; echo "official=true"; echo "backoffice=true"; } >> "$GITHUB_OUTPUT"
+            { echo "api=true"; echo "gateway=true"; echo "web=true"; echo "official=true"; echo "backoffice=true"; } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "Diffing $PREV..$CURRENT"
           CHANGED=$(git diff --name-only "$PREV" "$CURRENT")
           echo "Changed files:"; echo "$CHANGED"
-          api=false; web=false; official=false; backoffice=false
+          api=false; gateway=false; web=false; official=false; backoffice=false
           if echo "$CHANGED" | grep -q '^apps/fs-backend/';                                                then api=true;        fi
+          if echo "$CHANGED" | grep -qE '^apps/fs-api-gateway/|^\.github/workflows/deploy-production\.yml'; then gateway=true;    fi
           if echo "$CHANGED" | grep -q '^apps/fs-app-web/';                                                then web=true;        fi
           if echo "$CHANGED" | grep -qE '^apps/fs-official-web/|^\.github/workflows/deploy-production\.yml'; then official=true; fi
           if echo "$CHANGED" | grep -q '^apps/fs-backoffice-web/';                                         then backoffice=true; fi
-          echo "Deploy → api=$api web=$web official=$official backoffice=$backoffice"
-          { echo "api=$api"; echo "web=$web"; echo "official=$official"; echo "backoffice=$backoffice"; } >> "$GITHUB_OUTPUT"
+          echo "Deploy → api=$api gateway=$gateway web=$web official=$official backoffice=$backoffice"
+          { echo "api=$api"; echo "gateway=$gateway"; echo "web=$web"; echo "official=$official"; echo "backoffice=$backoffice"; } >> "$GITHUB_OUTPUT"
 
   deploy-backend:
     name: Deploy Backend to Production
@@ -104,6 +106,26 @@ jobs:
             --service-account=deployer@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
             --set-env-vars="^@^ENVIRONMENT=production@APP_URL=https://app.factorysyncsolutions.com@RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}@CF_TURNSTILE_SECRET=${{ secrets.CF_TURNSTILE_SECRET }}@SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }}@SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }}@ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }},https://app.factorysyncsolutions.com,https://backoffice.factorysyncsolutions.com,https://factorysyncsolutions.com@API_DOCS_SOURCE=r2@API_DOCS_R2_ACCOUNT_ID=${{ secrets.API_DOCS_R2_ACCOUNT_ID }}@API_DOCS_R2_ACCESS_KEY_ID=${{ secrets.API_DOCS_R2_ACCESS_KEY_ID }}@API_DOCS_R2_ACCESS_KEY_SECRET=${{ secrets.API_DOCS_R2_ACCESS_KEY_SECRET }}@API_DOCS_R2_BUCKET=apidoc-factorysyncsolutions-com@API_DOCS_R2_PREFIX=openapi@API_DOCS_SUPPORTED_VERSIONS=v1@API_DOCS_DEFAULT_VERSION=v1@API_DOCS_LOCAL_DIR=docs"
 
+  deploy-api-gateway:
+    name: Deploy API Gateway to Production
+    needs: [test, changes]
+    if: needs.changes.outputs.gateway == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Deploy Cloudflare Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --config apps/fs-api-gateway/wrangler.toml --env production
+
   deploy-frontend:
     name: Deploy Frontend to Production
     needs: [test, changes]
@@ -133,7 +155,7 @@ jobs:
           VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_API_BASE_URL: https://api.factorysyncsolutions.com/api/v1
           VITE_CF_TURNSTILE_SITE_KEY: ${{ vars.VITE_CF_TURNSTILE_SITE_KEY }}
           VITE_GTM_ID: ${{ vars.VITE_GTM_ID }}
           VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID }}
@@ -176,7 +198,7 @@ jobs:
           PUBLIC_APP_URL: https://app.factorysyncsolutions.com
           PUBLIC_APP_VERSION: ${{ steps.version.outputs.version }}
           PUBLIC_GTM_ID: ${{ vars.PUBLIC_GTM_ID }}
-          PUBLIC_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          PUBLIC_API_BASE_URL: https://api.factorysyncsolutions.com/api/v1
           PUBLIC_CF_TURNSTILE_SITE_KEY: ${{ vars.VITE_CF_TURNSTILE_SITE_KEY }}
           PUBLIC_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
           PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
@@ -221,7 +243,7 @@ jobs:
           VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_API_BASE_URL: https://api.factorysyncsolutions.com/api/v1
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
@@ -232,7 +254,7 @@ jobs:
 
   notify:
     name: Notify Slack
-    needs: [test, changes, deploy-backend, deploy-frontend, deploy-official, deploy-backoffice]
+    needs: [test, changes, deploy-backend, deploy-api-gateway, deploy-frontend, deploy-official, deploy-backoffice]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -243,6 +265,7 @@ jobs:
           TEST_RESULT: ${{ needs.test.result }}
           CHANGES_RESULT: ${{ needs.changes.result }}
           BACKEND_RESULT: ${{ needs.deploy-backend.result }}
+          GATEWAY_RESULT: ${{ needs.deploy-api-gateway.result }}
           FRONTEND_RESULT: ${{ needs.deploy-frontend.result }}
           OFFICIAL_RESULT: ${{ needs.deploy-official.result }}
           BACKOFFICE_RESULT: ${{ needs.deploy-backoffice.result }}
@@ -270,7 +293,7 @@ jobs:
 
           # Overall outcome: failure if any required job failed or was cancelled.
           OVERALL="success"
-          for r in "$TEST_RESULT" "$CHANGES_RESULT" "$BACKEND_RESULT" "$FRONTEND_RESULT" "$OFFICIAL_RESULT" "$BACKOFFICE_RESULT"; do
+          for r in "$TEST_RESULT" "$CHANGES_RESULT" "$BACKEND_RESULT" "$GATEWAY_RESULT" "$FRONTEND_RESULT" "$OFFICIAL_RESULT" "$BACKOFFICE_RESULT"; do
             if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then OVERALL="failure"; fi
           done
 
@@ -291,6 +314,7 @@ jobs:
             --arg actor "$ACTOR" \
             --arg test "$(status_label "$TEST_RESULT")" \
             --arg backend "$(status_label "$BACKEND_RESULT")" \
+            --arg gateway "$(status_label "$GATEWAY_RESULT")" \
             --arg frontend "$(status_label "$FRONTEND_RESULT")" \
             --arg official "$(status_label "$OFFICIAL_RESULT")" \
             --arg backoffice "$(status_label "$BACKOFFICE_RESULT")" \
@@ -307,6 +331,7 @@ jobs:
                 { type: "section", fields: [
                   { type: "mrkdwn", text: "*Tests:*\n\($test)" },
                   { type: "mrkdwn", text: "*Backend:*\n\($backend)" },
+                  { type: "mrkdwn", text: "*API Gateway:*\n\($gateway)" },
                   { type: "mrkdwn", text: "*App Web:*\n\($frontend)" },
                   { type: "mrkdwn", text: "*Official Web:*\n\($official)" },
                   { type: "mrkdwn", text: "*Backoffice:*\n\($backoffice)" }

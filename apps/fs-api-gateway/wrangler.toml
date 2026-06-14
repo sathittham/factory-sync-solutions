@@ -1,0 +1,26 @@
+name = "factory-sync-api-gateway"
+main = "src/index.js"
+compatibility_date = "2026-06-14"
+workers_dev = false
+
+[env.production]
+name = "factory-sync-api-gateway"
+
+[env.production.vars]
+UPSTREAM_ORIGIN = "https://factory-sync-solutions-api-241196731341.asia-southeast3.run.app"
+ALLOWED_ORIGINS = "https://app.factorysyncsolutions.com,https://backoffice.factorysyncsolutions.com,https://factorysyncsolutions.com,https://factory-sync-solutions.pages.dev,https://factory-sync-backoffice.pages.dev"
+
+[[env.production.routes]]
+pattern = "api.factorysyncsolutions.com"
+custom_domain = true
+
+[env.staging]
+name = "factory-sync-api-gateway-staging"
+
+[env.staging.vars]
+UPSTREAM_ORIGIN = "https://factory-sync-solutions-api-staging-738710072389.asia-southeast3.run.app"
+ALLOWED_ORIGINS = "https://app-staging.factorysyncsolutions.com,https://backoffice-staging.factorysyncsolutions.com,https://staging.factorysyncsolutions.com,https://factory-sync-solutions-staging.pages.dev,https://factory-sync-backoffice-staging.pages.dev"
+
+[[env.staging.routes]]
+pattern = "api-staging.factorysyncsolutions.com"
+custom_domain = true

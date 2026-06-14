@@ -1,6 +1,6 @@
 ---
-version: 1.2.0
-lastUpdated: 2026-06-13
+version: 1.4.0
+lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
 
@@ -49,7 +49,17 @@ Centralized reference for all environment variables used across the project.
 | `R2_ACCESS_KEY_ID` | When upload service enabled | R2 access key ID for the public upload bucket. | GitHub Secret / Cloud Run env |
 | `R2_ACCESS_KEY_SECRET` | When upload service enabled | R2 access key secret for the public upload bucket. | GitHub Secret / Cloud Run env |
 | `R2_PUBLIC_BUCKET` | When upload service enabled | Public R2 bucket used for CDN-served avatars. | `uploads-factorysyncsolutions-com-staging` |
-| `R2_PUBLIC_BASE_URL` | When upload service enabled | Public delivery base URL for avatar URLs stored in Firestore. | `https://uploads-staging.factorysyncsolutions.com` |
+| `R2_PUBLIC_BASE_URL` | When upload service enabled | Public delivery base URL for avatar URLs stored in Firestore. | `https://cdn-staging.factorysyncsolutions.com` |
+
+## Cloudflare Worker — `fs-api-gateway`
+
+These values are configured in `apps/fs-api-gateway/wrangler.toml` and are
+deployed by Wrangler.
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `UPSTREAM_ORIGIN` | Yes | Cloud Run origin that receives proxied API requests. Do not include `/api/v1`. | `https://factory-sync-solutions-api-staging-738710072389.asia-southeast3.run.app` |
+| `ALLOWED_ORIGINS` | Yes | Comma-separated browser origins allowed by the gateway CORS layer. | `https://app-staging.factorysyncsolutions.com,https://backoffice-staging.factorysyncsolutions.com` |
 
 ### API Documentation Artifacts
 
@@ -108,7 +118,7 @@ Only `PUBLIC_` prefixed variables are exposed to the browser. Never put secrets 
 | `PUBLIC_APP_URL` | No | Authenticated app URL used by CTAs. | `https://app.factorysyncsolutions.com` |
 | `PUBLIC_APP_VERSION` | No | Version displayed in the footer. | `v1.2.3` |
 | `PUBLIC_GTM_ID` | No | Google Tag Manager container ID. | `GTM-XXXXXXX` |
-| `PUBLIC_API_BASE_URL` | No | Backend API base URL for embedded registration flows. | `https://api.example.com/api/v1` |
+| `PUBLIC_API_BASE_URL` | No | Backend API base URL for embedded registration flows. | `https://api.factorysyncsolutions.com/api/v1` |
 | `PUBLIC_CF_TURNSTILE_SITE_KEY` | No | Cloudflare Turnstile public site key for embedded registration. | `0x4AAA...` |
 | `PUBLIC_FIREBASE_API_KEY` | Registration flow only | Firebase public API key. | `AIza...` |
 | `PUBLIC_FIREBASE_AUTH_DOMAIN` | Registration flow only | Firebase Auth domain. | `project-id.firebaseapp.com` |
@@ -127,7 +137,7 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | Secret | Description |
 |--------|-------------|
 | `GCP_SA_KEY` | GCP service account key JSON (Cloud Run deployment) |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API token (Pages deployment) |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token (Pages, Workers, and R2 deployment) |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
 | `RESEND_API_KEY` | Resend email API key (injected into Cloud Run) |
 | `CF_TURNSTILE_SECRET` | Cloudflare Turnstile server secret (injected into Cloud Run) |
@@ -152,11 +162,11 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID | `123456789` |
 | `VITE_FIREBASE_APP_ID` | Firebase app ID (fs-app-web) | `1:123:web:abc` |
 | `VITE_BACKOFFICE_APP_ID` | Firebase app ID (fs-backoffice-web) | `1:123:web:def` |
-| `VITE_API_BASE_URL` | Backend API URL | `https://api.example.com/api/v1` |
+| `VITE_API_BASE_URL` | Backend API URL | `https://api.factorysyncsolutions.com/api/v1` |
 | `BACKOFFICE_APP_URL` | Backoffice URL used for staff invitation password setup links; falls back to `APP_URL` if unset | `https://backoffice.example.com` |
 | `R2_ACCOUNT_ID` | Cloudflare account ID for upload storage | `9cfbba8b3a373fdc0d11abaf64071719` |
 | `R2_PUBLIC_BUCKET` | Public R2 bucket for avatar uploads | `uploads-factorysyncsolutions-com-staging` |
-| `R2_PUBLIC_BASE_URL` | Public base URL for uploaded avatars | `https://uploads-staging.factorysyncsolutions.com` |
+| `R2_PUBLIC_BASE_URL` | Public base URL for uploaded avatars | `https://cdn-staging.factorysyncsolutions.com` |
 | `API_DOCS_R2_BUCKET` | Private R2 bucket receiving generated API docs for this environment | `apidoc-factorysyncsolutions-com-staging` |
 | `API_DOCS_R2_PREFIX` | R2 object prefix for generated API docs. Defaults to `openapi` in workflows. | `openapi` |
 
@@ -174,7 +184,9 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 |----------|------------|---------|------------|
 | `ENVIRONMENT` | `development` | `staging` | `production` |
 | `ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:5174` | `https://factory-sync-solutions-staging.pages.dev,https://factory-sync-backoffice-staging.pages.dev,https://app-staging.factorysyncsolutions.com,https://backoffice-staging.factorysyncsolutions.com,https://staging.factorysyncsolutions.com` | `https://factory-sync-solutions.pages.dev,https://factory-sync-backoffice.pages.dev,https://app.factorysyncsolutions.com,https://backoffice.factorysyncsolutions.com,https://factorysyncsolutions.com` |
-| `VITE_API_BASE_URL` | `http://localhost:8080/api/v1` | `https://api-staging.example.com/api/v1` | `https://api.example.com/api/v1` |
+| `VITE_API_BASE_URL` | `http://localhost:8080/api/v1` | `https://api-staging.factorysyncsolutions.com/api/v1` | `https://api.factorysyncsolutions.com/api/v1` |
+| `PUBLIC_API_BASE_URL` | `http://localhost:8080/api/v1` | `https://api-staging.factorysyncsolutions.com/api/v1` | `https://api.factorysyncsolutions.com/api/v1` |
+| `R2_PUBLIC_BASE_URL` | Local R2 dev URL or empty | `https://cdn-staging.factorysyncsolutions.com` | `https://cdn.factorysyncsolutions.com` |
 
 ## Local Development Setup
 
@@ -219,3 +231,4 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | 1.1.0 | 2026-06-11 | Added fs-backoffice-web env vars; updated ALLOWED_ORIGINS to include backoffice origins; updated local dev setup; updated app path references |
 | 1.2.0 | 2026-06-13 | Fix stale project ID examples; update storage bucket format to firebasestorage.app; add SLACK_WEBHOOK_DEPLOY secret |
 | 1.3.0 | 2026-06-14 | Add API docs R2 publishing variables |
+| 1.4.0 | 2026-06-14 | Add Cloudflare API gateway variables and CDN custom domain examples |

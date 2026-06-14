@@ -1,0 +1,16 @@
+{
+  "name": "fs-api-gateway",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "deploy:staging": "npx wrangler deploy --env staging",
+    "deploy:prod": "npx wrangler deploy --env production"
+  },
+  "devDependencies": {
+    "wrangler": "^4.24.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,5 +1,5 @@
 ---
-version: 1.6.2
+version: 1.7.0
 lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
@@ -17,6 +17,8 @@ FactorySync Solutions is a factory health assessment platform for Thai SME manuf
 | Homepage | [https://factorysyncsolutions.com](https://factorysyncsolutions.com) |
 | User app | `https://app.factorysyncsolutions.com` |
 | Backoffice | `https://backoffice.factorysyncsolutions.com` |
+| API gateway | `https://api.factorysyncsolutions.com/api/v1` |
+| Public CDN | `https://cdn.factorysyncsolutions.com` |
 | License | MIT — copyright Sathittham Sangthong |
 | Primary maintainer | Sathittham Sangthong |
 | AI contributor | OpenAI Codex |
@@ -38,6 +40,7 @@ factory-sync-solutions/
 │   ├── fs-app-web/         # React + Vite SPA (authenticated app)
 │   ├── fs-backoffice-web/  # React + Vite SPA (internal backoffice)
 │   ├── fs-official-web/    # Astro 6 + React islands (public marketing site)
+│   ├── fs-api-gateway/     # Cloudflare Worker API gateway
 │   └── fs-backend/         # Go Cloud Run service (backend API)
 ├── packages/               # Shared scripts/assets
 ├── Makefile                # Monorepo task runner
@@ -179,6 +182,9 @@ Root-level `make` commands currently cover `apps/fs-backend` and `apps/fs-app-we
 | `make lint` | Run `go vet` + app-web Biome check |
 | `make test` | Run backend Go tests + app-web Vitest |
 | `make docs-api` | Generate versioned Swagger/OpenAPI artifacts |
+| `npm run test:api-gateway` | Run Cloudflare Worker gateway tests |
+| `npm run deploy:api-gateway:staging` | Deploy the staging API gateway Worker |
+| `npm run deploy:api-gateway:prod` | Deploy the production API gateway Worker |
 
 ### App (`apps/fs-app-web`)
 

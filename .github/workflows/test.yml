@@ -14,6 +14,7 @@ jobs:
     outputs:
       api: ${{ steps.filter.outputs.api }}
       web: ${{ steps.filter.outputs.web }}
+      gateway: ${{ steps.filter.outputs.gateway }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,6 +28,9 @@ jobs:
               - 'apps/fs-backend/**'
             web:
               - 'apps/fs-app-web/**'
+            gateway:
+              - 'apps/fs-api-gateway/**'
+              - '.github/workflows/test.yml'
 
   backend:
     name: Backend Tests
@@ -91,3 +95,21 @@ jobs:
 
       - name: Build
         run: npx vite build
+
+  api-gateway:
+    name: API Gateway Tests
+    needs: changes
+    if: needs.changes.outputs.gateway == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/fs-api-gateway
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Test
+        run: npm test

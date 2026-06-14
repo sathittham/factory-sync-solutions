@@ -1,6 +1,6 @@
 ---
-version: 1.3.0
-lastUpdated: 2026-06-13
+version: 1.4.0
+lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
 
@@ -13,7 +13,9 @@ author: Sathittham Sangthong
 | `fs-app-web` (user app) | Cloudflare Pages | GitHub Actions (`cloudflare/wrangler-action`) |
 | `fs-backoffice-web` (staff backoffice) | Cloudflare Pages + Cloudflare Access | GitHub Actions (`cloudflare/wrangler-action`) |
 | `fs-official-web` (public site) | Cloudflare Pages | GitHub Actions (`cloudflare/wrangler-action`) |
+| `fs-api-gateway` (API custom domain) | Cloudflare Workers | GitHub Actions (`cloudflare/wrangler-action`) |
 | `fs-backend` (Go API) | Google Cloud Run | Docker container via GitHub Actions |
+| Public upload CDN | Cloudflare R2 custom domain | Cloudflare zone/R2 bucket configuration |
 | Database | Firestore | Managed service (no deployment needed) |
 | Auth | Firebase Authentication | Managed service (no deployment needed) |
 
@@ -39,8 +41,8 @@ The `deploy-staging.yml` and `deploy-production.yml` workflows handle all fronte
 
 | Environment | CF Pages Project | Domain |
 |-------------|-----------------|--------|
-| Staging | `factory-sync-solutions-staging` | `factory-sync-solutions-staging.pages.dev` |
-| Production | `factory-sync-solutions` | `app.factorysync.com` |
+| Staging | `factory-sync-solutions-staging` | `app-staging.factorysyncsolutions.com` |
+| Production | `factory-sync-solutions` | `app.factorysyncsolutions.com` |
 
 ```bash
 # Manual deploy
@@ -53,11 +55,11 @@ npx wrangler pages deploy dist --project-name=factory-sync-solutions
 
 | Environment | CF Pages Project | Domain |
 |-------------|-----------------|--------|
-| Staging | `factory-sync-backoffice-staging` | `factory-sync-backoffice-staging.pages.dev` |
-| Production | `factory-sync-backoffice` | `backoffice.factorysync.com` |
+| Staging | `factory-sync-backoffice-staging` | `backoffice-staging.factorysyncsolutions.com` |
+| Production | `factory-sync-backoffice` | `backoffice.factorysyncsolutions.com` |
 
 **Cloudflare Access** is applied to the production domain. Only users on the
-`@factorysync.com` email allowlist (or an explicit allow-list) can reach the
+FactorySync email allowlist (or an explicit allow-list) can reach the
 site. This is a network-layer gate configured in the Cloudflare Zero Trust
 dashboard — it is separate from Firebase Auth.
 
@@ -69,7 +71,7 @@ npx wrangler pages deploy dist --project-name=factory-sync-backoffice
 ```
 
 > Cloudflare Access policy must be set up once in the Zero Trust dashboard:
-> **Access > Applications > factory-sync-backoffice > Policy: Allow @factorysync.com**
+> **Access > Applications > factory-sync-backoffice > Policy: allow approved staff emails**
 
 ## Backend Deployment (Cloud Run)
 
@@ -96,6 +98,30 @@ gcloud services enable firestore.googleapis.com
 | Runtime | Docker (Go binary) |
 | Region | `asia-southeast3` |
 | Allow unauthenticated | Yes (API handles auth internally) |
+
+## API Gateway (Cloudflare Workers)
+
+The public API hostname is served by `apps/fs-api-gateway`, a Cloudflare Worker
+that proxies to Cloud Run and handles browser CORS preflight at the edge.
+Authentication, authorization, validation, and response formatting remain in the
+Go backend.
+
+| Environment | Worker | Domain | Frontend API base URL |
+|---|---|---|---|
+| Staging | `factory-sync-api-gateway-staging` | `api-staging.factorysyncsolutions.com` | `https://api-staging.factorysyncsolutions.com/api/v1` |
+| Production | `factory-sync-api-gateway` | `api.factorysyncsolutions.com` | `https://api.factorysyncsolutions.com/api/v1` |
+
+Manual deploy:
+
+```bash
+cd apps/fs-api-gateway
+npm test
+npm run deploy:staging
+npm run deploy:prod
+```
+
+The Cloudflare API token used by GitHub Actions must be able to deploy Workers
+and manage custom domains/routes for the `factorysyncsolutions.com` zone.
 
 ### Manual Deployment
 
@@ -159,6 +185,21 @@ Required per-environment GitHub Actions variables:
 
 The Cloudflare API token used by deploy workflows must have permission to write R2 objects in the target bucket.
 
+### Public Upload CDN
+
+Public uploads should be served through Cloudflare R2 custom domains, not direct
+S3 API endpoints and not public `r2.dev` URLs in production.
+
+| Environment | R2 bucket | Public base URL |
+|---|---|---|
+| Staging | `uploads-factorysyncsolutions-com-staging` | `https://cdn-staging.factorysyncsolutions.com` |
+| Production | `uploads-factorysyncsolutions-com` | `https://cdn.factorysyncsolutions.com` |
+
+Set the backend `R2_PUBLIC_BASE_URL` to the environment-specific public base URL
+above. In Cloudflare, attach each custom domain to the matching R2 bucket and
+keep cache/WAF controls on the Cloudflare hostname. API documentation buckets
+remain private and are read by the backend using scoped R2 credentials.
+
 ### Secrets Management
 
 Secrets are injected as environment variables from **GitHub Secrets** at deploy time via `--set-env-vars` in the Cloud Run deploy step. No GCP Secret Manager setup is required for the current workflow.
@@ -182,9 +223,10 @@ Tag v*-staging (staging deploy):
   3. Build & push Docker image to Artifact Registry
   4. Deploy fs-backend to Cloud Run (staging)
   5. Publish Swagger/OpenAPI docs to staging R2
-  6. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions-staging)
-  7. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice-staging)
-  8. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official-staging)
+  6. Deploy fs-api-gateway Worker (api-staging.factorysyncsolutions.com)
+  7. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions-staging)
+  8. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice-staging)
+  9. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official-staging)
 
 Tag v*.*.* (production deploy):
   1. Run tests (reusable test.yml)
@@ -192,9 +234,10 @@ Tag v*.*.* (production deploy):
   3. Build & push Docker image to Artifact Registry
   4. Deploy fs-backend to Cloud Run (production)
   5. Publish Swagger/OpenAPI docs to production R2
-  6. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions)
-  7. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice)
-  8. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official)
+  6. Deploy fs-api-gateway Worker (api.factorysyncsolutions.com)
+  7. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions)
+  8. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice)
+  9. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official)
 ```
 
 ### Required GitHub Secrets
@@ -265,7 +308,7 @@ After deploying to any environment:
 
 1. **Health check**: `curl https://<API_URL>/healthz`
 2. **App smoke test**: Sign in with Google → register → submit quiz → view result
-3. **Backoffice smoke test**: Navigate to `backoffice.factorysync.com` → verify Cloudflare Access gate → sign in with a `backofficeRole` account → confirm dashboard loads
+3. **Backoffice smoke test**: Navigate to `backoffice.factorysyncsolutions.com` → verify Cloudflare Access gate → sign in with a `backofficeRole` account → confirm dashboard loads
 4. **Check Slack**: Verify notifications arrive in `#registrations` and `#quiz-results`
 5. **Check logs**: `gcloud run services logs read factory-sync-solutions-api --region=asia-southeast3`
 
@@ -315,3 +358,4 @@ See [monitoring.md](monitoring.md) for detailed monitoring setup.
 | 1.1.0 | 2026-03-07 | Updated: Cloud Functions -> Cloud Run, removed turbo references, fixed secrets management, updated deploy commands |
 | 1.2.0 | 2026-06-11 | Added fs-backoffice-web deployment (CF Pages + Cloudflare Access); updated pipeline stages; updated app names to fs-* |
 | 1.3.0 | 2026-06-13 | Fix manual deploy backend path; fix broken monitoring doc link |
+| 1.4.0 | 2026-06-14 | Add Cloudflare API gateway deployment and R2 CDN custom domain guidance |
