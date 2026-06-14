@@ -259,11 +259,7 @@ export function UsersPage() {
                 <thead>
                   <tr className="border-b bg-muted/40">
                     <th className="px-4 py-3 text-left font-medium">{t('users.name')}</th>
-                    <th className="hidden px-4 py-3 text-left font-medium md:table-cell">
-                      {t('users.email')}
-                    </th>
                     <th className="px-4 py-3 text-left font-medium">{t('users.company')}</th>
-                    <th className="px-4 py-3 text-left font-medium">{t('users.role')}</th>
                     <th className="hidden px-4 py-3 text-left font-medium lg:table-cell">
                       {t('users.registered')}
                     </th>
@@ -278,17 +274,14 @@ export function UsersPage() {
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
                               <Skeleton className="size-10 rounded-full" />
-                              <Skeleton className="h-4 w-32" />
+                              <div className="space-y-1">
+                                <Skeleton className="h-4 w-32" />
+                                <Skeleton className="h-3 w-40" />
+                              </div>
                             </div>
-                          </td>
-                          <td className="hidden px-4 py-3 md:table-cell">
-                            <Skeleton className="h-4 w-40" />
                           </td>
                           <td className="px-4 py-3">
                             <Skeleton className="h-4 w-28" />
-                          </td>
-                          <td className="px-4 py-3">
-                            <Skeleton className="h-4 w-16" />
                           </td>
                           <td className="hidden px-4 py-3 lg:table-cell">
                             <Skeleton className="h-4 w-24" />
@@ -300,7 +293,7 @@ export function UsersPage() {
                     if (filtered.length === 0) {
                       return (
                         <tr>
-                          <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                          <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
                             {t('common.noData')}
                           </td>
                         </tr>
@@ -324,16 +317,20 @@ export function UsersPage() {
                                 {getInitials(u)}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="font-medium">
-                              {u.displayName || t('common.notAvailable')}
-                            </span>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium truncate">
+                                  {u.displayName || t('common.notAvailable')}
+                                </span>
+                                {roleBadge(u.role, t('users.roleUser'))}
+                              </div>
+                              <div className="truncate text-xs text-muted-foreground">
+                                {u.email}
+                              </div>
+                            </div>
                           </div>
                         </td>
-                        <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
-                          {u.email}
-                        </td>
                         <td className="px-4 py-3">{u.companyName}</td>
-                        <td className="px-4 py-3">{roleBadge(u.role, t('users.roleUser'))}</td>
                         <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
                           {formatDateTime(u.createdAt, locale, false)}
                         </td>

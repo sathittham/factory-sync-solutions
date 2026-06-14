@@ -1491,6 +1491,7 @@ func (h *Handler) ListStaff(w http.ResponseWriter, r *http.Request) {
 			UID:            user.UID,
 			Email:          user.Email,
 			DisplayName:    user.DisplayName,
+			PhotoURL:       user.PhotoURL,
 			BackofficeRole: backofficeRole,
 		})
 	}
@@ -1513,6 +1514,7 @@ func staffMemberFromUser(user *firebaseAuth.UserRecord, role string) StaffMember
 		UID:            user.UID,
 		Email:          user.Email,
 		DisplayName:    user.DisplayName,
+		PhotoURL:       user.PhotoURL,
 		BackofficeRole: role,
 	}
 }

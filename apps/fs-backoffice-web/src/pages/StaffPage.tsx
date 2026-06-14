@@ -1,6 +1,7 @@
 import { backofficeApi } from '@/api/backoffice';
 import type { StaffMember } from '@/api/types';
 import { AuditActivityDialog } from '@/components/AuditActivityDialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -54,6 +55,15 @@ const permissionMatrix = [
 function roleBadge(role: string) {
   if (role === 'superadmin') return <Badge>superadmin</Badge>;
   return <Badge variant="secondary">staff</Badge>;
+}
+
+function getInitials(member: StaffMember) {
+  const source = member.displayName || member.email;
+  const parts = source.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  return source.slice(0, 2).toUpperCase();
 }
 
 function PermissionIndicator({ granted }: Readonly<{ granted: boolean }>) {
@@ -240,13 +250,13 @@ export function StaffPage() {
       return ['s1', 's2', 's3'].map((k) => (
         <tr key={k} className="border-b">
           <td className="px-4 py-3">
-            <Skeleton className="h-4 w-32" />
-          </td>
-          <td className="px-4 py-3">
-            <Skeleton className="h-4 w-40" />
-          </td>
-          <td className="px-4 py-3">
-            <Skeleton className="h-4 w-20" />
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-10 rounded-full" />
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-40" />
+              </div>
+            </div>
           </td>
           <td className="px-4 py-3" />
         </tr>
@@ -255,7 +265,7 @@ export function StaffPage() {
     if (staff.length === 0) {
       return (
         <tr>
-          <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+          <td colSpan={2} className="px-4 py-8 text-center text-muted-foreground">
             {t('common.noData')}
           </td>
         </tr>
@@ -263,9 +273,21 @@ export function StaffPage() {
     }
     return staff.map((s) => (
       <tr key={s.uid} className="border-b">
-        <td className="px-4 py-3 font-medium">{s.displayName || '—'}</td>
-        <td className="px-4 py-3 text-muted-foreground">{s.email}</td>
-        <td className="px-4 py-3">{roleBadge(s.backofficeRole)}</td>
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Avatar className="size-10">
+              <AvatarImage src={s.photoURL} alt={s.displayName || s.email} />
+              <AvatarFallback className="text-sm font-medium">{getInitials(s)}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-medium truncate">{s.displayName || '—'}</span>
+                {roleBadge(s.backofficeRole)}
+              </div>
+              <div className="truncate text-xs text-muted-foreground">{s.email}</div>
+            </div>
+          </div>
+        </td>
         <td className="px-4 py-3 text-right">
           <div className="flex justify-end gap-2">
             <Button size="sm" variant="outline" onClick={() => setActivityTarget(s)}>
@@ -312,8 +334,6 @@ export function StaffPage() {
                 <thead>
                   <tr className="border-b bg-muted/40">
                     <th className="px-4 py-3 text-left font-medium">{t('staff.name')}</th>
-                    <th className="px-4 py-3 text-left font-medium">{t('staff.email')}</th>
-                    <th className="px-4 py-3 text-left font-medium">{t('staff.role')}</th>
                     <th className="px-4 py-3 text-right font-medium">{t('common.actions')}</th>
                   </tr>
                 </thead>
