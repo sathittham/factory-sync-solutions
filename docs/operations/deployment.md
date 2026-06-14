@@ -288,6 +288,32 @@ gcloud firestore indexes composite create \
   --collection-group=assessments \
   --field-config field-path=uid,order=ASCENDING \
   --field-config field-path=submittedAt,order=DESCENDING
+
+# Audit events filtered by actor/target/project/eventType/resourceType + sorted by date
+gcloud firestore indexes composite create \
+  --collection-group=audit_events \
+  --field-config field-path=actorUID,order=ASCENDING \
+  --field-config field-path=createdAt,order=DESCENDING
+
+gcloud firestore indexes composite create \
+  --collection-group=audit_events \
+  --field-config field-path=targetUID,order=ASCENDING \
+  --field-config field-path=createdAt,order=DESCENDING
+
+gcloud firestore indexes composite create \
+  --collection-group=audit_events \
+  --field-config field-path=projectID,order=ASCENDING \
+  --field-config field-path=createdAt,order=DESCENDING
+
+gcloud firestore indexes composite create \
+  --collection-group=audit_events \
+  --field-config field-path=eventType,order=ASCENDING \
+  --field-config field-path=createdAt,order=DESCENDING
+
+gcloud firestore indexes composite create \
+  --collection-group=audit_events \
+  --field-config field-path=resourceType,order=ASCENDING \
+  --field-config field-path=createdAt,order=DESCENDING
 ```
 
 ### Firestore Emulator (Local Development)
