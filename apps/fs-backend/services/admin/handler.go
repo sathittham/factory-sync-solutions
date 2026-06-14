@@ -792,6 +792,10 @@ func (h *Handler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 		slog.Warn("accept invitation: delete invitation doc failed", "uid", uid, "error", err.Error())
 	}
 
+	if h.notifSvc != nil {
+		go h.notifSvc.NotifyRegistration(context.Background(), createdProfile.CompanyName, createdProfile.ContactName, createdProfile.IndustryType)
+	}
+
 	slog.Info("invitation accepted", "uid", uid, "email", email, "role", inv.Role)
 	pkg.RespondJSON(w, http.StatusOK, createdProfile)
 }
