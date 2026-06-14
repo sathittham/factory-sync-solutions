@@ -40,11 +40,11 @@ jobs:
           CHANGED=$(git diff --name-only "$PREV" "$CURRENT")
           echo "Changed files:"; echo "$CHANGED"
           api=false; gateway=false; web=false; official=false; backoffice=false
-          if echo "$CHANGED" | grep -q '^apps/fs-backend/';                                                then api=true;        fi
+          if echo "$CHANGED" | grep -qE '^apps/fs-backend/|^\.github/workflows/deploy-production\.yml';    then api=true;        fi
           if echo "$CHANGED" | grep -qE '^infra/cloudflare/workers/api-gateway/|^\.github/workflows/deploy-production\.yml'; then gateway=true; fi
-          if echo "$CHANGED" | grep -q '^apps/fs-app-web/';                                                then web=true;        fi
+          if echo "$CHANGED" | grep -qE '^apps/fs-app-web/|^\.github/workflows/deploy-production\.yml';    then web=true;        fi
           if echo "$CHANGED" | grep -qE '^apps/fs-official-web/|^\.github/workflows/deploy-production\.yml'; then official=true; fi
-          if echo "$CHANGED" | grep -q '^apps/fs-backoffice-web/';                                         then backoffice=true; fi
+          if echo "$CHANGED" | grep -qE '^apps/fs-backoffice-web/|^\.github/workflows/deploy-production\.yml'; then backoffice=true; fi
           echo "Deploy → api=$api gateway=$gateway web=$web official=$official backoffice=$backoffice"
           { echo "api=$api"; echo "gateway=$gateway"; echo "web=$web"; echo "official=$official"; echo "backoffice=$backoffice"; } >> "$GITHUB_OUTPUT"
 
