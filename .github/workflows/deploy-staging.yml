@@ -238,7 +238,7 @@ jobs:
 
       - name: Install and build
         run: |
-          npm ci
+          npm install
           npm run build:staging
         env:
           VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
