@@ -120,10 +120,10 @@ id := uuid.New().String() // e.g. "550e8400-e29b-41d4-a716-446655440000"
 
 Principles:
 - Users can read/write only their own records.
-- Admin access must be role-protected both in Firestore Rules and Cloud Functions.
+- Admin access must be role-protected both in Firestore Rules and backend handlers.
 - Use `auth.uid` as primary identity key across services.
 
-The authoritative Firestore security rules are maintained in [security-guide.md](security-guide.md#firestore-security-rules). See that document for the full rules and any updates.
+The authoritative Firestore security rules are maintained in [../operations/security.md](../operations/security.md#firestore-security-rules). See that document for the full rules and any updates.
 
 ## Registration Fields
 
@@ -142,7 +142,7 @@ The authoritative Firestore security rules are maintained in [security-guide.md]
 
 ## Quiz Question Structure
 
-Questions are stored as static JSON config in `apps/api/config/questions.json`. See [quiz-design.md](quiz-design.md) for the full dimension list and question catalog.
+Questions are stored as static JSON config in `apps/fs-backend/config/questions*.json`. See [quiz-design.md](quiz-design.md) for the full dimension list and question catalog.
 
 ```typescript
 interface Question {
@@ -205,7 +205,7 @@ Example question:
 
 ## Email Service
 
-Resend API key is a server-side secret — only used from Go Cloud Functions, never exposed to the frontend.
+Resend API key is a server-side secret — only used from the Go backend, never exposed to the frontend.
 
 ## Initial Admin Setup
 
@@ -216,9 +216,9 @@ Resend API key is a server-side secret — only used from Go Cloud Functions, ne
 
 **Method 2**: Go CLI seed tool
 ```bash
-cd apps/api && go run cmd/seed/main.go --email=admin@company.com
+cd apps/fs-backend && ENVIRONMENT=development go run ./cmd/set-superadmin --email=admin@company.com
 ```
-Only runs in development, requires `FIREBASE_SERVICE_ACCOUNT` env var.
+Only runs in development and uses the same Firebase Admin credentials as the backend.
 
 ---
 

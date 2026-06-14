@@ -43,7 +43,7 @@ Each question has its own rubric descriptions for levels 1-5. Unlike a generic L
 
 ## Sample Question (with Rubric)
 
-> **Note**: Each question has bilingual fields (`textTh`/`textEn`) and a `rubric` object with level descriptions for 1-5. See `apps/api/config/questions.json` for the full set.
+> **Note**: Each question has bilingual fields (`textTh`/`textEn`) and a `rubric` object with level descriptions for 1-5. See `apps/fs-backend/config/questions*.json` for the full set.
 
 ```json
 {
@@ -115,7 +115,7 @@ Boundaries are **inclusive on the lower bound, exclusive on the upper bound** (e
 
 ## Configuration File
 
-Location: `apps/api/config/questions.json`
+Location: `apps/fs-backend/config/questions*.json`
 
 ```json
 {

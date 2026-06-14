@@ -1,13 +1,15 @@
 ---
-version: 1.4.2
-lastUpdated: 2026-06-13
+version: 1.4.3
+lastUpdated: 2026-06-14
 author: Sathittham Sangthong
-status: Draft — Backlog
+status: Partially implemented - Phase 1 complete
 ---
 
 # Upload Service — Feature Spec
 
-General-purpose file and image upload service backed by **Cloudflare R2** (S3-compatible object storage). Replaces the current Firebase Storage avatar upload and provides a unified upload pipeline for all apps in the mono-repo.
+General-purpose file and image upload service backed by **Cloudflare R2** (S3-compatible object storage). Phase 1 avatar upload is implemented; later phases define a unified upload pipeline for general public/private files.
+
+**Current implementation status (14 June 2026):** `POST /api/v1/upload/avatar` and `DELETE /api/v1/upload/avatar` are implemented in `apps/fs-backend/services/upload/`, and `fs-app-web` calls those endpoints from `ProfilePage.tsx`. Presign, confirm, read-url, and general file delete flows remain planned.
 
 ---
 
@@ -480,15 +482,15 @@ go get github.com/aws/aws-sdk-go-v2/service/s3
 
 ## Frontend Integration
 
-### Avatar upload (replaces current Firebase Storage approach)
+### Avatar upload
 
-Currently the profile page uploads directly to Firebase Storage client-side. After this service is built:
+The profile page uploads avatars through the backend:
 
 1. `POST /api/v1/upload/avatar` with `multipart/form-data`
 2. Backend handles resize + WebP conversion + R2 upload
 3. Response includes CDN URL → stored in Redux and Firestore
 
-**Migration:** remove `firebase/storage` import from `firebase.ts` and `ProfilePage.tsx`; replace with `api.post('/upload/avatar', formData)`.
+**Migration status:** Firebase Storage upload has been removed from `fs-app-web`; avatar changes use `api.postForm('/upload/avatar', formData)` and `api.delete('/upload/avatar')`.
 
 ### Large file uploads (presign flow)
 
@@ -579,14 +581,14 @@ Backend profile API change: remove `avatarURL` from `UpdateProfileRequest` and f
 
 ## Phases
 
-### Phase 1 — Avatar upload (replaces Firebase Storage)
+### Phase 1 — Avatar upload (implemented)
 
 Deliverable: profile photo upload works end-to-end on R2; Firebase Storage dependency removed.
 
 1. `r2.go` — R2 client wrapper + env var loading
-2. `service.go` — `UploadAvatar` (validate → resize → WebP → upload to `avatars/{uid}/`)
+2. `service.go` — `UploadAvatar` (validate -> resize -> WebP -> upload to `avatars/{uid}/`)
 3. `handler.go` — `POST /upload/avatar`, `DELETE /upload/avatar`
-4. Frontend: migrate `ProfilePage.tsx` from Firebase Storage → `POST /upload/avatar`
+4. Frontend: migrate `ProfilePage.tsx` from Firebase Storage -> `POST /upload/avatar`
 5. Firestore rules: lock `avatarURL` direct-write
 
 ### Phase 2 — Public file uploads (presign flow + delete)

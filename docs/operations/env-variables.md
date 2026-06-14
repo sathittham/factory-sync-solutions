@@ -41,6 +41,16 @@ Centralized reference for all environment variables used across the project.
 | `SLACK_WEBHOOK_REGISTRATION` | Yes | Webhook URL for `#registrations` channel | GitHub Secrets |
 | `SLACK_WEBHOOK_QUIZ_RESULT` | Yes | Webhook URL for `#quiz-results` channel | GitHub Secrets |
 
+### Upload Storage
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `R2_ACCOUNT_ID` | When upload service enabled | Cloudflare account ID for R2 uploads. | `9cfbba8b3a373fdc0d11abaf64071719` |
+| `R2_ACCESS_KEY_ID` | When upload service enabled | R2 access key ID for the public upload bucket. | GitHub Secret / Cloud Run env |
+| `R2_ACCESS_KEY_SECRET` | When upload service enabled | R2 access key secret for the public upload bucket. | GitHub Secret / Cloud Run env |
+| `R2_PUBLIC_BUCKET` | When upload service enabled | Public R2 bucket used for CDN-served avatars. | `uploads-factorysyncsolutions-com-staging` |
+| `R2_PUBLIC_BASE_URL` | When upload service enabled | Public delivery base URL for avatar URLs stored in Firestore. | `https://uploads-staging.factorysyncsolutions.com` |
+
 ### API Documentation Artifacts
 
 | Variable | Required | Description | Example |
@@ -49,7 +59,7 @@ Centralized reference for all environment variables used across the project.
 | `API_DOCS_R2_ACCOUNT_ID` | When `API_DOCS_SOURCE=r2` | Cloudflare account ID for the API docs R2 reader credentials. | `9cfbba8b3a373fdc0d11abaf64071719` |
 | `API_DOCS_R2_ACCESS_KEY_ID` | When `API_DOCS_SOURCE=r2` | R2 access key ID scoped to read the API docs bucket. | GitHub Secret / Cloud Run env |
 | `API_DOCS_R2_ACCESS_KEY_SECRET` | When `API_DOCS_SOURCE=r2` | R2 access key secret scoped to read the API docs bucket. | GitHub Secret / Cloud Run env |
-| `API_DOCS_R2_BUCKET` | Deploy only | Environment-specific private R2 bucket for generated Swagger/OpenAPI artifacts. | `apidoc-factorysyncsolutions-com-staging` |
+| `API_DOCS_R2_BUCKET` | When `API_DOCS_SOURCE=r2` | Environment-specific private R2 bucket for generated Swagger/OpenAPI artifacts. | `apidoc-factorysyncsolutions-com-staging` |
 | `API_DOCS_R2_PREFIX` | No | R2 prefix for API docs artifacts. Defaults to `openapi`. | `openapi` |
 | `API_DOCS_SUPPORTED_VERSIONS` | No | Comma-separated API versions exposed by docs tooling. | `v1` |
 | `API_DOCS_DEFAULT_VERSION` | No | Default API docs version. | `v1` |
@@ -68,7 +78,10 @@ Only `VITE_` prefixed variables are exposed to the browser. Never put secrets he
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Yes | Firebase messaging sender ID | `123456789` |
 | `VITE_FIREBASE_APP_ID` | Yes | Firebase app ID | `1:123:web:abc` |
 | `VITE_API_BASE_URL` | No | Backend API base URL (empty = use Vite proxy in dev) | `/api/v1` |
+| `VITE_OFFICIAL_WEB_URL` | No | Official website URL for legal and marketing handoff links. | `https://factorysyncsolutions.com` |
 | `VITE_CF_TURNSTILE_SITE_KEY` | No | Cloudflare Turnstile public site key | `0x4AAA...` |
+| `VITE_GTM_ID` | No | Google Tag Manager container ID. | `GTM-XXXXXXX` |
+| `VITE_GA_MEASUREMENT_ID` | No | Google Analytics 4 measurement ID. | `G-XXXXXXXXXX` |
 
 ## Frontend — `fs-backoffice-web` (Staff Backoffice)
 
@@ -84,6 +97,25 @@ There is no Turnstile widget on the backoffice (Cloudflare Access handles bot/ac
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Yes | Same messaging sender ID | `123456789` |
 | `VITE_FIREBASE_APP_ID` | Yes | Firebase app ID (backoffice web app) | `1:123:web:def` |
 | `VITE_API_BASE_URL` | No | Backend API base URL | `http://localhost:8080/api/v1` |
+| `VITE_PROXY_TARGET` | Dev only | Backend proxy target used by Vite dev server. | `http://localhost:8080` |
+
+## Frontend — `fs-official-web` (Public Site)
+
+Only `PUBLIC_` prefixed variables are exposed to the browser. Never put secrets here.
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `PUBLIC_APP_URL` | No | Authenticated app URL used by CTAs. | `https://app.factorysyncsolutions.com` |
+| `PUBLIC_APP_VERSION` | No | Version displayed in the footer. | `v1.2.3` |
+| `PUBLIC_GTM_ID` | No | Google Tag Manager container ID. | `GTM-XXXXXXX` |
+| `PUBLIC_API_BASE_URL` | No | Backend API base URL for embedded registration flows. | `https://api.example.com/api/v1` |
+| `PUBLIC_CF_TURNSTILE_SITE_KEY` | No | Cloudflare Turnstile public site key for embedded registration. | `0x4AAA...` |
+| `PUBLIC_FIREBASE_API_KEY` | Registration flow only | Firebase public API key. | `AIza...` |
+| `PUBLIC_FIREBASE_AUTH_DOMAIN` | Registration flow only | Firebase Auth domain. | `project-id.firebaseapp.com` |
+| `PUBLIC_FIREBASE_PROJECT_ID` | Registration flow only | Firebase project ID. | `factory-sync-solutions` |
+| `PUBLIC_FIREBASE_STORAGE_BUCKET` | Registration flow only | Firebase storage bucket. | `factory-sync-solutions.firebasestorage.app` |
+| `PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Registration flow only | Firebase messaging sender ID. | `123456789` |
+| `PUBLIC_FIREBASE_APP_ID` | Registration flow only | Firebase app ID. | `1:123:web:abc` |
 
 ## CI/CD (GitHub Settings)
 
@@ -101,7 +133,12 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | `CF_TURNSTILE_SECRET` | Cloudflare Turnstile server secret (injected into Cloud Run) |
 | `SLACK_WEBHOOK_REGISTRATION` | Slack webhook for registrations (injected into Cloud Run) |
 | `SLACK_WEBHOOK_QUIZ_RESULT` | Slack webhook for quiz results (injected into Cloud Run) |
-| `SLACK_WEBHOOK_DEPLOY` | Slack webhook for CI/CD deploy notifications (injected into deploy workflow) | GitHub Secrets |
+| `SLACK_WEBHOOK_DEPLOY` | Slack webhook for CI/CD deploy notifications (injected into deploy workflow) |
+| `R2_ACCESS_KEY_ID` | R2 access key ID for upload storage, when uploads are enabled |
+| `R2_ACCESS_KEY_SECRET` | R2 access key secret for upload storage, when uploads are enabled |
+| `API_DOCS_R2_ACCOUNT_ID` | Cloudflare account ID for API docs R2 reads |
+| `API_DOCS_R2_ACCESS_KEY_ID` | R2 access key ID scoped to read API docs artifacts |
+| `API_DOCS_R2_ACCESS_KEY_SECRET` | R2 access key secret scoped to read API docs artifacts |
 
 ### GitHub Variables (per environment)
 
@@ -117,6 +154,9 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | `VITE_BACKOFFICE_APP_ID` | Firebase app ID (fs-backoffice-web) | `1:123:web:def` |
 | `VITE_API_BASE_URL` | Backend API URL | `https://api.example.com/api/v1` |
 | `BACKOFFICE_APP_URL` | Backoffice URL used for staff invitation password setup links; falls back to `APP_URL` if unset | `https://backoffice.example.com` |
+| `R2_ACCOUNT_ID` | Cloudflare account ID for upload storage | `9cfbba8b3a373fdc0d11abaf64071719` |
+| `R2_PUBLIC_BUCKET` | Public R2 bucket for avatar uploads | `uploads-factorysyncsolutions-com-staging` |
+| `R2_PUBLIC_BASE_URL` | Public base URL for uploaded avatars | `https://uploads-staging.factorysyncsolutions.com` |
 | `API_DOCS_R2_BUCKET` | Private R2 bucket receiving generated API docs for this environment | `apidoc-factorysyncsolutions-com-staging` |
 | `API_DOCS_R2_PREFIX` | R2 object prefix for generated API docs. Defaults to `openapi` in workflows. | `openapi` |
 
@@ -140,9 +180,10 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 
 1. Copy the example file for each app:
    ```bash
-   cp apps/fs-backend/.env.example      apps/fs-backend/.env
-   cp apps/fs-app-web/.env.example      apps/fs-app-web/.env
-   cp apps/fs-backoffice-web/.env.example apps/fs-backoffice-web/.env
+   cp apps/fs-backend/.env.example        apps/fs-backend/.env.development
+   cp apps/fs-app-web/.env.example        apps/fs-app-web/.env
+   cp apps/fs-backoffice-web/.env.example apps/fs-backoffice-web/.env.local
+   cp apps/fs-official-web/.env.example   apps/fs-official-web/.env
    ```
 
 2. Fill in your values (see tables above).

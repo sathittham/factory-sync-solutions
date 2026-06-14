@@ -385,8 +385,8 @@ Options:
 ## 15. References
 
 - Dashboard page: [DashboardPage.tsx](../../../apps/fs-app-web/src/pages/DashboardPage.tsx)
-- Router (where route is missing): [router.tsx](../../../apps/fs-app-web/src/router.tsx)
-- Layout nav (where nav link is missing): [Layout.tsx](../../../apps/fs-app-web/src/components/Layout.tsx)
+- Router: [router.tsx](../../../apps/fs-app-web/src/router.tsx)
+- Layout nav: [Layout.tsx](../../../apps/fs-app-web/src/components/Layout.tsx)
 - i18n keys: [i18n.tsx](../../../apps/fs-app-web/src/lib/i18n.tsx)
 - Result slice: [resultSlice.ts](../../../apps/fs-app-web/src/store/resultSlice.ts)
 - Quiz slice: [quizSlice.ts](../../../apps/fs-app-web/src/store/quizSlice.ts)

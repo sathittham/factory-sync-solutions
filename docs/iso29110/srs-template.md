@@ -44,9 +44,9 @@ lastUpdated: 2026-06-11
 
 | Document | Link |
 |---|---|
-| Architecture Overview | [docs/architecture/overview.md](../../architecture/overview.md) |
-| Database Schema | [docs/architecture/database.md](../../architecture/database.md) |
-| API Conventions | [docs/api/conventions.md](../../api/conventions.md) |
+| Architecture Overview | [docs/architecture/overview.md](../architecture/overview.md) |
+| Database Schema | [docs/architecture/database.md](../architecture/database.md) |
+| API Conventions | [docs/api/conventions.md](../api/conventions.md) |
 | | |
 
 ---
@@ -62,7 +62,7 @@ lastUpdated: 2026-06-11
 |---|---|---|
 | End User | Registered factory operator | Authenticated |
 | Backoffice Staff | Internal user with `backoffice` role | `backoffice` |
-| Super Admin | Internal user with `super_admin` role | `super_admin` |
+| Super Admin | Internal user with `backofficeRole: "superadmin"` claim | `superadmin` |
 | System Admin | Firebase custom claim `admin = true` | Admin |
 
 *Check only the user classes relevant to this feature.*
@@ -90,7 +90,7 @@ lastUpdated: 2026-06-11
 |---|---|
 | **Priority** | Must Have / Should Have / Nice to Have |
 | **Source** | [who requested / which stakeholder] |
-| **Test Case** | TC-001 in [test-plan.md](test-plan.md) |
+| **Test Case** | TC-001 in [test-plan-template.md](test-plan-template.md) |
 
 **Description:**
 The system shall [verb] [object] when [condition].
@@ -144,7 +144,7 @@ The system shall [verb] [object] when [condition].
 | GET | `/api/v1/[resource]` | Bearer | [description] |
 | POST | `/api/v1/[resource]` | Bearer | [description] |
 
-Full API spec: [docs/api/](../../api/).
+Full API spec: [docs/api/](../api/).
 
 ### 5.2 UI Screens / Routes
 

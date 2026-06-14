@@ -40,7 +40,7 @@ The project delivers:
 
 - **fs-backend** — REST API (Go + Chi + Firestore + Firebase Auth, deployed on Cloud Run)
 - **fs-app-web** — Authenticated user app for quiz-taking and results (React 19 + Vite, Cloudflare Pages)
-- **fs-backoffice-web** — Internal backoffice (React 19 + Vite, Cloudflare Pages, `backoffice` / `super_admin` role)
+- **fs-backoffice-web** — Internal backoffice (React 19 + Vite, Cloudflare Pages, `backofficeRole: "staff" | "superadmin"` claim)
 - **fs-official-web** — Public marketing site (Astro 6, Cloudflare Pages)
 - **Shared packages** — scripts, assets
 
@@ -118,7 +118,7 @@ Active risks are tracked in [risk-register.md](risk-register.md).
 | **Firestore Rules** | `firestore.rules` committed; deployed manually via Firebase CLI |
 | **Change Requests** | Logged in [change-request-log.md](change-request-log.md) |
 
-Full branch and commit rules: [.claude/rules/git.md](../../.claude/rules/git.md).
+Full branch and commit rules: [release-flow.md](../operations/release-flow.md).
 
 ---
 

@@ -563,7 +563,7 @@ make test-api
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Replaced Turborepo reference with Makefile |
-| 1.2.0 | 2026-06-13 | Fix stale apps/api → apps/fs-backend paths throughout |
+| 1.2.0 | 2026-06-13 | Fix stale backend paths throughout |
 
 *Version: 1.2.0*
 *Last updated: 13 June 2026*

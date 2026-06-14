@@ -1,6 +1,6 @@
 # fs-backoffice-web
 
-Internal backoffice for FactorySync Solutions. Restricted to users with the `backoffice` role; the Staff page is additionally gated to `super_admin`.
+Internal backoffice for FactorySync Solutions. Restricted to users with a Firebase custom claim `backofficeRole` of `staff` or `superadmin`; staff management, audit search, and API docs are additionally gated to `superadmin`.
 
 **Stack:** React 19 · React Router 7 · Redux Toolkit · shadcn/ui · Tailwind CSS v4 · Vite · TypeScript · Firebase Auth · Biome · Vitest
 
@@ -10,13 +10,18 @@ Internal backoffice for FactorySync Solutions. Restricted to users with the `bac
 
 | Path | Guard | Description |
 |---|---|---|
+| `/` | — | Redirects to `/dashboard` |
 | `/sign-in` | — | Firebase sign-in |
-| `/dashboard` | auth + backoffice | Overview dashboard |
-| `/projects` | auth + backoffice | Project list |
-| `/projects/:projectID` | auth + backoffice | Project detail |
-| `/users` | auth + backoffice | User management |
-| `/results` | auth + backoffice | Assessment results |
-| `/staff` | auth + backoffice + super_admin | Staff management |
+| `/unauthorized` | — | Access denied page |
+| `/dashboard` | auth + `backofficeRole` | Overview dashboard |
+| `/profile` | auth + `backofficeRole` | Signed-in staff profile |
+| `/projects` | auth + `backofficeRole` | Project list |
+| `/projects/:projectID` | auth + `backofficeRole` | Project detail |
+| `/users` | auth + `backofficeRole` | User management |
+| `/results` | auth + `backofficeRole` | Assessment results |
+| `/staff` | auth + `superadmin` | Staff management |
+| `/audit` | auth + `superadmin` | Platform audit search |
+| `/help/api-docs` | auth + `superadmin` | Internal Swagger/OpenAPI viewer |
 
 ---
 
@@ -54,6 +59,7 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
 VITE_API_BASE_URL=/api/v1
 VITE_PROXY_TARGET=http://localhost:8080   # fs-backend dev server
+VITE_OFFICIAL_WEB_URL=https://www.factorysyncsolutions.com
 ```
 
 **2. Install and run:**
@@ -81,7 +87,7 @@ The dev server proxies `/api` → `VITE_PROXY_TARGET` so the backend can run sep
 | `npm run deploy:staging` | Build + deploy to Cloudflare Pages (staging) |
 | `npm run deploy:prod` | Build + deploy to Cloudflare Pages (production) |
 
-Or run everything from the repo root with `make dev` / `make lint` / `make test`.
+Root `make` targets do not run the backoffice app; use the commands above from this directory.
 
 ---
 
@@ -90,7 +96,7 @@ Or run everything from the repo root with `make dev` / `make lint` / `make test`
 Three route guards layer access:
 
 - **AuthGuard** — must be signed in via Firebase Auth
-- **BackofficeGuard** — Firebase custom claim `role === "backoffice"` (or `super_admin`)
-- **SuperAdminGuard** — Firebase custom claim `role === "super_admin"` only
+- **BackofficeGuard** — Firebase custom claim `backofficeRole === "staff"` or `"superadmin"`
+- **SuperAdminGuard** — Firebase custom claim `backofficeRole === "superadmin"` only
 
-Access is set by the backend admin service; contact a super admin to request backoffice access.
+Access is set by backend superadmin-only staff endpoints; contact a super admin to request backoffice access.

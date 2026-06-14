@@ -48,7 +48,7 @@ assessmentID := uuid.New().String() // "550e8400-e29b-41d4-a716-446655440000"
 - IDs are generated server-side in the service layer — never from the client
 - Use `github.com/google/uuid` package
 - Store as `string` in Firestore and JSON responses
-- See [database.md](database.md#id-generation) for per-collection ID rules
+- See [database.md](../architecture/database.md#id-generation) for per-collection ID rules
 
 ---
 
@@ -270,16 +270,16 @@ func (h *ProfileHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-See [architecture.md](architecture.md#api-documentation-swaggeropenapi) for setup.
+See [swagger.md](swagger.md) for setup.
 
 ---
 
 ## See Also
 
-- [go-patterns.md](go-patterns.md) — Go implementation patterns (handler, service, repository)
-- [error-handling.md](error-handling.md) — Sentinel error pattern and handler error mapping
-- [swagger-openapi.md](swagger-openapi.md) — Swagger annotation details and model definitions
-- [database.md](database.md) — Firestore collections and data models
+- [../development/go-patterns.md](../development/go-patterns.md) — Go implementation patterns (handler, service, repository)
+- [../development/error-handling.md](../development/error-handling.md) — Sentinel error pattern and handler error mapping
+- [swagger.md](swagger.md) — Swagger annotation details and model definitions
+- [../architecture/database.md](../architecture/database.md) — Firestore collections and data models
 
 ---
 

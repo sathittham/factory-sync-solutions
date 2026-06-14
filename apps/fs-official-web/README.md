@@ -25,8 +25,7 @@ apps/fs-official-web/
 ├── public/                     # favicons + site.webmanifest (synced from packages/shared)
 └── src/
     ├── components/
-    │   ├── ui/
-    │   │   └── button.tsx          # shadcn/ui button primitive
+    │   ├── ui/                     # shadcn/ui primitives
     │   ├── landing/
     │   │   └── LandingContent.tsx  # Hero + CTA landing island
     │   ├── services/
@@ -62,7 +61,7 @@ The `@shared` alias resolves to `packages/shared` (brand logos, shared scripts) 
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - npm (comes with Node)
 
 ### Install
@@ -83,6 +82,15 @@ cp .env.example .env
 |---|---|
 | `PUBLIC_APP_URL` | URL of the assessment app (e.g. `https://app.factorysyncsolutions.com`) |
 | `PUBLIC_APP_VERSION` | Version string displayed on the site (e.g. `v1.0.0`) |
+| `PUBLIC_GTM_ID` | Optional Google Tag Manager container ID |
+| `PUBLIC_API_BASE_URL` | Backend API base URL used by registration handoff tests |
+| `PUBLIC_CF_TURNSTILE_SITE_KEY` | Cloudflare Turnstile public site key for embedded registration |
+| `PUBLIC_FIREBASE_API_KEY` | Firebase public API key for embedded registration |
+| `PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase auth domain |
+| `PUBLIC_FIREBASE_PROJECT_ID` | Firebase project ID |
+| `PUBLIC_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket |
+| `PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID |
+| `PUBLIC_FIREBASE_APP_ID` | Firebase app ID |
 
 Per-environment files `.env.staging` and `.env.production` ship with the repo and are picked up by `astro build --mode <env>`.
 
@@ -115,6 +123,9 @@ Output goes to `dist/`. This is a fully static site — no server required.
 | `npm test` | Run unit tests (Vitest) |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with coverage |
+| `npm run test:e2e` | Run E2E tests (Playwright) |
+| `npm run test:e2e:ui` | Run E2E tests with Playwright UI |
+| `npm run test:e2e:install` | Install Playwright browsers |
 | `npm run deploy:staging` | Build (staging) and deploy to Cloudflare Pages (`...-official-staging`) |
 | `npm run deploy:prod` | Build and deploy to Cloudflare Pages (`...-official`) |
 
@@ -156,4 +167,4 @@ Deployed to **Cloudflare Pages** via Wrangler. Staging and production are separa
 | Staging | `npm run deploy:staging` | `factory-sync-solutions-official-staging` | `staging` |
 | Production | `npm run deploy:prod` | `factory-sync-solutions-official` | `main` |
 
-Always verify on staging before deploying to production. Releases are typically driven by git tags through GitHub Actions (`v*-staging` → staging, `v*.*.*` → production) — see the repo root [git rules](../../.claude/rules/git.md).
+Always verify on staging before deploying to production. Releases are typically driven by git tags through GitHub Actions (`v*-staging` -> staging, `v*.*.*` -> production) — see [release-flow.md](../../docs/operations/release-flow.md).

@@ -16,7 +16,7 @@ All code in this project must strictly follow these principles. They apply equal
 - All public functions must have clear godoc (Go) or JSDoc (TypeScript) comments
 - Use strict TypeScript (`strict: true`) and Go linting (`golangci-lint`) with zero warnings
 - Every code path must have explicit error handling — no silent failures
-- All API responses must follow the standard envelope format ([api-conventions.md](../api/conventions.md))
+- All API responses must follow the standard envelope format ([conventions.md](../api/conventions.md))
 
 ### 2. Long-Term Maintainability
 
@@ -56,7 +56,7 @@ All code in this project must strictly follow these principles. They apply equal
 - **No secrets in frontend**: only `VITE_` prefixed public config
 - **Bot protection**: Cloudflare Turnstile on registration, rate limiting on all endpoints
 - **CORS**: explicit allowed origins — no wildcard in production
-- See [security-guide.md](../operations/security.md) for full details
+- See [security.md](../operations/security.md) for full details
 
 ---
 
@@ -266,7 +266,7 @@ Real-time alerts sent to Slack channels via Incoming Webhooks:
 - `#ci-cd` — GitHub Actions pipeline status (pass/fail)
 - `#server-status` — Cloud Run health checks and error alerts
 
-See [architecture.md](../architecture/overview.md#slack-notifications) for full details.
+See [overview.md](../architecture/overview.md#slack-notifications) for full details.
 
 ### Backend (Go)
 
@@ -303,8 +303,8 @@ See [architecture.md](../architecture/overview.md#slack-notifications) for full 
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
-| 1.1.0 | 2026-03-07 | Updated: Turborepo -> Makefile, Cloud Functions -> Cloud Run, Swagger marked as not implemented, fixed CI/CD pipeline |
-| 1.1.0 | 2026-06-13 | Fix broken links; fix apps/api → apps/fs-backend paths; update environment URLs to custom domains |
+| 1.1.0 | 2026-03-07 | Updated: Turborepo -> Makefile, Cloud Functions -> Cloud Run, Swagger workflow, fixed CI/CD pipeline |
+| 1.1.0 | 2026-06-13 | Fix broken links; update backend paths; update environment URLs to custom domains |
 
 *Version: 1.1.0*
 *Last updated: 13 June 2026*

@@ -28,8 +28,8 @@ apps/fs-app-web/
 └── src/
     ├── components/
     │   ├── ui/            # shadcn/ui primitives (Button, Card, Dialog, etc.)
-    │   ├── form/          # native-select.tsx (react-hook-form register() wrapper)
-    │   ├── guards/        # Route guards (AuthGuard, RegisterGuard, AdminGuard)
+    │   ├── form/          # select-field.tsx (shadcn Select + react-hook-form)
+    │   ├── guards/        # Route guards (AuthGuard, RegisterGuard, AdminGuard, CompanySettingsGuard)
     │   ├── Layout.tsx     # App shell: header, nav, footer, theme/locale switchers
     │   ├── motion.tsx     # Motion animation wrappers
     │   ├── CookieConsent.tsx
@@ -53,6 +53,8 @@ apps/fs-app-web/
     │   ├── QuizPage.tsx
     │   ├── ResultPage.tsx
     │   ├── AdminPage.tsx
+    │   ├── AuthActionPage.tsx
+    │   ├── CompanySettingsPage.tsx
     │   ├── ProfilePage.tsx
     │   └── NotFoundPage.tsx
     ├── store/
@@ -95,9 +97,11 @@ cp .env.example .env
 | `VITE_FIREBASE_API_KEY` | Firebase public API key |
 | `VITE_FIREBASE_AUTH_DOMAIN` | Firebase auth domain |
 | `VITE_FIREBASE_PROJECT_ID` | Firebase project ID |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket from project settings |
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID |
 | `VITE_FIREBASE_APP_ID` | Firebase app ID |
 | `VITE_API_BASE_URL` | API base URL (empty = Vite proxy to `localhost:8080`) |
+| `VITE_OFFICIAL_WEB_URL` | Official website URL for legal and marketing links |
 | `VITE_CF_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key |
 | `VITE_GTM_ID` | Google Tag Manager container ID |
 | `VITE_GA_MEASUREMENT_ID` | GA4 measurement ID |
@@ -213,10 +217,14 @@ Defined in [`src/router.tsx`](src/router.tsx):
 | Path | Page | Guard |
 |---|---|---|
 | `/` | Sign-in / landing | Public |
+| `/auth/action` | Firebase auth action handler | Public |
 | `/register` | Registration | Auth |
 | `/quiz` | Assessment quiz | Auth + Registered |
 | `/results` | Score & recommendations | Auth + Registered |
+| `/dashboard` | Assessment dashboard | Auth + Registered |
+| `/profile` | Profile page | Auth + Registered |
+| `/company-settings` | Company settings | Auth + Registered + Company role |
 | `/admin` | Admin dashboard | Auth + Admin role |
 | `*` | Not found | Public |
 
-> Profile is presented as a dialog (`ProfileDialog`) rather than a standalone route.
+`ProfileDialog` is also mounted in the app shell for profile edits from navigation.

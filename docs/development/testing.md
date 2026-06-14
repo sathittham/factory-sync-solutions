@@ -345,7 +345,7 @@ jobs:
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated CI/CD workflow to match actual test.yml (path-based jobs, Node 22, no turbo), fixed vitest.config.ts example, added coverage note |
-| 1.2.0 | 2026-06-13 | Fix CI YAML paths: apps/api → apps/fs-backend, apps/web → apps/fs-app-web |
+| 1.2.0 | 2026-06-13 | Fix CI YAML paths for backend and app web |
 
 *Version: 1.2.0*
 *Last updated: 13 June 2026*

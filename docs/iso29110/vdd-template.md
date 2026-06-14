@@ -84,7 +84,7 @@ status: Released / Draft
 
 | Change | Type | Required Action |
 |---|---|---|
-| [env var added/changed] | New env var | Add to `.env.local`; see [env-variables.md](../../operations/env-variables.md) |
+| [env var added/changed] | New env var | Add to `.env.local`; see [env-variables.md](../operations/env-variables.md) |
 | [Firestore rule change] | Rules update | Run `firebase deploy --only firestore:rules` |
 | [New Firestore index] | Index deploy | Run `firebase deploy --only firestore:indexes` |
 
@@ -152,7 +152,7 @@ git push origin vX.Y.Z    # → triggers GitHub Actions production deploy
 - [ ] SI.O5: Integration / smoke tests passed on staging
 - [ ] SI.O6: User guide updated for user-facing changes
 - [ ] SI.O7: This VDD created and committed
-- [ ] Change requests in [change-request-log.md](../change-request-log.md) are closed / updated
+- [ ] Change requests in [change-request-log.md](change-request-log.md) are closed / updated
 - [ ] Risk register reviewed
 
 ---

@@ -247,7 +247,7 @@ npm run deploy:prod     # wrangler pages deploy dist/ --project-name=... (prod)
 ```
 
 Deployed to Cloudflare Pages. GitHub Actions triggers on `v*-staging` and
-`v*.*.*` tags. See [git.md](../../../.claude/rules/git.md) for release flow.
+`v*.*.*` tags. See [release-flow.md](../../operations/release-flow.md) for release flow.
 
 ---
 

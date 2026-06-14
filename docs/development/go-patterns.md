@@ -17,7 +17,7 @@ Use modern Go features:
 
 ## Naming: camelCase Everywhere
 
-All JSON fields, Firestore fields, query params, and struct tags must use **camelCase**. No exceptions. See [api-conventions.md](../api/conventions.md) for the full naming table.
+All JSON fields, Firestore fields, query params, and struct tags must use **camelCase**. No exceptions. See [conventions.md](../api/conventions.md) for the full naming table.
 
 ## ID Generation: UUIDv4
 
@@ -630,10 +630,10 @@ func RespondError(w http.ResponseWriter, status int, code, message string) {
 
 ## See Also
 
-- [api-conventions.md](../api/conventions.md) — Naming conventions, response format, error codes
+- [conventions.md](../api/conventions.md) — Naming conventions, response format, error codes
 - [error-handling.md](error-handling.md) — Sentinel error pattern and handler error mapping
 - [testing-guide.md](testing-guide.md) — Go-specific testing patterns and mock examples
-- [security-guide.md](../operations/security.md) — Authentication, authorization, and Firestore security rules
+- [security.md](../operations/security.md) — Authentication, authorization, and Firestore security rules
 - [database.md](../architecture/database.md) — Firestore collections, data models, and scoring algorithm
 - [env-variables.md](../operations/env-variables.md) — All required environment variables
 
@@ -645,7 +645,7 @@ func RespondError(w http.ResponseWriter, status int, code, message string) {
 |---------|------|-------------|
 | 1.1.0 | 2026-03-07 | Add dbd service, fix result/admin structure, update to Cloud Run entry point |
 | 1.0.0 | 2026-03-06 | Initial version |
-| 1.2.0 | 2026-06-13 | Fix broken links; fix apps/api → apps/fs-backend paths; fix module import paths; update notification and result service structures |
+| 1.2.0 | 2026-06-13 | Fix broken links; fix backend paths; fix module import paths; update notification and result service structures |
 
 *Version: 1.2.0*
 *Last updated: 13 June 2026*

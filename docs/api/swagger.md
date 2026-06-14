@@ -226,7 +226,7 @@ Use `swaggo/http-swagger` with Chi:
 
 ```go
 import httpSwagger "github.com/swaggo/http-swagger"
-import _ "factory-sync-solutions/apps/api/docs" // generated swagger docs
+import _ "github.com/sathittham/factory-sync-solutions/apps/fs-backend/docs/v1" // generated swagger docs
 
 // Only serve in non-production
 if os.Getenv("ENVIRONMENT") != "production" {

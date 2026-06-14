@@ -20,7 +20,7 @@ author: Sathittham Sangthong
 | Phase 6: Admin Dashboard in `fs-app-web` (superseded by Phase 11) | Done |
 | Phase 7: Testing & Quality | Done |
 | Phase 8: CI/CD & Deployment | Done |
-| Phase 9: Project & RBAC (multi-user workspace) | Planned — see [project/feature-spec.md](product/project/feature-spec.md) |
+| Phase 9: Project & RBAC (multi-user workspace) | Planned — see [project/feature-spec.md](project/feature-spec.md) |
 | Phase 10: ISO 29110 Quiz Variant | In Progress — see below |
 | **Phase 11: Backoffice Web App (`fs-backoffice-web`)** | **In Progress — see below** |
 
@@ -30,15 +30,15 @@ author: Sathittham Sangthong
 
 Everything else depends on this. Build first.
 
-- [x] **0.1** `apps/api/pkg/firestore.go` — Firestore client initialization (Firebase Admin SDK, emulator support)
-- [x] **0.2** `apps/api/pkg/validator.go` — Shared `validator.Validate` singleton
-- [x] **0.3** `apps/api/pkg/turnstile.go` — Cloudflare Turnstile server-side verification helper
-- [x] **0.4** `apps/api/middleware/cors.go` — CORS middleware (reads `ALLOWED_ORIGINS` env var)
-- [x] **0.5** `apps/api/middleware/auth.go` — `FirebaseAuth(authClient)`, `RequireAdmin(authClient)`, `GetUID(r)`
-- [x] **0.6** `apps/api/middleware/ratelimit.go` — Per-IP rate limiter (defense-in-depth)
-- [x] **0.7** `apps/api/middleware/security.go` — Security headers middleware
-- [x] **0.8** `apps/api/config/questions.json` — All 35 quiz questions (7 dimensions × 5)
-- [x] **0.9** `apps/api/main.go` — Entry point: Firebase init, Firestore init, wire repos/services/handlers, Chi router, Cloud Run (standard http.ListenAndServe)
+- [x] **0.1** `apps/fs-backend/pkg/firestore.go` — Firestore client initialization (Firebase Admin SDK, emulator support)
+- [x] **0.2** `apps/fs-backend/pkg/validator.go` — Shared `validator.Validate` singleton
+- [x] **0.3** `apps/fs-backend/pkg/turnstile.go` — Cloudflare Turnstile server-side verification helper
+- [x] **0.4** `apps/fs-backend/middleware/cors.go` — CORS middleware (reads `ALLOWED_ORIGINS` env var)
+- [x] **0.5** `apps/fs-backend/middleware/auth.go` — `FirebaseAuth(authClient)`, `RequireAdmin(authClient)`, `GetUID(r)`
+- [x] **0.6** `apps/fs-backend/middleware/ratelimit.go` — Per-IP rate limiter (defense-in-depth)
+- [x] **0.7** `apps/fs-backend/middleware/security.go` — Security headers middleware
+- [x] **0.8** `apps/fs-backend/config/questions.json` — All 35 quiz questions (7 dimensions × 5)
+- [x] **0.9** `apps/fs-backend/main.go` — Entry point: Firebase init, Firestore init, wire repos/services/handlers, Chi router, Cloud Run (standard http.ListenAndServe)
 - [x] **0.10** Run `go build ./...` — verify everything compiles
 - [x] **0.11** Run `go test ./...` — verify existing tests still pass
 - [x] **0.12** Update `go.mod` — add all required dependencies
@@ -49,7 +49,7 @@ Everything else depends on this. Build first.
 
 ### 1.1 scoring-service (pure logic, no Firestore)
 
-> Ref: [quiz-design.md](quiz-design.md), [database.md](database.md#scoring-algorithm)
+> Ref: [quiz-design.md](../architecture/quiz-design.md), [database.md](../architecture/database.md#scoring-algorithm)
 
 - [x] `services/scoring/models.go` — `Question`, `QuizAnswer`, `DimensionScore`, `ScoringResult`
 - [x] `services/scoring/scoring.go` — `LoadQuestions()`, `ComputeScores()`, `DetermineDiagnosis()`
@@ -70,7 +70,7 @@ Everything else depends on this. Build first.
 
 ### 1.2 profile-service
 
-> Ref: [database.md](database.md#firestore-collections), [go-patterns.md](go-patterns.md)
+> Ref: [database.md](../architecture/database.md#firestore-collections), [go-patterns.md](../development/go-patterns.md)
 
 - [x] `services/profile/models.go` — `Profile`, `CreateProfileRequest`, `ProfileResponse`
 - [x] `services/profile/repository.go` — `Repository` with `GetByUID`, `Create`, `Update`
@@ -89,7 +89,7 @@ Everything else depends on this. Build first.
 
 ### 1.3 result-service
 
-> Ref: [database.md](database.md#firestore-collections)
+> Ref: [database.md](../architecture/database.md#firestore-collections)
 
 - [x] `services/result/models.go` — `Assessment` struct (matches `assessments` collection)
 - [x] `services/result/repository.go` — `Create`, `GetByID`, `GetByUID`, `ListAll` (admin with filters)
@@ -144,7 +144,7 @@ Everything else depends on this. Build first.
   - [x] `GET /api/v1/admin/assessments` → list all assessments
   - [x] `GET /api/v1/admin/assessments/{assessmentId}` → detail
   - [x] `GET /api/v1/admin/export` → CSV download
-- [ ] `apps/api/cmd/seed/main.go` — CLI to set admin custom claims + create admin user doc (TODO)
+- [x] `apps/fs-backend/cmd/set-superadmin/main.go` — CLI to bootstrap a backoffice superadmin custom claim
 
 ---
 
@@ -195,7 +195,7 @@ Everything else depends on this. Build first.
 
 - [x] `src/pages/LandingPage.tsx` — hero + Google Sign-In CTA + 7 dimension overview
 - [x] `src/hooks/useAuth.ts` — `onAuthStateChanged`, profile fetch, dispatch to store
-- [x] All `data-testid` attributes per [testing.md](testing.md)
+- [x] All `data-testid` attributes per [testing.md](../development/testing.md)
 
 ---
 
@@ -362,19 +362,19 @@ Phase 0 (Foundation)
 | Notification failure handling | Log and continue | Email/Slack failures must NOT fail quiz submission |
 | Rate limiting in serverless | Cloudflare WAF primary + per-instance defense-in-depth | In-memory limiters don't work across Cloud Run instances |
 | Score rounding | 2 decimal places before classification | Prevents ambiguous boundary behavior (e.g., 3.995 → 4.00 = Advanced) |
-| Quiz questions source | Static JSON in `apps/api/config/` | Zero Firestore cost, version-controlled, easy PR review |
+| Quiz questions source | Static JSON in `apps/fs-backend/config/` | Zero Firestore cost, version-controlled, easy PR review |
 
 ---
 
 ## See Also
 
-- [architecture.md](architecture.md) — System architecture and platform choices
-- [go-patterns.md](go-patterns.md) — Handler/service/repository patterns (reference implementation in `services/dbd/`)
-- [database.md](database.md) — Firestore collections, data models, scoring algorithm
-- [quiz-design.md](quiz-design.md) — All 35 questions and scoring rules
-- [testing.md](testing.md) + [testing-guide.md](testing-guide.md) — Testing strategy and Go test patterns
-- [env-variables.md](env-variables.md) — All required environment variables
-- [deployment-guide.md](deployment-guide.md) — Deployment runbook
+- [../architecture/overview.md](../architecture/overview.md) — System architecture and platform choices
+- [../development/go-patterns.md](../development/go-patterns.md) — Handler/service/repository patterns (reference implementation in `services/dbd/`)
+- [../architecture/database.md](../architecture/database.md) — Firestore collections, data models, scoring algorithm
+- [../architecture/quiz-design.md](../architecture/quiz-design.md) — All questions and scoring rules
+- [../development/testing.md](../development/testing.md) + [../development/testing-guide.md](../development/testing-guide.md) — Testing strategy and Go test patterns
+- [../operations/env-variables.md](../operations/env-variables.md) — All required environment variables
+- [../operations/deployment.md](../operations/deployment.md) — Deployment runbook
 
 ---
 
@@ -417,7 +417,7 @@ ISO 29110 Basic Profile assessment for Very Small Enterprises (VSEs ≤ 25 peopl
 
 Dedicated FactorySync staff portal at `backoffice.factorysync.com`. Supersedes
 the in-app `/admin` page for platform management. See
-[backoffice/feature-spec.md](product/backoffice/feature-spec.md) for the full spec.
+[backoffice/feature-spec.md](backoffice/feature-spec.md) for the full spec.
 
 > **Note:** Phase 6 (in-app `AdminPage`) remains in place for users with
 > `role == "admin"`. Phase 11 is a separate app for FactorySync staff with the

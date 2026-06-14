@@ -28,7 +28,7 @@ Review at every progress meeting. Add new risks immediately when identified. Clo
 | R-005 | Single developer — bus-factor = 1, knowledge silo | H | H | Mitigate | All decisions documented in ADRs; CLAUDE.md rules encode conventions; backoffice README covers setup | Sathittham | Open |
 | R-006 | Cloudflare Pages deploy fails silently (wrong env vars) | M | M | Monitor | Smoke-test workflow (`deploy-smoke-test.js`) verifies URLs post-deploy | Sathittham | Open |
 | R-007 | ISO 29110 artifact maintenance becomes overhead | M | M | Monitor | Templates pre-filled; artifacts map to existing docs where possible; `dev-process.md` enforces habit | Sathittham | Open |
-| R-008 | Backoffice role (`backoffice`, `super_admin`) misconfigured in Firebase | L | H | Monitor | Claims set by backend admin service only; BackofficeGuard + SuperAdminGuard on all routes | Sathittham | Open |
+| R-008 | Backoffice claim (`backofficeRole`) misconfigured in Firebase | L | H | Monitor | Claims set by backend superadmin staff endpoints only; BackofficeGuard + SuperAdminGuard on all routes | Sathittham | Open |
 
 ---
 

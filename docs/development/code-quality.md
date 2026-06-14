@@ -10,7 +10,7 @@ author: Sathittham Sangthong
 
 ### Frontend: Biome
 
-Single tool for linting and formatting (replaces ESLint + Prettier). See [development.md](setup.md#linting--formatting).
+Single tool for linting and formatting (replaces ESLint + Prettier). See [setup.md](setup.md#linting--formatting).
 
 ```bash
 npx biome check .          # Check lint + format
@@ -223,7 +223,7 @@ Before submitting code:
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Replaced Turborepo reference with Makefile |
-| 1.2.0 | 2026-06-13 | Fix stale paths (apps/api → apps/fs-backend); fix module import paths; fix broken development.md link |
+| 1.2.0 | 2026-06-13 | Fix stale backend paths; fix module import paths; fix broken setup link |
 
 *Version: 1.2.0*
 *Last updated: 13 June 2026*

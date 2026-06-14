@@ -14,7 +14,7 @@ Check every item below when writing or modifying code. For new endpoints or serv
 
 ## 1. Security
 
-> Reference: [security-guide.md](../operations/security.md)
+> Reference: [security.md](../operations/security.md)
 
 - [ ] Firebase ID token verified via `auth.VerifyIDToken` on all authenticated endpoints
 - [ ] User UID extracted from verified token — never from request body or query params
@@ -32,7 +32,7 @@ Check every item below when writing or modifying code. For new endpoints or serv
 
 ## 2. API Conventions
 
-> Reference: [api-conventions.md](../api/conventions.md)
+> Reference: [conventions.md](../api/conventions.md)
 
 - [ ] Follows handler → service → repository layer pattern
 - [ ] Named sentinel errors: `var ErrXxx = errors.New("...")` in service package
@@ -40,7 +40,7 @@ Check every item below when writing or modifying code. For new endpoints or serv
 - [ ] camelCase for JSON tags and Firestore field names
 - [ ] HTTP status codes match convention (200/201/400/401/403/404/409/500)
 - [ ] Error codes match convention: `VALIDATION_ERROR`, `NOT_FOUND`, `CONFLICT`, `FORBIDDEN`, `INTERNAL_ERROR`
-- [ ] Swagger annotations on handler functions (when swaggo is implemented — see [swagger-openapi.md](../api/swagger.md))
+- [ ] Swagger annotations on handler functions (see [swagger.md](../api/swagger.md))
 - [ ] Timestamps use UTC RFC3339 format
 
 ---

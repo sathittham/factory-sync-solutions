@@ -219,7 +219,7 @@ Go API endpoints must allow cross-origin requests from all three frontend apps:
 
 Apply rate limiting on Go API endpoints to prevent abuse:
 - **Per-instance in-memory limiter**: 10 requests/second burst per IP (defense-in-depth)
-- Use Cloudflare WAF rate limiting rules as the primary layer for global rate limiting. See [security-guide.md](security-guide.md#rate-limiting) for details.
+- Use Cloudflare WAF rate limiting rules as the primary layer for global rate limiting. See [../operations/security.md](../operations/security.md#rate-limiting) for details.
 
 ### Cloudflare Turnstile (Bot Protection)
 
@@ -230,12 +230,7 @@ Used on the registration form to prevent bot signups:
 
 ## API Documentation (Swagger/OpenAPI)
 
-> **Status**: Not yet implemented. Swagger annotations exist in handler code but swaggo is not installed and the Swagger UI route is commented out in `main.go`. See [swagger-openapi.md](swagger-openapi.md) for the planned setup.
-
-When implemented:
-- Auto-generate from Go source code using `swaggo/swag`
-- Serve Swagger UI at `/api/v1/swagger/` in non-production environments
-- Regenerate in CI before each build
+> **Status**: Active. Swagger/OpenAPI docs are generated from backend annotations during backend builds, CI, and deploys. Non-production backend environments serve Swagger UI at `/api/v1/swagger/`; deploy workflows publish generated artifacts to R2 for the superadmin backoffice API Docs page. See [../api/swagger.md](../api/swagger.md) for the current workflow.
 
 ## Quiz Data Source
 

@@ -18,9 +18,10 @@ A Makefile-managed monorepo containing a React SPA app, an Astro public marketin
 ## Monorepo Structure
 
 ```
-factory-health-check/
+factory-sync-solutions/
 ├── apps/
 │   ├── fs-app-web/         # React + Vite SPA (authenticated app)
+│   ├── fs-backoffice-web/  # React + Vite SPA (internal backoffice)
 │   ├── fs-official-web/    # Astro 6 + React islands (public marketing site)
 │   └── fs-backend/         # Go Cloud Run service (backend API)
 ├── packages/               # Shared scripts/assets
@@ -33,10 +34,10 @@ factory-health-check/
 
 ```bash
 # Install app (fs-app-web) dependencies
-# Note: fs-official-web deps are installed separately — `cd apps/fs-official-web && npm install`
+# Note: fs-backoffice-web and fs-official-web deps are installed separately.
 make install
 
-# Start all apps in dev mode (API + Web in parallel)
+# Start backend API + authenticated app in dev mode
 make dev
 
 # Start only frontend
@@ -52,6 +53,7 @@ Copy `.env.example` files and fill in values:
 
 ```bash
 cp apps/fs-app-web/.env.example apps/fs-app-web/.env
+cp apps/fs-backoffice-web/.env.example apps/fs-backoffice-web/.env.local
 cp apps/fs-official-web/.env.example apps/fs-official-web/.env
 cp apps/fs-backend/.env.example apps/fs-backend/.env.development
 ```
@@ -78,6 +80,23 @@ VITE_GTM_ID=
 
 # Google Analytics 4 (measurement ID, e.g. G-XXXXXXXXXX)
 VITE_GA_MEASUREMENT_ID=
+
+# Official website URL for legal and marketing handoff links
+VITE_OFFICIAL_WEB_URL=
+```
+
+### Backoffice (`apps/fs-backoffice-web/.env.local`)
+
+```bash
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+VITE_API_BASE_URL=/api/v1
+VITE_PROXY_TARGET=http://localhost:8080
+VITE_OFFICIAL_WEB_URL=https://www.factorysyncsolutions.com
 ```
 
 ### Public Site (`apps/fs-official-web/.env`)
@@ -88,6 +107,19 @@ PUBLIC_APP_URL=https://app.factorysyncsolutions.com
 
 # Build version shown in the site footer
 PUBLIC_APP_VERSION=v0.0.0
+
+# Google Tag Manager (optional)
+PUBLIC_GTM_ID=
+
+# Embedded registration handoff
+PUBLIC_API_BASE_URL=
+PUBLIC_CF_TURNSTILE_SITE_KEY=
+PUBLIC_FIREBASE_API_KEY=
+PUBLIC_FIREBASE_AUTH_DOMAIN=
+PUBLIC_FIREBASE_PROJECT_ID=
+PUBLIC_FIREBASE_STORAGE_BUCKET=
+PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+PUBLIC_FIREBASE_APP_ID=
 ```
 
 ### Backend (`apps/fs-backend/.env.development`)
@@ -97,25 +129,41 @@ GCP_PROJECT_ID=
 GOOGLE_APPLICATION_CREDENTIALS=   # path to service account JSON
 PORT=8080
 ENVIRONMENT=development
+APP_URL=http://localhost:5173
 ALLOWED_ORIGINS=http://localhost:5173
 RESEND_API_KEY=
 CF_TURNSTILE_SECRET=              # Cloudflare Turnstile server-side secret
 SLACK_WEBHOOK_REGISTRATION=       # Slack webhook for new registrations
 SLACK_WEBHOOK_QUIZ_RESULT=        # Slack webhook for quiz results
+R2_ACCOUNT_ID=
+R2_ACCESS_KEY_ID=
+R2_ACCESS_KEY_SECRET=
+R2_PUBLIC_BUCKET=
+R2_PUBLIC_BASE_URL=
+API_DOCS_SOURCE=filesystem
+API_DOCS_R2_ACCOUNT_ID=
+API_DOCS_R2_ACCESS_KEY_ID=
+API_DOCS_R2_ACCESS_KEY_SECRET=
+API_DOCS_R2_BUCKET=
+API_DOCS_R2_PREFIX=openapi
+API_DOCS_SUPPORTED_VERSIONS=v1
+API_DOCS_DEFAULT_VERSION=v1
+API_DOCS_LOCAL_DIR=docs
 ```
 
-Backend secrets are stored in `.env` locally and injected via GitHub Secrets in CI/CD. Never expose to the frontend.
+Backend secrets are stored in environment-specific backend env files locally and injected via GitHub Secrets in CI/CD. Never expose secrets to frontend apps.
 
 ## Available Scripts
 
-Root-level commands run across all packages via Makefile:
+Root-level `make` commands currently cover `apps/fs-backend` and `apps/fs-app-web`. Run `fs-backoffice-web` and `fs-official-web` scripts from their app directories.
 
 | Command | Description |
 |---------|-------------|
-| `make dev` | Start all apps in dev mode |
-| `make build` | Build all apps |
-| `make lint` | Lint all packages (Biome + go vet) |
-| `make test` | Run all tests (Vitest + go test) |
+| `make dev` | Start backend API + authenticated app |
+| `make build` | Build backend API + authenticated app |
+| `make lint` | Run `go vet` + app-web Biome check |
+| `make test` | Run backend Go tests + app-web Vitest |
+| `make docs-api` | Generate versioned Swagger/OpenAPI artifacts |
 
 ### App (`apps/fs-app-web`)
 
@@ -132,6 +180,21 @@ Root-level commands run across all packages via Makefile:
 | `npm run test:e2e` | Run E2E tests (Playwright) |
 | `npm run test:e2e:headed` | Run E2E tests with browser UI |
 
+### Backoffice (`apps/fs-backoffice-web`)
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start Vite dev server |
+| `npm run build` | Build for production |
+| `npm run build:staging` | Build with staging mode |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Lint and format check (Biome) |
+| `npm run lint:fix` | Auto-fix lint and format issues |
+| `npm run test` | Run unit tests (Vitest) |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run deploy:staging` | Build + deploy to Cloudflare Pages (staging) |
+| `npm run deploy:prod` | Build + deploy to Cloudflare Pages (production) |
+
 ### Official Site (`apps/fs-official-web`)
 
 | Command | Description |
@@ -142,6 +205,8 @@ Root-level commands run across all packages via Makefile:
 | `npm run lint` | Lint and format check (Biome) |
 | `npm run lint:fix` | Auto-fix lint and format issues |
 | `npm run test` | Run unit tests (Vitest) |
+| `npm run test:e2e` | Run E2E tests (Playwright) |
+| `npm run test:e2e:ui` | Run E2E tests with Playwright UI |
 | `npm run deploy:staging` | Build + deploy to Cloudflare Pages (staging) |
 | `npm run deploy:prod` | Build + deploy to Cloudflare Pages (production) |
 
@@ -152,6 +217,7 @@ Root-level commands run across all packages via Makefile:
 | `go run main.go` | Start local dev server |
 | `go test ./...` | Run all Go tests |
 | `go test -cover ./...` | Run tests with coverage |
+| `../../scripts/generate-api-docs.sh` | Generate Swagger/OpenAPI artifacts |
 
 ## Tech Stack
 
@@ -192,9 +258,13 @@ Root-level commands run across all packages via Makefile:
 | Route | Access |
 |-------|--------|
 | `/` | Public (landing + sign in) |
+| `/auth/action` | Public Firebase auth action handler |
 | `/register` | Authenticated |
+| `/dashboard` | Authenticated + registered |
 | `/quiz` | Authenticated + registered |
 | `/results` | Authenticated + registered |
+| `/profile` | Authenticated + registered |
+| `/company-settings` | Authenticated + registered + project role |
 | `/admin` | Authenticated + admin role |
 | `*` | 404 Not Found page |
 
@@ -207,6 +277,8 @@ See [docs/README.md](docs/README.md) for the full index.
 |----------|-------------|
 | [User API](docs/api/user.md) | All user-facing endpoints with request/response shapes |
 | [Admin API](docs/api/admin.md) | Admin endpoints + audit event reference |
+| [Project API](docs/api/project.md) | Project and member RBAC endpoints |
+| [Backoffice API](docs/api/backoffice.md) | Internal backoffice endpoints |
 | [API Conventions](docs/api/conventions.md) | Response format, error codes, naming, validation |
 | [Swagger/OpenAPI](docs/api/swagger.md) | swaggo setup, handler annotations, Swagger UI |
 
@@ -244,6 +316,7 @@ See [docs/README.md](docs/README.md) for the full index.
 | [User Flow](docs/product/user-flow.md) | User journey diagram with decision points |
 | [UI Wireframes](docs/product/wireframes.md) | Screen layouts for all pages |
 | [Roadmap](docs/product/roadmap.md) | Phased roadmap with milestones |
+| [Product Specs](docs/README.md#product) | Feature specs for auth, register, quiz, results, backoffice, API docs, upload, and more |
 
 ## Contributing
 
@@ -268,4 +341,5 @@ Active development — core user flow implemented (auth, registration, quiz, res
 | 1.2.0 | 2026-03-07 | Profile dialog (3 sections: account/contact/company), Google avatar in navbar, motion animations (quiz + results), SonarQube fixes, analytics events, data-testid attributes |
 | 1.3.0 | 2026-03-08 | Theme system (light/dark/system) with FOUC prevention, dark mode fixes across all pages, Layout refactoring for SonarQube compliance, admin user management API, app READMEs |
 | 1.4.0 | 2026-06-04 | Rebranded to FactorySync Solutions — updated brand name, abbreviation (FS), localStorage prefix (fss-), Go module path, email domain, CI/CD service names |
-| 1.5.0 | 2026-06-09 | Synced README with actual monorepo layout — corrected app dir names (`apps/web`→`apps/fs-app-web`, `apps/api`→`apps/fs-backend`), documented the Astro `fs-official-web` public site (structure, tech stack, scripts), fixed env-setup paths and backend dev command |
+| 1.5.0 | 2026-06-09 | Synced README with actual monorepo layout — corrected legacy app/backend dir names, documented the Astro `fs-official-web` public site (structure, tech stack, scripts), fixed env-setup paths and backend dev command |
+| 1.6.0 | 2026-06-14 | Added backoffice app, clarified Makefile scope, updated env vars, routes, scripts, and docs links |

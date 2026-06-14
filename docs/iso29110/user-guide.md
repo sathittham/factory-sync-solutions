@@ -139,7 +139,7 @@ For the ISO 29110 quiz, overall score also maps to a **Capability Level**:
 
 ## 6. Backoffice Portal (Staff Only)
 
-> Access requires Firebase custom claim `role = "backoffice"` or `role = "super_admin"`.
+> Access requires Firebase custom claim `backofficeRole = "staff"` or `backofficeRole = "superadmin"`.
 > Contact a super admin to request access.
 
 ### 6.1 Sign In to Backoffice
@@ -168,7 +168,7 @@ Overview cards showing: total projects, total users, recent assessments.
 
 ### 6.6 Staff Management (Super Admin only)
 
-- Grant / revoke `backoffice` or `super_admin` role
+- Grant / revoke `staff` or `superadmin` backoffice access
 - Manage staff accounts
 
 ---

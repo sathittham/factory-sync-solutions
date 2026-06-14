@@ -2,7 +2,7 @@
 version: 0.2.1
 lastUpdated: 2026-06-14
 author: Sathittham Sangthong
-status: Draft - Ready for review
+status: Implemented
 ---
 
 # API Docs Publishing - Feature Spec
@@ -13,9 +13,9 @@ Generate versioned backend Swagger/OpenAPI documents from Go annotations, publis
 
 ## 1. Summary
 
-FactorySync already has Swagger annotations in `apps/fs-backend` and a planning document at [docs/api/swagger.md](../../api/swagger.md), but the generated OpenAPI files are not produced, uploaded, or exposed in the product.
+FactorySync has Swagger annotations in `apps/fs-backend`, generated v1 artifacts under `apps/fs-backend/docs/v1/`, CI publishing to Cloudflare R2, and a superadmin-only API Docs page in `fs-backoffice-web`.
 
-This feature adds a controlled documentation pipeline:
+This feature defines the controlled documentation pipeline:
 
 1. Generate `swagger.json` and `swagger.yaml` from `apps/fs-backend`.
 2. Upload API-versioned, git-versioned, and environment-current copies to a private R2 bucket.
@@ -55,10 +55,10 @@ The backoffice app becomes the single superadmin-facing place to inspect current
 | Area | Current behavior |
 |---|---|
 | Backend annotations | `apps/fs-backend/main.go` and handlers contain Swagger comments. |
-| Swagger generation | Not active. `swaggo/swag` is not in `go.mod`; CI does not run `swag init`. |
-| Backend route | `main.go` has a commented placeholder for `/api/v1/swagger/*`. |
-| Backoffice UI | No Help or API Docs route exists. |
-| R2 | Upload service already uses R2 for user file storage; API docs need a separate bucket/prefix. |
+| Swagger generation | Active. `swaggo/swag` is in `go.mod`; `make docs-api` runs `scripts/generate-api-docs.sh`. |
+| Backend route | Non-production environments serve Swagger UI at `/api/v1/swagger/*`. |
+| Backoffice UI | `/help/api-docs` renders Swagger UI for superadmins. |
+| R2 | Backend deploy workflows publish API docs to a dedicated private R2 bucket/prefix. |
 
 ---
 
@@ -241,8 +241,8 @@ Project docs shall point readers to the source-of-truth setup and product behavi
 
 Acceptance criteria:
 
-- [docs/api/swagger.md](../../api/swagger.md) is updated when implementation starts.
-- [docs/operations/env-variables.md](../../operations/env-variables.md) documents new R2 docs variables.
+- [docs/api/swagger.md](../../api/swagger.md) documents the active generation and publishing workflow.
+- [docs/operations/env-variables.md](../../operations/env-variables.md) documents R2 docs variables.
 - [docs/operations/deployment.md](../../operations/deployment.md) documents the CI upload step.
 
 ---

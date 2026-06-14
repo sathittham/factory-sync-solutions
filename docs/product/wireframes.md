@@ -9,7 +9,7 @@ author: Sathittham Sangthong
 > **Scope:** This file contains wireframes for `fs-app-web` (user-facing app)
 > and `fs-official-web` (public site). Wireframes for `fs-backoffice-web`
 > (FactorySync staff portal) live in
-> [backoffice/feature-spec.md §4](product/backoffice/feature-spec.md) alongside
+> [backoffice/feature-spec.md §4](backoffice/feature-spec.md) alongside
 > the sidebar layout, page-level ASCII sketches, and component notes.
 
 ## 1. Landing Page (/)

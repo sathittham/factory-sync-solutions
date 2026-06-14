@@ -218,7 +218,7 @@ deploy-backend:
     - name: Build and push Docker image
       run: |
         IMAGE=asia-southeast3-docker.pkg.dev/${{ vars.GCP_PROJECT_ID || 'factory-sync-solutions' }}/cloud-run/factory-sync-solutions-api:${{ github.sha }}
-        docker build -t $IMAGE apps/api
+        docker build -t $IMAGE apps/fs-backend
         docker push $IMAGE
     - name: Deploy to Cloud Run
       run: |
@@ -301,8 +301,8 @@ See [monitoring.md](monitoring.md) for detailed monitoring setup.
 ## See Also
 
 - [env-variables.md](env-variables.md) -- All required environment variables
-- [architecture.md](architecture.md) -- System architecture and platform choices
-- [development.md](development.md) -- Branch strategy and CI/CD pipeline overview
+- [../architecture/overview.md](../architecture/overview.md) -- System architecture and platform choices
+- [../development/setup.md](../development/setup.md) -- Branch strategy and CI/CD pipeline overview
 - [monitoring.md](monitoring.md) -- Monitoring, alerting, and log retention
 
 ---
@@ -314,4 +314,4 @@ See [monitoring.md](monitoring.md) for detailed monitoring setup.
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated: Cloud Functions -> Cloud Run, removed turbo references, fixed secrets management, updated deploy commands |
 | 1.2.0 | 2026-06-11 | Added fs-backoffice-web deployment (CF Pages + Cloudflare Access); updated pipeline stages; updated app names to fs-* |
-| 1.3.0 | 2026-06-13 | Fix manual deploy path (apps/api → apps/fs-backend); fix broken monitoring doc link |
+| 1.3.0 | 2026-06-13 | Fix manual deploy backend path; fix broken monitoring doc link |

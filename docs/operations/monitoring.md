@@ -196,7 +196,7 @@ Real-time alerts sent to Slack channels via Incoming Webhooks:
 | `#ci-cd` | GitHub Actions pipeline status |
 | `#server-status` | Cloud Run health checks, error alerts |
 
-See [architecture.md](architecture.md#slack-notifications) for implementation details.
+See [../architecture/overview.md](../architecture/overview.md#slack-notifications) for implementation details.
 
 ## Health Check Endpoint
 
@@ -238,7 +238,7 @@ A Cloud Scheduler job pings each service's health endpoint and sends status to t
 ## See Also
 
 - [../development/setup.md](../development/setup.md) — Deployment environments and branch strategy
-- [architecture.md](architecture.md#slack-notifications) — Slack notification events and channels
+- [../architecture/overview.md](../architecture/overview.md#slack-notifications) — Slack notification events and channels
 - [security.md](security.md#sensitive-data-protection) — What to log and what not to log
 
 ---
@@ -249,4 +249,4 @@ A Cloud Scheduler job pings each service's health endpoint and sends status to t
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated Cloud Functions → Cloud Run throughout, fixed resource.type filters, updated metrics |
-| 1.2.0 | 2026-06-13 | Fix broken See Also links (security-guide.md → security.md, development.md → ../development/setup.md) |
+| 1.2.0 | 2026-06-13 | Fix broken See Also links |
