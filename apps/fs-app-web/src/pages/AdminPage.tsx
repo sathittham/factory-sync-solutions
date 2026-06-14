@@ -1318,12 +1318,6 @@ function UsersTab() {
                     {t('admin.contactName')}
                   </th>
                   <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground hidden sm:table-cell">
-                    {t('admin.email')}
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">
-                    {t('admin.role')}
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground hidden sm:table-cell">
                     {t('admin.registered')}
                   </th>
                   <th className="w-12" />
@@ -1348,21 +1342,18 @@ function UsersTab() {
                             {(u.contactName || u.displayName || u.email).charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <div className="font-medium">
-                            {u.contactName || u.displayName || '--'}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium truncate">
+                              {u.contactName || u.displayName || '--'}
+                            </span>
+                            <RoleBadge role={u.role} isPending={u.isPending} t={t} />
                           </div>
-                          <div className="text-[11px] text-muted-foreground sm:hidden mt-0.5">
+                          <div className="text-[11px] text-muted-foreground font-mono mt-0.5 truncate">
                             {u.email}
                           </div>
                         </div>
                       </div>
-                    </td>
-                    <td className="py-3 px-4 font-mono text-xs text-muted-foreground hidden sm:table-cell">
-                      {u.email}
-                    </td>
-                    <td className="py-3 px-4">
-                      <RoleBadge role={u.role} isPending={u.isPending} t={t} />
                     </td>
                     <td className="py-3 px-4 text-muted-foreground font-mono text-xs hidden sm:table-cell">
                       {(() => {
@@ -1384,7 +1375,7 @@ function UsersTab() {
                 ))}
                 {filteredUsers.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-16 text-center">
+                    <td colSpan={3} className="py-16 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
                           <Users className="h-6 w-6 text-muted-foreground" />
@@ -1445,8 +1436,9 @@ export function AdminPage() {
 
   useEffect(() => {
     const tab = new URLSearchParams(location.search).get('tab');
-    const next =
-      tab === 'users' && canManageUserList ? 'users' : canViewAssessments ? 'quiz' : 'users';
+    const wantsUsersTab = tab === 'users' && canManageUserList;
+    const defaultTab = canViewAssessments ? 'quiz' : 'users';
+    const next = wantsUsersTab ? 'users' : defaultTab;
     setActiveTab(next);
   }, [location.search, canManageUserList, canViewAssessments]);
 
