@@ -1,5 +1,5 @@
 ---
-version: 1.6.1
+version: 1.6.2
 lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
@@ -7,6 +7,21 @@ author: Sathittham Sangthong
 # FactorySync Solutions
 
 A Makefile-managed monorepo containing a React SPA app, an Astro public marketing site, and a Go backend API for evaluating factory operational maturity through a guided assessment. Users register, answer a series of questions, and receive a diagnosis with a spider chart visualization, key strengths/weaknesses, and an email copy of their results.
+
+## About
+
+FactorySync Solutions is a factory health assessment platform for Thai SME manufacturers. It combines public marketing pages, an authenticated assessment app, an internal backoffice, and a Go API backed by Firebase Auth and Firestore.
+
+| Field | Value |
+|-------|-------|
+| Homepage | [https://factorysyncsolutions.com](https://factorysyncsolutions.com) |
+| User app | `https://app.factorysyncsolutions.com` |
+| Backoffice | `https://backoffice.factorysyncsolutions.com` |
+| License | MIT — copyright Sathittham Sangthong |
+| Primary maintainer | Sathittham Sangthong |
+| AI contributor | OpenAI Codex |
+
+Suggested GitHub topics: `go`, `react`, `typescript`, `astro`, `firebase`, `firestore`, `cloudflare-pages`, `factory-assessment`, `shadcn-ui`.
 
 ## Prerequisites
 
@@ -324,11 +339,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the Git workflow and coding standards
 
 ## Contributors
 
-See [CONTRIBUTORS.md](CONTRIBUTORS.md) for the maintained contributor list.
+Maintained by Sathittham Sangthong with OpenAI Codex as an AI coding assistant contributor. See [CONTRIBUTORS.md](CONTRIBUTORS.md) for the maintained contributor list.
 
 ## License
 
-MIT License. Copyright (c) 2026 Sathittham Sangthong. See [LICENSE](LICENSE) for details.
+MIT License. Copyright (c) 2026 Sathittham Sangthong. See [LICENSE](LICENSE) for the full license text.
 
 ## Status
 
@@ -348,3 +363,4 @@ Active development — core user flow implemented (auth, registration, quiz, res
 | 1.5.0 | 2026-06-09 | Synced README with actual monorepo layout — corrected legacy app/backend dir names, documented the Astro `fs-official-web` public site (structure, tech stack, scripts), fixed env-setup paths and backend dev command |
 | 1.6.0 | 2026-06-14 | Added backoffice app, clarified Makefile scope, updated env vars, routes, scripts, and docs links |
 | 1.6.1 | 2026-06-14 | Added maintained contributor list and clarified license ownership |
+| 1.6.2 | 2026-06-14 | Added repository About metadata, homepage, topics, and contributor summary |
