@@ -29,6 +29,6 @@ needs Workers script and zone route/domain permissions for this zone.
 Frontend builds should use:
 
 ```text
-staging:    https://api-staging.factorysyncsolutions.com/api/v1
-production: https://api.factorysyncsolutions.com/api/v1
+staging:    https://api-staging.factorysyncsolutions.com/v1
+production: https://api.factorysyncsolutions.com/v1
 ```

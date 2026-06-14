@@ -1,5 +1,5 @@
 ---
-version: 1.7.0
+version: 1.7.1
 lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
@@ -17,7 +17,7 @@ FactorySync Solutions is a factory health assessment platform for Thai SME manuf
 | Homepage | [https://factorysyncsolutions.com](https://factorysyncsolutions.com) |
 | User app | `https://app.factorysyncsolutions.com` |
 | Backoffice | `https://backoffice.factorysyncsolutions.com` |
-| API gateway | `https://api.factorysyncsolutions.com/api/v1` |
+| API gateway | `https://api.factorysyncsolutions.com/v1` |
 | Public CDN | `https://cdn.factorysyncsolutions.com` |
 | License | MIT — copyright Sathittham Sangthong |
 | Primary maintainer | Sathittham Sangthong |

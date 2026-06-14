@@ -24,6 +24,7 @@ export async function handleRequest(request, env = {}) {
   const targetURL = new URL(request.url);
   targetURL.protocol = upstreamOrigin.protocol;
   targetURL.host = upstreamOrigin.host;
+  targetURL.pathname = upstreamPathname(targetURL.pathname);
 
   const headers = new Headers(request.headers);
   headers.set('X-Forwarded-Host', new URL(request.url).host);
@@ -80,6 +81,16 @@ function normalizeOrigin(value) {
   } catch {
     return null;
   }
+}
+
+function upstreamPathname(pathname) {
+  if (pathname === '/v1') {
+    return '/api/v1';
+  }
+  if (pathname.startsWith('/v1/')) {
+    return `/api${pathname}`;
+  }
+  return pathname;
 }
 
 function corsHeaders(request, env) {

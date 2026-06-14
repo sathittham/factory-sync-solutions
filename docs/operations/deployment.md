@@ -1,5 +1,5 @@
 ---
-version: 1.4.0
+version: 1.4.1
 lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
@@ -108,8 +108,8 @@ Go backend.
 
 | Environment | Worker | Domain | Frontend API base URL |
 |---|---|---|---|
-| Staging | `factory-sync-api-gateway-staging` | `api-staging.factorysyncsolutions.com` | `https://api-staging.factorysyncsolutions.com/api/v1` |
-| Production | `factory-sync-api-gateway` | `api.factorysyncsolutions.com` | `https://api.factorysyncsolutions.com/api/v1` |
+| Staging | `factory-sync-api-gateway-staging` | `api-staging.factorysyncsolutions.com` | `https://api-staging.factorysyncsolutions.com/v1` |
+| Production | `factory-sync-api-gateway` | `api.factorysyncsolutions.com` | `https://api.factorysyncsolutions.com/v1` |
 
 Manual deploy:
 
@@ -359,3 +359,4 @@ See [monitoring.md](monitoring.md) for detailed monitoring setup.
 | 1.2.0 | 2026-06-11 | Added fs-backoffice-web deployment (CF Pages + Cloudflare Access); updated pipeline stages; updated app names to fs-* |
 | 1.3.0 | 2026-06-13 | Fix manual deploy backend path; fix broken monitoring doc link |
 | 1.4.0 | 2026-06-14 | Add Cloudflare API gateway deployment and R2 CDN custom domain guidance |
+| 1.4.1 | 2026-06-14 | Change public API gateway base path from `/api/v1` to `/v1` |

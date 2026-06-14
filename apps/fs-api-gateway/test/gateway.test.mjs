@@ -8,7 +8,7 @@ const env = {
 };
 
 test('handles CORS preflight for allowed origins', async () => {
-  const request = new Request('https://api.factorysyncsolutions.com/api/v1/profile', {
+  const request = new Request('https://api.factorysyncsolutions.com/v1/profile', {
     method: 'OPTIONS',
     headers: {
       Origin: 'https://app.factorysyncsolutions.com',
@@ -25,7 +25,7 @@ test('handles CORS preflight for allowed origins', async () => {
 });
 
 test('does not reflect disallowed origins', async () => {
-  const request = new Request('https://api.factorysyncsolutions.com/api/v1/profile', {
+  const request = new Request('https://api.factorysyncsolutions.com/v1/profile', {
     method: 'OPTIONS',
     headers: {
       Origin: 'https://evil.example.com',
@@ -39,7 +39,7 @@ test('does not reflect disallowed origins', async () => {
   assert.equal(response.headers.get('Access-Control-Allow-Credentials'), null);
 });
 
-test('proxies path and query to the configured upstream', async (t) => {
+test('rewrites public v1 path and query to the configured upstream', async (t) => {
   const originalFetch = globalThis.fetch;
   t.after(() => {
     globalThis.fetch = originalFetch;
@@ -56,7 +56,7 @@ test('proxies path and query to the configured upstream', async (t) => {
     });
   };
 
-  const request = new Request('https://api.factorysyncsolutions.com/api/v1/dbd/profile/check/0115560016313?locale=th', {
+  const request = new Request('https://api.factorysyncsolutions.com/v1/dbd/profile/check/0115560016313?locale=th', {
     method: 'GET',
     headers: {
       Origin: 'https://app.factorysyncsolutions.com',
@@ -73,6 +73,34 @@ test('proxies path and query to the configured upstream', async (t) => {
   assert.equal(response.headers.get('Cache-Control'), 'no-store');
 });
 
+test('keeps api v1 path backward compatible', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  let proxiedRequest;
+  globalThis.fetch = async (request) => {
+    proxiedRequest = request;
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  };
+
+  const request = new Request('https://api.factorysyncsolutions.com/api/v1/profile', {
+    headers: {
+      Origin: 'https://app.factorysyncsolutions.com',
+    },
+  });
+
+  await handleRequest(request, env);
+
+  assert.equal(proxiedRequest.url, 'https://cloud-run.example.run.app/api/v1/profile');
+});
+
 test('returns a JSON 502 when upstream fetch fails', async (t) => {
   const originalFetch = globalThis.fetch;
   const originalConsoleError = console.error;
@@ -86,7 +114,7 @@ test('returns a JSON 502 when upstream fetch fails', async (t) => {
     throw new Error('network failed');
   };
 
-  const request = new Request('https://api.factorysyncsolutions.com/api/v1/profile', {
+  const request = new Request('https://api.factorysyncsolutions.com/v1/profile', {
     headers: {
       Origin: 'https://app.factorysyncsolutions.com',
     },

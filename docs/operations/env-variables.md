@@ -1,5 +1,5 @@
 ---
-version: 1.4.0
+version: 1.4.1
 lastUpdated: 2026-06-14
 author: Sathittham Sangthong
 ---
@@ -118,7 +118,7 @@ Only `PUBLIC_` prefixed variables are exposed to the browser. Never put secrets 
 | `PUBLIC_APP_URL` | No | Authenticated app URL used by CTAs. | `https://app.factorysyncsolutions.com` |
 | `PUBLIC_APP_VERSION` | No | Version displayed in the footer. | `v1.2.3` |
 | `PUBLIC_GTM_ID` | No | Google Tag Manager container ID. | `GTM-XXXXXXX` |
-| `PUBLIC_API_BASE_URL` | No | Backend API base URL for embedded registration flows. | `https://api.factorysyncsolutions.com/api/v1` |
+| `PUBLIC_API_BASE_URL` | No | Backend API base URL for embedded registration flows. | `https://api.factorysyncsolutions.com/v1` |
 | `PUBLIC_CF_TURNSTILE_SITE_KEY` | No | Cloudflare Turnstile public site key for embedded registration. | `0x4AAA...` |
 | `PUBLIC_FIREBASE_API_KEY` | Registration flow only | Firebase public API key. | `AIza...` |
 | `PUBLIC_FIREBASE_AUTH_DOMAIN` | Registration flow only | Firebase Auth domain. | `project-id.firebaseapp.com` |
@@ -162,7 +162,7 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID | `123456789` |
 | `VITE_FIREBASE_APP_ID` | Firebase app ID (fs-app-web) | `1:123:web:abc` |
 | `VITE_BACKOFFICE_APP_ID` | Firebase app ID (fs-backoffice-web) | `1:123:web:def` |
-| `VITE_API_BASE_URL` | Backend API URL | `https://api.factorysyncsolutions.com/api/v1` |
+| `VITE_API_BASE_URL` | Backend API URL | `https://api.factorysyncsolutions.com/v1` |
 | `BACKOFFICE_APP_URL` | Backoffice URL used for staff invitation password setup links; falls back to `APP_URL` if unset | `https://backoffice.example.com` |
 | `R2_ACCOUNT_ID` | Cloudflare account ID for upload storage | `9cfbba8b3a373fdc0d11abaf64071719` |
 | `R2_PUBLIC_BUCKET` | Public R2 bucket for avatar uploads | `uploads-factorysyncsolutions-com-staging` |
@@ -184,8 +184,8 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 |----------|------------|---------|------------|
 | `ENVIRONMENT` | `development` | `staging` | `production` |
 | `ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:5174` | `https://factory-sync-solutions-staging.pages.dev,https://factory-sync-backoffice-staging.pages.dev,https://app-staging.factorysyncsolutions.com,https://backoffice-staging.factorysyncsolutions.com,https://staging.factorysyncsolutions.com` | `https://factory-sync-solutions.pages.dev,https://factory-sync-backoffice.pages.dev,https://app.factorysyncsolutions.com,https://backoffice.factorysyncsolutions.com,https://factorysyncsolutions.com` |
-| `VITE_API_BASE_URL` | `http://localhost:8080/api/v1` | `https://api-staging.factorysyncsolutions.com/api/v1` | `https://api.factorysyncsolutions.com/api/v1` |
-| `PUBLIC_API_BASE_URL` | `http://localhost:8080/api/v1` | `https://api-staging.factorysyncsolutions.com/api/v1` | `https://api.factorysyncsolutions.com/api/v1` |
+| `VITE_API_BASE_URL` | `http://localhost:8080/api/v1` | `https://api-staging.factorysyncsolutions.com/v1` | `https://api.factorysyncsolutions.com/v1` |
+| `PUBLIC_API_BASE_URL` | `http://localhost:8080/api/v1` | `https://api-staging.factorysyncsolutions.com/v1` | `https://api.factorysyncsolutions.com/v1` |
 | `R2_PUBLIC_BASE_URL` | Local R2 dev URL or empty | `https://cdn-staging.factorysyncsolutions.com` | `https://cdn.factorysyncsolutions.com` |
 
 ## Local Development Setup
@@ -232,3 +232,4 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | 1.2.0 | 2026-06-13 | Fix stale project ID examples; update storage bucket format to firebasestorage.app; add SLACK_WEBHOOK_DEPLOY secret |
 | 1.3.0 | 2026-06-14 | Add API docs R2 publishing variables |
 | 1.4.0 | 2026-06-14 | Add Cloudflare API gateway variables and CDN custom domain examples |
+| 1.4.1 | 2026-06-14 | Change deployed API base URLs from `/api/v1` to `/v1` |
