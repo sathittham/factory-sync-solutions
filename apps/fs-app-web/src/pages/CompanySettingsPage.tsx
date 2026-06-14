@@ -121,7 +121,10 @@ export function CompanySettingsPage() {
   if (!profile) {
     return (
       <PageLayout>
-        <PageHeader title={t('companySettings.title')} description={t('companySettings.subtitle')} />
+        <PageHeader
+          title={t('companySettings.title')}
+          description={t('companySettings.subtitle')}
+        />
         <div className="bg-card border rounded-lg p-6 space-y-6">
           <Skeleton className="h-10 w-full" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -140,21 +143,9 @@ export function CompanySettingsPage() {
     );
   }
 
-  const submitLabel = form.state.isSubmitting ? (
-    <>
-      <SpinnerIcon />
-      {t('companySettings.saving')}
-    </>
-  ) : (
-    t('companySettings.save')
-  );
-
   return (
     <PageLayout>
-      <PageHeader
-        title={t('companySettings.title')}
-        description={t('companySettings.subtitle')}
-      />
+      <PageHeader title={t('companySettings.title')} description={t('companySettings.subtitle')} />
 
       <div className="bg-card border rounded-lg p-6">
         <form
@@ -166,6 +157,21 @@ export function CompanySettingsPage() {
           className="space-y-6"
         >
           <FieldGroup className="gap-4">
+            {profile.companyRegId && (
+              <Field>
+                <FieldLabel htmlFor="cs-companyRegId" className="text-sm font-medium">
+                  {t('profile.regId')}
+                </FieldLabel>
+                <Input
+                  id="cs-companyRegId"
+                  value={profile.companyRegId}
+                  readOnly
+                  disabled
+                  className="bg-muted/50 font-mono tracking-wide"
+                />
+              </Field>
+            )}
+
             <form.Field
               name="companyName"
               validators={{ onBlur: companyNameSchema, onSubmit: companyNameSchema }}
@@ -380,13 +386,24 @@ export function CompanySettingsPage() {
             </div>
           )}
 
-          <Button
-            type="submit"
-            className="w-full h-11 font-semibold"
-            disabled={form.state.isSubmitting || !form.state.isDirty}
-          >
-            {submitLabel}
-          </Button>
+          <form.Subscribe selector={(state) => [state.isSubmitting, state.isDirty] as const}>
+            {([isSubmitting, isDirty]) => (
+              <Button
+                type="submit"
+                className="w-full h-11 font-semibold"
+                disabled={isSubmitting || !isDirty}
+              >
+                {isSubmitting ? (
+                  <>
+                    <SpinnerIcon />
+                    {t('companySettings.saving')}
+                  </>
+                ) : (
+                  t('companySettings.save')
+                )}
+              </Button>
+            )}
+          </form.Subscribe>
         </form>
       </div>
     </PageLayout>

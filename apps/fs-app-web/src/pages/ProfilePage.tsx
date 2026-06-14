@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ApiError, api } from '@/lib/api';
@@ -208,7 +207,7 @@ function AvatarUpload({
           <button
             type="button"
             onClick={handleDelete}
-            className="absolute -top-1 -right-1 size-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center hover:bg-destructive/80 transition-colors"
+            className="absolute -top-1 -right-1 size-5 rounded-full bg-muted text-muted-foreground border border-background flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-destructive hover:text-destructive-foreground transition-colors"
             aria-label={t('profile.avatarDelete')}
           >
             <X className="size-3" />
@@ -945,21 +944,25 @@ function ProfileTab() {
 
         <SubmitFeedback error={error} success={success} successMsg={t('profile.saved')} />
 
-        <Button
-          type="submit"
-          className="w-full h-11 font-semibold"
-          disabled={form.state.isSubmitting || !form.state.isDirty}
-          data-testid="profile-submit-btn"
-        >
-          {form.state.isSubmitting ? (
-            <>
-              <SpinnerIcon />
-              {t('profile.saving')}
-            </>
-          ) : (
-            t('profile.save')
+        <form.Subscribe selector={(state) => [state.isSubmitting, state.isDirty] as const}>
+          {([isSubmitting, isDirty]) => (
+            <Button
+              type="submit"
+              className="w-full h-11 font-semibold"
+              disabled={isSubmitting || !isDirty}
+              data-testid="profile-submit-btn"
+            >
+              {isSubmitting ? (
+                <>
+                  <SpinnerIcon />
+                  {t('profile.saving')}
+                </>
+              ) : (
+                t('profile.save')
+              )}
+            </Button>
           )}
-        </Button>
+        </form.Subscribe>
       </form>
     </div>
   );
@@ -1036,20 +1039,24 @@ function NotificationsTab() {
 
         <SubmitFeedback error={error} success={success} successMsg={t('profile.saved')} />
 
-        <Button
-          type="submit"
-          className="w-full h-11 font-semibold"
-          disabled={form.state.isSubmitting || !form.state.isDirty}
-        >
-          {form.state.isSubmitting ? (
-            <>
-              <SpinnerIcon />
-              {t('profile.saving')}
-            </>
-          ) : (
-            t('profile.save')
+        <form.Subscribe selector={(state) => [state.isSubmitting, state.isDirty] as const}>
+          {([isSubmitting, isDirty]) => (
+            <Button
+              type="submit"
+              className="w-full h-11 font-semibold"
+              disabled={isSubmitting || !isDirty}
+            >
+              {isSubmitting ? (
+                <>
+                  <SpinnerIcon />
+                  {t('profile.saving')}
+                </>
+              ) : (
+                t('profile.save')
+              )}
+            </Button>
           )}
-        </Button>
+        </form.Subscribe>
       </form>
     </div>
   );
@@ -1243,20 +1250,6 @@ export function ProfilePage() {
               <div className="flex flex-wrap gap-1">{providerBadges}</div>
             </div>
           </div>
-
-          {profile?.companyRegId && (
-            <>
-              <Separator className="my-4" />
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">
-                  {t('profile.regId')}
-                </span>
-                <span className="text-sm font-mono text-foreground/70 tracking-wide">
-                  {profile.companyRegId}
-                </span>
-              </div>
-            </>
-          )}
         </div>
 
         {/* Tabs */}
