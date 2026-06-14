@@ -1,4 +1,13 @@
+import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
+import { config } from 'dotenv';
+
+config({ path: path.resolve(import.meta.dirname, 'e2e/.env.e2e.local') });
+
+// When E2E_BASE_URL is set (e.g. staging), run against that deployment instead
+// of spinning up the local dev server.
+const baseURL = process.env.E2E_BASE_URL || 'http://localhost:5173';
+const targetsRemote = !!process.env.E2E_BASE_URL;
 
 export default defineConfig({
   testDir: './e2e',
@@ -8,7 +17,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? 'github' : 'html',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -30,10 +39,12 @@ export default defineConfig({
       use: { ...devices['Pixel 5'] },
     },
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
-  },
+  webServer: targetsRemote
+    ? undefined
+    : {
+        command: 'npm run dev',
+        url: 'http://localhost:5173',
+        reuseExistingServer: !process.env.CI,
+        timeout: 30_000,
+      },
 });
