@@ -1,8 +1,8 @@
+import { CONSENT_KEY, CookieConsent } from '@/components/CookieConsent';
+import { updateConsentMode } from '@/lib/analytics';
+import { LocaleProvider } from '@/lib/i18n';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { LocaleProvider } from '@/lib/i18n';
-import { updateConsentMode } from '@/lib/analytics';
-import { CookieConsent, CONSENT_KEY } from '@/components/CookieConsent';
 
 vi.mock('@/lib/analytics', () => ({
   updateConsentMode: vi.fn(),
@@ -30,6 +30,11 @@ describe('CookieConsent', () => {
     renderConsent();
     expect(screen.getByTestId('cookie-accept-all-btn')).toBeInTheDocument();
     expect(screen.getByTestId('cookie-settings-btn')).toBeInTheDocument();
+  });
+
+  it('allows clicks outside the visible banner card to pass through', () => {
+    renderConsent();
+    expect(screen.getByTestId('cookie-banner-shell')).toHaveClass('pointer-events-none');
   });
 
   it('renders nothing when open=false', () => {
