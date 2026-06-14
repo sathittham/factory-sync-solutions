@@ -215,9 +215,10 @@ export function ProjectsPage() {
   else if (filtered.length === 0) tableBody = [emptyRow];
 
   return (
-    <PageLayout className="max-w-6xl">
+    <PageLayout fluid>
       <PageHeader
         title={t('projects.title')}
+        description={t('projects.subtitle')}
         actions={
           <Button size="sm" onClick={() => setCreateOpen(true)}>
             <Building2 data-icon="inline-start" />

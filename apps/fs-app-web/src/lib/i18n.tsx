@@ -229,6 +229,7 @@ const translations: Record<Locale, Record<string, string>> = {
 
     // Quiz
     'quiz.title': 'แบบประเมินสุขภาพโรงงาน',
+    'quiz.subtitle': 'ตอบคำถามในแต่ละมิติเพื่อประเมินสุขภาพโรงงานของคุณ',
     'quiz.completed.title': 'คุณทำแบบประเมินแล้ว',
     'quiz.completed.desc': 'คุณสามารถดูผลลัพธ์ก่อนหน้า หรือทำแบบประเมินใหม่เพื่ออัปเดตคะแนน',
     'quiz.viewResults': 'ดูผลลัพธ์',
@@ -270,6 +271,8 @@ const translations: Record<Locale, Record<string, string>> = {
     // Results
     'result.overallScore': 'คะแนนรวม',
     'result.dimensionScores': 'คะแนนรายมิติ',
+    'result.title': 'ผลลัพธ์',
+    'result.subtitle': 'ผลการประเมินสุขภาพโรงงานของคุณในแต่ละแบบประเมิน',
     'result.strengths': 'จุดแข็ง',
     'result.weaknesses': 'ส่วนที่ควรปรับปรุง',
     'result.noResults.title': 'ยังไม่มีผลลัพธ์',
@@ -683,6 +686,7 @@ const translations: Record<Locale, Record<string, string>> = {
 
     // Quiz
     'quiz.title': 'FactorySync Solutions Assessment',
+    'quiz.subtitle': 'Answer each dimension to assess your factory health',
     'quiz.completed.title': "You've already completed an assessment",
     'quiz.completed.desc':
       'You can view your previous results or take the assessment again to get updated scores.',
@@ -725,6 +729,8 @@ const translations: Record<Locale, Record<string, string>> = {
     // Results
     'result.overallScore': 'Overall Score',
     'result.dimensionScores': 'Dimension Scores',
+    'result.title': 'Results',
+    'result.subtitle': 'Your factory health assessment results for each quiz',
     'result.strengths': 'Strengths',
     'result.weaknesses': 'Areas for Improvement',
     'result.noResults.title': 'No Results Yet',

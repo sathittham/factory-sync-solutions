@@ -306,9 +306,10 @@ export function StaffPage() {
   }
 
   return (
-    <PageLayout className="max-w-6xl">
+    <PageLayout fluid>
       <PageHeader
         title={t('staff.title')}
+        description={t('staff.subtitle')}
         actions={
           <div className="flex flex-wrap justify-end gap-2">
             <Button size="sm" variant="outline" onClick={() => setPermissionsOpen(true)}>

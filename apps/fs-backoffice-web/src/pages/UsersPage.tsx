@@ -236,8 +236,8 @@ export function UsersPage() {
   }
 
   return (
-    <PageLayout className="max-w-6xl">
-      <PageHeader title={t('users.title')} />
+    <PageLayout fluid>
+      <PageHeader title={t('users.title')} description={t('users.subtitle')} />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 

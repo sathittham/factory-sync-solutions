@@ -185,7 +185,7 @@ export function ApiDocsPage() {
   const canDownload = Boolean(spec && yaml);
 
   return (
-    <PageLayout className="max-w-7xl">
+    <PageLayout fluid>
       <PageHeader
         title={t('apiDocs.title')}
         description={t('apiDocs.description')}

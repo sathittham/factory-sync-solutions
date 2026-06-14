@@ -1,4 +1,4 @@
-import { PageLayout } from '@/components/PageLayout';
+import { PageHeader, PageLayout } from '@/components/PageLayout';
 import { FadeIn, ScaleIn, StaggerChildren, StaggerItem } from '@/components/motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -608,7 +608,8 @@ export function ResultPage() {
 
   if (loading) {
     return (
-      <PageLayout>
+      <PageLayout fluid>
+        <PageHeader title={t('result.title')} description={t('result.subtitle')} />
         <div className="space-y-6">
           <Skeleton className="h-10 w-64" />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -622,7 +623,8 @@ export function ResultPage() {
   }
 
   return (
-    <PageLayout>
+    <PageLayout fluid>
+      <PageHeader title={t('result.title')} description={t('result.subtitle')} />
       <div className="space-y-5" data-testid="result-summary">
         {showJustCompleted && (
           <FadeIn>

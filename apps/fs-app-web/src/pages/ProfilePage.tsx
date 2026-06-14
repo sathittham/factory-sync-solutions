@@ -1,3 +1,4 @@
+import { PageHeader, PageLayout } from '@/components/PageLayout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -1227,14 +1228,9 @@ export function ProfilePage() {
   ));
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-2xl mx-auto space-y-6">
-        {/* Page header */}
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t('profile.title')}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('profile.subtitle')}</p>
-        </div>
-
+    <PageLayout fluid>
+      <PageHeader title={t('profile.title')} description={t('profile.subtitle')} />
+      <div className="space-y-6">
         {/* Account info card — read-only */}
         <div className="bg-card rounded-xl border p-5">
           <SectionHeading label={t('profile.userSection')} />
@@ -1278,6 +1274,6 @@ export function ProfilePage() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </PageLayout>
   );
 }

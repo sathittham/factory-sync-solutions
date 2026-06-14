@@ -115,10 +115,15 @@ const translations: Record<Locale, Record<string, string>> = {
     'unauthorized.signOut': 'ออกจากระบบ',
 
     'dashboard.title': 'แดชบอร์ด',
+    'dashboard.subtitle': 'ภาพรวมของแพลตฟอร์ม FactorySync Solutions',
     'projects.title': 'โปรเจกต์',
+    'projects.subtitle': 'จัดการโปรเจกต์และบริษัทของลูกค้า',
     'users.title': 'ผู้ใช้',
+    'users.subtitle': 'จัดการผู้ใช้และสิทธิ์การเข้าถึง',
     'results.title': 'ผลการประเมิน',
+    'results.subtitle': 'ผลการประเมินสุขภาพโรงงานของลูกค้าทั้งหมด',
     'staff.title': 'จัดการทีมงาน',
+    'staff.subtitle': 'จัดการสมาชิกทีมงานและสิทธิ์การเข้าถึง Backoffice',
 
     'common.loading': 'กำลังโหลด...',
     'common.search': 'ค้นหา',
@@ -252,6 +257,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'staff.inviteForbidden': 'คุณไม่มีสิทธิ์เชิญทีมงาน',
 
     'audit.title': 'บันทึกกิจกรรม',
+    'audit.subtitle': 'ประวัติการดำเนินการของผู้ดูแลระบบและทีมงาน',
     'audit.refresh': 'รีเฟรช',
     'audit.apply': 'ค้นหา',
     'audit.reset': 'ล้างตัวกรอง',
@@ -391,10 +397,15 @@ const translations: Record<Locale, Record<string, string>> = {
     'unauthorized.signOut': 'Sign Out',
 
     'dashboard.title': 'Dashboard',
+    'dashboard.subtitle': 'Overview of the FactorySync Solutions platform',
     'projects.title': 'Projects',
+    'projects.subtitle': 'Manage customer projects and companies',
     'users.title': 'Users',
+    'users.subtitle': 'Manage users and their access',
     'results.title': 'Results',
+    'results.subtitle': 'All customer factory health assessment results',
     'staff.title': 'Staff',
+    'staff.subtitle': 'Manage staff members and Backoffice access',
 
     'common.loading': 'Loading...',
     'common.search': 'Search',
@@ -530,6 +541,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'staff.inviteForbidden': 'You do not have permission to invite staff.',
 
     'audit.title': 'Audit Log',
+    'audit.subtitle': 'History of admin and staff actions',
     'audit.refresh': 'Refresh',
     'audit.apply': 'Search',
     'audit.reset': 'Reset filters',

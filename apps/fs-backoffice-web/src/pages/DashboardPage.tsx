@@ -78,8 +78,8 @@ export function DashboardPage() {
       ));
 
   return (
-    <PageLayout className="max-w-6xl">
-      <PageHeader title={t('dashboard.title')} />
+    <PageLayout fluid>
+      <PageHeader title={t('dashboard.title')} description={t('dashboard.subtitle')} />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 

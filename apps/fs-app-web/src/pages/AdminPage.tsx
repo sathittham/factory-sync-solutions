@@ -1491,7 +1491,7 @@ export function AdminPage() {
   ) : undefined;
 
   return (
-    <PageLayout>
+    <PageLayout fluid>
       <PageHeader
         title={canViewAssessments ? t('admin.title') : t('admin.manageUsersTitle')}
         description={canViewAssessments ? t('admin.subtitle') : t('admin.manageUsersSubtitle')}

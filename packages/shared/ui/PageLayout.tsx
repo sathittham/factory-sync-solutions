@@ -7,16 +7,20 @@ function cn(...inputs: Array<string | undefined>) {
 interface PageLayoutProps {
   children: ReactNode;
   className?: string;
+  /** Span the full width of the parent instead of centering in a max-width container. */
+  fluid?: boolean;
   'data-testid'?: string;
 }
 
 export function PageLayout({
   children,
   className,
+  fluid,
   'data-testid': testId,
 }: Readonly<PageLayoutProps>) {
+  const base = fluid ? 'w-full py-6 sm:py-8' : 'container max-w-5xl py-6 sm:py-8';
   return (
-    <div className={cn('container max-w-5xl py-6 sm:py-8', className)} data-testid={testId}>
+    <div className={cn(base, className)} data-testid={testId}>
       {children}
     </div>
   );
