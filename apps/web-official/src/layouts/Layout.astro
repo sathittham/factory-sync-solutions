@@ -139,6 +139,28 @@ const gtmId = import.meta.env.PUBLIC_GTM_ID ?? '';
     <slot />
     <CookieConsent client:idle />
     <AppHandoff client:idle appUrl={appUrl} />
+    <script is:inline>
+      // Recover `client:load` islands that deadlock on `await-children` in the
+      // static build: the island's hydration MutationObserver is attached after
+      // its `astro:end` marker is already parsed, so it never fires and the island
+      // never hydrates (symptom: nav menu / theme toggle unclickable). A no-op
+      // child mutation once the DOM is ready makes the observer re-evaluate and
+      // hydration proceeds. No-op for islands that already hydrated (observer gone).
+      (function () {
+        function kick() {
+          document.querySelectorAll("astro-island[await-children]").forEach(function (el) {
+            var c = document.createComment("");
+            el.appendChild(c);
+            c.remove();
+          });
+        }
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", kick);
+        } else {
+          kick();
+        }
+      })();
+    </script>
   </body>
 </html>
 
