@@ -1,3 +1,4 @@
+import { AppDebugPanel } from '@/components/AppDebugPanel';
 import { useAuth } from '@/hooks/useAuth';
 import { LocaleProvider } from '@/lib/i18n';
 import { ThemeProvider } from '@/lib/theme';
@@ -18,6 +19,7 @@ export function App() {
         <LocaleProvider>
           <AuthInitializer>
             <RouterProvider router={router} />
+            <AppDebugPanel />
           </AuthInitializer>
         </LocaleProvider>
       </ThemeProvider>

@@ -17,6 +17,13 @@ import blogPostsCollection from './collections/blog-posts.collection'
 import { brandingMiddleware } from './branding/brand-middleware'
 import { BRAND_NAME } from './branding/brand'
 
+// Backoffice → CMS single sign-on: POST /sso/handover verifies a Firebase ID
+// token and starts an admin session, so a backoffice user lands on /admin
+// without a second sign-in (see src/sso/). Mounted as a beforeAuth middleware
+// (not a plugin route) so it runs ahead of core's CSRF guard.
+import { ssoHandoverMiddleware } from './sso/middleware'
+import { authTokenBridge } from './sso/auth-token-bridge'
+
 // Register collections BEFORE creating the app.
 registerCollections([
   blogPostsCollection,
@@ -32,9 +39,15 @@ const config: SonicJSConfig = {
     ],
   },
   middleware: {
-    // Rewrites SonicJS's server-rendered HTML to apply FactorySync branding
-    // and light/dark theming. beforeAuth wraps the whole downstream chain.
-    beforeAuth: [brandingMiddleware()],
+    // beforeAuth wraps the whole downstream chain, ahead of the CSRF guard:
+    //  1. SSO handover — the cross-site form POST can't carry a csrf_token, so
+    //     it must be handled before CSRF (the Firebase token is the trust anchor).
+    //  2. Branding — rewrites SonicJS's server-rendered HTML for FactorySync.
+    beforeAuth: [ssoHandoverMiddleware(), brandingMiddleware()],
+    // Honors the SSO handover's legacy `auth_token` JWT when better-auth has no
+    // session, so a handed-off backoffice user is recognized by the /admin
+    // guards (runs after getSession, before requireAuth/requireRbac).
+    afterAuth: [authTokenBridge()],
   },
 }
 

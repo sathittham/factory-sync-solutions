@@ -27,7 +27,8 @@
     "cf:setup:prod": "bash scripts/setup-cloudflare.sh production"
   },
   "dependencies": {
-    "@sonicjs-cms/core": "^3.0.0-beta.19"
+    "@sonicjs-cms/core": "^3.0.0-beta.19",
+    "jose": "^6.2.3"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251202.0",

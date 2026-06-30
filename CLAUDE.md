@@ -113,7 +113,13 @@ Invoke with `/skill-name` in Claude Code.
 
 ## Commands
 
-`make dev` (API + web parallel) · `dev-api` · `dev-web` · `build` · `test` · `test-api` · `test-web` · `lint` · `lint-fix` · `install` · `clean`. Per-app: `cd apps/<app> && npm run <dev|build|lint|test|test:e2e>`. Full list in the [Makefile](Makefile).
+**Package manager is pnpm** (workspace) + **Turborepo**. Apps are scoped `@repo/*` (`@repo/web-app`, `@repo/web-official`, `@repo/web-backoffice`, `@repo/web-cms`, `@repo/shared`, `@repo/api-gateway`). One `pnpm install` at the root installs everything; never `npm install` (it would create a stray `package-lock.json`).
+
+- **Backend + web-app shortcuts** (Makefile): `make dev` (API + web parallel) · `dev-api` · `dev-web` · `build` · `test` · `test-api` · `test-web` · `lint` · `lint-fix` · `install` · `clean`.
+- **Cross-app JS tasks** (Turborepo, cached): `pnpm build` · `pnpm lint` · `pnpm lint:fix` · `pnpm type-check` · `pnpm test:web` (= `turbo run …`).
+- **Single app**: `pnpm --filter @repo/<app> <script>` (e.g. `pnpm --filter @repo/web-app test:e2e`) or `pnpm <script>` from the app dir. Per-app dev shortcuts: `pnpm dev:web|dev:backoffice|dev:official|dev:cms`.
+
+Full list in the [Makefile](Makefile), [turbo.json](turbo.json), and root [package.json](package.json).
 
 ## Git & Releases
 
@@ -121,7 +127,7 @@ Full detail in `.claude/rules/git.md` (always loaded). Essentials:
 
 - **Commit**: `<type>(<scope>): description` — ≤72 chars, imperative, no trailing period. Scopes: `quiz scoring admin profile result dbd audit notification web`.
 - **Branch flow**: `feature/*` · `bugfix/*` → `develop` → `staging` → `main`. Never commit directly to or force-push `main`.
-- **Deploys**: frontend → Cloudflare Pages via `npm run deploy:staging` / `deploy:prod`. Releases via git tags through GitHub Actions: `v*-staging` → staging, `v*.*.*` → production. Verify staging before tagging production.
+- **Deploys**: frontend → Cloudflare Pages via `pnpm deploy:staging` / `deploy:prod` (or per-app `pnpm --filter @repo/<app> deploy:staging`). Releases via git tags through GitHub Actions: `v*-staging` → staging, `v*.*.*` → production. Verify staging before tagging production.
 
 ## Quiz / Scoring Domain
 

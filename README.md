@@ -1,12 +1,62 @@
----
-version: 1.8.0
-lastUpdated: 2026-06-14
-author: Sathittham Sangthong
----
+<div align="center">
+
+<img src="packages/shared/brand/fs-light.png#gh-light-mode-only" alt="FactorySync Solutions logo" width="140" />
+<img src="packages/shared/brand/fs-dark.png#gh-dark-mode-only" alt="FactorySync Solutions logo" width="140" />
 
 # FactorySync Solutions
 
-A Makefile-managed monorepo containing a React SPA app, an Astro public marketing site, and a Go backend API for evaluating factory operational maturity through a guided assessment. Users register, answer a series of questions, and receive a diagnosis with a spider chart visualization, key strengths/weaknesses, and an email copy of their results.
+**Factory health assessment for Thai SME manufacturers.**
+
+A pnpm + Turborepo monorepo where factory owners take a guided **8-dimension maturity assessment**
+and receive a visual diagnosis — spider chart, key strengths/weaknesses, and an emailed report.
+It bundles a React SPA app, an internal backoffice, an Astro marketing site, a SonicJS CMS, and a
+Go API backed by Firebase Auth and Firestore.
+
+[![License: Proprietary](https://img.shields.io/badge/license-Proprietary-red.svg)](#license)
+[![Go](https://img.shields.io/badge/Go-1.26-00ADD8.svg?logo=go&logoColor=white)](https://go.dev)
+[![React](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react&logoColor=black)](https://react.dev)
+[![Astro](https://img.shields.io/badge/Astro-6-FF5D01.svg?logo=astro&logoColor=white)](https://astro.build)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4.svg?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Firebase](https://img.shields.io/badge/Firebase-Auth%20·%20Firestore-FFCA28.svg?logo=firebase&logoColor=black)](https://firebase.google.com)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-Pages%20·%20Workers-F38020.svg?logo=cloudflare&logoColor=white)](https://www.cloudflare.com)
+[![Turborepo](https://img.shields.io/badge/Turborepo-pnpm-EF4444.svg?logo=turborepo&logoColor=white)](https://turbo.build/repo)
+
+[About](#about) · [Structure](#monorepo-structure) · [Quick Start](#quick-start) · [Tech Stack](#tech-stack) · [Documentation](#documentation) · [License](#license)
+
+</div>
+
+---
+
+## 📑 Table of Contents
+
+- [See It Work](#-see-it-work)
+- [About](#about)
+- [Prerequisites](#prerequisites)
+- [Monorepo Structure](#monorepo-structure)
+- [Quick Start](#quick-start)
+- [Environment Variables](#environment-variables)
+- [Available Scripts](#available-scripts)
+- [Tech Stack](#tech-stack)
+- [Core User Flow](#core-user-flow)
+- [Routes](#routes)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [License](#license)
+
+## 📸 See It Work
+
+> 🚧 **Screenshots coming soon.** Drop captures into [`docs/img/`](./docs/img/) (WebP, ~900px
+> wide), then replace this note by uncommenting the gallery block below.
+
+<!--
+<div align="center">
+
+<a href="docs/img/app-dashboard.webp"><img src="docs/img/app-dashboard.webp" alt="FactorySync Solutions — assessment result with spider chart" width="900" /></a>
+
+**App** (factory assessment + result)  ·  **Backoffice** (internal dashboard)  ·  **Official** (public marketing site)
+
+</div>
+-->
 
 ## About
 
@@ -19,7 +69,7 @@ FactorySync Solutions is a factory health assessment platform for Thai SME manuf
 | Backoffice | `https://backoffice.factorysyncsolutions.com` |
 | API gateway | `https://api.factorysyncsolutions.com/v1` |
 | Public CDN | `https://cdn.factorysyncsolutions.com` |
-| License | MIT — copyright Sathittham Sangthong |
+| License | Proprietary — © 2026 Sathittham Sangthong, all rights reserved |
 | Primary maintainer | Sathittham Sangthong |
 | AI contributor | OpenAI Codex |
 
@@ -28,42 +78,60 @@ Suggested GitHub topics: `go`, `react`, `typescript`, `astro`, `firebase`, `fire
 ## Prerequisites
 
 - Node.js >= 20
-- npm >= 10
+- pnpm >= 10 (the JS package manager — `corepack enable` picks up the pinned version)
 - Go >= 1.26.4 (backend API)
 - Make (included on macOS/Linux)
+
+The JS apps form a single **pnpm + Turborepo** workspace: one `pnpm install` at the
+repo root installs every app and shares one `pnpm-lock.yaml`. Cross-app tasks run
+through [Turborepo](https://turborepo.com) (`turbo run …`) with caching.
 
 ## Monorepo Structure
 
 ```
 factory-sync-solutions/
 ├── apps/
-│   ├── web-app/         # React + Vite SPA (authenticated app)
-│   ├── web-backoffice/  # React + Vite SPA (internal backoffice)
-│   ├── web-official/    # Astro 6 + React islands (public marketing site)
-│   └── backend/         # Go Cloud Run service (backend API)
-├── infra/                  # Cloudflare/GCP infrastructure config and Workers
-├── packages/               # Shared scripts/assets
-├── Makefile                # Monorepo task runner
-├── package.json            # Root workspace config
+│   ├── web-app/         # @repo/web-app — React + Vite SPA (authenticated app)
+│   ├── web-backoffice/  # @repo/web-backoffice — React + Vite SPA (internal backoffice)
+│   ├── web-official/    # @repo/web-official — Astro 6 + React islands (public site)
+│   ├── web-cms/         # @repo/web-cms — SonicJS headless CMS (Cloudflare Worker)
+│   └── backend/         # Go Cloud Run service (backend API — not in the pnpm graph)
+├── infra/                  # Cloudflare/GCP infra config and Workers (@repo/api-gateway)
+├── packages/
+│   └── shared/             # @repo/shared — shared UI, lib helpers, brand/favicon assets
+├── turbo.json              # Turborepo task pipeline
+├── pnpm-workspace.yaml     # pnpm workspace package globs
+├── Makefile                # Go + web-app task shortcuts
+├── package.json            # Root workspace config + turbo scripts
 └── docs/                   # Project documentation
 ```
 
 ## Quick Start
 
 ```bash
-# Install app (web-app) dependencies
-# Note: web-backoffice and web-official deps are installed separately.
-make install
+# Install ALL workspace dependencies (every app) in one shot
+pnpm install        # or: make install
 
 # Start backend API + authenticated app in dev mode
 make dev
 
-# Start only frontend
-make dev-web
+# Start a single app's dev server (Turborepo)
+pnpm dev:web         # @repo/web-app
+pnpm dev:backoffice  # @repo/web-backoffice
+pnpm dev:official    # @repo/web-official
+pnpm dev:cms         # @repo/web-cms
 
-# Start only backend
+# Start only the backend
 make dev-api
+
+# Cross-app tasks (cached by Turborepo)
+pnpm build           # turbo run build
+pnpm lint            # turbo run lint
+pnpm test:web        # turbo run test
 ```
+
+> Run a script in one workspace with a filter:
+> `pnpm --filter @repo/web-app <script>` (e.g. `test:e2e`, `preview`).
 
 ## Environment Variables
 
@@ -173,7 +241,10 @@ Backend secrets are stored in environment-specific backend env files locally and
 
 ## Available Scripts
 
-Root-level `make` commands currently cover `apps/backend` and `apps/web-app`. Run `web-backoffice` and `web-official` scripts from their app directories.
+Root-level `make` commands cover `apps/backend` and `apps/web-app`. Cross-app JS
+tasks run through Turborepo (`pnpm build` / `pnpm lint` / `pnpm test:web`). Run a
+single app's scripts with a filter — `pnpm --filter @repo/<app> <script>` — or from
+its directory with `pnpm <script>`.
 
 | Command | Description |
 |---------|-------------|
@@ -182,54 +253,54 @@ Root-level `make` commands currently cover `apps/backend` and `apps/web-app`. Ru
 | `make lint` | Run `go vet` + app-web Biome check |
 | `make test` | Run backend Go tests + app-web Vitest |
 | `make docs-api` | Generate versioned Swagger/OpenAPI artifacts |
-| `npm run test:api-gateway` | Run Cloudflare Worker gateway tests |
-| `npm run deploy:api-gateway:staging` | Deploy the staging API gateway Worker |
-| `npm run deploy:api-gateway:prod` | Deploy the production API gateway Worker |
+| `pnpm test:api-gateway` | Run Cloudflare Worker gateway tests |
+| `pnpm deploy:api-gateway:staging` | Deploy the staging API gateway Worker |
+| `pnpm deploy:api-gateway:prod` | Deploy the production API gateway Worker |
 
 ### App (`apps/web-app`)
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start Vite dev server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build |
-| `npm run lint` | Lint and format check (Biome) |
-| `npm run lint:fix` | Auto-fix lint and format issues |
-| `npm run test` | Run unit tests (Vitest) |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run test:coverage` | Run tests with coverage report |
-| `npm run test:e2e` | Run E2E tests (Playwright) |
-| `npm run test:e2e:headed` | Run E2E tests with browser UI |
+| `pnpm dev` | Start Vite dev server |
+| `pnpm build` | Build for production |
+| `pnpm preview` | Preview production build |
+| `pnpm lint` | Lint and format check (Biome) |
+| `pnpm lint:fix` | Auto-fix lint and format issues |
+| `pnpm test` | Run unit tests (Vitest) |
+| `pnpm test:watch` | Run tests in watch mode |
+| `pnpm test:coverage` | Run tests with coverage report |
+| `pnpm test:e2e` | Run E2E tests (Playwright) |
+| `pnpm test:e2e:headed` | Run E2E tests with browser UI |
 
 ### Backoffice (`apps/web-backoffice`)
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start Vite dev server |
-| `npm run build` | Build for production |
-| `npm run build:staging` | Build with staging mode |
-| `npm run preview` | Preview production build |
-| `npm run lint` | Lint and format check (Biome) |
-| `npm run lint:fix` | Auto-fix lint and format issues |
-| `npm run test` | Run unit tests (Vitest) |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run deploy:staging` | Build + deploy to Cloudflare Pages (staging) |
-| `npm run deploy:prod` | Build + deploy to Cloudflare Pages (production) |
+| `pnpm dev` | Start Vite dev server |
+| `pnpm build` | Build for production |
+| `pnpm build:staging` | Build with staging mode |
+| `pnpm preview` | Preview production build |
+| `pnpm lint` | Lint and format check (Biome) |
+| `pnpm lint:fix` | Auto-fix lint and format issues |
+| `pnpm test` | Run unit tests (Vitest) |
+| `pnpm test:watch` | Run tests in watch mode |
+| `pnpm deploy:staging` | Build + deploy to Cloudflare Pages (staging) |
+| `pnpm deploy:prod` | Build + deploy to Cloudflare Pages (production) |
 
 ### Official Site (`apps/web-official`)
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start Astro dev server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build |
-| `npm run lint` | Lint and format check (Biome) |
-| `npm run lint:fix` | Auto-fix lint and format issues |
-| `npm run test` | Run unit tests (Vitest) |
-| `npm run test:e2e` | Run E2E tests (Playwright) |
-| `npm run test:e2e:ui` | Run E2E tests with Playwright UI |
-| `npm run deploy:staging` | Build + deploy to Cloudflare Pages (staging) |
-| `npm run deploy:prod` | Build + deploy to Cloudflare Pages (production) |
+| `pnpm dev` | Start Astro dev server |
+| `pnpm build` | Build for production |
+| `pnpm preview` | Preview production build |
+| `pnpm lint` | Lint and format check (Biome) |
+| `pnpm lint:fix` | Auto-fix lint and format issues |
+| `pnpm test` | Run unit tests (Vitest) |
+| `pnpm test:e2e` | Run E2E tests (Playwright) |
+| `pnpm test:e2e:ui` | Run E2E tests with Playwright UI |
+| `pnpm deploy:staging` | Build + deploy to Cloudflare Pages (staging) |
+| `pnpm deploy:prod` | Build + deploy to Cloudflare Pages (production) |
 
 ### Backend (`apps/backend`)
 
@@ -349,7 +420,7 @@ Maintained by Sathittham Sangthong with OpenAI Codex as an AI coding assistant c
 
 ## License
 
-MIT License. Copyright (c) 2026 Sathittham Sangthong. See [LICENSE](LICENSE) for the full license text.
+**Proprietary** — © 2026 Sathittham Sangthong. All rights reserved. Unauthorized use, copying, or distribution is prohibited. See [LICENSE](LICENSE) for the full terms.
 
 ## Status
 
@@ -370,3 +441,4 @@ Active development — core user flow implemented (auth, registration, quiz, res
 | 1.6.0 | 2026-06-14 | Added backoffice app, clarified Makefile scope, updated env vars, routes, scripts, and docs links |
 | 1.6.1 | 2026-06-14 | Added maintained contributor list and clarified license ownership |
 | 1.6.2 | 2026-06-14 | Added repository About metadata, homepage, topics, and contributor summary |
+| 1.9.0 | 2026-06-30 | Redesigned README headers (root + all apps) — centered logo, tagline, badges, nav links; relicensed from MIT to Proprietary (all rights reserved); corrected the stale "Makefile-managed monorepo" description |

@@ -1,6 +1,29 @@
+<div align="center">
+
+<img src="../../packages/shared/brand/fs-light.png#gh-light-mode-only" alt="FactorySync Solutions logo" width="110" />
+<img src="../../packages/shared/brand/fs-dark.png#gh-dark-mode-only" alt="FactorySync Solutions logo" width="110" />
+
 # FactorySync Solutions — API
 
-Go REST API powering the FactorySync Solutions assessment platform. Handles authentication, profile management, quiz submission with rubric-based scoring, result storage, admin operations, and notifications.
+**The Go backend API.** `apps/backend`
+
+REST API powering the assessment platform — authentication, profile management, quiz submission
+with rubric-based scoring, result storage, admin and backoffice operations, and notifications.
+Runs on Google Cloud Run.
+
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Go](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white)
+![Chi](https://img.shields.io/badge/Chi-v5-00ADD8)
+![Firebase Admin SDK](https://img.shields.io/badge/Firebase_Admin_SDK-4-FFCA28?logo=firebase&logoColor=black)
+![Firestore](https://img.shields.io/badge/Firestore-1-FFCA28?logo=firebase&logoColor=black)
+![Cloud Run](https://img.shields.io/badge/Google_Cloud-Run-4285F4?logo=googlecloud&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-OpenAPI-85EA2D?logo=swagger&logoColor=black)
+
+[← Monorepo root](../../README.md) · [Tech Stack](#tech-stack) · [Structure](#project-structure) · [Getting Started](#getting-started) · [API Routes](#api-routes) · [Architecture](#architecture)
+
+</div>
+
+---
 
 ## Tech Stack
 
@@ -130,11 +153,30 @@ cp .env.example .env.development
 
 ### Run
 
+This app is wrapped as the `@repo/backend` pnpm workspace package, so the Go
+toolchain is driven through pnpm scripts (mirroring the Makefile targets):
+
 ```bash
-go run main.go
+pnpm run dev        # from apps/backend → go run main.go
 ```
 
-Server starts at `http://localhost:8080`.
+Or from the monorepo root:
+
+```bash
+pnpm dev:api        # pnpm --filter @repo/backend dev
+```
+
+Server starts at `http://localhost:8080`. Running `go run main.go` directly
+still works and is equivalent.
+
+| Script | Runs |
+|---|---|
+| `pnpm run dev` | `go run main.go` |
+| `pnpm run build` | `go build ./...` |
+| `pnpm run build:consumer` | `go build ./cmd/domain-event-consumer` |
+| `pnpm run test` | `go test -race -cover ./...` |
+| `pnpm run lint` | `go vet ./...` |
+| `pnpm run docs` | generate versioned Swagger/OpenAPI artifacts |
 
 ### Using Firebase Emulators
 
@@ -148,14 +190,14 @@ FIREBASE_AUTH_EMULATOR_HOST=localhost:9099
 ### Test
 
 ```bash
-go test ./...
+pnpm run test       # go test -race -cover ./...
 ```
 
 ### Generate API Docs
 
-From the repo root:
-
 ```bash
+pnpm run docs       # from apps/backend
+# or, from the repo root:
 make docs-api
 ```
 

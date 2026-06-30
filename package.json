@@ -6,6 +6,7 @@
   "packageManager": "pnpm@10.14.0",
   "scripts": {
     "dev": "make dev",
+    "dev:api": "pnpm --filter @repo/backend dev",
     "dev:web": "turbo run dev --filter=@repo/web-app",
     "dev:backoffice": "turbo run dev --filter=@repo/web-backoffice",
     "dev:official": "turbo run dev --filter=@repo/web-official",

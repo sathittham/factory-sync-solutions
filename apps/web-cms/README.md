@@ -1,6 +1,30 @@
-# FactorySync Blog CMS
+<div align="center">
 
-A headless blog CMS built with [SonicJS](https://sonicjs.com) (`@sonicjs-cms/core` v3) on Cloudflare's edge platform (Workers + D1 + R2). It is deployed as a standalone Worker — see [Deployment](#deployment).
+<img src="../../packages/shared/brand/fs-light.png#gh-light-mode-only" alt="FactorySync Solutions logo" width="110" />
+<img src="../../packages/shared/brand/fs-dark.png#gh-dark-mode-only" alt="FactorySync Solutions logo" width="110" />
+
+# FactorySync Solutions — CMS
+
+**The headless blog CMS.** `@repo/web-cms`
+
+Built with [SonicJS](https://sonicjs.com) (`@sonicjs-cms/core` v3) on Cloudflare's edge platform
+(Workers + D1 + R2), deployed as a standalone Worker — see [Deployment](#deployment).
+
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![SonicJS](https://img.shields.io/badge/SonicJS-v3-000000)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Hono](https://img.shields.io/badge/Hono-4-E36002?logo=hono&logoColor=white)
+![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.44-C5F74F?logo=drizzle&logoColor=black)
+![Wrangler](https://img.shields.io/badge/Wrangler-4-F38020?logo=cloudflare&logoColor=white)
+![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)
+![D1](https://img.shields.io/badge/Cloudflare-D1-F38020?logo=cloudflare&logoColor=white)
+![R2](https://img.shields.io/badge/Cloudflare-R2-F38020?logo=cloudflare&logoColor=white)
+
+[← Monorepo root](../../README.md) · [Getting Started](#getting-started-local-development) · [Scripts](#available-scripts) · [API](#api-access) · [Deployment](#deployment)
+
+</div>
+
+---
 
 ## Getting Started (local development)
 
@@ -18,17 +42,17 @@ top-level bindings in [`wrangler.toml`](./wrangler.toml) persist state under
 
 1. **Install dependencies:**
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. **Apply migrations to the local database:**
    ```bash
-   npm run db:migrate:local
+   pnpm db:migrate:local
    ```
 
 3. **Start the development server:**
    ```bash
-   npm run dev
+   pnpm dev
    ```
 
 4. **Open the admin UI:**
@@ -58,25 +82,25 @@ web-cms/
 ## Available Scripts
 
 **Develop & test**
-- `npm run dev` — Start the local dev server (miniflare)
-- `npm run type-check` — Check TypeScript types (`tsc --noEmit`)
-- `npm run test` / `npm run test:watch` — Run Vitest
-- `npm run db:studio` — Open Drizzle Studio against the database
+- `pnpm dev` — Start the local dev server (miniflare)
+- `pnpm type-check` — Check TypeScript types (`tsc --noEmit`)
+- `pnpm test` / `pnpm test:watch` — Run Vitest
+- `pnpm db:studio` — Open Drizzle Studio against the database
 
 **Database migrations**
-- `npm run db:migrate:local` — Apply migrations to the local DB
-- `npm run db:migrate:staging` — Apply migrations to the remote staging DB
-- `npm run db:migrate:prod` — Apply migrations to the remote production DB
-- `npm run db:reset` — Interactive SonicJS DB reset (destructive)
+- `pnpm db:migrate:local` — Apply migrations to the local DB
+- `pnpm db:migrate:staging` — Apply migrations to the remote staging DB
+- `pnpm db:migrate:prod` — Apply migrations to the remote production DB
+- `pnpm db:reset` — Interactive SonicJS DB reset (destructive)
 
 **Deploy & provision**
-- `npm run cf:setup:staging` / `npm run cf:setup:prod` — One-time idempotent provisioning
-- `npm run deploy:staging` / `npm run deploy:prod` — Redeploy the Worker
-- `npm run seed:staging` / `npm run seed:prod` — Seed the remote admin user
+- `pnpm cf:setup:staging` / `pnpm cf:setup:prod` — One-time idempotent provisioning
+- `pnpm deploy:staging` / `pnpm deploy:prod` — Redeploy the Worker
+- `pnpm seed:staging` / `pnpm seed:prod` — Seed the remote admin user
 
 **Maintenance**
-- `npm run update` — Update `@sonicjs-cms/core` to the latest release
-- `npm run update:beta` — Update `@sonicjs-cms/core` to the latest beta
+- `pnpm update` — Update `@sonicjs-cms/core` to the latest release
+- `pnpm update:beta` — Update `@sonicjs-cms/core` to the latest beta
 
 ## Creating Collections
 
@@ -147,7 +171,7 @@ each backed by its own D1 database and R2 bucket. Config lives in
 
 ```bash
 npx wrangler login          # log in to the account that owns factory-sync-*
-npm run cf:setup:staging    # create D1 + R2, migrate, set secret, deploy, seed admin
+pnpm cf:setup:staging    # create D1 + R2, migrate, set secret, deploy, seed admin
 ```
 
 `cf:setup:*` is idempotent. It:
@@ -162,25 +186,25 @@ npm run cf:setup:staging    # create D1 + R2, migrate, set secret, deploy, seed 
 **Verify staging**, then promote to production:
 
 ```bash
-npm run cf:setup:prod
+pnpm cf:setup:prod
 ```
 
 Override the seeded admin credentials with env vars:
 
 ```bash
-CMS_ADMIN_EMAIL=you@example.com CMS_ADMIN_PASSWORD='a-strong-password' npm run cf:setup:prod
+CMS_ADMIN_EMAIL=you@example.com CMS_ADMIN_PASSWORD='a-strong-password' pnpm cf:setup:prod
 ```
 
 ### Routine redeploys (after provisioning)
 
 ```bash
-npm run deploy:staging      # wrangler deploy --env staging
-npm run deploy:prod         # wrangler deploy --env production
+pnpm deploy:staging      # wrangler deploy --env staging
+pnpm deploy:prod         # wrangler deploy --env production
 ```
 
-Run new migrations against a remote DB with `npm run db:migrate:staging` /
-`npm run db:migrate:prod`. From the repo root the same actions are available as
-`npm run setup:web-cms:staging|prod` and `npm run deploy:web-cms:staging|prod`.
+Run new migrations against a remote DB with `pnpm db:migrate:staging` /
+`pnpm db:migrate:prod`. From the repo root the same actions are available as
+`pnpm setup:web-cms:staging|prod` and `pnpm deploy:web-cms:staging|prod`.
 
 ### RBAC fallback
 
@@ -190,8 +214,8 @@ If the first admin login reports missing permissions, run the interactive
 remote reset (destructive — recreates the remote schema) and re-seed:
 
 ```bash
-npm run db:reset            # follow prompts; choose the remote/production DB
-npm run seed:prod           # re-create the admin row
+pnpm db:reset            # follow prompts; choose the remote/production DB
+pnpm seed:prod           # re-create the admin row
 ```
 
 ## Documentation
@@ -209,4 +233,6 @@ npm run seed:prod           # re-create the admin row
 
 ## License
 
-MIT
+Proprietary — © 2026 Sathittham Sangthong. All rights reserved. See [LICENSE](../../LICENSE).
+
+> Note: `@sonicjs-cms/core` and other dependencies retain their own upstream licenses.

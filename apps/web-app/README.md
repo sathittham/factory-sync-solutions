@@ -1,13 +1,36 @@
-# FactorySync Solutions — Web
+<div align="center">
 
-React SPA for the FactorySync Solutions assessment platform. Factory operators complete a diagnostic quiz, receive a health score with per-dimension breakdown, and get actionable recommendations.
+<img src="../../packages/shared/brand/fs-light.png#gh-light-mode-only" alt="FactorySync Solutions logo" width="110" />
+<img src="../../packages/shared/brand/fs-dark.png#gh-dark-mode-only" alt="FactorySync Solutions logo" width="110" />
+
+# FactorySync Solutions — App
+
+**The authenticated assessment app.** `@repo/web-app`
+
+React SPA where factory operators complete a diagnostic quiz, receive a health score with a
+per-dimension spider chart, and get actionable recommendations.
+
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)
+![Redux Toolkit](https://img.shields.io/badge/Redux_Toolkit-2-764ABC?logo=redux&logoColor=white)
+![React Router](https://img.shields.io/badge/React_Router-7-CA4245?logo=reactrouter&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-11-FFCA28?logo=firebase&logoColor=black)
+
+[← Monorepo root](../../README.md) · [Tech Stack](#tech-stack) · [Structure](#project-structure) · [Scripts](#scripts) · [Testing](#testing) · [Routes](#routes)
+
+</div>
+
+---
 
 ## Tech Stack
 
 | Layer | Choice |
 |---|---|
 | Framework | React 19 + TypeScript |
-| Build | Vite 7 |
+| Build | Vite 8 |
 | Routing | React Router 7 (`react-router`) |
 | State | Redux Toolkit |
 | Styling | Tailwind CSS 4 (CSS-config) + shadcn/ui (Radix primitives) |

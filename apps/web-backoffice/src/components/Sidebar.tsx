@@ -27,16 +27,21 @@ import { useLocale } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { logout } from '@/store/authSlice';
+import { openCmsBlog } from '@/lib/cmsSso';
 import fsDarkLogo from '@shared/brand/fs-dark.png';
 import fsLightLogo from '@shared/brand/fs-light.png';
+import { getCmsSsoUrl } from '@shared/lib/cmsSite';
 import { signOut } from 'firebase/auth';
 import {
   BarChart3,
   Building2,
   ChevronsUpDown,
   CircleHelp,
+  ExternalLink,
   LayoutDashboard,
   LogOut,
+  type LucideIcon,
+  Newspaper,
   ScrollText,
   ShieldCheck,
   User,
@@ -46,6 +51,16 @@ import { Link, useLocation } from 'react-router';
 
 interface AppSidebarProps {
   readonly onNavigate?: () => void;
+}
+
+interface NavItem {
+  readonly icon: LucideIcon;
+  readonly labelKey: string;
+  readonly to?: string;
+  readonly href?: string;
+  readonly external?: boolean;
+  /** Opens the CMS via SSO handover (new tab) instead of a normal link. */
+  readonly sso?: boolean;
 }
 
 export function AppSidebar({ onNavigate }: AppSidebarProps) {
@@ -64,12 +79,48 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
   const displayName = user?.displayName || user?.email || '';
   const initial = (displayName || 'U').charAt(0).toUpperCase();
   const logo = resolvedTheme === 'dark' ? fsDarkLogo : fsLightLogo;
+  const cmsBlogUrl = getCmsSsoUrl(import.meta.env.VITE_CMS_URL, {
+    isDevelopment: import.meta.env.DEV,
+  });
 
-  const navItems = [
+  const handleOpenBlog = () => {
+    onNavigate?.();
+    void openCmsBlog(cmsBlogUrl);
+  };
+
+  const renderNavInner = (item: NavItem) => {
+    if (item.sso) {
+      return (
+        <button type="button" onClick={handleOpenBlog}>
+          <item.icon />
+          <span>{t(item.labelKey)}</span>
+          <ExternalLink className="ml-auto size-3.5 opacity-60" />
+        </button>
+      );
+    }
+    if (item.external) {
+      return (
+        <a href={item.href} target="_blank" rel="noopener noreferrer">
+          <item.icon />
+          <span>{t(item.labelKey)}</span>
+          <ExternalLink className="ml-auto size-3.5 opacity-60" />
+        </a>
+      );
+    }
+    return (
+      <Link to={item.to ?? '#'} onClick={onNavigate}>
+        <item.icon />
+        <span>{t(item.labelKey)}</span>
+      </Link>
+    );
+  };
+
+  const navItems: NavItem[] = [
     { to: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
     { to: '/projects', icon: Building2, labelKey: 'nav.projects' },
     { to: '/users', icon: Users, labelKey: 'nav.users' },
     { to: '/results', icon: BarChart3, labelKey: 'nav.results' },
+    { icon: Newspaper, labelKey: 'nav.blog', sso: true },
   ];
 
   const administratorNavItems = [
@@ -110,16 +161,17 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
-                <SidebarMenuItem key={item.to}>
+                <SidebarMenuItem key={item.to ?? item.labelKey}>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname === item.to || pathname.startsWith(`${item.to}/`)}
+                    isActive={
+                      !item.external &&
+                      !item.sso &&
+                      (pathname === item.to || pathname.startsWith(`${item.to}/`))
+                    }
                     tooltip={t(item.labelKey)}
                   >
-                    <Link to={item.to} onClick={onNavigate}>
-                      <item.icon />
-                      <span>{t(item.labelKey)}</span>
-                    </Link>
+                    {renderNavInner(item)}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

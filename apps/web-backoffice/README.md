@@ -1,8 +1,27 @@
-# web-backoffice
+<div align="center">
 
-Internal backoffice for FactorySync Solutions. Restricted to users with a Firebase custom claim `backofficeRole` of `staff` or `superadmin`; staff management, audit search, and API docs are additionally gated to `superadmin`.
+<img src="../../packages/shared/brand/fs-light.png#gh-light-mode-only" alt="FactorySync Solutions logo" width="110" />
+<img src="../../packages/shared/brand/fs-dark.png#gh-dark-mode-only" alt="FactorySync Solutions logo" width="110" />
 
-**Stack:** React 19 · React Router 7 · Redux Toolkit · shadcn/ui · Tailwind CSS v4 · Vite · TypeScript · Firebase Auth · Biome · Vitest
+# FactorySync Solutions — Backoffice
+
+**The internal staff console.** `@repo/web-backoffice`
+
+React SPA for platform operators — project management, user and staff administration, assessment
+results, and audit search. Gated by the Firebase custom claim `backofficeRole` (`staff` or
+`superadmin`); staff management, audit, and API docs require `superadmin`.
+
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)
+![Redux Toolkit](https://img.shields.io/badge/Redux_Toolkit-2-764ABC?logo=redux&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-11-FFCA28?logo=firebase&logoColor=black)
+
+[← Monorepo root](../../README.md) · [Routes](#routes) · [Getting Started](#getting-started) · [Commands](#commands) · [Access Control](#access-control)
+
+</div>
 
 ---
 

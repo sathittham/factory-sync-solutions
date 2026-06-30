@@ -31,6 +31,9 @@ bucket_name = "factory-sync-cms-media"
 [vars]
 ENVIRONMENT = "development"
 CORS_ORIGINS = "http://localhost:8787,http://localhost:4321"
+# Firebase project whose ID tokens the /sso/handover route trusts (backoffice
+# local dev signs against the staging project). JWT_SECRET is a secret, not here.
+FIREBASE_PROJECT_ID = "factory-sync-solutions-staging"
 
 [observability]
 enabled = true
@@ -58,6 +61,7 @@ bucket_name = "factory-sync-cms-media-staging"
 [env.staging.vars]
 ENVIRONMENT = "staging"
 CORS_ORIGINS = "https://factory-sync-cms-staging.pages.dev,https://staging.factorysyncsolutions.com"
+FIREBASE_PROJECT_ID = "factory-sync-solutions-staging"
 
 [env.staging.observability]
 enabled = true
@@ -85,6 +89,7 @@ bucket_name = "factory-sync-cms-media"
 [env.production.vars]
 ENVIRONMENT = "production"
 CORS_ORIGINS = "https://factorysyncsolutions.com"
+FIREBASE_PROJECT_ID = "factory-sync-solutions"
 
 [env.production.observability]
 enabled = true

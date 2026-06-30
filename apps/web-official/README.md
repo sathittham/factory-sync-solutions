@@ -1,6 +1,28 @@
-# FactorySync Solutions — Official Web
+<div align="center">
 
-Static marketing website for the FactorySync Solutions platform. Hosts the public landing page, service detail pages, legal pages (privacy policy, terms of service, cookie policy), and links to the assessment app.
+<img src="../../packages/shared/brand/fs-light.png#gh-light-mode-only" alt="FactorySync Solutions logo" width="110" />
+<img src="../../packages/shared/brand/fs-dark.png#gh-dark-mode-only" alt="FactorySync Solutions logo" width="110" />
+
+# FactorySync Solutions — Official Site
+
+**The public marketing site.** `@repo/web-official`
+
+Static Astro site hosting the landing page, service detail pages, legal pages (privacy, terms,
+cookie policy), and the sign-up handoff into the assessment app. React islands add interactivity
+where needed.
+
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Astro](https://img.shields.io/badge/Astro-6-FF5D01?logo=astro&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)
+![Cloudflare Pages](https://img.shields.io/badge/Cloudflare-Pages-F38020?logo=cloudflare&logoColor=white)
+
+[← Monorepo root](../../README.md) · [Tech Stack](#tech-stack) · [Structure](#project-structure) · [Scripts](#scripts) · [Routes](#routes) · [Deployment](#deployment)
+
+</div>
+
+---
 
 ## Tech Stack
 

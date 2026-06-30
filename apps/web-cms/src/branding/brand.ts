@@ -39,16 +39,23 @@ html.dark{--fs-primary:217 65% 55%;--fs-primary-hover:217 65% 48%;}
 .bg-cyan-50,.bg-cyan-500\\/10,.dark\\:bg-cyan-500\\/10{background-color:hsl(var(--fs-primary)/0.12)!important}
 .ring-cyan-500\\/20,.ring-cyan-700\\/10,.dark\\:ring-cyan-500\\/20{--tw-ring-color:hsl(var(--fs-primary)/0.30)!important}
 
+/* Dashboard stat strip: core hardcodes it dark in BOTH themes
+   (bg-zinc-800/75 dark:bg-zinc-800/75), so in light mode it reads dark-on-light.
+   Restore a light surface in light mode; dark mode is already correct. */
+html:not(.dark) .bg-zinc-800\\/75{background-color:#fff!important}
+
 /* Logo: show only the variant matching the active theme.
-   Keep display off the base rule so the hide rules below aren't outranked. */
-img.fs-logo{width:auto;height:auto;object-fit:contain}
+   Keep display off the base rule so the hide rules below aren't outranked.
+   Pin an explicit height (the FactorySync mark is square, unlike the original
+   wide wordmark, so its sizing classes — h-8 w-auto, w-64 — would blow it up). */
+img.fs-logo{height:2.5rem;width:auto;object-fit:contain}
 .fs-logo-light{display:block}
 .fs-logo-dark{display:none}
 html.dark .fs-logo-light{display:none}
 html.dark .fs-logo-dark{display:block}
 
-/* Auth pages (identified by body.bg-zinc-950) */
-body.bg-zinc-950 .fs-logo{max-height:5rem;margin-inline:auto}
+/* Auth pages (identified by body.bg-zinc-950) — larger, centered logo. */
+body.bg-zinc-950 .fs-logo{height:4.5rem;width:auto;margin-inline:auto}
 body.bg-zinc-950 button[type="submit"]{background-color:hsl(var(--fs-primary));color:#fff}
 body.bg-zinc-950 button[type="submit"]:hover{background-color:hsl(var(--fs-primary-hover))}
 html:not(.dark) body.bg-zinc-950{background-color:#eef2f7}
