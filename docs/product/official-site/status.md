@@ -24,7 +24,8 @@
 
 ## Current State
 
-⚠️ **Phase 3 complete.** Phases 1–3 are shipped; Phase 4 (Knowledge Hub) blocked on web-cms.
+⚠️ **Phases 1–3 shipped + Phase 5 SEO largely done.** Phase 4 (Knowledge Hub) blocked on web-cms;
+Phase 5's only open item is replacing Unsplash imagery with owned assets.
 
 Phase 1 shipped: `SiteNavBar` now renders the routed primary nav (Home · About ▾ · Services ▾ mega · Knowledge ·
 Contact) backed by a shared `SERVICE_GROUPS` taxonomy (`src/lib/services.ts`), a 4-column Services mega menu,
@@ -127,14 +128,23 @@ Q4 (dedicated flagship marketing page + deep-link CTA) and Q5 (uniform template)
 
 ---
 
-## Phase 5 — SEO polish
+## Phase 5 — SEO polish ⚠️
 
-- [ ] Per-page OG tags + org/service JSON-LD (service JSON-LD ⚠️ already partially wired)
-- [ ] Verify regenerated `sitemap.xml` for all new routes
-- [ ] Replace Unsplash imagery with owned/licensed assets
+Structured data + sitemap done; owned imagery still pending.
+
+- [x] Per-page OG/Twitter tags + canonical — already driven by `Layout.astro` props (unique title/description per page)
+- [x] **Site-wide** `Organization` + `WebSite` JSON-LD with stable `@id`s — `Layout.astro` (emitted on every page)
+- [x] Deduped home `@graph` to page-specific `FAQPage`; `Service` pages reference the org via `provider: { @id }` (no duplicate Organization)
+- [x] Verified `sitemap.xml`: all 17 service routes present, 3 legacy redirects correctly excluded
+- [ ] Replace remaining Unsplash imagery (landing/about) with owned/licensed assets — **needs marketing-owned assets**; service hero images were already removed in the Phase 3 template rewrite
 
 ### Phase 5 Tests
-- [ ] Unique title/OG per page type; valid JSON-LD; sitemap includes all routes
+- [x] Verified per page type (home/about/contact/service/legal): unique `<title>`, OG tags, and one `#organization` node; service pages cross-reference it via `@id`
+- [x] Sitemap includes all routes; redirects excluded
+
+> Verified 2026-06-30: `pnpm build` → 28 pages. Structured data inspected in `dist/` per page type
+> (`Organization`+`WebSite` site-wide; `Service`→`provider:@id`; `FAQPage` on home). `biome check` ✓.
+> `vitest run` 80/80.
 
 ---
 
@@ -156,5 +166,5 @@ Mirrors [sitemap.md §10](./sitemap.md#10-decisions--open-questions). All resolv
 
 ---
 
-*Version: 0.3.0*
+*Version: 0.4.0*
 *Last updated: 30 June 2026*

@@ -1,8 +1,8 @@
 ---
 import { ServiceContent } from "../../../components/services/ServiceContent";
+import Layout from "../../../layouts/Layout.astro";
 import { translate } from "../../../lib/i18n";
 import { childParams, getChildBySlug, getGroupBySlug, subKey } from "../../../lib/services";
-import Layout from "../../../layouts/Layout.astro";
 
 export function getStaticPaths() {
 	return childParams().map(({ group, slug }) => ({ params: { group, slug } }));
@@ -30,11 +30,7 @@ const serviceLd = {
 	name: titleTh,
 	description: taglineTh,
 	url: `https://www.factorysyncsolutions.com/services/${groupSlug}/${childSlug}`,
-	provider: {
-		"@type": "Organization",
-		name: "FactorySync Solutions",
-		url: "https://www.factorysyncsolutions.com",
-	},
+	provider: { "@id": "https://www.factorysyncsolutions.com/#organization" },
 	serviceType: titleEn,
 	availableLanguage: ["Thai", "English"],
 };
