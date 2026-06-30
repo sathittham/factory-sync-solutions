@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# One-time setup: create Cloudflare Pages projects for fs-official-web
+# One-time setup: create Cloudflare Pages projects for web-official
 # and attach custom domains.
 #
 # Run once before first deploy:
@@ -29,7 +29,7 @@ export CLOUDFLARE_ACCOUNT_ID
 
 echo ""
 echo "┌───────────────────────────────────────────────────┐"
-echo "│  Cloudflare Pages — fs-official-web project setup │"
+echo "│  Cloudflare Pages — web-official project setup │"
 echo "└───────────────────────────────────────────────────┘"
 
 # ---------------------------------------------------------------------------

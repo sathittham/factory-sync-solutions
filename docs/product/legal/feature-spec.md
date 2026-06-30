@@ -19,8 +19,8 @@ Legal content exists in two surfaces:
 
 | Surface | Location | When shown |
 |---------|----------|------------|
-| **In-app modal** (`LegalModal`) | `fs-app-web` | During registration — inline links in the consent checkboxes |
-| **Standalone pages** (`LegalContent`) | `fs-official-web` | Public-facing URLs; linked from footer |
+| **In-app modal** (`LegalModal`) | `web-app` | During registration — inline links in the consent checkboxes |
+| **Standalone pages** (`LegalContent`) | `web-official` | Public-facing URLs; linked from footer |
 
 Both surfaces render the same policy text. The in-app modal uses a shadcn/ui
 `Dialog`; the official-web pages use a full-page `LegalContent` React island
@@ -58,15 +58,15 @@ a future policy bump can detect users on older versions.
 
 | Component | Location | Status |
 |-----------|----------|--------|
-| In-app `LegalModal` | `apps/fs-app-web/src/components/LegalModal.tsx` | ✅ Built |
-| Official-web `LegalContent` | `apps/fs-official-web/src/components/legal/LegalContent.tsx` | ✅ Built |
-| `/terms` page | `apps/fs-official-web/src/pages/terms.astro` | ✅ Built |
-| `/privacy` page | `apps/fs-official-web/src/pages/privacy.astro` | ✅ Built |
-| `/cookies` page | `apps/fs-official-web/src/pages/cookies.astro` | ✅ Built |
-| `/marketing` page | `apps/fs-official-web/src/pages/marketing.astro` | ✅ Built |
-| `/cookie-settings` page | `apps/fs-official-web/src/pages/cookie-settings.astro` | ✅ Built |
-| Consent checkboxes in registration | `apps/fs-app-web/src/pages/RegisterPage.tsx` | ✅ Built |
-| `consentVersion` stored in Firestore | `apps/fs-backend/services/profile/service.go` | ✅ Built |
+| In-app `LegalModal` | `apps/web-app/src/components/LegalModal.tsx` | ✅ Built |
+| Official-web `LegalContent` | `apps/web-official/src/components/legal/LegalContent.tsx` | ✅ Built |
+| `/terms` page | `apps/web-official/src/pages/terms.astro` | ✅ Built |
+| `/privacy` page | `apps/web-official/src/pages/privacy.astro` | ✅ Built |
+| `/cookies` page | `apps/web-official/src/pages/cookies.astro` | ✅ Built |
+| `/marketing` page | `apps/web-official/src/pages/marketing.astro` | ✅ Built |
+| `/cookie-settings` page | `apps/web-official/src/pages/cookie-settings.astro` | ✅ Built |
+| Consent checkboxes in registration | `apps/web-app/src/pages/RegisterPage.tsx` | ✅ Built |
+| `consentVersion` stored in Firestore | `apps/backend/services/profile/service.go` | ✅ Built |
 | Contact email | `info@factorysyncsolutions.com` | ✅ Active |
 
 ---
@@ -239,7 +239,7 @@ while consent was active.
 
 ## 5. In-App Modal (`LegalModal`)
 
-File: `apps/fs-app-web/src/components/LegalModal.tsx`
+File: `apps/web-app/src/components/LegalModal.tsx`
 
 ```
 LegalType = 'terms' | 'privacy' | 'cookies' | 'marketing' | null
@@ -273,7 +273,7 @@ Closing (Escape, backdrop click, ✕ button) calls `onClose()` which sets
 
 ## 6. Official-Web Standalone Pages
 
-File: `apps/fs-official-web/src/components/legal/LegalContent.tsx`
+File: `apps/web-official/src/components/legal/LegalContent.tsx`
 
 A single `LegalContent` React island renders all five legal pages. The Astro
 page passes a `page` prop to select which document to render.
@@ -375,7 +375,7 @@ When a policy is updated, this string must be changed in **both** surfaces
 - **Unsubscribe endpoint** — a one-click token-based unsubscribe URL in
   marketing emails that calls the API to revoke marketing consent without
   requiring sign-in.
-- **`/cookies` and `/marketing` footer links** on `fs-app-web` — currently
+- **`/cookies` and `/marketing` footer links** on `web-app` — currently
   only the official site exposes standalone legal pages.
 
 ---
@@ -387,7 +387,7 @@ When a policy is updated, this string must be changed in **both** surfaces
 - [ ] Clicking "Marketing Policy" in the marketing consent label opens the correct modal.
 - [ ] Closing the modal (Escape / backdrop / ✕) returns focus to the registration form without losing any input.
 - [ ] The modal title and content match the active locale (TH / EN).
-- [ ] `/terms`, `/privacy`, `/cookies`, `/marketing` routes on `fs-official-web` each render the correct policy.
+- [ ] `/terms`, `/privacy`, `/cookies`, `/marketing` routes on `web-official` each render the correct policy.
 - [ ] `/cookie-settings` renders the cookie preference manager.
 - [ ] All routes render in both TH and EN via the locale switcher.
 - [ ] `consentVersion` and `consentAt` are stored in the Firestore profile on successful registration.
@@ -398,14 +398,14 @@ When a policy is updated, this string must be changed in **both** surfaces
 
 ## 12. References
 
-- In-app modal: [LegalModal.tsx](../../../apps/fs-app-web/src/components/LegalModal.tsx)
-- Official-web content: [LegalContent.tsx](../../../apps/fs-official-web/src/components/legal/LegalContent.tsx)
-- Terms page: [terms.astro](../../../apps/fs-official-web/src/pages/terms.astro)
-- Privacy page: [privacy.astro](../../../apps/fs-official-web/src/pages/privacy.astro)
-- Cookies page: [cookies.astro](../../../apps/fs-official-web/src/pages/cookies.astro)
-- Marketing page: [marketing.astro](../../../apps/fs-official-web/src/pages/marketing.astro)
-- Cookie settings: [cookie-settings.astro](../../../apps/fs-official-web/src/pages/cookie-settings.astro)
-- Registration (consent checkboxes): [RegisterPage.tsx](../../../apps/fs-app-web/src/pages/RegisterPage.tsx)
-- Profile model (consentVersion): [models.go](../../../apps/fs-backend/services/profile/models.go)
+- In-app modal: [LegalModal.tsx](../../../apps/web-app/src/components/LegalModal.tsx)
+- Official-web content: [LegalContent.tsx](../../../apps/web-official/src/components/legal/LegalContent.tsx)
+- Terms page: [terms.astro](../../../apps/web-official/src/pages/terms.astro)
+- Privacy page: [privacy.astro](../../../apps/web-official/src/pages/privacy.astro)
+- Cookies page: [cookies.astro](../../../apps/web-official/src/pages/cookies.astro)
+- Marketing page: [marketing.astro](../../../apps/web-official/src/pages/marketing.astro)
+- Cookie settings: [cookie-settings.astro](../../../apps/web-official/src/pages/cookie-settings.astro)
+- Registration (consent checkboxes): [RegisterPage.tsx](../../../apps/web-app/src/pages/RegisterPage.tsx)
+- Profile model (consentVersion): [models.go](../../../apps/backend/services/profile/models.go)
 - Cookie consent feature: [cookie-consent/feature-spec.md](../cookie-consent/feature-spec.md)
 - Register feature: [register/feature-spec.md](../register/feature-spec.md)

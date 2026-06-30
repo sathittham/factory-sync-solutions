@@ -21,9 +21,9 @@ This is a full-stack monorepo, so the workflows cover both halves of the stack:
 
 | App | Path | Stack | Deploys to |
 |-----|------|-------|-----------|
-| `fs-backend` | `apps/fs-backend` | Go + Chi + Firestore + Firebase Auth | Cloud Run / Docker (separate) |
-| `fs-app-web` | `apps/fs-app-web` | React + shadcn/ui + Redux + Vite | Cloudflare Pages |
-| `fs-official-web` | `apps/fs-official-web` | Astro | Cloudflare Pages |
+| `backend` | `apps/backend` | Go + Chi + Firestore + Firebase Auth | Cloud Run / Docker (separate) |
+| `web-app` | `apps/web-app` | React + shadcn/ui + Redux + Vite | Cloudflare Pages |
+| `web-official` | `apps/web-official` | Astro | Cloudflare Pages |
 
 Workflows route Go work to the `backend-dev` agent and React/Astro work to `frontend-dev` (see `.claude/agents/`).
 
@@ -40,7 +40,7 @@ Autonomous full-stack feature implementation. Explores existing patterns, builds
 Workflow({ name: 'feature-dev', args: {
   ticket: 'FHC-123',
   description: 'Quiz history list page with per-assessment detail',
-  service: 'result',        // backend service dir under apps/fs-backend/services/
+  service: 'result',        // backend service dir under apps/backend/services/
   scope: 'full',            // 'backend' | 'frontend' | 'full'  (default: full)
 }})
 ```
@@ -78,9 +78,9 @@ Workflow({ name: 'pre-release-audit', args: { base: 'main' } })
 Checks per app:
 | App kind | Lint | Types/Build | Tests | Security scan |
 |----------|------|-------------|-------|---------------|
-| Go (`fs-backend`) | `go vet ./...` | `go build ./...` | `go test -race -cover ./...` | UID-from-body, raw JSON vs `pkg.Respond*`, hardcoded secrets |
-| React (`fs-app-web`) | `biome check .` | `tsc -b --noEmit` | `vitest run` | tokens in localStorage, hardcoded API URLs, private keys |
-| Astro (`fs-official-web`) | `biome check .` | `astro check` | `vitest run` | same as React |
+| Go (`backend`) | `go vet ./...` | `go build ./...` | `go test -race -cover ./...` | UID-from-body, raw JSON vs `pkg.Respond*`, hardcoded secrets |
+| React (`web-app`) | `biome check .` | `tsc -b --noEmit` | `vitest run` | tokens in localStorage, hardcoded API URLs, private keys |
+| Astro (`web-official`) | `biome check .` | `astro check` | `vitest run` | same as React |
 
 Use when: About to cut a release tag (`v*-staging` or `v*.*.*`).
 
@@ -89,7 +89,7 @@ Use when: About to cut a release tag (`v*-staging` or `v*.*.*`).
 ### `deploy-smoke-test`
 **File**: `deploy-smoke-test.js`
 
-Builds and deploys changed frontend apps to Cloudflare Pages, then verifies each URL returns 200 with valid HTML. (`fs-backend` is skipped — it deploys separately.)
+Builds and deploys changed frontend apps to Cloudflare Pages, then verifies each URL returns 200 with valid HTML. (`backend` is skipped — it deploys separately.)
 
 ```javascript
 Workflow({ name: 'deploy-smoke-test', args: { base: 'main', env: 'staging' } })
@@ -97,10 +97,10 @@ Workflow({ name: 'deploy-smoke-test', args: { base: 'main', env: 'staging' } })
 
 | App | Env | URL | CF Project |
 |-----|-----|-----|-----------|
-| fs-app-web | staging | https://factory-sync-solutions-staging.pages.dev | factory-sync-solutions-staging |
-| fs-app-web | prod | https://factory-sync-solutions.pages.dev | factory-sync-solutions |
-| fs-official-web | staging | https://factory-sync-solutions-official-staging.pages.dev | factory-sync-solutions-official-staging |
-| fs-official-web | prod | https://factory-sync-solutions-official.pages.dev | factory-sync-solutions-official |
+| web-app | staging | https://factory-sync-solutions-staging.pages.dev | factory-sync-solutions-staging |
+| web-app | prod | https://factory-sync-solutions.pages.dev | factory-sync-solutions |
+| web-official | staging | https://factory-sync-solutions-official-staging.pages.dev | factory-sync-solutions-official-staging |
+| web-official | prod | https://factory-sync-solutions-official.pages.dev | factory-sync-solutions-official |
 
 Use when: After pushing changes, to confirm the deploy is live and healthy.
 

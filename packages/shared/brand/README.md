@@ -17,7 +17,7 @@ import fsLightLogo from "@shared/brand/fs-light.png";
 import fsDarkLogo from "@shared/brand/fs-dark.png";
 ```
 
-Vite (used by both `fs-app-web` and `fs-official-web`) bundles the imported
+Vite (used by both `web-app` and `web-official`) bundles the imported
 asset into that app's own `dist/` at build time, so each app stays
 independently deployable.
 

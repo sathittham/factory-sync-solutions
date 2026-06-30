@@ -1,0 +1,50 @@
+---
+import { ServiceContent } from "../../../components/services/ServiceContent";
+import Layout from "../../../layouts/Layout.astro";
+import { translate } from "../../../lib/i18n";
+import { childParams, getChildBySlug, getGroupBySlug, subKey } from "../../../lib/services";
+
+export function getStaticPaths() {
+	return childParams().map(({ group, slug }) => ({ params: { group, slug } }));
+}
+
+const groupSlug = Astro.params.group as string;
+const childSlug = Astro.params.slug as string;
+const group = getGroupBySlug(groupSlug);
+const child = group ? getChildBySlug(group, childSlug) : undefined;
+if (!group || !child) {
+	return Astro.redirect("/404");
+}
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
+
+const titleTh = translate(child.labelKey, "th");
+const titleEn = translate(child.labelKey, "en");
+const taglineTh = translate(subKey(child.labelKey), "th");
+const pageTitle = `${titleTh} — FactorySync Solutions`;
+
+const serviceLd = {
+	"@context": "https://schema.org",
+	"@type": "Service",
+	name: titleTh,
+	description: taglineTh,
+	url: `https://www.factorysyncsolutions.com/services/${groupSlug}/${childSlug}`,
+	provider: { "@id": "https://www.factorysyncsolutions.com/#organization" },
+	serviceType: titleEn,
+	availableLanguage: ["Thai", "English"],
+};
+---
+
+<Layout title={pageTitle} description={taglineTh}>
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(serviceLd)} />
+  </Fragment>
+  <ServiceContent
+    client:load
+    groupSlug={groupSlug}
+    childSlug={childSlug}
+    appUrl={appUrl}
+    version={version}
+  />
+</Layout>

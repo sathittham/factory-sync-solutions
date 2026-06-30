@@ -17,11 +17,11 @@ status: Done
 >
 > | Surface | App | Actor | Auth claim |
 > |---------|-----|-------|-----------|
-> | `/admin` page (this spec) | `fs-app-web` | End-users with the `role: "admin"` claim | `role == "admin"` |
-> | Backoffice portal | `fs-backoffice-web` | FactorySync internal staff | `backofficeRole ∈ {"staff","superadmin"}` |
+> | `/admin` page (this spec) | `web-app` | End-users with the `role: "admin"` claim | `role == "admin"` |
+> | Backoffice portal | `web-backoffice` | FactorySync internal staff | `backofficeRole ∈ {"staff","superadmin"}` |
 >
 > These are different actor groups. **New admin capabilities should go into
-> `fs-backoffice-web`** unless they are specific to end-user administration.
+> `web-backoffice`** unless they are specific to end-user administration.
 > See [backoffice/feature-spec.md](../backoffice/feature-spec.md) for the staff portal spec.
 
 ---
@@ -73,13 +73,13 @@ Both tabs use local component state — no Redux. All API calls use `api.get` /
 
 | Component | Location | Status |
 |-----------|----------|--------|
-| Admin page | `apps/fs-app-web/src/pages/AdminPage.tsx` | ✅ Built |
+| Admin page | `apps/web-app/src/pages/AdminPage.tsx` | ✅ Built |
 | `QuizTab` | Inline in `AdminPage.tsx` | ✅ Built |
 | `UsersTab` | Inline in `AdminPage.tsx` | ✅ Built |
 | `UserDetailDialog` | Inline in `AdminPage.tsx` | ✅ Built |
 | `RoleChangeDialog` | Inline in `AdminPage.tsx` | ✅ Built |
-| Backend handler | `apps/fs-backend/services/admin/handler.go` | ✅ Built |
-| Route guard | `AdminGuard` in `apps/fs-app-web/src/components/guards/AdminGuard.tsx` | ✅ Built |
+| Backend handler | `apps/backend/services/admin/handler.go` | ✅ Built |
+| Route guard | `AdminGuard` in `apps/web-app/src/components/guards/AdminGuard.tsx` | ✅ Built |
 | Backend route registration | `main.go` | ✅ Built |
 | Server-side industry/size filter | `admin/handler.go` `ListAssessments` | ⚠️ Not implemented (see §11) |
 
@@ -630,10 +630,10 @@ write order (claims first, Firestore second) and accept that Firestore may lag.
 
 ## 16. References
 
-- Admin page: [AdminPage.tsx](../../../apps/fs-app-web/src/pages/AdminPage.tsx)
-- Backend handler: [handler.go](../../../apps/fs-backend/services/admin/handler.go)
-- Admin guard: [guards/AdminGuard.tsx](../../../apps/fs-app-web/src/components/guards/AdminGuard.tsx)
-- Result service (used by admin): [result/service.go](../../../apps/fs-backend/services/result/service.go)
-- Profile service (used by admin): [profile/service.go](../../../apps/fs-backend/services/profile/service.go)
+- Admin page: [AdminPage.tsx](../../../apps/web-app/src/pages/AdminPage.tsx)
+- Backend handler: [handler.go](../../../apps/backend/services/admin/handler.go)
+- Admin guard: [guards/AdminGuard.tsx](../../../apps/web-app/src/components/guards/AdminGuard.tsx)
+- Result service (used by admin): [result/service.go](../../../apps/backend/services/result/service.go)
+- Profile service (used by admin): [profile/service.go](../../../apps/backend/services/profile/service.go)
 - Auth feature (RequireAdmin, custom claims): [auth/feature-spec.md](../auth/feature-spec.md)
 - Result feature (assessment model): [result/feature-spec.md](../result/feature-spec.md)

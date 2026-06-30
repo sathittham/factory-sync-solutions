@@ -1,0 +1,201 @@
+---
+import { AppHandoff } from '../components/AppHandoff';
+import { CookieConsent } from '../components/CookieConsent';
+import { TopCtaBar } from '../components/TopCtaBar';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  canonical?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = 'FactorySync Solutions — ยกระดับโรงงานของคุณด้วยระบบประเมินสุขภาพที่ชาญฉลาด',
+  ogImage,
+  noindex = false,
+} = Astro.props;
+const canonicalURL = Astro.props.canonical ?? Astro.url.href;
+const ogImageURL = ogImage ?? new URL('/og-image.png', Astro.site ?? Astro.url).href;
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? '#';
+const gtmId = import.meta.env.PUBLIC_GTM_ID ?? '';
+
+// Site-wide identity structured data (emitted on every page). Stable @id nodes
+// let page-level schema (Service, FAQPage, …) reference the org without duplicating it.
+const siteUrl = (Astro.site ?? new URL('https://www.factorysyncsolutions.com')).href.replace(/\/$/, '');
+const orgId = `${siteUrl}/#organization`;
+const siteSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': orgId,
+      name: 'FactorySync Solutions',
+      url: `${siteUrl}/`,
+      logo: `${siteUrl}/favicon-32x32.png`,
+      address: {
+        '@type': 'PostalAddress',
+        addressCountry: 'TH',
+        addressLocality: 'Bangkok',
+        addressRegion: 'Bangkok',
+      },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}/#website`,
+      name: 'FactorySync Solutions',
+      url: `${siteUrl}/`,
+      publisher: { '@id': orgId },
+      inLanguage: 'th-TH',
+    },
+  ],
+};
+---
+
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script is:inline define:vars={{ gtmId }}>
+      // Google Consent Mode v2 (advanced) + GTM bootstrap. Order matters:
+      // consent defaults MUST be set before the GTM script is appended.
+      (function () {
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+        window.gtag = gtag;
+
+        // Deny all gated signals before any tag loads — Google tags then
+        // send only cookieless pings until the user grants consent.
+        gtag("consent", "default", {
+          ad_storage: "denied",
+          ad_user_data: "denied",
+          ad_personalization: "denied",
+          analytics_storage: "denied",
+          functionality_storage: "granted",
+          security_storage: "granted",
+          wait_for_update: 2000,
+        });
+
+        // Replay a prior choice immediately so a returning visitor's
+        // first hit is not sent as denied.
+        try {
+          var a = localStorage.getItem("fss-analytics-consent") === "true";
+          var m = localStorage.getItem("fss-marketing-consent") === "true";
+          if (localStorage.getItem("fss-cookie-consent")) {
+            gtag("consent", "update", {
+              analytics_storage: a ? "granted" : "denied",
+              ad_storage: m ? "granted" : "denied",
+              ad_user_data: m ? "granted" : "denied",
+              ad_personalization: m ? "granted" : "denied",
+            });
+          }
+        } catch (e) {
+          /* localStorage blocked — keep defaults (denied) */
+        }
+
+        if (!gtmId) return; // no container in this environment (e.g. staging)
+        (function (w, d, s, l, i) {
+          w[l] = w[l] || [];
+          w[l].push({ "gtm.start": +new Date(), event: "gtm.js" });
+          var f = d.getElementsByTagName(s)[0];
+          var j = d.createElement(s);
+          j.async = true;
+          j.src = "https://www.googletagmanager.com/gtm.js?id=" + encodeURIComponent(i);
+          f.parentNode.insertBefore(j, f);
+        })(window, document, "script", "dataLayer", gtmId);
+      })();
+    </script>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <link rel="canonical" href={canonicalURL} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FactorySync Solutions" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:locale" content="th_TH" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(siteSchema)} />
+    <slot name="head" />
+  </head>
+  <body class="bg-background text-foreground">
+    {
+      gtmId && (
+        <noscript
+          set:html={`<iframe src="https://www.googletagmanager.com/ns.html?id=${encodeURIComponent(gtmId)}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`}
+        />
+      )
+    }
+    <script is:inline>
+      // Apply theme before React hydrates to avoid flash
+      (function () {
+        try {
+          var t = localStorage.getItem("fss-theme");
+          var dark = t === "dark" || (!t && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
+    <script is:inline>
+      (function () {
+        try {
+          var l = localStorage.getItem("fss-locale");
+          if (l) document.documentElement.lang = l;
+        } catch (e) {}
+      })();
+    </script>
+    <TopCtaBar client:load />
+    <slot />
+    <CookieConsent client:idle />
+    <AppHandoff client:idle appUrl={appUrl} />
+    <script is:inline>
+      // Recover `client:load` islands that deadlock on `await-children` in the
+      // static build: the island's hydration MutationObserver is attached after
+      // its `astro:end` marker is already parsed, so it never fires and the island
+      // never hydrates (symptom: nav menu / theme toggle unclickable). A no-op
+      // child mutation once the DOM is ready makes the observer re-evaluate and
+      // hydration proceeds. No-op for islands that already hydrated (observer gone).
+      (function () {
+        function kick() {
+          document.querySelectorAll("astro-island[await-children]").forEach(function (el) {
+            var c = document.createComment("");
+            el.appendChild(c);
+            c.remove();
+          });
+        }
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", kick);
+        } else {
+          kick();
+        }
+      })();
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  @import "../styles/globals.css";
+</style>

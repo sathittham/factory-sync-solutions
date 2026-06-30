@@ -23,7 +23,7 @@ This guide covers Go backend testing patterns specific to this project. For fron
 ## Test File Structure
 
 ```
-apps/fs-backend/services/
+apps/backend/services/
 ├── profile/
 │   ├── handler.go
 │   ├── handler_test.go         # Handler tests (mock service)
@@ -512,7 +512,7 @@ npm install -g firebase-tools
 firebase emulators:start --only firestore
 
 # Run integration tests (separate terminal)
-cd apps/fs-backend
+cd apps/backend
 FIRESTORE_EMULATOR_HOST=localhost:8080 go test -v -run Integration ./...
 ```
 
@@ -520,25 +520,25 @@ FIRESTORE_EMULATOR_HOST=localhost:8080 go test -v -run Integration ./...
 
 ```bash
 # All backend tests
-cd apps/fs-backend && go test ./...
+cd apps/backend && go test ./...
 
 # Specific package
-cd apps/fs-backend && go test ./services/scoring/...
+cd apps/backend && go test ./services/scoring/...
 
 # Verbose output
-cd apps/fs-backend && go test -v ./...
+cd apps/backend && go test -v ./...
 
 # With coverage
-cd apps/fs-backend && go test -cover ./...
+cd apps/backend && go test -cover ./...
 
 # HTML coverage report
-cd apps/fs-backend && go test -coverprofile=cover.out ./... && go tool cover -html=cover.out
+cd apps/backend && go test -coverprofile=cover.out ./... && go tool cover -html=cover.out
 
 # Race condition detection
-cd apps/fs-backend && go test -race ./...
+cd apps/backend && go test -race ./...
 
 # Skip integration tests (unit only)
-cd apps/fs-backend && go test -short ./...
+cd apps/backend && go test -short ./...
 
 # Using Makefile (from project root)
 make test-api

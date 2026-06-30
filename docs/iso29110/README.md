@@ -35,7 +35,7 @@ Supporting PM artifacts (part of PM.O1):
 |---|---|---|
 | **SI.O1** Software Requirements Specification | Functional + non-functional requirements, interfaces | Per-feature: [srs-template.md](srs-template.md) → `docs/product/*/feature-spec.md` |
 | **SI.O2** Software Design Description | Architecture, component, data, interface design | Per-feature: [sdd-template.md](sdd-template.md) → `docs/architecture/` |
-| **SI.O3** Software Components | Source code, unit tested | `apps/fs-backend/`, `apps/fs-app-web/`, `apps/fs-backoffice-web/`, `apps/fs-official-web/` |
+| **SI.O3** Software Components | Source code, unit tested | `apps/backend/`, `apps/web-app/`, `apps/web-backoffice/`, `apps/web-official/` |
 | **SI.O4** Unit Test Documentation | Test plan, test cases, results per component | [test-plan-template.md](test-plan-template.md) |
 | **SI.O5** Integration Test Documentation | Integration test plan, cases, results | [test-plan-template.md](test-plan-template.md) |
 | **SI.O6** User Documentation | End-user manual, installation guide | [user-guide.md](user-guide.md) |

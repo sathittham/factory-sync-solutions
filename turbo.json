@@ -1,0 +1,38 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "globalDependencies": ["packages/shared/**", "biome.json", "tsconfig.json"],
+  "tasks": {
+    "build": {
+      "description": "Build a workspace for production (Vite/Astro/Worker bundle) after its dependencies are built",
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "build/**", ".astro/**"]
+    },
+    "build:staging": {
+      "description": "Build a workspace with staging environment configuration",
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "build/**", ".astro/**"]
+    },
+    "lint": {
+      "description": "Run Biome lint checks on a workspace without modifying files"
+    },
+    "lint:fix": {
+      "description": "Run Biome and auto-fix lint/format issues (not cached, mutates source)",
+      "cache": false
+    },
+    "type-check": {
+      "description": "Type-check a workspace with tsc after its dependencies are built",
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "description": "Run the workspace's unit/component tests and emit coverage",
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
+    "dev": {
+      "description": "Start a workspace's dev server (persistent, never cached)",
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

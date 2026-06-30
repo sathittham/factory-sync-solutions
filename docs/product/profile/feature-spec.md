@@ -25,8 +25,8 @@ Two surfaces exist for the same action:
 
 | Surface | File | Access | Status |
 |---------|------|--------|--------|
-| `ProfileDialog` | `apps/fs-app-web/src/components/ProfileDialog.tsx` | Nav dropdown / mobile drawer | ✅ Active — mounted in `Layout` |
-| `ProfilePage` | `apps/fs-app-web/src/pages/ProfilePage.tsx` | `/profile` | ✅ Active |
+| `ProfileDialog` | `apps/web-app/src/components/ProfileDialog.tsx` | Nav dropdown / mobile drawer | ✅ Active — mounted in `Layout` |
+| `ProfilePage` | `apps/web-app/src/pages/ProfilePage.tsx` | `/profile` | ✅ Active |
 
 `ProfileDialog` is the current editing surface. It is opened by the user's
 avatar/name in the nav header or by the "Profile" link in the mobile drawer.
@@ -61,7 +61,7 @@ tabs. The Activity tab is the user-facing audit log for that authenticated user.
   the backend model but is not exposed in the form UI (future work, see §10).
 - Deleting the account or profile.
 - Profile picture upload (Google avatar is shown read-only).
-- Viewing another user's activity from `fs-app-web`; only backoffice superadmins
+- Viewing another user's activity from `web-app`; only backoffice superadmins
   can inspect other users' activity.
 
 ---
@@ -70,12 +70,12 @@ tabs. The Activity tab is the user-facing audit log for that authenticated user.
 
 | Component | Location | Status |
 |-----------|----------|--------|
-| `ProfileDialog` | `apps/fs-app-web/src/components/ProfileDialog.tsx` | ✅ Built + mounted in Layout |
-| `ProfilePage` | `apps/fs-app-web/src/pages/ProfilePage.tsx` | ✅ Built + routed at `/profile` |
-| Backend `UpdateProfile` handler | `apps/fs-backend/services/profile/handler.go` | ✅ Built |
-| Backend `GetActivity` handler | `apps/fs-backend/services/profile/handler.go` | ✅ Built |
-| Profile Activity tab | `apps/fs-app-web/src/pages/ProfilePage.tsx` | ✅ Built - date formatting cleanup needed |
-| `UpdateProfileRequest` model | `apps/fs-backend/services/profile/models.go` | ✅ Built |
+| `ProfileDialog` | `apps/web-app/src/components/ProfileDialog.tsx` | ✅ Built + mounted in Layout |
+| `ProfilePage` | `apps/web-app/src/pages/ProfilePage.tsx` | ✅ Built + routed at `/profile` |
+| Backend `UpdateProfile` handler | `apps/backend/services/profile/handler.go` | ✅ Built |
+| Backend `GetActivity` handler | `apps/backend/services/profile/handler.go` | ✅ Built |
+| Profile Activity tab | `apps/web-app/src/pages/ProfilePage.tsx` | ✅ Built - date formatting cleanup needed |
+| `UpdateProfileRequest` model | `apps/backend/services/profile/models.go` | ✅ Built |
 | `emailNotifications` field | `UpdateProfileRequest` + `Profile` struct | ✅ Backend — ❌ not in form UI |
 
 ---
@@ -472,12 +472,12 @@ avoid drift.
 
 ## 15. References
 
-- Profile dialog: [ProfileDialog.tsx](../../../apps/fs-app-web/src/components/ProfileDialog.tsx)
-- Profile page: [ProfilePage.tsx](../../../apps/fs-app-web/src/pages/ProfilePage.tsx)
-- Backend handler: [handler.go](../../../apps/fs-backend/services/profile/handler.go)
-- Profile models: [models.go](../../../apps/fs-backend/services/profile/models.go)
-- Auth slice (`setProfile`): [authSlice.ts](../../../apps/fs-app-web/src/store/authSlice.ts)
-- Layout (dialog mount + triggers): [Layout.tsx](../../../apps/fs-app-web/src/components/Layout.tsx)
+- Profile dialog: [ProfileDialog.tsx](../../../apps/web-app/src/components/ProfileDialog.tsx)
+- Profile page: [ProfilePage.tsx](../../../apps/web-app/src/pages/ProfilePage.tsx)
+- Backend handler: [handler.go](../../../apps/backend/services/profile/handler.go)
+- Profile models: [models.go](../../../apps/backend/services/profile/models.go)
+- Auth slice (`setProfile`): [authSlice.ts](../../../apps/web-app/src/store/authSlice.ts)
+- Layout (dialog mount + triggers): [Layout.tsx](../../../apps/web-app/src/components/Layout.tsx)
 - Register feature (initial profile creation): [register/feature-spec.md](../register/feature-spec.md)
 - Auth feature (`GetProfile` on sign-in): [auth/feature-spec.md](../auth/feature-spec.md)
 - Backoffice user/profile management (FactorySync staff view of all profiles): [backoffice/feature-spec.md §4](../backoffice/feature-spec.md)

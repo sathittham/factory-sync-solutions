@@ -23,6 +23,10 @@ on:
         description: "Force-deploy official site"
         type: boolean
         default: true
+      deploy_consumer:
+        description: "Force-deploy domain event consumer"
+        type: boolean
+        default: true
       deploy_backoffice:
         description: "Force-deploy backoffice web"
         type: boolean
@@ -41,6 +45,7 @@ jobs:
       web: ${{ steps.detect.outputs.web }}
       official: ${{ steps.detect.outputs.official }}
       backoffice: ${{ steps.detect.outputs.backoffice }}
+      consumer: ${{ steps.detect.outputs.consumer }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,6 +61,7 @@ jobs:
               echo "gateway=${{ inputs.deploy_gateway }}";
               echo "web=${{ inputs.deploy_web }}";
               echo "official=${{ inputs.deploy_official }}";
+              echo "consumer=${{ inputs.deploy_consumer }}";
               echo "backoffice=${{ inputs.deploy_backoffice }}"; } >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -63,20 +69,20 @@ jobs:
           PREV=$(git tag -l 'v*-staging' 'v*-staging-*' --sort=-creatordate | grep -vx "$CURRENT" | head -1)
           if [ -z "$PREV" ]; then
             echo "No previous staging tag — deploying all apps."
-            { echo "api=true"; echo "gateway=true"; echo "web=true"; echo "official=true"; echo "backoffice=true"; } >> "$GITHUB_OUTPUT"
+            { echo "api=true"; echo "gateway=true"; echo "web=true"; echo "official=true"; echo "consumer=true"; echo "backoffice=true"; } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "Diffing $PREV..$CURRENT"
           CHANGED=$(git diff --name-only "$PREV" "$CURRENT")
           echo "Changed files:"; echo "$CHANGED"
           api=false; gateway=false; web=false; official=false; backoffice=false
-          if echo "$CHANGED" | grep -qE '^apps/fs-backend/|^\.github/workflows/deploy-staging\.yml';     then api=true;        fi
+          if echo "$CHANGED" | grep -qE '^apps/backend/|^\.github/workflows/deploy-staging\.yml'; then api=true; consumer=true; fi
           if echo "$CHANGED" | grep -qE '^infra/cloudflare/workers/api-gateway/|^\.github/workflows/deploy-staging\.yml'; then gateway=true; fi
-          if echo "$CHANGED" | grep -qE '^apps/fs-app-web/|^\.github/workflows/deploy-staging\.yml';     then web=true;        fi
-          if echo "$CHANGED" | grep -qE '^apps/fs-official-web/|^\.github/workflows/deploy-staging\.yml'; then official=true; fi
-          if echo "$CHANGED" | grep -qE '^apps/fs-backoffice-web/|^\.github/workflows/deploy-staging\.yml'; then backoffice=true; fi
-          echo "Deploy → api=$api gateway=$gateway web=$web official=$official backoffice=$backoffice"
-          { echo "api=$api"; echo "gateway=$gateway"; echo "web=$web"; echo "official=$official"; echo "backoffice=$backoffice"; } >> "$GITHUB_OUTPUT"
+          if echo "$CHANGED" | grep -qE '^apps/web-app/|^packages/shared/|^pnpm-lock\.yaml|^\.github/workflows/deploy-staging\.yml';     then web=true;        fi
+          if echo "$CHANGED" | grep -qE '^apps/web-official/|^packages/shared/|^pnpm-lock\.yaml|^\.github/workflows/deploy-staging\.yml'; then official=true; fi
+          if echo "$CHANGED" | grep -qE '^apps/web-backoffice/|^packages/shared/|^pnpm-lock\.yaml|^\.github/workflows/deploy-staging\.yml'; then backoffice=true; fi
+          echo "Deploy → api=$api gateway=$gateway web=$web official=$official consumer=$consumer backoffice=$backoffice"
+          { echo "api=$api"; echo "gateway=$gateway"; echo "web=$web"; echo "official=$official"; echo "consumer=$consumer"; echo "backoffice=$backoffice"; } >> "$GITHUB_OUTPUT"
 
   deploy-backend:
     name: Deploy Backend to Staging
@@ -92,7 +98,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.26.4"
-          cache-dependency-path: apps/fs-backend/go.sum
+          cache-dependency-path: apps/backend/go.sum
 
       - uses: actions/setup-node@v4
         with:
@@ -113,7 +119,7 @@ jobs:
       - name: Build and push Docker image
         run: |
           IMAGE=asia-southeast3-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run/factory-sync-solutions-api-staging:${{ github.sha }}
-          docker build -t $IMAGE apps/fs-backend
+          docker build -t $IMAGE apps/backend
           docker push $IMAGE
 
       - name: Publish Swagger docs to R2
@@ -135,6 +141,48 @@ jobs:
             --allow-unauthenticated \
             --service-account=deployer@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
             --set-env-vars="^@^ENVIRONMENT=staging@APP_URL=https://app-staging.factorysyncsolutions.com@RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}@CF_TURNSTILE_SECRET=${{ secrets.CF_TURNSTILE_SECRET }}@SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }}@SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }}@ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }},https://app-staging.factorysyncsolutions.com,https://backoffice-staging.factorysyncsolutions.com,https://staging.factorysyncsolutions.com@R2_ACCOUNT_ID=${{ vars.R2_ACCOUNT_ID }}@R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}@R2_ACCESS_KEY_SECRET=${{ secrets.R2_ACCESS_KEY_SECRET }}@R2_PUBLIC_BUCKET=uploads-factorysyncsolutions-com-staging@R2_PUBLIC_BASE_URL=https://cdn-staging.factorysyncsolutions.com@API_DOCS_SOURCE=r2@API_DOCS_R2_ACCOUNT_ID=${{ secrets.API_DOCS_R2_ACCOUNT_ID }}@API_DOCS_R2_ACCESS_KEY_ID=${{ secrets.API_DOCS_R2_ACCESS_KEY_ID }}@API_DOCS_R2_ACCESS_KEY_SECRET=${{ secrets.API_DOCS_R2_ACCESS_KEY_SECRET }}@API_DOCS_R2_BUCKET=apidoc-factorysyncsolutions-com-staging@API_DOCS_R2_PREFIX=openapi@API_DOCS_SUPPORTED_VERSIONS=v1@API_DOCS_DEFAULT_VERSION=v1@API_DOCS_LOCAL_DIR=docs"
+
+  deploy-domain-event-consumer:
+    name: Deploy Domain Event Consumer to Staging
+    needs: [test, changes]
+    if: needs.changes.outputs.consumer == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker asia-southeast3-docker.pkg.dev --quiet
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE=asia-southeast3-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run/factory-sync-solutions-domain-event-consumer-staging:${{ github.sha }}
+          docker build -t $IMAGE apps/backend
+          docker push $IMAGE
+
+      - name: Deploy consumer to Cloud Run
+        run: |
+          gcloud run deploy factory-sync-solutions-domain-event-consumer-staging \
+            --image=asia-southeast3-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run/factory-sync-solutions-domain-event-consumer-staging:${{ github.sha }} \
+            --region=asia-southeast3 \
+            --platform=managed \
+            --command="./domain-event-consumer" \
+            --no-allow-unauthenticated \
+            --service-account=deployer@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
+            --min-instances=1 \
+            --max-instances=2 \
+            --concurrency=1 \
+            --cpu=1 \
+            --memory=512Mi \
+            --set-env-vars="^@^ENVIRONMENT=staging@RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}@SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }}@SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }}@DOMAIN_EVENT_SUBSCRIPTION=${{ vars.DOMAIN_EVENT_SUBSCRIPTION }}@DOMAIN_EVENT_INBOX_COLLECTION=${{ vars.DOMAIN_EVENT_INBOX_COLLECTION }}@DOMAIN_EVENT_INBOX_LEASE=${{ vars.DOMAIN_EVENT_INBOX_LEASE }}@DOMAIN_EVENT_MAX_ATTEMPTS=${{ vars.DOMAIN_EVENT_MAX_ATTEMPTS }}@DOMAIN_EVENT_DLQ_PROJECT_ID=${{ vars.DOMAIN_EVENT_DLQ_PROJECT_ID }}@DOMAIN_EVENT_PUBSUB_DLQ_TOPIC=${{ vars.DOMAIN_EVENT_PUBSUB_DLQ_TOPIC }}@DOMAIN_EVENT_SUBSCRIPTION_GOROUTINES=${{ vars.DOMAIN_EVENT_SUBSCRIPTION_GOROUTINES }}@DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_MESSAGES=${{ vars.DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_MESSAGES }}@DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_BYTES=${{ vars.DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_BYTES }}"
 
   deploy-api-gateway:
     name: Deploy API Gateway to Staging
@@ -164,20 +212,22 @@ jobs:
     environment: staging
     defaults:
       run:
-        working-directory: apps/fs-app-web
+        working-directory: apps/web-app
     steps:
       - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
-          cache-dependency-path: apps/fs-app-web/package-lock.json
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install and build
         run: |
-          npm ci
-          npx vite build
+          pnpm install --frozen-lockfile
+          pnpm exec vite build
         env:
           VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
@@ -196,7 +246,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/fs-app-web/dist --project-name=factory-sync-solutions-staging --branch=staging
+          command: pages deploy apps/web-app/dist --project-name=factory-sync-solutions-staging --branch=staging
 
   deploy-official:
     name: Deploy Official Site to Staging
@@ -206,15 +256,17 @@ jobs:
     environment: staging
     defaults:
       run:
-        working-directory: apps/fs-official-web
+        working-directory: apps/web-official
     steps:
       - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
-          cache-dependency-path: apps/fs-official-web/package-lock.json
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Compute version
         id: version
@@ -224,8 +276,8 @@ jobs:
 
       - name: Install and build
         run: |
-          npm ci
-          npm run build:staging
+          pnpm install --frozen-lockfile
+          pnpm run build:staging
         env:
           PUBLIC_APP_URL: https://app-staging.factorysyncsolutions.com
           PUBLIC_APP_VERSION: ${{ steps.version.outputs.version }}
@@ -243,7 +295,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/fs-official-web/dist --project-name=factory-sync-solutions-official-staging --branch=staging
+          command: pages deploy apps/web-official/dist --project-name=factory-sync-solutions-official-staging --branch=staging
 
   deploy-backoffice:
     name: Deploy Backoffice to Staging
@@ -253,20 +305,22 @@ jobs:
     environment: staging
     defaults:
       run:
-        working-directory: apps/fs-backoffice-web
+        working-directory: apps/web-backoffice
     steps:
       - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
-          cache-dependency-path: apps/fs-backoffice-web/package-lock.json
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install and build
         run: |
-          npm install
-          npm run build:staging
+          pnpm install --frozen-lockfile
+          pnpm run build:staging
         env:
           VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
@@ -281,7 +335,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/fs-backoffice-web/dist --project-name=factory-sync-backoffice-staging --branch=staging
+          command: pages deploy apps/web-backoffice/dist --project-name=factory-sync-backoffice-staging --branch=staging
 
   notify:
     name: Notify Slack

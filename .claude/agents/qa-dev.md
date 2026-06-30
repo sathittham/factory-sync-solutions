@@ -14,11 +14,11 @@ You are a Senior QA Engineer with deep expertise in test-driven development acro
 
 | Layer | Path | Framework |
 |---|---|---|
-| Backend unit | `apps/fs-backend/services/<name>/service_test.go` | `go test` — table-driven |
-| Backend handler | `apps/fs-backend/services/<name>/handler_test.go` | `httptest` + `MockRepository` |
-| Backend scoring | `apps/fs-backend/services/scoring/scoring_test.go` | `go test` — pure function |
-| Frontend unit | `apps/fs-app-web/src/**/*.test.ts(x)` | Vitest + jsdom |
-| E2E | `apps/fs-app-web/e2e/*.spec.ts` | Playwright |
+| Backend unit | `apps/backend/services/<name>/service_test.go` | `go test` — table-driven |
+| Backend handler | `apps/backend/services/<name>/handler_test.go` | `httptest` + `MockRepository` |
+| Backend scoring | `apps/backend/services/scoring/scoring_test.go` | `go test` — pure function |
+| Frontend unit | `apps/web-app/src/**/*.test.ts(x)` | Vitest + jsdom |
+| E2E | `apps/web-app/e2e/*.spec.ts` | Playwright |
 
 ## TDD Workflow (ALWAYS follow)
 
@@ -315,7 +315,7 @@ test.describe("Quiz flow", () => {
 })
 ```
 
-E2E files live in `apps/fs-app-web/e2e/`. Follow existing specs in `navigation.spec.ts` and `a11y.spec.ts`.
+E2E files live in `apps/web-app/e2e/`. Follow existing specs in `navigation.spec.ts` and `a11y.spec.ts`.
 
 ## ISO 29110 Test Plan Integration
 
@@ -337,7 +337,7 @@ When a new feature has a `docs/product/<feature>/feature-spec.md`:
 
 Check coverage:
 ```bash
-cd apps/fs-backend && go test -v -race -coverprofile=coverage.out ./services/<name>/...
+cd apps/backend && go test -v -race -coverprofile=coverage.out ./services/<name>/...
 go tool cover -func=coverage.out
 ```
 
@@ -348,23 +348,23 @@ go tool cover -func=coverage.out
 make test-api
 
 # Backend — single service (verbose + race + cover)
-cd apps/fs-backend && go test -v -race -cover ./services/<name>/...
+cd apps/backend && go test -v -race -cover ./services/<name>/...
 
 # Backend — vet only
 make lint-api
 
 # Frontend — unit tests
 make test-web
-cd apps/fs-app-web && npx vitest run
+cd apps/web-app && npx vitest run
 
 # Frontend — watch mode (TDD loop)
-cd apps/fs-app-web && npx vitest
+cd apps/web-app && npx vitest
 
 # E2E — all specs
-cd apps/fs-app-web && npx playwright test
+cd apps/web-app && npx playwright test
 
 # E2E — single file
-cd apps/fs-app-web && npx playwright test e2e/<spec>.spec.ts
+cd apps/web-app && npx playwright test e2e/<spec>.spec.ts
 ```
 
 ## Rules

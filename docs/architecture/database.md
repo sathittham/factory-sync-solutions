@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-06-10
+version: 1.3.0
+lastUpdated: 2026-06-20
 author: Sathittham Sangthong
 ---
 
@@ -13,7 +13,7 @@ author: Sathittham Sangthong
 
 ## ID Generation
 
-All document IDs (except `users/{uid}` which uses the Firebase Auth UID) must be generated as **UUIDv4** strings.
+Document IDs are **UUIDv4** strings, except where a natural key already guarantees uniqueness (Firebase Auth UID for `users`, `members`, and `invitations`; `companyRegId` for `projects`) — see the table below.
 
 ```go
 import "github.com/google/uuid"
@@ -28,7 +28,7 @@ id := uuid.New().String() // e.g. "550e8400-e29b-41d4-a716-446655440000"
 | `email_jobs/{jobId}` | UUIDv4 |
 | `projects/{projectID}` | `companyRegId` (13-digit Thai tax ID — naturally unique per company) |
 | `projects/{projectID}/members/{uid}` | Firebase Auth UID (subcollection, same key as `users/{uid}`) |
-| `project_invitations/{token}` | UUIDv4 |
+| `invitations/{uid}` | Firebase Auth UID of the invited user (not a token) |
 
 ## Firestore Collections
 
@@ -37,6 +37,7 @@ id := uuid.New().String() // e.g. "550e8400-e29b-41d4-a716-446655440000"
 │   ├── uid: string                  (mirrors document ID)
 │   ├── email: string
 │   ├── displayName: string
+│   ├── avatarURL: string
 │   ├── companyName: string
 │   ├── companyRegId: string         (13-digit registration ID)
 │   ├── industryType: string
@@ -45,7 +46,6 @@ id := uuid.New().String() // e.g. "550e8400-e29b-41d4-a716-446655440000"
 │   ├── contactEmail: string
 │   ├── contactPhone: string
 │   ├── role: string                 ("user" | "admin") — system-level; separate from projectRole
-│   ├── activeProjectID: string       → the project currently in scope for this user's session
 │   ├── projectRoles: map            { "0123456789012": "owner", "0987654321012": "manager", … }
 │   │                                  denormalized mirror of all members subdoc entries; updated
 │   │                                  in the same transaction as any role/membership change
@@ -56,9 +56,9 @@ id := uuid.New().String() // e.g. "550e8400-e29b-41d4-a716-446655440000"
 │   └── updatedAt: string            (UTC ISO 8601)
 │
 ├── assessments/{assessmentId}
+│   ├── id: string                   (mirrors document ID)
 │   ├── uid: string
-│   ├── projectID: string            → foreign key to projects/{projectID}
-│   ├── quizID: string
+│   ├── quizId: string
 │   ├── answers: QuizAnswer[]
 │   ├── scores: DimensionScore[]
 │   ├── overallScore: number         (1.0 – 5.0)
@@ -93,28 +93,23 @@ id := uuid.New().String() // e.g. "550e8400-e29b-41d4-a716-446655440000"
 │       ├── displayName: string
 │       ├── projectRole: string      ("owner" | "system_admin" | "manager" | "general_user")
 │       ├── joinMethod: string       ("self_registered" | "invited")
-│       ├── invitedBy: string | null (uid of the inviter; null when joinMethod == "self_registered")
-│       ├── invitationToken: string | null (consumed token; null when self_registered)
 │       ├── joinedAt: string         (UTC ISO 8601)
 │       └── isActive: bool
 │
-└── project_invitations/{token}      (token == UUIDv4)
-    ├── token: string
-    ├── projectID: string
-    ├── projectName: string          (snapshot — avoids a join on public preview endpoint)
+└── invitations/{uid}                (doc ID == invited user's Firebase Auth UID, not a token)
+    ├── uid: string                  (mirrors document ID)
+    ├── email: string
+    ├── role: string                 (project/system role granted on accept)
     ├── invitedBy: string            (uid of sender)
-    ├── invitedByName: string        (displayName snapshot)
-    ├── role: string
-    ├── email: string                (target email — pre-fill only, not enforced on accept)
-    ├── status: string               ("pending" | "accepted" | "expired" | "revoked")
-    ├── expiresAt: string            (UTC ISO 8601; 7 days from creation)
-    ├── acceptedAt: string | null    (UTC ISO 8601 — set when status → "accepted")
-    ├── acceptedByUID: string | null (UID of acceptor — may differ from invited email)
-    ├── revokedAt: string | null     (UTC ISO 8601 — set when status → "revoked")
-    ├── revokedBy: string | null     (UID of who revoked)
-    ├── emailSentAt: string | null   (UTC ISO 8601 — populated on successful Resend delivery)
-    └── emailError: string | null    (error message when delivery fails)
+    ├── invitedAt: string            (UTC ISO 8601)
+    ├── expiresAt: string            (UTC ISO 8601)
+    ├── companyName: string          (snapshot from inviter's profile at invite time)
+    ├── companyRegId: string         (snapshot)
+    ├── industryType: string         (snapshot)
+    └── companySize: string          (snapshot)
 ```
+
+`invitedBy` lives on the invitation document only — it is not duplicated onto the `members/{uid}` subdocument once accepted.
 
 ## Security Rules
 
@@ -144,7 +139,7 @@ setup form's contact name for invited email/password users.
 
 ## Quiz Question Structure
 
-Questions are stored as static JSON config in `apps/fs-backend/config/questions*.json`. See [quiz-design.md](quiz-design.md) for the full dimension list and question catalog.
+Questions are stored as static JSON config in `apps/backend/config/questions*.json`. See [quiz-design.md](quiz-design.md) for the full dimension list and question catalog.
 
 ```typescript
 interface Question {
@@ -218,22 +213,26 @@ Resend API key is a server-side secret — only used from the Go backend, never 
 
 **Method 2**: Go CLI seed tool
 ```bash
-cd apps/fs-backend && ENVIRONMENT=development go run ./cmd/set-superadmin --email=admin@company.com
+cd apps/backend && ENVIRONMENT=development go run ./cmd/set-superadmin --email=admin@company.com
 ```
 Only runs in development and uses the same Firebase Admin credentials as the backend.
 
 ---
 
-## Composite Indexes (project-related)
+## Composite Indexes
+
+Source of truth: [`firestore.indexes.json`](../../firestore.indexes.json).
 
 | Collection | Fields | Order | Query |
 |------------|--------|-------|-------|
-| `assessments` | `projectID`, `submittedAt` | ASC, DESC | Scope all project assessments by date |
-| `assessments` | `projectID`, `uid`, `submittedAt` | ASC, ASC, DESC | Scope one member's assessments within a project |
-| `projects/.../members` | `isActive`, `joinedAt` | ASC, ASC | List active members in join order |
-| `project_invitations` | `projectID`, `status`, `expiresAt` | ASC, ASC, ASC | List invitations by status for a project |
-| `project_invitations` | `projectID`, `invitedBy`, `status` | ASC, ASC, ASC | Audit: all invitations sent by a specific member |
-| `audit_events` | `projectID`, `createdAt` | ASC, DESC | Project-scoped audit log query (`GET /project/audit`) |
+| `assessments` | `uid`, `submittedAt` | ASC, DESC | List one user's assessments by date |
+| `audit_events` | `actorUID`, `createdAt` | ASC, DESC | Audit log filtered by actor |
+| `audit_events` | `targetUID`, `createdAt` | ASC, DESC | Audit log filtered by target user |
+| `audit_events` | `projectID`, `createdAt` | ASC, DESC | Project-scoped audit log query |
+| `audit_events` | `eventType`, `createdAt` | ASC, DESC | Audit log filtered by event type |
+| `audit_events` | `resourceType`, `createdAt` | ASC, DESC | Audit log filtered by resource type |
+
+No composite indexes currently exist for `projects`, `members`, or `invitations` — current queries on those collections only need single-field equality/order, which Firestore indexes automatically.
 
 ---
 
@@ -244,3 +243,4 @@ Only runs in development and uses the same Firebase Admin credentials as the bac
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-06-10 | Add `projects`, `projects/.../members`, `project_invitations` collections; add `projectID` and `projectRole` to `users`; add `projectID` to `assessments`; add composite indexes table |
 | 1.2.0 | 2026-06-10 | Add `audit_events: projectID + createdAt` composite index |
+| 1.3.0 | 2026-06-20 | Corrected schema to match implementation: renamed `project_invitations` → `invitations` (keyed by invited user's UID, not a token) and rewrote its field list; removed unimplemented `users.activeProjectID` and `assessments.projectID`; added missing `users.avatarURL` and `assessments.id`; fixed `assessments.quizID` → `quizId` casing; removed phantom `members.invitedBy`/`invitationToken`; rebuilt Composite Indexes table from `firestore.indexes.json` |

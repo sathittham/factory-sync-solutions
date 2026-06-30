@@ -30,8 +30,8 @@ lastUpdated: 2026-06-11
 
 ### 1.1 In Scope
 - [List components/functions under test]
-- Unit tests: `apps/fs-backend/services/<feature>/service_test.go`
-- Integration tests: `apps/fs-backend/services/<feature>/handler_test.go`
+- Unit tests: `apps/backend/services/<feature>/service_test.go`
+- Integration tests: `apps/backend/services/<feature>/handler_test.go`
 - Frontend unit tests: `apps/<app>/src/**/*.test.tsx`
 
 ### 1.2 Out of Scope
@@ -113,7 +113,7 @@ E2E tests live in `e2e/` (Playwright).
 | Frontend Redux slice | 100% of actions | Vitest |
 | Frontend page component | Key paths | Vitest |
 
-Run: `cd apps/fs-backend && go test -v -race -cover ./services/<feature>/...`
+Run: `cd apps/backend && go test -v -race -cover ./services/<feature>/...`
 
 ---
 

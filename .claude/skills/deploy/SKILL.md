@@ -18,19 +18,19 @@ This is a **forced rebuild + deploy** — it does NOT check for changed files.
 ```
 /deploy staging               # deploy ALL apps to staging
 /deploy prod                  # deploy ALL apps to production
-/deploy staging fs-app-web    # deploy only fs-app-web to staging
-/deploy prod fs-backoffice-web fs-official-web   # deploy two apps to production
+/deploy staging web-app    # deploy only web-app to staging
+/deploy prod web-backoffice web-official   # deploy two apps to production
 ```
 
 ## App Registry
 
 | App | Directory | Staging script | Prod script |
 |-----|-----------|---------------|-------------|
-| `fs-app-web` | `apps/fs-app-web` | `deploy:staging` | `deploy:prod` |
-| `fs-backoffice-web` | `apps/fs-backoffice-web` | `deploy:staging` | `deploy:prod` |
-| `fs-official-web` | `apps/fs-official-web` | `deploy:staging` | `deploy:prod` |
+| `web-app` | `apps/web-app` | `deploy:staging` | `deploy:prod` |
+| `web-backoffice` | `apps/web-backoffice` | `deploy:staging` | `deploy:prod` |
+| `web-official` | `apps/web-official` | `deploy:staging` | `deploy:prod` |
 
-`fs-backend` is excluded — it deploys via Docker/Cloud Run, not Cloudflare Pages.
+`backend` is excluded — it deploys via Docker/Cloud Run, not Cloudflare Pages.
 
 ---
 
@@ -65,9 +65,9 @@ cd apps/<dir> && npm run <script>
 
 Example for staging, all apps:
 ```bash
-cd apps/fs-app-web && npm run deploy:staging
-cd apps/fs-backoffice-web && npm run deploy:staging
-cd apps/fs-official-web && npm run deploy:staging
+cd apps/web-app && npm run deploy:staging
+cd apps/web-backoffice && npm run deploy:staging
+cd apps/web-official && npm run deploy:staging
 ```
 
 Each deploy script already runs `tsc -b && vite build` (or `astro build`) before calling `wrangler pages deploy` — no separate build step needed.
@@ -80,9 +80,9 @@ After all deploys finish, report:
 
 | App | Status | URL |
 |-----|--------|-----|
-| `fs-app-web` | ✓ deployed / ✗ failed | `<wrangler output URL>` |
-| `fs-backoffice-web` | ✓ deployed / ✗ failed | `<wrangler output URL>` |
-| `fs-official-web` | ✓ deployed / ✗ failed | `<wrangler output URL>` |
+| `web-app` | ✓ deployed / ✗ failed | `<wrangler output URL>` |
+| `web-backoffice` | ✓ deployed / ✗ failed | `<wrangler output URL>` |
+| `web-official` | ✓ deployed / ✗ failed | `<wrangler output URL>` |
 
 For failures, include the last 10 lines of output so the user can diagnose.
 
@@ -92,5 +92,5 @@ For failures, include the last 10 lines of output so the user can diagnose.
 
 - **NEVER** skip the build step — deploy scripts include it automatically
 - **NEVER** run deploys in parallel — sequential only to avoid Cloudflare auth races
-- **NEVER** deploy `fs-backend` with this skill — it has its own pipeline
+- **NEVER** deploy `backend` with this skill — it has its own pipeline
 - For production deploys, always remind the user to have verified on staging first

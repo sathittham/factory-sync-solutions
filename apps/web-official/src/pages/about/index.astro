@@ -1,0 +1,14 @@
+---
+import { AboutContent } from "../../components/about/AboutContent";
+import Layout from "../../layouts/Layout.astro";
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
+---
+
+<Layout
+  title="เกี่ยวกับเรา — FactorySync Solutions"
+  description="FactorySync Solutions — ทีมวุฒิวิศวกรและที่ปรึกษาผู้เชี่ยวชาญด้านการยกระดับโรงงานอุตสาหกรรมไทย"
+>
+  <AboutContent client:load page="overview" appUrl={appUrl} version={version} />
+</Layout>

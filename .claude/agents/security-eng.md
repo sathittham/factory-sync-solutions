@@ -89,11 +89,11 @@ You are a Senior Cybersecurity Engineer with 10+ years in application security a
 
 ```bash
 # Go — check for known CVEs
-cd apps/fs-backend && go list -m -json all | grep -E '"Path"|"Version"' | head -60
+cd apps/backend && go list -m -json all | grep -E '"Path"|"Version"' | head -60
 
 # npm — check for high/critical vulnerabilities
-cd apps/fs-app-web && npm audit --audit-level=high
-cd apps/fs-official-web && npm audit --audit-level=high
+cd apps/web-app && npm audit --audit-level=high
+cd apps/web-official && npm audit --audit-level=high
 ```
 
 ---
@@ -102,7 +102,7 @@ cd apps/fs-official-web && npm audit --audit-level=high
 
 ```
 ### [SEVERITY] Finding: [title]
-**File**: apps/fs-backend/path/to/file.go:LINE
+**File**: apps/backend/path/to/file.go:LINE
 **OWASP**: A0X — [category]
 **Confidence**: X%
 
@@ -139,7 +139,7 @@ Severity levels:
 
 ```bash
 grep -n "r\.Get\|r\.Post\|r\.Put\|r\.Patch\|r\.Delete\|r\.Route\|r\.Group" \
-  apps/fs-backend/main.go apps/fs-backend/services/*/handler.go
+  apps/backend/main.go apps/backend/services/*/handler.go
 ```
 
 ### Step 2 — Verify FirebaseAuth middleware placement
@@ -147,10 +147,10 @@ grep -n "r\.Get\|r\.Post\|r\.Put\|r\.Patch\|r\.Delete\|r\.Route\|r\.Group" \
 ```bash
 # Find routes that use FirebaseAuth middleware
 grep -n "FirebaseAuth\|middleware\.FirebaseAuth" \
-  apps/fs-backend/main.go apps/fs-backend/services/*/handler.go
+  apps/backend/main.go apps/backend/services/*/handler.go
 
 # Find routes that DON'T — compare against the full list
-grep -n "r\.Route\|r\.Group" apps/fs-backend/main.go
+grep -n "r\.Route\|r\.Group" apps/backend/main.go
 ```
 
 Every route group under `/api/v1/` (except `healthz`) must be inside a `r.Use(middleware.FirebaseAuth(authClient))` block.
@@ -160,18 +160,18 @@ Every route group under `/api/v1/` (except `healthz`) must be inside a `r.Use(mi
 ```bash
 # Should always be middleware.GetUID(r)
 grep -rn "GetUID\|r\.Context\|userID.*Body\|userID.*Param" \
-  apps/fs-backend/services/*/handler.go
+  apps/backend/services/*/handler.go
 
 # Flag any handler reading userID from body or path
 grep -rn "r\.FormValue\|chi\.URLParam.*[Uu]ser\|json.*userID" \
-  apps/fs-backend/services/*/handler.go
+  apps/backend/services/*/handler.go
 ```
 
 ### Step 4 — Check Firestore query scoping
 
 ```bash
 # Every query on user data must include a userID filter
-grep -rn "\.Where\|\.Collection\|\.Doc" apps/fs-backend/services/*/service.go
+grep -rn "\.Where\|\.Collection\|\.Doc" apps/backend/services/*/service.go
 ```
 
 Verify each Collection query that returns user data has `Where("userID", "==", uid)`.
@@ -181,7 +181,7 @@ Verify each Collection query that returns user data has `Where("userID", "==", u
 ```bash
 # RespondError should be the only error response path
 grep -rn "json\.Encode\|fmt\.Fprintf\|w\.Write" \
-  apps/fs-backend/services/*/handler.go
+  apps/backend/services/*/handler.go
 ```
 
 If `json.Encode` or `fmt.Fprintf` appear in a handler, flag it — raw encoding bypasses the error format and may leak internal details.
@@ -190,7 +190,7 @@ If `json.Encode` or `fmt.Fprintf` appear in a handler, flag it — raw encoding 
 
 ```bash
 # List Firestore collections referenced in service code
-grep -rn '\.Collection("' apps/fs-backend/services/*/service.go | grep -oP '\.Collection\("\K[^"]+' | sort -u
+grep -rn '\.Collection("' apps/backend/services/*/service.go | grep -oP '\.Collection\("\K[^"]+' | sort -u
 
 # List collections covered in firestore.rules
 grep "match /" firestore.rules | grep -oP '\/\K[^/]+(?=/)' | sort -u
@@ -204,10 +204,10 @@ Any collection name in the code that doesn't appear in `firestore.rules` is a se
 
 ```bash
 # Verify Turnstile secret is not in frontend code
-grep -rn "TURNSTILE_SECRET\|0x.*secret" apps/fs-app-web/src/ apps/fs-official-web/src/
+grep -rn "TURNSTILE_SECRET\|0x.*secret" apps/web-app/src/ apps/web-official/src/
 
 # Verify Turnstile verification hits the correct endpoint
-grep -rn "VerifyTurnstile\|challenges.cloudflare.com" apps/fs-backend/
+grep -rn "VerifyTurnstile\|challenges.cloudflare.com" apps/backend/
 ```
 
 Turnstile secret must be server-side only. The site key (`VITE_TURNSTILE_SITE_KEY`) is public — that's correct.

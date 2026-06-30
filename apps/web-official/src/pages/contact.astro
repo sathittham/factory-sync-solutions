@@ -1,0 +1,14 @@
+---
+import { ContactContent } from "../components/contact/ContactContent";
+import Layout from "../layouts/Layout.astro";
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
+---
+
+<Layout
+  title="ติดต่อเรา — FactorySync Solutions"
+  description="ติดต่อทีมงาน FactorySync Solutions สอบถามข้อมูล นัดตรวจสุขภาพโรงงาน หรือขอคำปรึกษาจากวุฒิวิศวกร"
+>
+  <ContactContent client:load appUrl={appUrl} version={version} />
+</Layout>

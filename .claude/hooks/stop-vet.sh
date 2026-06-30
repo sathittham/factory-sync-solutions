@@ -1,5 +1,5 @@
 #!/bin/bash
-# Stop hook: run go vet on apps/fs-backend if any .go files were modified.
+# Stop hook: run go vet on apps/backend if any .go files were modified.
 
 changed_files=$(
   {
@@ -11,12 +11,12 @@ changed_files=$(
 
 [ -z "$changed_files" ] && exit 0
 
-# Check if any changed files are under apps/fs-backend
-api_files=$(echo "$changed_files" | grep '^apps/fs-backend/')
+# Check if any changed files are under apps/backend
+api_files=$(echo "$changed_files" | grep '^apps/backend/')
 [ -z "$api_files" ] && exit 0
 
-echo "→ go vet apps/fs-backend/..."
-if ! (cd apps/fs-backend && go vet ./... 2>&1); then
+echo "→ go vet apps/backend/..."
+if ! (cd apps/backend && go vet ./... 2>&1); then
   exit 1
 fi
 

@@ -1,0 +1,14 @@
+{
+  "name": "@repo/backend",
+  "version": "0.0.0",
+  "private": true,
+  "description": "FactorySync Solutions API — Go + Chi + Firestore + Firebase Auth",
+  "scripts": {
+    "dev": "go run main.go",
+    "build": "go build ./...",
+    "build:consumer": "go build ./cmd/domain-event-consumer",
+    "test": "go test -race -cover ./...",
+    "lint": "go vet ./...",
+    "docs": "API_DOCS_API_VERSION=v1 ../../scripts/generate-api-docs.sh"
+  }
+}

@@ -11,4 +11,4 @@ are not product applications:
 - GCP deployment notes
 
 Product apps stay under `apps/`. Backend business logic stays in
-`apps/fs-backend`.
+`apps/backend`.

@@ -15,7 +15,7 @@ status: Done
 
 ## 1. Summary
 
-The notification service (`apps/fs-backend/services/notification/`) is a pure
+The notification service (`apps/backend/services/notification/`) is a pure
 backend service with no frontend surface. It fires three events:
 
 | Event | Email | Slack |
@@ -73,7 +73,7 @@ backend service with no frontend surface. It fires three events:
 | Result email template | `services/notification/email_result.go` | ✅ Built |
 | Slack client | `services/notification/slack.go` | ✅ Built |
 | `EmailJob` model | `services/notification/models.go` | ✅ Built |
-| Service wiring | `apps/fs-backend/main.go` | ✅ Built |
+| Service wiring | `apps/backend/main.go` | ✅ Built |
 | Registration trigger | `services/profile/handler.go` `CreateProfile` | ✅ Built |
 | Quiz result trigger | `services/quiz/handler.go` `SubmitQuiz` | ✅ Built |
 | Invitation trigger | `services/admin/handler.go` `InviteMember` | ✅ Built |
@@ -477,14 +477,14 @@ admin team) could be added via `email.SendRegistration` if needed.
 
 ## 15. References
 
-- Notification service: [service.go](../../../apps/fs-backend/services/notification/service.go)
-- Email client (transport): [email.go](../../../apps/fs-backend/services/notification/email.go)
-- Invitation email: [email_invite.go](../../../apps/fs-backend/services/notification/email_invite.go)
-- Result email: [email_result.go](../../../apps/fs-backend/services/notification/email_result.go)
-- Slack client: [slack.go](../../../apps/fs-backend/services/notification/slack.go)
-- `EmailJob` model: [models.go](../../../apps/fs-backend/services/notification/models.go)
-- Service wiring: [main.go](../../../apps/fs-backend/main.go)
-- Invitation trigger: [admin/handler.go](../../../apps/fs-backend/services/admin/handler.go)
-- Profile handler (registration trigger): [profile/handler.go](../../../apps/fs-backend/services/profile/handler.go)
-- Quiz handler (quiz result trigger): [quiz/handler.go](../../../apps/fs-backend/services/quiz/handler.go)
+- Notification service: [service.go](../../../apps/backend/services/notification/service.go)
+- Email client (transport): [email.go](../../../apps/backend/services/notification/email.go)
+- Invitation email: [email_invite.go](../../../apps/backend/services/notification/email_invite.go)
+- Result email: [email_result.go](../../../apps/backend/services/notification/email_result.go)
+- Slack client: [slack.go](../../../apps/backend/services/notification/slack.go)
+- `EmailJob` model: [models.go](../../../apps/backend/services/notification/models.go)
+- Service wiring: [main.go](../../../apps/backend/main.go)
+- Invitation trigger: [admin/handler.go](../../../apps/backend/services/admin/handler.go)
+- Profile handler (registration trigger): [profile/handler.go](../../../apps/backend/services/profile/handler.go)
+- Quiz handler (quiz result trigger): [quiz/handler.go](../../../apps/backend/services/quiz/handler.go)
 - Admin API: [api/admin.md](../../api/admin.md)

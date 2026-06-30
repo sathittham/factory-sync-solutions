@@ -19,7 +19,7 @@ Each rules file has a `paths` field in its frontmatter that gates when the file 
 ```yaml
 ---
 paths:
-  - "apps/fs-backend/**/*.go"   # loads whenever you edit any .go file under apps/fs-backend
+  - "apps/backend/**/*.go"   # loads whenever you edit any .go file under apps/backend
 ---
 ```
 
@@ -31,8 +31,8 @@ If no `paths` field is present, the rules load in every conversation (always-on)
 
 | File | Loads when | Covers |
 |------|-----------|--------|
-| `go.md` | Editing `apps/fs-backend/**/*.go` | Chi routes, Firestore, Firebase Auth, response format, error handling |
-| `react.md` | Editing `apps/fs-app-web/**/*.tsx` or `*.ts` | shadcn/ui, Redux, i18n, dayjs, Tailwind, accessibility |
+| `go.md` | Editing `apps/backend/**/*.go` | Chi routes, Firestore, Firebase Auth, response format, error handling |
+| `react.md` | Editing `apps/web-app/**/*.tsx` or `*.ts` | shadcn/ui, Redux, i18n, dayjs, Tailwind, accessibility |
 | `git.md` | Always | Branch naming, commit format, merge strategy, protected branch rules |
 | `dev-process.md` | Always | Code review checklist, naming conventions, architecture, quiz domain |
 

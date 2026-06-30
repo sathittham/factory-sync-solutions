@@ -18,9 +18,9 @@ const version = args?.version || null
 
 // App registry. kind drives which checks run (go vs frontend vs astro).
 const APP_CONFIG = {
-  'fs-backend':      { dir: 'apps/fs-backend',      kind: 'go' },
-  'fs-app-web':      { dir: 'apps/fs-app-web',      kind: 'frontend' },
-  'fs-official-web': { dir: 'apps/fs-official-web', kind: 'astro' },
+  'backend':      { dir: 'apps/backend',      kind: 'go' },
+  'web-app':      { dir: 'apps/web-app',      kind: 'frontend' },
+  'web-official': { dir: 'apps/web-official', kind: 'astro' },
 }
 const ALL_APPS = Object.keys(APP_CONFIG)
 

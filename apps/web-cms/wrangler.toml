@@ -1,0 +1,95 @@
+name = "factory-sync-cms"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+account_id = "9cfbba8b3a373fdc0d11abaf64071719"
+workers_dev = true
+
+# Static brand assets (logos, favicon) served at /brand/*. Cloudflare serves
+# matching files from ./public before invoking the Worker; every other path
+# falls through to SonicJS. Redefined per environment below (like d1/r2).
+[assets]
+directory = "./public"
+
+# ----------------------------------------------------------------------------
+# Top-level bindings = LOCAL DEVELOPMENT ONLY (`npm run dev`).
+# Deploys always target an explicit environment (`--env staging|production`)
+# whose bindings are defined further down. Keep the local database_id as a
+# placeholder so miniflare persists local state under .wrangler/.
+# ----------------------------------------------------------------------------
+
+[[d1_databases]]
+binding = "DB"
+database_name = "factory-sync-cms-db"
+database_id = "YOUR_DATABASE_ID" # local only — not used by deploys
+migrations_dir = "./node_modules/@sonicjs-cms/core/migrations"
+
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "factory-sync-cms-media"
+
+[vars]
+ENVIRONMENT = "development"
+CORS_ORIGINS = "http://localhost:8787,http://localhost:4321"
+# Firebase project whose ID tokens the /sso/handover route trusts (backoffice
+# local dev signs against the staging project). JWT_SECRET is a secret, not here.
+FIREBASE_PROJECT_ID = "factory-sync-solutions-staging"
+
+[observability]
+enabled = true
+
+# ----------------------------------------------------------------------------
+# Staging — worker: factory-sync-cms-staging
+# Resources created by: npm run cf:setup:staging
+# ----------------------------------------------------------------------------
+[env.staging]
+name = "factory-sync-cms-staging"
+
+[env.staging.assets]
+directory = "./public"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "factory-sync-cms-db-staging"
+database_id = "ae35ee2e-f82e-4192-9d19-2afb41d45ad5" # filled in by scripts/setup-cloudflare.sh
+migrations_dir = "./node_modules/@sonicjs-cms/core/migrations"
+
+[[env.staging.r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "factory-sync-cms-media-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+CORS_ORIGINS = "https://factory-sync-cms-staging.pages.dev,https://staging.factorysyncsolutions.com"
+FIREBASE_PROJECT_ID = "factory-sync-solutions-staging"
+
+[env.staging.observability]
+enabled = true
+
+# ----------------------------------------------------------------------------
+# Production — worker: factory-sync-cms
+# Resources created by: npm run cf:setup:prod
+# ----------------------------------------------------------------------------
+[env.production]
+name = "factory-sync-cms"
+
+[env.production.assets]
+directory = "./public"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "factory-sync-cms-db"
+database_id = "d9972050-9401-46ee-82ed-1ae50adf0b00" # filled in by scripts/setup-cloudflare.sh
+migrations_dir = "./node_modules/@sonicjs-cms/core/migrations"
+
+[[env.production.r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "factory-sync-cms-media"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+CORS_ORIGINS = "https://factorysyncsolutions.com"
+FIREBASE_PROJECT_ID = "factory-sync-solutions"
+
+[env.production.observability]
+enabled = true

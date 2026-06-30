@@ -86,16 +86,16 @@ Inspect `git status --short` and `git diff --stat`:
 | Performance improvement | `perf` |
 
 **Scope:**
-- `apps/fs-backend/services/quiz/` → `quiz`
-- `apps/fs-backend/services/scoring/` → `scoring`
-- `apps/fs-backend/services/admin/` → `admin`
-- `apps/fs-backend/services/result/` → `result`
-- `apps/fs-backend/services/profile/` → `profile`
-- `apps/fs-backend/services/dbd/` → `dbd`
-- `apps/fs-backend/services/audit/` → `audit`
-- `apps/fs-backend/services/notification/` → `notification`
-- `apps/fs-app-web/src/pages/QuizPage.tsx` → `web` or `quiz`
-- `apps/fs-official-web/` → `web`
+- `apps/backend/services/quiz/` → `quiz`
+- `apps/backend/services/scoring/` → `scoring`
+- `apps/backend/services/admin/` → `admin`
+- `apps/backend/services/result/` → `result`
+- `apps/backend/services/profile/` → `profile`
+- `apps/backend/services/dbd/` → `dbd`
+- `apps/backend/services/audit/` → `audit`
+- `apps/backend/services/notification/` → `notification`
+- `apps/web-app/src/pages/QuizPage.tsx` → `web` or `quiz`
+- `apps/web-official/` → `web`
 - `.github/workflows/` → `ci`
 - `.claude/` → `chore`
 - Multiple areas → use the primary area
@@ -118,11 +118,11 @@ If changes span multiple concerns, create **separate commits** in this order:
 
 ```bash
 # Good
-git add apps/fs-backend/services/quiz/handler.go
-git add apps/fs-backend/services/quiz/service.go
+git add apps/backend/services/quiz/handler.go
+git add apps/backend/services/quiz/service.go
 
 # Also acceptable — scoped directory
-git add apps/fs-backend/services/quiz/
+git add apps/backend/services/quiz/
 
 # Never
 git add -A
@@ -133,7 +133,7 @@ Before staging, check for files that should NOT be committed:
 - `.env`, `.env.local`, `.env.staging`, `.env.production` — secrets
 - `firebase-sa.json` — Firebase service account credentials
 - `coverage.out`, `*.out`, `*.tmp` — generated artifacts
-- `apps/fs-app-web/dist/`, `apps/fs-app-web/node_modules/.vite/` — build artifacts
+- `apps/web-app/dist/`, `apps/web-app/node_modules/.vite/` — build artifacts
 
 If any such files appear in `git status`, warn the user and exclude them.
 

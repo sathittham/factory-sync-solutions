@@ -14,7 +14,7 @@ export const meta = {
 // Usage: Workflow({ name: 'feature-dev', args: {
 //   ticket: 'FHC-123',
 //   description: 'Quiz history list page with per-assessment detail',
-//   service: 'result',          // backend service dir under apps/fs-backend/services/
+//   service: 'result',          // backend service dir under apps/backend/services/
 //   feature: 'result',          // docs/product/<feature>/ folder (defaults to service name)
 //   scope: 'full',              // 'backend' | 'frontend' | 'full'  (default: 'full')
 //   skipSrsCheck: false,        // set true to bypass the ISO 29110 SRS gate
@@ -121,9 +121,9 @@ const explore = await agent(
 
 TICKET: ${ticket}
 DESCRIPTION: ${description}
-BACKEND SERVICE: apps/fs-backend/services/${service}/
+BACKEND SERVICE: apps/backend/services/${service}/
 
-Study the existing conventions so the new code matches exactly. Read at least 2 existing backend services (e.g. apps/fs-backend/services/quiz, result, profile) and the frontend structure (apps/fs-app-web/src/{pages,components,store,hooks,lib}).
+Study the existing conventions so the new code matches exactly. Read at least 2 existing backend services (e.g. apps/backend/services/quiz, result, profile) and the frontend structure (apps/web-app/src/{pages,components,store,hooks,lib}).
 
 Report:
 - backendPattern: how a service is structured here (handler.go + service.go + models.go + service_test.go; how routes register; how pkg.Respond* + middleware.GetUID + sentinel errors + fmt.Errorf wrapping are used).
@@ -196,7 +196,7 @@ if (doBackend) {
 
 TICKET: ${ticket}
 DESCRIPTION: ${description}
-SERVICE DIR: apps/fs-backend/services/${service}/
+SERVICE DIR: apps/backend/services/${service}/
 ${refBlock}
 
 Build in this order, matching the reference services:
@@ -224,7 +224,7 @@ if (doFrontend) {
     ? `Backend endpoints just built: ${backend.endpoints.join(', ')}. Notes: ${backend.notes}`
     : `API contract: ${explore?.apiContract || 'infer from the description'}`
   frontend = await agent(
-    `Implement the FRONTEND for this feature in apps/fs-app-web. Follow .claude/rules/react.md and project memory exactly.
+    `Implement the FRONTEND for this feature in apps/web-app. Follow .claude/rules/react.md and project memory exactly.
 
 TICKET: ${ticket}
 DESCRIPTION: ${description}
@@ -239,7 +239,7 @@ Build in this order, matching existing pages/slices:
 5. i18n — add TH + EN keys to src/lib/i18n.tsx and use useLocale() for ALL text. Dates via formatDateTime() from @/lib/dayjs (Buddhist Era for TH).
 6. Routes — register the page in src/router.tsx.
 
-Run \`cd apps/fs-app-web && npx tsc -b --noEmit\` (or \`make build-web\`) before finishing and fix type errors.
+Run \`cd apps/web-app && npx tsc -b --noEmit\` (or \`make build-web\`) before finishing and fix type errors.
 Set blocked=true with blockReason only if truly stuck.`,
     { label: 'frontend', phase: 'Frontend', agentType: 'frontend-dev', schema: BUILD_SCHEMA }
   )
@@ -262,10 +262,10 @@ const verify = await agent(
   `Verify the feature compiles and tests pass, then fix anything that breaks. Run only the checks relevant to what changed (scope: ${scope}).
 
 ${doBackend ? `BACKEND (from repo root):
-  make lint-api 2>&1 | head -40        → goVetPassed   (go vet ./... in apps/fs-backend)
-  make test-api 2>&1 | tail -40        → goTestPassed  (go test -race -cover ./... in apps/fs-backend)
+  make lint-api 2>&1 | head -40        → goVetPassed   (go vet ./... in apps/backend)
+  make test-api 2>&1 | tail -40        → goTestPassed  (go test -race -cover ./... in apps/backend)
 ` : ''}${doFrontend ? `FRONTEND (from repo root):
-  cd apps/fs-app-web && npx tsc -b --noEmit 2>&1 | head -50   → tscPassed
+  cd apps/web-app && npx tsc -b --noEmit 2>&1 | head -50   → tscPassed
   make lint-web 2>&1 | tail -40        → biomePassed (run \`make lint-fix\` to auto-fix, then re-check)
   make test-web 2>&1 | tail -30        → vitestPassed
 ` : ''}

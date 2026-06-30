@@ -38,10 +38,10 @@ status: active
 
 The project delivers:
 
-- **fs-backend** — REST API (Go + Chi + Firestore + Firebase Auth, deployed on Cloud Run)
-- **fs-app-web** — Authenticated user app for quiz-taking and results (React 19 + Vite, Cloudflare Pages)
-- **fs-backoffice-web** — Internal backoffice (React 19 + Vite, Cloudflare Pages, `backofficeRole: "staff" | "superadmin"` claim)
-- **fs-official-web** — Public marketing site (Astro 6, Cloudflare Pages)
+- **backend** — REST API (Go + Chi + Firestore + Firebase Auth, deployed on Cloud Run)
+- **web-app** — Authenticated user app for quiz-taking and results (React 19 + Vite, Cloudflare Pages)
+- **web-backoffice** — Internal backoffice (React 19 + Vite, Cloudflare Pages, `backofficeRole: "staff" | "superadmin"` claim)
+- **web-official** — Public marketing site (Astro 6, Cloudflare Pages)
 - **Shared packages** — scripts, assets
 
 Detailed feature scope per component: see `docs/product/*/feature-spec.md`.
@@ -60,7 +60,7 @@ Detailed feature scope per component: see `docs/product/*/feature-spec.md`.
 | Phase 7–8: Testing & CI/CD | 2026-03-25 | Done |
 | Phase 10: ISO 29110 Quiz + Compliance Artifacts | 2026-06-11 | In Progress |
 | Phase 9: Project & RBAC (multi-user workspace) | TBD | Planned |
-| fs-backoffice-web — Initial Build | TBD | In Progress |
+| web-backoffice — Initial Build | TBD | In Progress |
 
 Full task-level roadmap: [docs/product/roadmap.md](../product/roadmap.md).
 
@@ -114,7 +114,7 @@ Active risks are tracked in [risk-register.md](risk-register.md).
 | **Release Tags** | Git tags trigger automated deploy via GitHub Actions |
 | **Config Files** | `.env*` files git-ignored; `.env.example` documents all vars |
 | **Secrets** | GitHub Secrets for CI/CD; never committed |
-| **Quiz Configs** | Static JSON in `apps/fs-backend/config/questions*.json` — version-controlled |
+| **Quiz Configs** | Static JSON in `apps/backend/config/questions*.json` — version-controlled |
 | **Firestore Rules** | `firestore.rules` committed; deployed manually via Firebase CLI |
 | **Change Requests** | Logged in [change-request-log.md](change-request-log.md) |
 
@@ -156,10 +156,10 @@ QA checklist: [docs/development/code-review-checklist.md](../development/code-re
 
 | Deliverable | Acceptance Criteria |
 |---|---|
-| fs-backend API | All endpoints return correct responses; `go test -cover` ≥ 80% for critical services |
-| fs-app-web | Quiz flow completes end-to-end; TypeScript clean; Vitest passing |
-| fs-backoffice-web | Auth guards work; all routes accessible to correct roles only |
-| fs-official-web | Public pages load < 2s; Lighthouse score ≥ 90 |
+| backend API | All endpoints return correct responses; `go test -cover` ≥ 80% for critical services |
+| web-app | Quiz flow completes end-to-end; TypeScript clean; Vitest passing |
+| web-backoffice | Auth guards work; all routes accessible to correct roles only |
+| web-official | Public pages load < 2s; Lighthouse score ≥ 90 |
 | ISO 29110 artifacts | All PM.O1–O3, SI.O1–O8 outputs present and up-to-date per release |
 
 ---

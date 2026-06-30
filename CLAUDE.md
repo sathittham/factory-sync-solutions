@@ -23,9 +23,9 @@ Multi-quiz factory health assessment platform. Go + Chi + Firestore backend, Rea
 ```
 factory-health-check/
 ├── apps/
-│   ├── fs-backend/        # Go + Chi + Firestore + Firebase Auth
-│   ├── fs-app-web/        # React 19 + Redux Toolkit + Vite + shadcn/ui (authenticated app)
-│   └── fs-official-web/   # Astro 6 + React islands + shadcn/ui (public marketing site)
+│   ├── backend/        # Go + Chi + Firestore + Firebase Auth
+│   ├── web-app/        # React 19 + Redux Toolkit + Vite + shadcn/ui (authenticated app)
+│   └── web-official/   # Astro 6 + React islands + shadcn/ui (public marketing site)
 ├── packages/              # shared scripts/assets
 ├── docs/                  # architecture, api, design, development, operations, product
 ├── firestore.rules        # Firestore security rules
@@ -33,10 +33,10 @@ factory-health-check/
 └── Makefile               # dev / build / test / lint entrypoints
 ```
 
-### Backend layout (`apps/fs-backend/`)
+### Backend layout (`apps/backend/`)
 
 ```
-fs-backend/
+backend/
 ├── main.go               # Chi router + entrypoint
 ├── config/               # questions*.json (quiz configs), other config
 ├── middleware/           # auth (FirebaseAuth/GetUID), cors, ratelimit, security
@@ -46,7 +46,7 @@ fs-backend/
     └── profile/  quiz/  result/  scoring/
 ```
 
-### Frontend layout (`apps/fs-app-web/src/`)
+### Frontend layout (`apps/web-app/src/`)
 
 ```
 src/
@@ -65,8 +65,8 @@ Detailed rules live in `.claude/rules/` (path-gated where noted):
 
 | File | Loads when | Covers |
 |------|-----------|--------|
-| `go.md` | editing `apps/fs-backend/**/*.go` | Chi routes, Firestore, Firebase Auth, response format, error handling |
-| `react.md` | editing `apps/fs-app-web/**/*.{ts,tsx}` | shadcn/ui, Redux, i18n, dayjs, Tailwind, accessibility |
+| `go.md` | editing `apps/backend/**/*.go` | Chi routes, Firestore, Firebase Auth, response format, error handling |
+| `react.md` | editing `apps/web-app/**/*.{ts,tsx}` | shadcn/ui, Redux, i18n, dayjs, Tailwind, accessibility |
 | `git.md` | always | branch naming, commit format, merge strategy, protected branches |
 | `dev-process.md` | always | code-review checklist, naming conventions, architecture, quiz domain |
 
@@ -113,7 +113,13 @@ Invoke with `/skill-name` in Claude Code.
 
 ## Commands
 
-`make dev` (API + web parallel) · `dev-api` · `dev-web` · `build` · `test` · `test-api` · `test-web` · `lint` · `lint-fix` · `install` · `clean`. Per-app: `cd apps/<app> && npm run <dev|build|lint|test|test:e2e>`. Full list in the [Makefile](Makefile).
+**Package manager is pnpm** (workspace) + **Turborepo**. Apps are scoped `@repo/*` (`@repo/web-app`, `@repo/web-official`, `@repo/web-backoffice`, `@repo/web-cms`, `@repo/shared`, `@repo/api-gateway`). One `pnpm install` at the root installs everything; never `npm install` (it would create a stray `package-lock.json`).
+
+- **Backend + web-app shortcuts** (Makefile): `make dev` (API + web parallel) · `dev-api` · `dev-web` · `build` · `test` · `test-api` · `test-web` · `lint` · `lint-fix` · `install` · `clean`.
+- **Cross-app JS tasks** (Turborepo, cached): `pnpm build` · `pnpm lint` · `pnpm lint:fix` · `pnpm type-check` · `pnpm test:web` (= `turbo run …`).
+- **Single app**: `pnpm --filter @repo/<app> <script>` (e.g. `pnpm --filter @repo/web-app test:e2e`) or `pnpm <script>` from the app dir. Per-app dev shortcuts: `pnpm dev:web|dev:backoffice|dev:official|dev:cms`.
+
+Full list in the [Makefile](Makefile), [turbo.json](turbo.json), and root [package.json](package.json).
 
 ## Git & Releases
 
@@ -121,11 +127,11 @@ Full detail in `.claude/rules/git.md` (always loaded). Essentials:
 
 - **Commit**: `<type>(<scope>): description` — ≤72 chars, imperative, no trailing period. Scopes: `quiz scoring admin profile result dbd audit notification web`.
 - **Branch flow**: `feature/*` · `bugfix/*` → `develop` → `staging` → `main`. Never commit directly to or force-push `main`.
-- **Deploys**: frontend → Cloudflare Pages via `npm run deploy:staging` / `deploy:prod`. Releases via git tags through GitHub Actions: `v*-staging` → staging, `v*.*.*` → production. Verify staging before tagging production.
+- **Deploys**: frontend → Cloudflare Pages via `pnpm deploy:staging` / `deploy:prod` (or per-app `pnpm --filter @repo/<app> deploy:staging`). Releases via git tags through GitHub Actions: `v*-staging` → staging, `v*.*.*` → production. Verify staging before tagging production.
 
 ## Quiz / Scoring Domain
 
-8-dimension Shindan rubric-based assessment, multi-quiz. Configs: `apps/fs-backend/config/questions*.json` (one per variant). Scoring: `apps/fs-backend/services/scoring/`. Results stored per-user in Firestore. Detail in `.claude/rules/dev-process.md`.
+8-dimension Shindan rubric-based assessment, multi-quiz. Configs: `apps/backend/config/questions*.json` (one per variant). Scoring: `apps/backend/services/scoring/`. Results stored per-user in Firestore. Detail in `.claude/rules/dev-process.md`.
 
 <!-- Version: 1.2.0 · Last updated: 09 June 2026 -->
 

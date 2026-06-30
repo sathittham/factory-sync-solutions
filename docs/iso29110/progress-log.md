@@ -62,7 +62,7 @@ Copy and prepend above the previous entries:
 - `.claude/rules/dev-process.md` updated to reference ISO 29110 artifacts
 
 #### Planned for Next Iteration
-- fs-backoffice-web: initial scaffold and auth flow
+- web-backoffice: initial scaffold and auth flow
 - Frontend: ISO 29110 result page — capability level labels (Level 0–3)
 - Phase 9: Project & RBAC service (backend)
 
@@ -70,7 +70,7 @@ Copy and prepend above the previous entries:
 | # | Issue | Owner | Due | Status |
 |---|---|---|---|---|
 | 1 | ISO 29110 result page capability labels not yet implemented | Sathittham | TBD | Open |
-| 2 | fs-backoffice-web initial build not started | Sathittham | TBD | Open |
+| 2 | web-backoffice initial build not started | Sathittham | TBD | Open |
 
 #### Risk Review
 - R-007 (ISO 29110 artifact overhead) confirmed manageable — templates pre-filled and mapped to existing docs.

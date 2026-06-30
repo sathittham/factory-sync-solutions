@@ -1,6 +1,6 @@
 ---
-version: 1.2.0
-lastUpdated: 2026-06-13
+version: 1.3.1
+lastUpdated: 2026-06-18
 author: Sathittham Sangthong
 ---
 
@@ -164,6 +164,113 @@ Cloud Run automatically reports:
 - **CPU utilization**: CPU usage per instance
 - **Billable container instance time**
 
+## Domain Event Consumer Monitoring (Cloud Run + Pub/Sub)
+
+The queue path has two failure surfaces:
+
+1. Delivery and backlog in Pub/Sub (`factory-sync-domain-events`).
+2. Processing health of the consumer service (`domain-event-consumer`).
+
+### Cloud Run Worker Alerts (staging and production)
+
+Set these policies on the worker service:
+
+| Service | Condition | Recommendation |
+|---------|-----------|----------------|
+| `factory-sync-solutions-domain-event-consumer-staging` | `run.googleapis.com/request_count` with `response_code_class="5xx"` (error count spike) | `> 20` errors in `5m` |
+| `factory-sync-solutions-domain-event-consumer-staging` | `run.googleapis.com/request_latencies` (`p95`) | `> 3s` for `5m` |
+| `factory-sync-solutions-domain-event-consumer-staging` | `run.googleapis.com/request_count` drops to `0` unexpectedly | `= 0` for `10m` while events are arriving |
+| `factory-sync-solutions-domain-event-consumer-staging` | `run.googleapis.com/container/restart_count` | `> 5` restarts in `5m` |
+| `factory-sync-solutions-domain-event-consumer` (production) | same as above | same thresholds; tighten error threshold once baseline is stable |
+
+Use the same metrics with service_name/region changes for production.
+
+#### Suggested Cloud Monitoring console setup
+
+1. Go to **Alerting → Create policy**.
+2. Add one condition per row above.
+3. Select:
+   - **Resource**: `Cloud Run Revision`
+   - **Metric**: names above
+   - **Alignment period**: `1m`
+   - **Evaluation window**: `5m` (or `10m` for DLQ-related policies)
+4. Add notification channel: Slack (`#server-status`) or Cloud Function webhook.
+5. Use `Runbook` with runbook text:
+   - Check worker logs.
+   - Verify Firestore availability and permission.
+   - Check dead-letter queue growth.
+   - Confirm domain-event producer is still writing to `DOMAIN_EVENT_PUBSUB_TOPIC`.
+
+### Pub/Sub Subscription Alerts
+
+Set these policies on the consumer subscription `factory-sync-domain-events-result-consumer`:
+
+| Condition | Recommendation |
+|-----------|----------------|
+| `pubsub.googleapis.com/subscription/num_undelivered_messages` | `> 500` for `10m` |
+| `pubsub.googleapis.com/subscription/oldest_unacked_message_age` | `> 300s` for `10m` |
+| `pubsub.googleapis.com/subscription/num_undelivered_messages` with `resource.labels.subscription_id` | sustained slope increase for `15m` |
+
+Add a policy for dead-letter topic health:
+
+- `pubsub.googleapis.com/topic/send_message_operation_count` for `factory-sync-domain-events-dlq`
+- alert on `> 0` in `5m` (treat as warning), then page if continuing.
+
+If your project uses different Pub/Sub metric names in Cloud Monitoring, pick the matching variant from Metrics Explorer and keep the same threshold intent.
+
+### One-time setup checklist
+
+- Set worker service names correctly in each environment:
+  - staging: `factory-sync-solutions-domain-event-consumer-staging`
+  - production: `factory-sync-solutions-domain-event-consumer`
+- Verify one shared topic and subscription:
+  - topic: `factory-sync-domain-events`
+  - subscription: `factory-sync-domain-events-result-consumer`
+  - DLQ topic: `factory-sync-domain-events-dlq`
+- Confirm `DOMAIN_EVENT_MODE=pubsub` and that `DOMAIN_EVENT_SUBSCRIPTION` points to the same subscription used by the worker.
+
+### Bootstrap script
+
+The following command generates ready-to-apply policy JSON files and prints
+the exact `gcloud` create commands:
+
+```bash
+scripts/setup-domain-event-monitoring.sh \
+  --environment staging \
+  --project <GCP_PROJECT_ID>
+
+# production
+scripts/setup-domain-event-monitoring.sh \
+  --environment production \
+  --project <GCP_PROJECT_ID>
+
+# via Makefile
+make setup-domain-event-monitoring
+make setup-domain-event-monitoring ENVIRONMENT=production GCP_PROJECT_ID=<GCP_PROJECT_ID>
+```
+
+If your environment has a Monitoring Slack/email channel for `#server-status`,
+pass it and apply directly:
+
+```bash
+scripts/setup-domain-event-monitoring.sh \
+  --environment staging \
+  --project <GCP_PROJECT_ID> \
+  --notification-channel-id <NOTIFICATION_CHANNEL_ID> \
+  --apply
+```
+
+You can list notification channels with:
+
+```bash
+gcloud alpha monitoring channels list --project <GCP_PROJECT_ID>
+```
+
+After first apply, verify:
+- alert policy names
+- threshold units (seconds/rates) in the Cloud Console
+- runbook links and notification channel routing
+
 ### Alerting Policies
 
 Create alerting policies in Cloud Monitoring console or via Terraform:
@@ -250,3 +357,5 @@ A Cloud Scheduler job pings each service's health endpoint and sends status to t
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated Cloud Functions → Cloud Run throughout, fixed resource.type filters, updated metrics |
 | 1.2.0 | 2026-06-13 | Fix broken See Also links |
+| 1.3.0 | 2026-06-18 | Add Domain Event Consumer monitoring playbook for Cloud Run + Pub/Sub |
+| 1.3.1 | 2026-06-18 | Add monitoring bootstrap script guidance and Makefile usage |

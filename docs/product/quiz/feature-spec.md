@@ -56,14 +56,14 @@ supported via a `quizId` parameter; the default is `"shindan"`.
 
 | Component | Location | Status |
 |-----------|----------|--------|
-| Quiz page | `apps/fs-app-web/src/pages/QuizPage.tsx` | ✅ Built |
-| Quiz Redux slice | `apps/fs-app-web/src/store/quizSlice.ts` | ✅ Built |
-| Backend handler | `apps/fs-backend/services/quiz/handler.go` | ✅ Built |
-| Backend service | `apps/fs-backend/services/quiz/service.go` | ✅ Built |
-| Quiz models | `apps/fs-backend/services/quiz/models.go` | ✅ Built |
-| Scoring engine | `apps/fs-backend/services/scoring/scoring.go` | ✅ Built |
-| Scoring models | `apps/fs-backend/services/scoring/models.go` | ✅ Built |
-| Quiz configs | `apps/fs-backend/config/questions*.json` | ✅ Built (5 variants) |
+| Quiz page | `apps/web-app/src/pages/QuizPage.tsx` | ✅ Built |
+| Quiz Redux slice | `apps/web-app/src/store/quizSlice.ts` | ✅ Built |
+| Backend handler | `apps/backend/services/quiz/handler.go` | ✅ Built |
+| Backend service | `apps/backend/services/quiz/service.go` | ✅ Built |
+| Quiz models | `apps/backend/services/quiz/models.go` | ✅ Built |
+| Scoring engine | `apps/backend/services/scoring/scoring.go` | ✅ Built |
+| Scoring models | `apps/backend/services/scoring/models.go` | ✅ Built |
+| Quiz configs | `apps/backend/config/questions*.json` | ✅ Built (5 variants) |
 | Quiz registry | `scoring.QuizRegistry` in `scoring.go` | ✅ Built |
 | Notifications (email + Slack) | `notification.Service.NotifyQuizResult` | ✅ Built |
 | Audit logging | `audit.Logger.Log` on submit | ✅ Built |
@@ -72,7 +72,7 @@ supported via a `quizId` parameter; the default is `"shindan"`.
 
 ## 4. Quiz Variants
 
-Five quiz configs are bundled in `apps/fs-backend/config/`. All are registered
+Five quiz configs are bundled in `apps/backend/config/`. All are registered
 in the `QuizRegistry` at startup.
 
 | Quiz ID | File | Version | Dimensions | Questions | Display name |
@@ -298,7 +298,7 @@ sequenceDiagram
 
 ## 10. Scoring Algorithm
 
-Implemented in `apps/fs-backend/services/scoring/scoring.go`.
+Implemented in `apps/backend/services/scoring/scoring.go`.
 
 ### Step 1 — Dimension score
 
@@ -536,16 +536,16 @@ Collection: `assessments` · Document ID: UUID v4
 
 ## 18. References
 
-- Quiz page: [QuizPage.tsx](../../../apps/fs-app-web/src/pages/QuizPage.tsx)
-- Quiz slice: [quizSlice.ts](../../../apps/fs-app-web/src/store/quizSlice.ts)
-- Backend handler: [handler.go](../../../apps/fs-backend/services/quiz/handler.go)
-- Backend service: [service.go](../../../apps/fs-backend/services/quiz/service.go)
-- Scoring engine: [scoring.go](../../../apps/fs-backend/services/scoring/scoring.go)
-- Scoring models: [models.go](../../../apps/fs-backend/services/scoring/models.go)
-- Shindan config: [questions.json](../../../apps/fs-backend/config/questions.json)
-- Factory config: [questions-factory.json](../../../apps/fs-backend/config/questions-factory.json)
-- Cybersecurity config: [questions-cybersecurity.json](../../../apps/fs-backend/config/questions-cybersecurity.json)
-- Lean config: [questions-lean.json](../../../apps/fs-backend/config/questions-lean.json)
-- ISO 29110 config: [questions-iso29110.json](../../../apps/fs-backend/config/questions-iso29110.json)
+- Quiz page: [QuizPage.tsx](../../../apps/web-app/src/pages/QuizPage.tsx)
+- Quiz slice: [quizSlice.ts](../../../apps/web-app/src/store/quizSlice.ts)
+- Backend handler: [handler.go](../../../apps/backend/services/quiz/handler.go)
+- Backend service: [service.go](../../../apps/backend/services/quiz/service.go)
+- Scoring engine: [scoring.go](../../../apps/backend/services/scoring/scoring.go)
+- Scoring models: [models.go](../../../apps/backend/services/scoring/models.go)
+- Shindan config: [questions.json](../../../apps/backend/config/questions.json)
+- Factory config: [questions-factory.json](../../../apps/backend/config/questions-factory.json)
+- Cybersecurity config: [questions-cybersecurity.json](../../../apps/backend/config/questions-cybersecurity.json)
+- Lean config: [questions-lean.json](../../../apps/backend/config/questions-lean.json)
+- ISO 29110 config: [questions-iso29110.json](../../../apps/backend/config/questions-iso29110.json)
 - User flow: [user-flow.md](../user-flow.md)
 - Result feature: (see `docs/product/result/` — to be created)

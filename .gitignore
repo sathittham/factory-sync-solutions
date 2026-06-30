@@ -10,6 +10,9 @@ out/
 *.tsbuildinfo
 .astro/
 
+# Turborepo
+.turbo/
+
 # Environment variables
 .env
 .env.local
@@ -63,7 +66,7 @@ test-results/
 
 # Go
 # Auto-generated Swagger docs
-apps/fs-backend/docs/
+apps/backend/docs/
 
 # Logs
 *.log

@@ -32,6 +32,8 @@ docs/
 | [architecture/overview.md](architecture/overview.md) | Infrastructure, services, data flow |
 | [architecture/database.md](architecture/database.md) | Firestore schema and security rules |
 | [architecture/quiz-design.md](architecture/quiz-design.md) | Quiz domain, scoring algorithm, thresholds |
+| [architecture/microservice-roadmap.md](architecture/microservice-roadmap.md) | Phased migration plan to domain-driven, event-driven Cloud Run services |
+| [architecture/domain-events.md](architecture/domain-events.md) | Domain event envelope, DLQ, idempotency, and migration rules |
 | [architecture/decisions.md](architecture/decisions.md) | Architecture Decision Records (ADRs) |
 
 ## Development

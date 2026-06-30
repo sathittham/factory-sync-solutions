@@ -32,7 +32,7 @@ make docs-api
 ### Output Files
 
 ```
-apps/fs-backend/docs/
+apps/backend/docs/
 ├── docs.go       # Go file to embed in your app
 ├── swagger.json  # Swagger/OpenAPI 2.0 spec (JSON)
 └── swagger.yaml  # Swagger/OpenAPI 2.0 spec (YAML)
@@ -42,7 +42,7 @@ The generated Go package is imported by the backend so local builds and CI can s
 
 ## Main API Annotation
 
-The top-level API annotation lives in `apps/fs-backend/main.go`:
+The top-level API annotation lives in `apps/backend/main.go`:
 
 ```go
 // @title           FactorySync Solutions API
@@ -226,7 +226,7 @@ Use `swaggo/http-swagger` with Chi:
 
 ```go
 import httpSwagger "github.com/swaggo/http-swagger"
-import _ "github.com/sathittham/factory-sync-solutions/apps/fs-backend/docs/v1" // generated swagger docs
+import _ "github.com/sathittham/factory-sync-solutions/apps/backend/docs/v1" // generated swagger docs
 
 // Only serve in non-production
 if os.Getenv("ENVIRONMENT") != "production" {

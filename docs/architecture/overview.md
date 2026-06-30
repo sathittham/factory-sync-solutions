@@ -17,20 +17,20 @@ author: Sathittham Sangthong
 ```
 factory-sync-solutions/
 ├── apps/
-│   ├── fs-app-web/           # React 19 + Vite SPA (authenticated user app)
+│   ├── web-app/           # React 19 + Vite SPA (authenticated user app)
 │   │   ├── src/
 │   │   ├── e2e/
 │   │   ├── package.json
 │   │   └── vite.config.ts
-│   ├── fs-backoffice-web/    # React 19 + Vite SPA (FactorySync staff backoffice)
+│   ├── web-backoffice/    # React 19 + Vite SPA (FactorySync staff backoffice)
 │   │   ├── src/
 │   │   ├── package.json
 │   │   └── vite.config.ts
-│   ├── fs-official-web/      # Astro 6 + React islands (public marketing site)
+│   ├── web-official/      # Astro 6 + React islands (public marketing site)
 │   │   ├── src/
 │   │   ├── package.json
 │   │   └── astro.config.mjs
-│   └── fs-backend/           # Go + Chi backend services
+│   └── backend/           # Go + Chi backend services
 │       ├── services/
 │       │   ├── profile/
 │       │   ├── quiz/
@@ -65,6 +65,9 @@ factory-sync-solutions/
 
 ## Microservices
 
+Current implementation is a modular monolith with the following domain boundaries.
+The next step is to extract these boundaries as separate Cloud Run services.
+
 Logical service boundaries:
 
 | Service | Responsibility |
@@ -92,7 +95,7 @@ Logical service boundaries:
 
 ## Route Access Policy
 
-### `fs-app-web` (app.factorysync.com)
+### `web-app` (app.factorysync.com)
 
 | Route | Access Level |
 |-------|-------------|
@@ -102,7 +105,7 @@ Logical service boundaries:
 | `/profile` | Authenticated + registered |
 | `/admin` | Authenticated + `role: "admin"` claim |
 
-### `fs-backoffice-web` (backoffice.factorysync.com)
+### `web-backoffice` (backoffice.factorysync.com)
 
 | Route | Access Level |
 |-------|-------------|
@@ -152,9 +155,9 @@ Phase 2 outputs:
 ```mermaid
 graph TD
     subgraph Browser["User Browser"]
-        SPA["fs-app-web<br/>(Cloudflare Pages)"]
-        BO["fs-backoffice-web<br/>(Cloudflare Pages + CF Access)"]
-        OW["fs-official-web<br/>(Cloudflare Pages)"]
+        SPA["web-app<br/>(Cloudflare Pages)"]
+        BO["web-backoffice<br/>(Cloudflare Pages + CF Access)"]
+        OW["web-official<br/>(Cloudflare Pages)"]
     end
 
     subgraph Firebase["Firebase Services"]
@@ -189,6 +192,11 @@ graph TD
     NS -- "send notification" --> SLACK
 ```
 
+## Event Contract
+
+Event-driven decomposition is governed by a strict contract documented in
+[`domain-events.md`](domain-events.md).
+
 ## API Authentication & CORS
 
 ### Authentication Flow
@@ -204,8 +212,8 @@ Go API endpoints must allow cross-origin requests from all three frontend apps:
 
 | Origin | Environment |
 |--------|-------------|
-| `http://localhost:5173` | Development (`fs-app-web`) |
-| `http://localhost:5174` | Development (`fs-backoffice-web`) |
+| `http://localhost:5173` | Development (`web-app`) |
+| `http://localhost:5174` | Development (`web-backoffice`) |
 | `https://factory-sync-solutions-staging.pages.dev` | Staging app |
 | `https://factory-sync-solutions.pages.dev` | Production app |
 | `https://factory-sync-backoffice-staging.pages.dev` | Staging backoffice |
@@ -239,7 +247,7 @@ Quiz questions are stored as a **static JSON/YAML config** bundled with the Go b
 - Easy review in PRs before deployment
 - No Firestore read costs for question definitions
 
-Location: `apps/fs-backend/config/questions*.json`
+Location: `apps/backend/config/questions*.json`
 
 Future: Admin UI for managing questions (Phase 2), which would migrate to Firestore.
 
@@ -321,4 +329,4 @@ Initial legal implementation scope:
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated: Cloud Functions -> Cloud Run, added DBD service, fixed rate limiting values, fixed webhook var names, updated Swagger status, added i18n as implemented feature |
-| 1.2.0 | 2026-06-11 | Updated app names to `fs-*` layout; added `fs-backoffice-web`, backoffice service, backoffice route policy; updated CORS origins; updated architecture diagram |
+| 1.2.0 | 2026-06-11 | Updated app names to `fs-*` layout; added `web-backoffice`, backoffice service, backoffice route policy; updated CORS origins; updated architecture diagram |

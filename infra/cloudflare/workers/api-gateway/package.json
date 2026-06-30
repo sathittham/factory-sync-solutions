@@ -1,5 +1,5 @@
 {
-  "name": "factory-sync-api-gateway",
+  "name": "@repo/api-gateway",
   "private": true,
   "type": "module",
   "scripts": {

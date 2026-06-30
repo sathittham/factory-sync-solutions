@@ -15,14 +15,14 @@ author: Sathittham Sangthong
 | Phase 1: Core Services (scoring, profile, result, quiz) | Done |
 | Phase 2: Notification Service (email, Slack) | Done |
 | Phase 3: Admin Service (list, detail, CSV export) | Done |
-| Phase 4: Frontend Scaffold & Auth (`fs-app-web`) | Done |
+| Phase 4: Frontend Scaffold & Auth (`web-app`) | Done |
 | Phase 5: Frontend Pages (register, quiz, result, 404) | Done |
-| Phase 6: Admin Dashboard in `fs-app-web` (superseded by Phase 11) | Done |
+| Phase 6: Admin Dashboard in `web-app` (superseded by Phase 11) | Done |
 | Phase 7: Testing & Quality | Done |
 | Phase 8: CI/CD & Deployment | Done |
 | Phase 9: Project & RBAC (multi-user workspace) | Planned — see [project/feature-spec.md](project/feature-spec.md) |
 | Phase 10: ISO 29110 Quiz Variant | In Progress — see below |
-| **Phase 11: Backoffice Web App (`fs-backoffice-web`)** | **In Progress — see below** |
+| **Phase 11: Backoffice Web App (`web-backoffice`)** | **In Progress — see below** |
 
 ---
 
@@ -30,15 +30,15 @@ author: Sathittham Sangthong
 
 Everything else depends on this. Build first.
 
-- [x] **0.1** `apps/fs-backend/pkg/firestore.go` — Firestore client initialization (Firebase Admin SDK, emulator support)
-- [x] **0.2** `apps/fs-backend/pkg/validator.go` — Shared `validator.Validate` singleton
-- [x] **0.3** `apps/fs-backend/pkg/turnstile.go` — Cloudflare Turnstile server-side verification helper
-- [x] **0.4** `apps/fs-backend/middleware/cors.go` — CORS middleware (reads `ALLOWED_ORIGINS` env var)
-- [x] **0.5** `apps/fs-backend/middleware/auth.go` — `FirebaseAuth(authClient)`, `RequireAdmin(authClient)`, `GetUID(r)`
-- [x] **0.6** `apps/fs-backend/middleware/ratelimit.go` — Per-IP rate limiter (defense-in-depth)
-- [x] **0.7** `apps/fs-backend/middleware/security.go` — Security headers middleware
-- [x] **0.8** `apps/fs-backend/config/questions.json` — All 35 quiz questions (7 dimensions × 5)
-- [x] **0.9** `apps/fs-backend/main.go` — Entry point: Firebase init, Firestore init, wire repos/services/handlers, Chi router, Cloud Run (standard http.ListenAndServe)
+- [x] **0.1** `apps/backend/pkg/firestore.go` — Firestore client initialization (Firebase Admin SDK, emulator support)
+- [x] **0.2** `apps/backend/pkg/validator.go` — Shared `validator.Validate` singleton
+- [x] **0.3** `apps/backend/pkg/turnstile.go` — Cloudflare Turnstile server-side verification helper
+- [x] **0.4** `apps/backend/middleware/cors.go` — CORS middleware (reads `ALLOWED_ORIGINS` env var)
+- [x] **0.5** `apps/backend/middleware/auth.go` — `FirebaseAuth(authClient)`, `RequireAdmin(authClient)`, `GetUID(r)`
+- [x] **0.6** `apps/backend/middleware/ratelimit.go` — Per-IP rate limiter (defense-in-depth)
+- [x] **0.7** `apps/backend/middleware/security.go` — Security headers middleware
+- [x] **0.8** `apps/backend/config/questions.json` — All 35 quiz questions (7 dimensions × 5)
+- [x] **0.9** `apps/backend/main.go` — Entry point: Firebase init, Firestore init, wire repos/services/handlers, Chi router, Cloud Run (standard http.ListenAndServe)
 - [x] **0.10** Run `go build ./...` — verify everything compiles
 - [x] **0.11** Run `go test ./...` — verify existing tests still pass
 - [x] **0.12** Update `go.mod` — add all required dependencies
@@ -144,7 +144,7 @@ Everything else depends on this. Build first.
   - [x] `GET /api/v1/admin/assessments` → list all assessments
   - [x] `GET /api/v1/admin/assessments/{assessmentId}` → detail
   - [x] `GET /api/v1/admin/export` → CSV download
-- [x] `apps/fs-backend/cmd/set-superadmin/main.go` — CLI to bootstrap a backoffice superadmin custom claim
+- [x] `apps/backend/cmd/set-superadmin/main.go` — CLI to bootstrap a backoffice superadmin custom claim
 
 ---
 
@@ -154,14 +154,14 @@ Everything else depends on this. Build first.
 
 ### 4.1 Project setup
 
-- [x] `apps/fs-app-web/vite.config.ts` — Vite config with React plugin, `@/` alias, dev proxy
-- [x] `apps/fs-app-web/tsconfig.json` — strict TS with path aliases
-- [x] `apps/fs-app-web/tailwind.config.ts` + `postcss.config.js`
-- [x] `apps/fs-app-web/src/main.tsx` — entry point
-- [x] `apps/fs-app-web/src/App.tsx` — Router + Redux providers + AuthInitializer
-- [x] `apps/fs-app-web/src/index.css` — Tailwind directives + CSS variables
-- [x] `apps/fs-app-web/src/lib/utils.ts` — `cn()` utility
-- [x] `apps/fs-app-web/src/vite-env.d.ts` — Vite env type declarations
+- [x] `apps/web-app/vite.config.ts` — Vite config with React plugin, `@/` alias, dev proxy
+- [x] `apps/web-app/tsconfig.json` — strict TS with path aliases
+- [x] `apps/web-app/tailwind.config.ts` + `postcss.config.js`
+- [x] `apps/web-app/src/main.tsx` — entry point
+- [x] `apps/web-app/src/App.tsx` — Router + Redux providers + AuthInitializer
+- [x] `apps/web-app/src/index.css` — Tailwind directives + CSS variables
+- [x] `apps/web-app/src/lib/utils.ts` — `cn()` utility
+- [x] `apps/web-app/src/vite-env.d.ts` — Vite env type declarations
 - [x] `npm install` — all deps install
 - [x] `tsc --noEmit` — TypeScript compiles cleanly
 - [x] `vite build` — production build succeeds
@@ -362,7 +362,7 @@ Phase 0 (Foundation)
 | Notification failure handling | Log and continue | Email/Slack failures must NOT fail quiz submission |
 | Rate limiting in serverless | Cloudflare WAF primary + per-instance defense-in-depth | In-memory limiters don't work across Cloud Run instances |
 | Score rounding | 2 decimal places before classification | Prevents ambiguous boundary behavior (e.g., 3.995 → 4.00 = Advanced) |
-| Quiz questions source | Static JSON in `apps/fs-backend/config/` | Zero Firestore cost, version-controlled, easy PR review |
+| Quiz questions source | Static JSON in `apps/backend/config/` | Zero Firestore cost, version-controlled, easy PR review |
 
 ---
 
@@ -386,7 +386,7 @@ ISO 29110 Basic Profile assessment for Very Small Enterprises (VSEs ≤ 25 peopl
 
 ### 10.1 Backend (quiz config) ✓
 
-- [x] `apps/fs-backend/config/questions-iso29110.json` — 38 questions across 8 dimensions (v1.0.0)
+- [x] `apps/backend/config/questions-iso29110.json` — 38 questions across 8 dimensions (v1.0.0)
   - PM.1: Project Planning (5 questions)
   - PM.2–3: Project Execution & Control (5 questions)
   - PM.4: Project Closure (4 questions)
@@ -395,7 +395,7 @@ ISO 29110 Basic Profile assessment for Very Small Enterprises (VSEs ≤ 25 peopl
   - SI.3: Software Architectural & Detailed Design (5 questions)
   - SI.4–5: Software Construction & Testing (6 questions)
   - SI.6: Product Delivery (4 questions)
-- [x] Registered in `apps/fs-backend/main.go` — available at `GET /api/v1/quiz/questions?quizId=iso29110`
+- [x] Registered in `apps/backend/main.go` — available at `GET /api/v1/quiz/questions?quizId=iso29110`
 
 ### 10.2 Frontend (TODO)
 
@@ -413,7 +413,7 @@ ISO 29110 Basic Profile assessment for Very Small Enterprises (VSEs ≤ 25 peopl
 
 ---
 
-## Phase 11: Backoffice Web App (`fs-backoffice-web`)
+## Phase 11: Backoffice Web App (`web-backoffice`)
 
 Dedicated FactorySync staff portal at `backoffice.factorysync.com`. Supersedes
 the in-app `/admin` page for platform management. See
@@ -445,14 +445,14 @@ the in-app `/admin` page for platform management. See
 - [x] `DELETE /backoffice/staff/{uid}` (superadmin) — revoke backofficeRole
 - [ ] `POST /backoffice/projects/{id}/invite-owner` — **not yet implemented** in API client
 
-### 11.2 Frontend (`apps/fs-backoffice-web/`) ✓
+### 11.2 Frontend (`apps/web-backoffice/`) ✓
 
 - [x] Vite + React 19 + shadcn/ui + Redux Toolkit — project scaffold
 - [x] Firebase Auth (`useAuth`, `authSlice` with `backofficeRole` claim)
 - [x] `BackofficeGuard` — redirects to `/unauthorized` if no `backofficeRole` claim
 - [x] `SuperAdminGuard` — redirects to `/unauthorized` if not `superadmin`
 - [x] `Layout` — collapsible sidebar with Dashboard / Projects / Users / Results / Staff nav
-- [x] `SignInPage` — Google sign-in (same Firebase project as `fs-app-web`)
+- [x] `SignInPage` — Google sign-in (same Firebase project as `web-app`)
 - [x] `UnauthorizedPage` — shown when claim check fails; links back to sign-in
 - [x] `DashboardPage` — stats cards (projects, users, avg score, staff) + recent results table
 - [x] `ProjectsPage` — searchable project list, create-project dialog, row action menu
@@ -510,5 +510,5 @@ Add TOTP-based 2FA (Google Authenticator / Authy) as an optional security layer.
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated Cloud Functions → Cloud Run, fixed deploy triggers (tag-based), GitHub Secrets instead of GCP Secret Manager |
 | 1.2.0 | 2026-06-11 | Add ISO 29110 Basic Profile quiz variant (Phase 10) |
-| 1.3.0 | 2026-06-11 | Add Phase 11 (backoffice web app); fix stale `apps/web/` → `apps/fs-app-web/` paths throughout; update current-state table |
+| 1.3.0 | 2026-06-11 | Add Phase 11 (backoffice web app); fix stale `apps/web/` → `apps/web-app/` paths throughout; update current-state table |
 | 1.4.0 | 2026-06-13 | Add Security Backlog section (SB-1 new-device login alert, SB-2 2FA) |
