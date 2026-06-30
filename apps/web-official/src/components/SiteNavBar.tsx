@@ -1,5 +1,6 @@
 import { buttonVariants } from "@/components/ui/button";
 import { type Locale, LocaleProvider, useLocale } from "@/lib/i18n";
+import { SERVICE_GROUPS, childHref, groupHref } from "@/lib/services";
 import { type Theme, useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import fsDarkLogo from "@shared/brand/fs-dark.png";
@@ -318,15 +319,251 @@ function LocaleSwitcher({ className }: { readonly className?: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Nav links for non-landing pages (homepage anchors)
+// Primary nav model — routed multi-page IA (sitemap.md §4)
 // ---------------------------------------------------------------------------
 
-const PAGE_LINKS = [
-	{ labelKey: "nav.home", href: "/" },
-	{ labelKey: "nav.healthCheck", href: "/#dimensions" },
-	{ labelKey: "nav.engineering", href: "/#expert" },
-	{ labelKey: "nav.contact", href: "/#contact" },
+const ABOUT_LINKS = [
+	{ labelKey: "nav.aboutCompany", href: "/about/company" },
+	{ labelKey: "nav.aboutTeam", href: "/about/team" },
+	{ labelKey: "nav.aboutCaseStudies", href: "/about/case-studies" },
 ] as const;
+
+const linkClass =
+	"whitespace-nowrap rounded-md px-2 py-1.5 text-sm text-slate-600 transition-colors hover:text-cyan-700 dark:text-slate-300 dark:hover:text-cyan-300 xl:px-3";
+
+const triggerClass =
+	"flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-sm text-slate-600 transition-colors hover:text-cyan-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 dark:text-slate-300 dark:hover:text-cyan-300 xl:px-3";
+
+type OpenMenu = null | "about" | "services";
+
+// ---------------------------------------------------------------------------
+// Services mega menu panel (desktop)
+// ---------------------------------------------------------------------------
+
+function ServicesMegaPanel() {
+	const { t } = useLocale();
+	return (
+		<div className="grid grid-cols-2 gap-x-8 gap-y-6 lg:grid-cols-4">
+			{SERVICE_GROUPS.map((group) => (
+				<div key={group.id}>
+					<a
+						href={groupHref(group)}
+						className={cn(
+							"block rounded-md px-2 py-1 text-sm font-bold",
+							group.isFlagship
+								? "border border-cyan-400/60 bg-cyan-50 text-cyan-800 dark:border-cyan-300/40 dark:bg-cyan-300/10 dark:text-cyan-200"
+								: "text-slate-900 dark:text-white"
+						)}
+					>
+						{t(group.labelKey)}
+						{group.isFlagship && (
+							<span className="ml-1.5 rounded-full bg-cyan-500 px-1.5 py-0.5 text-[10px] font-bold text-white align-middle">
+								FREE
+							</span>
+						)}
+					</a>
+					{group.children && (
+						<ul className="mt-2 space-y-1">
+							{group.children.map((child) => (
+								<li key={child.slug}>
+									<a
+										href={childHref(group, child)}
+										className="block rounded-md px-2 py-1 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-cyan-700 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-cyan-300"
+									>
+										{t(child.labelKey)}
+									</a>
+								</li>
+							))}
+						</ul>
+					)}
+				</div>
+			))}
+		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// About dropdown panel (desktop)
+// ---------------------------------------------------------------------------
+
+function AboutPanel() {
+	const { t } = useLocale();
+	return (
+		<ul className="space-y-1">
+			<li>
+				<a
+					href="/about"
+					className="block rounded-md px-3 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-100 hover:text-cyan-700 dark:text-white dark:hover:bg-white/10 dark:hover:text-cyan-300"
+				>
+					{t("nav.about")}
+				</a>
+			</li>
+			{ABOUT_LINKS.map((link) => (
+				<li key={link.labelKey}>
+					<a
+						href={link.href}
+						className="block rounded-md px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-cyan-700 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-cyan-300"
+					>
+						{t(link.labelKey)}
+					</a>
+				</li>
+			))}
+		</ul>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Mobile accordion drawer
+// ---------------------------------------------------------------------------
+
+function MobileDrawer({
+	appUrl,
+	theme,
+	setTheme,
+	onClose,
+}: {
+	readonly appUrl: string;
+	readonly theme: Theme;
+	readonly setTheme: (theme: Theme) => void;
+	readonly onClose: () => void;
+}) {
+	const { t } = useLocale();
+	const [section, setSection] = useState<OpenMenu>(null);
+	const toggle = (s: OpenMenu) => setSection((cur) => (cur === s ? null : s));
+
+	return (
+		<div className="border-t border-slate-200 bg-white shadow-lg dark:border-cyan-300/10 dark:bg-[#06172d] lg:hidden">
+			<nav
+				className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3"
+				aria-label="Mobile navigation"
+			>
+				<a
+					href="/"
+					onClick={onClose}
+					className="rounded-md px-3 py-2.5 text-base text-slate-700 transition-colors hover:bg-slate-100 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-cyan-300"
+				>
+					{t("nav.home")}
+				</a>
+
+				{/* About accordion */}
+				<button
+					type="button"
+					onClick={() => toggle("about")}
+					aria-expanded={section === "about"}
+					className="flex items-center justify-between rounded-md px-3 py-2.5 text-base text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10"
+				>
+					{t("nav.about")}
+					<ChevronDownIcon />
+				</button>
+				{section === "about" && (
+					<div className="ml-3 flex flex-col gap-0.5 border-l border-slate-200 pl-3 dark:border-cyan-300/15">
+						<a
+							href="/about"
+							onClick={onClose}
+							className="rounded-md px-3 py-2 text-sm text-slate-600 hover:text-cyan-700 dark:text-slate-300 dark:hover:text-cyan-300"
+						>
+							{t("nav.viewAll")}
+						</a>
+						{ABOUT_LINKS.map((link) => (
+							<a
+								key={link.labelKey}
+								href={link.href}
+								onClick={onClose}
+								className="rounded-md px-3 py-2 text-sm text-slate-600 hover:text-cyan-700 dark:text-slate-300 dark:hover:text-cyan-300"
+							>
+								{t(link.labelKey)}
+							</a>
+						))}
+					</div>
+				)}
+
+				{/* Services accordion */}
+				<button
+					type="button"
+					onClick={() => toggle("services")}
+					aria-expanded={section === "services"}
+					className="flex items-center justify-between rounded-md px-3 py-2.5 text-base text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10"
+				>
+					{t("nav.services")}
+					<ChevronDownIcon />
+				</button>
+				{section === "services" && (
+					<div className="ml-3 flex flex-col gap-1 border-l border-slate-200 pl-3 dark:border-cyan-300/15">
+						{SERVICE_GROUPS.map((group) => (
+							<div key={group.id}>
+								<a
+									href={groupHref(group)}
+									onClick={onClose}
+									className={cn(
+										"block rounded-md px-3 py-2 text-sm font-semibold",
+										group.isFlagship
+											? "text-cyan-700 dark:text-cyan-300"
+											: "text-slate-700 dark:text-slate-200"
+									)}
+								>
+									{t(group.labelKey)}
+								</a>
+								{group.children && (
+									<div className="ml-2 flex flex-col gap-0.5 border-l border-slate-200 pl-2 dark:border-cyan-300/15">
+										{group.children.map((child) => (
+											<a
+												key={child.slug}
+												href={childHref(group, child)}
+												onClick={onClose}
+												className="rounded-md px-3 py-1.5 text-sm text-slate-500 hover:text-cyan-700 dark:text-slate-400 dark:hover:text-cyan-300"
+											>
+												{t(child.labelKey)}
+											</a>
+										))}
+									</div>
+								)}
+							</div>
+						))}
+					</div>
+				)}
+
+				<a
+					href="/knowledge"
+					onClick={onClose}
+					className="rounded-md px-3 py-2.5 text-base text-slate-700 transition-colors hover:bg-slate-100 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-cyan-300"
+				>
+					{t("nav.knowledge")}
+				</a>
+				<a
+					href="/contact"
+					onClick={onClose}
+					className="rounded-md px-3 py-2.5 text-base text-slate-700 transition-colors hover:bg-slate-100 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-cyan-300"
+				>
+					{t("nav.contact")}
+				</a>
+
+				<a
+					href={appUrl}
+					onClick={onClose}
+					className={cn(
+						buttonVariants(),
+						"mt-2 justify-center bg-blue-600 text-white hover:bg-blue-500"
+					)}
+				>
+					{t("nav.freeCheckCta")}
+				</a>
+
+				<div className="mt-3 flex items-center justify-between gap-3">
+					<span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
+						{t("locale.label")}
+					</span>
+					<LocaleSwitcher />
+				</div>
+				<div className="mt-3 flex items-center justify-between gap-3">
+					<span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
+						{t("theme.label")}
+					</span>
+					<ThemeSwitcher theme={theme} setTheme={setTheme} />
+				</div>
+			</nav>
+		</div>
+	);
+}
 
 // ---------------------------------------------------------------------------
 // SiteNavBarInner
@@ -336,13 +573,33 @@ function SiteNavBarInner({ appUrl }: { readonly appUrl: string }) {
 	const { t } = useLocale();
 	const { theme, setTheme, resolvedTheme } = useTheme();
 	const [mobileOpen, setMobileOpen] = useState(false);
+	const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
 	const [scrolled, setScrolled] = useState(false);
+	const navRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const onScroll = () => setScrolled(window.scrollY > 10);
 		window.addEventListener("scroll", onScroll, { passive: true });
 		return () => window.removeEventListener("scroll", onScroll);
 	}, []);
+
+	useEffect(() => {
+		if (!openMenu) return;
+		const onClickOutside = (e: MouseEvent) => {
+			if (navRef.current && !navRef.current.contains(e.target as Node)) setOpenMenu(null);
+		};
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === "Escape") setOpenMenu(null);
+		};
+		document.addEventListener("mousedown", onClickOutside);
+		document.addEventListener("keydown", onKey);
+		return () => {
+			document.removeEventListener("mousedown", onClickOutside);
+			document.removeEventListener("keydown", onKey);
+		};
+	}, [openMenu]);
+
+	const toggleMenu = (menu: OpenMenu) => setOpenMenu((cur) => (cur === menu ? null : menu));
 
 	return (
 		<header
@@ -353,96 +610,101 @@ function SiteNavBarInner({ appUrl }: { readonly appUrl: string }) {
 					: "shadow-none"
 			)}
 		>
-			<div className="mx-auto grid h-14 w-full max-w-[1536px] grid-cols-[auto_1fr_auto] items-center gap-x-4 px-4 sm:px-6 lg:px-8">
-				{/* Logo */}
-				<a
-					href="/"
-					className="col-start-1 flex shrink-0 items-center gap-2 justify-self-start font-bold text-slate-950 dark:text-white"
-				>
-					<LogoIcon theme={resolvedTheme} />
-					<span className="text-lg leading-tight">
-						{"FactorySync"}
-						<span className="block text-sm font-extrabold text-cyan-400 -mt-1">Solutions</span>
-					</span>
-				</a>
-
-				{/* Center: homepage anchor links */}
-				<nav
-					className="col-start-2 hidden items-center justify-center gap-1 overflow-hidden justify-self-center lg:flex"
-					aria-label="Main navigation"
-				>
-					{PAGE_LINKS.map((link) => (
-						<a
-							key={link.labelKey}
-							href={link.href}
-							className="whitespace-nowrap px-2 py-1.5 text-xs text-slate-600 transition-colors hover:text-cyan-700 dark:text-slate-300 dark:hover:text-cyan-300 xl:px-3 xl:text-sm"
-						>
-							{t(link.labelKey)}
-						</a>
-					))}
-				</nav>
-
-				{/* Right controls */}
-				<div className="col-start-3 flex shrink-0 items-center justify-end gap-2 justify-self-end">
-					<LocaleSwitcher className="hidden sm:block" />
-					<ThemeSwitcher theme={theme} setTheme={setTheme} className="hidden sm:block" />
-
+			<div ref={navRef}>
+				<div className="mx-auto grid h-14 w-full max-w-[1536px] grid-cols-[auto_1fr_auto] items-center gap-x-4 px-4 sm:px-6 lg:px-8">
+					{/* Logo */}
 					<a
-						href={appUrl}
-						className={cn(
-							buttonVariants({ variant: "outline", size: "sm" }),
-							"hidden rounded-md px-4 text-xs sm:inline-flex xl:px-5 xl:text-sm"
-						)}
+						href="/"
+						className="col-start-1 flex shrink-0 items-center gap-2 justify-self-start font-bold text-slate-950 dark:text-white"
 					>
-						{t("nav.signIn")}
+						<LogoIcon theme={resolvedTheme} />
+						<span className="text-lg leading-tight">
+							{"FactorySync"}
+							<span className="block text-sm font-extrabold text-cyan-400 -mt-1">Solutions</span>
+						</span>
 					</a>
 
-					{/* Hamburger — mobile only */}
-					<button
-						type="button"
-						onClick={() => setMobileOpen((v) => !v)}
-						aria-label={t("nav.toggleMenu")}
-						className="rounded-md p-1.5 text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10 sm:hidden"
+					{/* Center: primary nav with dropdowns */}
+					<nav
+						className="col-start-2 hidden items-center justify-center gap-1 justify-self-center lg:flex"
+						aria-label="Main navigation"
 					>
-						{mobileOpen ? <CloseIcon /> : <MenuIcon />}
-					</button>
-				</div>
-			</div>
+						<a href="/" className={linkClass}>
+							{t("nav.home")}
+						</a>
+						<button
+							type="button"
+							className={triggerClass}
+							aria-haspopup="menu"
+							aria-expanded={openMenu === "about"}
+							onClick={() => toggleMenu("about")}
+						>
+							{t("nav.about")}
+							<ChevronDownIcon />
+						</button>
+						<button
+							type="button"
+							className={triggerClass}
+							aria-haspopup="menu"
+							aria-expanded={openMenu === "services"}
+							onClick={() => toggleMenu("services")}
+						>
+							{t("nav.services")}
+							<ChevronDownIcon />
+						</button>
+						<a href="/knowledge" className={linkClass}>
+							{t("nav.knowledge")}
+						</a>
+						<a href="/contact" className={linkClass}>
+							{t("nav.contact")}
+						</a>
+					</nav>
 
-			{/* Mobile dropdown */}
-			{mobileOpen && (
-				<div className="border-t border-slate-200 bg-white shadow-lg dark:border-cyan-300/10 dark:bg-[#06172d] sm:hidden">
-					<nav className="mx-auto max-w-7xl px-4 py-3 flex flex-col gap-1">
-						{PAGE_LINKS.map((link) => (
-							<a
-								key={link.labelKey}
-								href={link.href}
-								onClick={() => setMobileOpen(false)}
-								className="rounded-md px-3 py-2.5 text-base text-slate-700 transition-colors hover:bg-slate-100 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-cyan-300"
-							>
-								{t(link.labelKey)}
-							</a>
-						))}
+					{/* Right controls */}
+					<div className="col-start-3 flex shrink-0 items-center justify-end gap-2 justify-self-end">
+						<LocaleSwitcher className="hidden sm:block" />
+						<ThemeSwitcher theme={theme} setTheme={setTheme} className="hidden sm:block" />
+
 						<a
 							href={appUrl}
-							className={cn(buttonVariants({ variant: "outline" }), "mt-2 justify-center")}
+							className={cn(
+								buttonVariants({ size: "sm" }),
+								"hidden rounded-md bg-blue-600 px-4 text-sm text-white shadow-[0_0_24px_rgba(37,99,235,0.35)] hover:bg-blue-500 lg:inline-flex xl:px-5"
+							)}
 						>
-							{t("nav.signIn")}
+							{t("nav.freeCheckCta")}
 						</a>
-						<div className="mt-3 flex items-center justify-between gap-3">
-							<span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
-								{t("locale.label")}
-							</span>
-							<LocaleSwitcher />
-						</div>
-						<div className="mt-3 flex items-center justify-between gap-3">
-							<span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
-								{t("theme.label")}
-							</span>
-							<ThemeSwitcher theme={theme} setTheme={setTheme} />
-						</div>
-					</nav>
+
+						{/* Hamburger — below lg */}
+						<button
+							type="button"
+							onClick={() => setMobileOpen((v) => !v)}
+							aria-label={t("nav.toggleMenu")}
+							className="rounded-md p-1.5 text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10 lg:hidden"
+						>
+							{mobileOpen ? <CloseIcon /> : <MenuIcon />}
+						</button>
+					</div>
 				</div>
+
+				{/* Desktop dropdown panels */}
+				{openMenu && (
+					<div className="absolute inset-x-0 top-full hidden border-t border-slate-200 bg-white shadow-[0_24px_48px_rgba(15,23,42,0.16)] dark:border-cyan-300/10 dark:bg-[#06172d] lg:block">
+						<div className="mx-auto w-full max-w-[1536px] px-4 py-6 sm:px-6 lg:px-8">
+							{openMenu === "services" ? <ServicesMegaPanel /> : <AboutPanel />}
+						</div>
+					</div>
+				)}
+			</div>
+
+			{/* Mobile drawer */}
+			{mobileOpen && (
+				<MobileDrawer
+					appUrl={appUrl}
+					theme={theme}
+					setTheme={setTheme}
+					onClose={() => setMobileOpen(false)}
+				/>
 			)}
 		</header>
 	);

@@ -1,27 +1,27 @@
 ---
-import { AppHandoff } from "../components/AppHandoff";
-import { CookieConsent } from "../components/CookieConsent";
-import { TopCtaBar } from "../components/TopCtaBar";
+import { AppHandoff } from '../components/AppHandoff';
+import { CookieConsent } from '../components/CookieConsent';
+import { TopCtaBar } from '../components/TopCtaBar';
 
 interface Props {
-	title: string;
-	description?: string;
-	ogImage?: string;
-	canonical?: string;
-	noindex?: boolean;
+  title: string;
+  description?: string;
+  ogImage?: string;
+  canonical?: string;
+  noindex?: boolean;
 }
 
 const {
-	title,
-	description = "FactorySync Solutions — ยกระดับโรงงานของคุณด้วยระบบประเมินสุขภาพที่ชาญฉลาด",
-	ogImage,
-	noindex = false,
+  title,
+  description = 'FactorySync Solutions — ยกระดับโรงงานของคุณด้วยระบบประเมินสุขภาพที่ชาญฉลาด',
+  ogImage,
+  noindex = false,
 } = Astro.props;
 const canonicalURL = Astro.props.canonical ?? Astro.url.href;
-const ogImageURL = ogImage ?? new URL("/og-image.png", Astro.site ?? Astro.url).href;
+const ogImageURL = ogImage ?? new URL('/og-image.png', Astro.site ?? Astro.url).href;
 
-const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
-const gtmId = import.meta.env.PUBLIC_GTM_ID ?? "";
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? '#';
+const gtmId = import.meta.env.PUBLIC_GTM_ID ?? '';
 ---
 
 <!doctype html>
