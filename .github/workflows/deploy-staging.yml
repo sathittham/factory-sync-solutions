@@ -78,9 +78,9 @@ jobs:
           api=false; gateway=false; web=false; official=false; backoffice=false
           if echo "$CHANGED" | grep -qE '^apps/backend/|^\.github/workflows/deploy-staging\.yml'; then api=true; consumer=true; fi
           if echo "$CHANGED" | grep -qE '^infra/cloudflare/workers/api-gateway/|^\.github/workflows/deploy-staging\.yml'; then gateway=true; fi
-          if echo "$CHANGED" | grep -qE '^apps/web-app/|^\.github/workflows/deploy-staging\.yml';     then web=true;        fi
-          if echo "$CHANGED" | grep -qE '^apps/web-official/|^\.github/workflows/deploy-staging\.yml'; then official=true; fi
-          if echo "$CHANGED" | grep -qE '^apps/web-backoffice/|^\.github/workflows/deploy-staging\.yml'; then backoffice=true; fi
+          if echo "$CHANGED" | grep -qE '^apps/web-app/|^packages/shared/|^pnpm-lock\.yaml|^\.github/workflows/deploy-staging\.yml';     then web=true;        fi
+          if echo "$CHANGED" | grep -qE '^apps/web-official/|^packages/shared/|^pnpm-lock\.yaml|^\.github/workflows/deploy-staging\.yml'; then official=true; fi
+          if echo "$CHANGED" | grep -qE '^apps/web-backoffice/|^packages/shared/|^pnpm-lock\.yaml|^\.github/workflows/deploy-staging\.yml'; then backoffice=true; fi
           echo "Deploy → api=$api gateway=$gateway web=$web official=$official consumer=$consumer backoffice=$backoffice"
           { echo "api=$api"; echo "gateway=$gateway"; echo "web=$web"; echo "official=$official"; echo "consumer=$consumer"; echo "backoffice=$backoffice"; } >> "$GITHUB_OUTPUT"
 
@@ -216,16 +216,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
-          cache-dependency-path: apps/web-app/package-lock.json
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install and build
         run: |
-          npm ci
-          npx vite build
+          pnpm install --frozen-lockfile
+          pnpm exec vite build
         env:
           VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
@@ -258,11 +260,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
-          cache-dependency-path: apps/web-official/package-lock.json
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Compute version
         id: version
@@ -272,8 +276,8 @@ jobs:
 
       - name: Install and build
         run: |
-          npm ci
-          npm run build:staging
+          pnpm install --frozen-lockfile
+          pnpm run build:staging
         env:
           PUBLIC_APP_URL: https://app-staging.factorysyncsolutions.com
           PUBLIC_APP_VERSION: ${{ steps.version.outputs.version }}
@@ -305,16 +309,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
-          cache-dependency-path: apps/web-backoffice/package-lock.json
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install and build
         run: |
-          npm install
-          npm run build:staging
+          pnpm install --frozen-lockfile
+          pnpm run build:staging
         env:
           VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}

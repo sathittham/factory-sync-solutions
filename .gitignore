@@ -10,6 +10,9 @@ out/
 *.tsbuildinfo
 .astro/
 
+# Turborepo
+.turbo/
+
 # Environment variables
 .env
 .env.local

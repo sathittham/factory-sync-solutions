@@ -3,22 +3,50 @@
   "private": true,
   "license": "MIT",
   "author": "Sathittham Sangthong <s.sathittham@gmail.com>",
+  "packageManager": "pnpm@10.14.0",
   "scripts": {
     "dev": "make dev",
-    "build": "make build",
-    "lint": "make lint",
-    "test": "make test",
-    "test:api-gateway": "cd infra/cloudflare/workers/api-gateway && npm test",
-    "deploy:api-gateway:staging": "cd infra/cloudflare/workers/api-gateway && npx wrangler deploy --env staging",
-    "deploy:api-gateway:prod": "cd infra/cloudflare/workers/api-gateway && npx wrangler deploy --env production",
-    "deploy:app-web:staging": "cd apps/web-app && npm run deploy:staging",
-    "deploy:app-web:prod": "cd apps/web-app && npm run deploy:prod",
-    "deploy:official-web:staging": "cd apps/web-official && npm run deploy:staging",
-    "deploy:official-web:prod": "cd apps/web-official && npm run deploy:prod",
-    "deploy:staging": "npm run deploy:api-gateway:staging && npm run deploy:app-web:staging && npm run deploy:official-web:staging",
-    "deploy:prod": "npm run deploy:api-gateway:prod && npm run deploy:app-web:prod && npm run deploy:official-web:prod"
+    "dev:web": "turbo run dev --filter=@repo/web-app",
+    "dev:backoffice": "turbo run dev --filter=@repo/web-backoffice",
+    "dev:official": "turbo run dev --filter=@repo/web-official",
+    "dev:cms": "turbo run dev --filter=@repo/web-cms",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "type-check": "turbo run type-check",
+    "test": "pnpm run test:web && pnpm run test:api",
+    "test:web": "turbo run test",
+    "test:api": "make test-api",
+    "test:api-gateway": "pnpm --filter @repo/api-gateway test",
+    "deploy:api-gateway:staging": "pnpm --filter @repo/api-gateway deploy:staging",
+    "deploy:api-gateway:prod": "pnpm --filter @repo/api-gateway deploy:prod",
+    "deploy:app-web:staging": "pnpm --filter @repo/web-app deploy:staging",
+    "deploy:app-web:prod": "pnpm --filter @repo/web-app deploy:prod",
+    "deploy:official-web:staging": "pnpm --filter @repo/web-official deploy:staging",
+    "deploy:official-web:prod": "pnpm --filter @repo/web-official deploy:prod",
+    "deploy:backoffice:staging": "pnpm --filter @repo/web-backoffice deploy:staging",
+    "deploy:backoffice:prod": "pnpm --filter @repo/web-backoffice deploy:prod",
+    "setup:web-cms:staging": "pnpm --filter @repo/web-cms cf:setup:staging",
+    "setup:web-cms:prod": "pnpm --filter @repo/web-cms cf:setup:prod",
+    "deploy:web-cms:staging": "pnpm --filter @repo/web-cms deploy:staging",
+    "deploy:web-cms:prod": "pnpm --filter @repo/web-cms deploy:prod",
+    "deploy:staging": "pnpm run deploy:api-gateway:staging && pnpm run deploy:app-web:staging && pnpm run deploy:official-web:staging",
+    "deploy:prod": "pnpm run deploy:api-gateway:prod && pnpm run deploy:app-web:prod && pnpm run deploy:official-web:prod"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.5"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20",
+    "pnpm": ">=10"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@biomejs/biome",
+      "@firebase/util",
+      "esbuild",
+      "sharp",
+      "workerd"
+    ]
   }
 }

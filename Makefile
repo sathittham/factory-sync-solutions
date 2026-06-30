@@ -10,7 +10,7 @@ dev-api:
 	cd apps/backend && go run main.go
 
 dev-web:
-	cd apps/web-app && npx vite
+	pnpm --filter @repo/web-app dev
 
 # --- Build ---
 
@@ -32,7 +32,7 @@ build-consumer:
 	cd apps/backend && go build ./cmd/domain-event-consumer
 
 build-web:
-	cd apps/web-app && npx tsc -b && npx vite build
+	pnpm --filter @repo/web-app build
 
 # --- Test ---
 
@@ -42,7 +42,7 @@ test-api:
 	cd apps/backend && go test -race -cover ./...
 
 test-web:
-	cd apps/web-app && npx vitest run
+	pnpm --filter @repo/web-app test
 
 # --- Lint ---
 
@@ -52,20 +52,20 @@ lint-api:
 	cd apps/backend && go vet ./...
 
 lint-web:
-	cd apps/web-app && npx biome check .
+	pnpm --filter @repo/web-app lint
 
 lint-fix:
-	cd apps/web-app && npx biome check --fix .
+	pnpm --filter @repo/web-app lint:fix
 
 # --- Install ---
 
 install:
-	cd apps/web-app && npm install
+	pnpm install
 
 # --- Clean ---
 
 clean:
-	rm -rf apps/web-app/dist apps/web-app/node_modules/.vite
+	rm -rf apps/web-app/dist apps/web-app/node_modules/.vite .turbo apps/*/.turbo
 
 setup-domain-event-worker:
 	./scripts/setup-domain-event-worker.sh --environment staging --project $(or $(GCP_PROJECT_ID),factory-sync-solutions)

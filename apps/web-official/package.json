@@ -1,12 +1,12 @@
 {
-	"name": "web-official",
+	"name": "@repo/web-official",
 	"private": true,
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
 		"sync:favicon": "node ../../packages/shared/scripts/copy-favicon.mjs public",
-		"dev": "npm run sync:favicon && astro dev",
-		"build": "npm run sync:favicon && astro build",
+		"dev": "pnpm run sync:favicon && astro dev",
+		"build": "pnpm run sync:favicon && astro build",
 		"preview": "astro preview",
 		"astro": "astro",
 		"lint": "biome check .",
@@ -17,11 +17,12 @@
 		"test:e2e": "playwright test",
 		"test:e2e:ui": "playwright test --ui",
 		"test:e2e:install": "playwright install --with-deps",
-		"build:staging": "npm run sync:favicon && astro build --mode staging",
-		"deploy:staging": "npm run build:staging && CLOUDFLARE_ACCOUNT_ID=9cfbba8b3a373fdc0d11abaf64071719 npx wrangler pages deploy dist --project-name=factory-sync-solutions-official-staging --branch=staging",
-		"deploy:prod": "npm run build && CLOUDFLARE_ACCOUNT_ID=9cfbba8b3a373fdc0d11abaf64071719 npx wrangler pages deploy dist --project-name=factory-sync-solutions-official --branch=main"
+		"build:staging": "pnpm run sync:favicon && astro build --mode staging",
+		"deploy:staging": "pnpm run build:staging && CLOUDFLARE_ACCOUNT_ID=9cfbba8b3a373fdc0d11abaf64071719 npx wrangler pages deploy dist --project-name=factory-sync-solutions-official-staging --branch=staging",
+		"deploy:prod": "pnpm run build && CLOUDFLARE_ACCOUNT_ID=9cfbba8b3a373fdc0d11abaf64071719 npx wrangler pages deploy dist --project-name=factory-sync-solutions-official --branch=main"
 	},
 	"dependencies": {
+		"@repo/shared": "workspace:*",
 		"@astrojs/react": "^4.0.0",
 		"@astrojs/sitemap": "^3.7.3",
 		"@hookform/resolvers": "^5.4.0",
