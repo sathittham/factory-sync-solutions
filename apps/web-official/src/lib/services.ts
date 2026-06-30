@@ -75,3 +75,30 @@ export function groupHref(group: ServiceGroup): string {
 export function childHref(group: ServiceGroup, child: ServiceNode): string {
 	return `/services/${group.slug}/${child.slug}`;
 }
+
+/** Derive the i18n subtitle key from a `*.title` label key (`svc.x.title` → `svc.x.sub`). */
+export function subKey(labelKey: string): string {
+	return labelKey.replace(/\.title$/, ".sub");
+}
+
+/** Look up a group by its slug segment. */
+export function getGroupBySlug(slug: string): ServiceGroup | undefined {
+	return SERVICE_GROUPS.find((group) => group.slug === slug);
+}
+
+/** Look up a child node within a group by its slug segment. */
+export function getChildBySlug(group: ServiceGroup, childSlug: string): ServiceNode | undefined {
+	return group.children?.find((child) => child.slug === childSlug);
+}
+
+/** `getStaticPaths` params for the 4 group root pages (`/services/<group>`). */
+export function groupParams(): ReadonlyArray<{ group: string }> {
+	return SERVICE_GROUPS.map((group) => ({ group: group.slug }));
+}
+
+/** `getStaticPaths` params for the 13 nested child pages (`/services/<group>/<slug>`). */
+export function childParams(): ReadonlyArray<{ group: string; slug: string }> {
+	return SERVICE_GROUPS.flatMap((group) =>
+		(group.children ?? []).map((child) => ({ group: group.slug, slug: child.slug }))
+	);
+}

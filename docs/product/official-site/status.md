@@ -24,7 +24,7 @@
 
 ## Current State
 
-⚠️ **Phase 2 complete.** Phase 1 and Phase 2 are shipped; Phases 3–4 not started.
+⚠️ **Phase 3 complete.** Phases 1–3 are shipped; Phase 4 (Knowledge Hub) blocked on web-cms.
 
 Phase 1 shipped: `SiteNavBar` now renders the routed primary nav (Home · About ▾ · Services ▾ mega · Knowledge ·
 Contact) backed by a shared `SERVICE_GROUPS` taxonomy (`src/lib/services.ts`), a 4-column Services mega menu,
@@ -36,8 +36,16 @@ Phase 2 shipped (2026-06-30): unified header (`SiteNav`) across Home, Services a
 pages `/contact`, `/about`, `/about/company`, `/about/team`, `/about/case-studies` built and verified. New
 `SiteShell` shared chrome component. All 69 tests green, 15 routes generated.
 
-⚠️ **Known gaps:** `/knowledge` route still 404 (Phase 4, blocked on web-cms). `/services/*` nested hub routes
-deferred to Phase 3.
+Phase 3 shipped (2026-06-30): nested service taxonomy live — `/services/<group>` (4 roots: 2 single pages +
+2 hub listings) and `/services/<group>/<slug>` (13 detail pages), all from `SERVICE_GROUPS` via nested
+`getStaticPaths`. One mode-driven `ServiceContent` template renders hub listing / real detail /
+placeholder detail. Per the **scaffold + placeholder** decision, the 13 nested details show a clearly-marked
+"coming soon" notice (no fabricated service claims); the flagship `factory-health-check` and
+`engineering-consulting` carry migrated real copy with a flagship CTA deep-linking into the web-app. Legacy
+slugs 301-redirect to their new targets. All 80 tests green, 28 pages built (17 service routes + 3 redirects).
+
+⚠️ **Known gaps:** `/knowledge` route still 404 (Phase 4, blocked on web-cms). The 13 nested detail pages
+carry placeholder body copy pending marketing-owned content.
 
 ---
 
@@ -82,18 +90,28 @@ Routed pages; unified header across all pages.
 
 ---
 
-## Phase 3 — Services
+## Phase 3 — Services ✅
 
-✅ Unblocked — Q4 (dedicated flagship marketing page + deep-link CTA) and Q5 (uniform template) resolved 2026-06-30.
+Q4 (dedicated flagship marketing page + deep-link CTA) and Q5 (uniform template) resolved 2026-06-30.
 
-- [ ] Nested `SERVICE_DETAILS` data structure (groups → hubs → detail)
-- [ ] `getStaticPaths` emits nested paths; 2 hubs + 13 detail pages
-- [ ] Static content collection for service copy — `src/content/services/`
-- [ ] 301 redirects for the 3 legacy slugs — `astro.config.mjs`
+- [x] Service taxonomy lookups + path enumerators — `src/lib/services.ts` (`getGroupBySlug`, `getChildBySlug`, `groupParams`, `childParams`, `subKey`)
+- [x] Service body copy module (real for the 2 single pages, placeholder elsewhere) — `src/lib/serviceContent.ts`
+- [x] `getStaticPaths` emits nested paths — `services/[group].astro` (4) + `services/[group]/[slug].astro` (13)
+- [x] Mode-driven template (hub listing / detail / placeholder) — `src/components/services/ServiceContent.tsx`
+- [x] `.sub` taglines + `svc.ui.*` strings (TH/EN) — `src/lib/i18n.tsx`; server-safe `translate()` for Astro SEO
+- [x] 301 redirects for the 3 legacy slugs — `astro.config.mjs`
+
+> **Design note:** SDD §4.2 prescribed an MDX content collection; Phase 3 uses a **TS data module**
+> (`serviceContent.ts`) instead — it matches the existing `SERVICE_DETAILS` pattern, is type-safe, needs no
+> MDX tooling, and suits the placeholder strategy. Recorded in the SDD document history.
 
 ### Phase 3 Tests
-- [ ] All 13 nested routes 200 with correct TH/EN titles
-- [ ] Legacy slugs 301 → new targets
+- [x] Taxonomy: 4 roots + 13 details = 17 paths; slug lookups; nested hrefs — `services.test.ts`
+- [x] Template: hub lists children, flagship detail CTA → app, placeholder shows notice + breadcrumb — `ServiceContent.test.tsx`
+- [x] All 17 nested routes build with correct TH/EN titles; legacy slugs 301 → new targets
+
+> Verified 2026-06-30: `pnpm build` → 28 pages (17 service routes + 3 legacy redirects). `biome check` ✓.
+> `tsc --noEmit` ✓. `vitest run` → **80/80** (was 69).
 
 ---
 
@@ -138,5 +156,5 @@ Mirrors [sitemap.md §10](./sitemap.md#10-decisions--open-questions). All resolv
 
 ---
 
-*Version: 0.1.0*
+*Version: 0.3.0*
 *Last updated: 30 June 2026*

@@ -30,6 +30,11 @@ export function getInitialLocale(): Locale {
 	return "th";
 }
 
+/** Server-safe translation lookup — usable in Astro frontmatter (no React context). */
+export function translate(key: string, locale: Locale): string {
+	return translations[locale]?.[key] ?? key;
+}
+
 const translations: Record<Locale, Record<string, string>> = {
 	th: {
 		// --- existing keys ---
@@ -150,6 +155,36 @@ const translations: Record<Locale, Record<string, string>> = {
 		"svc.environmentalSystems.title": "งานระบบบำบัดมลพิษ / สิ่งแวดล้อม",
 		"svc.machineRegistration.title": "ขึ้นทะเบียนเครื่องจักร",
 		"svc.certifications.title": "ใบอนุญาตและรับรองระบบ (มาตรฐาน / ISO)",
+		// --- service subtitles (taglines) ---
+		"svc.govSupported.sub": "โครงการที่ได้รับการสนับสนุนจากภาครัฐ ช่วยลดต้นทุนการพัฒนาโรงงาน",
+		"svc.engDesign.sub": "ออกแบบและเซ็นรับรองแบบงานวิศวกรรมโดยวุฒิวิศวกร",
+		"svc.digitalFactory360.sub": "ออกแบบและจัดวางผังโรงงานแบบดิจิทัล 360°",
+		"svc.smartPreventiveMaintenance.sub": "วางระบบบำรุงรักษาเชิงป้องกันอัจฉริยะ",
+		"svc.shindanLeanKaizen.sub": "วินิจฉัยและปรับปรุงกระบวนการด้วย Lean–Kaizen",
+		"svc.onlineMarketingSmartOps.sub": "การตลาดออนไลน์และระบบปฏิบัติการอัจฉริยะ",
+		"svc.inHouseTraining.sub": "อบรมภายในองค์กรตามความต้องการเฉพาะ",
+		"svc.factoryLicense.sub": "ดำเนินการขอใบอนุญาตประกอบกิจการโรงงาน รง.2 / รง.4",
+		"svc.machineAutomationDesign.sub": "ออกแบบเครื่องจักรและระบบอัตโนมัติ (SA/SI)",
+		"svc.engConsultingProject.sub": "ที่ปรึกษาวิศวกรรมสำหรับโครงการออกแบบและเซ็นรับรอง",
+		"svc.constructionPermits.sub": "ดำเนินการขออนุญาตก่อสร้างและดัดแปลงอาคาร",
+		"svc.specialSystems.sub": "ติดตั้งระบบพิเศษสำหรับงานอุตสาหกรรม",
+		"svc.environmentalSystems.sub": "ออกแบบและติดตั้งระบบบำบัดมลพิษและสิ่งแวดล้อม",
+		"svc.machineRegistration.sub": "ดำเนินการขึ้นทะเบียนเครื่องจักรตามกฎหมาย",
+		"svc.certifications.sub": "ขอใบอนุญาตและการรับรองระบบมาตรฐาน / ISO",
+		// --- service page UI ---
+		"svc.ui.breadcrumbServices": "บริการของเรา",
+		"svc.ui.servicesInGroup": "บริการในกลุ่มนี้",
+		"svc.ui.overview": "ภาพรวมบริการ",
+		"svc.ui.otherInGroup": "บริการอื่นในกลุ่มนี้",
+		"svc.ui.relatedServices": "บริการอื่นๆ",
+		"svc.ui.comingSoonTitle": "รายละเอียดบริการเร็วๆ นี้",
+		"svc.ui.comingSoonBody": "ทีมงานกำลังเตรียมข้อมูลบริการนี้ ติดต่อเราเพื่อสอบถามรายละเอียดเพิ่มเติมได้ทันที",
+		"svc.ui.ctaPrimary": "เริ่มประเมินฟรี",
+		"svc.ui.ctaConsult": "ขอคำปรึกษา",
+		"svc.ui.ctaContact": "ติดต่อเรา",
+		"svc.ui.bottomCtaTitle": "พร้อมยกระดับโรงงานของคุณแล้วหรือยัง?",
+		"svc.ui.bottomCtaSub": "เริ่มต้นวันนี้ เพื่อผลลัพธ์ที่ดีกว่าเดิม",
+		"svc.ui.bottomCtaBtn": "เริ่มประเมินฟรีเลย",
 		"locale.label": "ภาษา",
 		"theme.label": "ธีม",
 		"theme.dark": "มืด",
@@ -504,6 +539,38 @@ const translations: Record<Locale, Record<string, string>> = {
 		"svc.environmentalSystems.title": "Pollution / Environmental Systems",
 		"svc.machineRegistration.title": "Machine Registration",
 		"svc.certifications.title": "Certifications & Standards (ISO)",
+		// --- service subtitles (taglines) ---
+		"svc.govSupported.sub":
+			"Government-backed programs that cut the cost of upgrading your factory",
+		"svc.engDesign.sub": "Engineering design and certified sign-off by licensed engineers",
+		"svc.digitalFactory360.sub": "Digital 360° factory layout design and planning",
+		"svc.smartPreventiveMaintenance.sub": "Set up an intelligent preventive-maintenance system",
+		"svc.shindanLeanKaizen.sub": "Diagnose and improve processes with Lean–Kaizen",
+		"svc.onlineMarketingSmartOps.sub": "Online marketing paired with smart operations",
+		"svc.inHouseTraining.sub": "In-house training tailored to your needs",
+		"svc.factoryLicense.sub": "Handling factory operating licenses (รง.2 / รง.4)",
+		"svc.machineAutomationDesign.sub": "Machine and automation system design (SA/SI)",
+		"svc.engConsultingProject.sub": "Engineering consulting for design and sign-off projects",
+		"svc.constructionPermits.sub": "Construction and building-modification permits",
+		"svc.specialSystems.sub": "Special-system installation for industrial work",
+		"svc.environmentalSystems.sub": "Pollution-treatment and environmental system design",
+		"svc.machineRegistration.sub": "Statutory machine registration handling",
+		"svc.certifications.sub": "Standard / ISO system licensing and certification",
+		// --- service page UI ---
+		"svc.ui.breadcrumbServices": "Our Services",
+		"svc.ui.servicesInGroup": "Services in this group",
+		"svc.ui.overview": "Overview",
+		"svc.ui.otherInGroup": "Other services in this group",
+		"svc.ui.relatedServices": "Other services",
+		"svc.ui.comingSoonTitle": "Service details coming soon",
+		"svc.ui.comingSoonBody":
+			"We're preparing the details for this service. Contact us anytime for more information.",
+		"svc.ui.ctaPrimary": "Start Free Assessment",
+		"svc.ui.ctaConsult": "Request a consultation",
+		"svc.ui.ctaContact": "Contact us",
+		"svc.ui.bottomCtaTitle": "Ready to level up your factory?",
+		"svc.ui.bottomCtaSub": "Start today for better results.",
+		"svc.ui.bottomCtaBtn": "Start Free Assessment",
 		"locale.label": "Language",
 		"theme.label": "Theme",
 		"theme.dark": "Dark",

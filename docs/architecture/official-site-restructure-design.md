@@ -250,3 +250,4 @@ No auth surface — the site is public by design.
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 0.1.0 | 2026-06-30 | Sathittham Sangthong | Initial design for the official-site restructure |
+| 0.2.0 | 2026-06-30 | Sathittham Sangthong | Phase 3 implemented. Adopted a **TS data module** (`src/lib/serviceContent.ts`) in place of the §4.2 MDX content collection — matches the existing `SERVICE_DETAILS` pattern, is type-safe, and needs no MDX tooling. The 13 nested detail pages ship placeholder copy ("scaffold + placeholder" decision) pending marketing content. |
