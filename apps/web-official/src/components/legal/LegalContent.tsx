@@ -1,260 +1,9 @@
 "use client";
 
-import {
-	LocaleSwitcher,
-	LogoIcon,
-	type ResolvedTheme,
-	type Theme,
-	ThemeSwitcher,
-	useTheme,
-} from "@/components/site/chrome";
-import { buttonVariants } from "@/components/ui/button";
-import { getAppRegisterUrl } from "@/lib/appLinks";
+import { SiteNav } from "@/components/SiteNavBar";
+import { SiteFooter, useTheme } from "@/components/site/chrome";
 import { type Locale, LocaleProvider, useLocale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { Fragment, useState } from "react";
-
-// ---------------------------------------------------------------------------
-// NavBar — shares the logo, switchers and theme with the landing page
-// ---------------------------------------------------------------------------
-
-function MenuIcon() {
-	return (
-		<svg
-			width="22"
-			height="22"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-			strokeLinecap="round"
-			aria-hidden="true"
-		>
-			<line x1="3" y1="6" x2="21" y2="6" />
-			<line x1="3" y1="12" x2="21" y2="12" />
-			<line x1="3" y1="18" x2="21" y2="18" />
-		</svg>
-	);
-}
-
-function CloseIcon() {
-	return (
-		<svg
-			width="22"
-			height="22"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-			strokeLinecap="round"
-			aria-hidden="true"
-		>
-			<line x1="18" y1="6" x2="6" y2="18" />
-			<line x1="6" y1="6" x2="18" y2="18" />
-		</svg>
-	);
-}
-
-const SITE_NAV_LINKS = [
-	{ key: "nav.home", href: "/#hero" },
-	{ key: "nav.healthCheck", href: "/#dimensions" },
-	{ key: "nav.engineering", href: "/#expert" },
-	{ key: "nav.peace", href: "/#services" },
-	{ key: "nav.cases", href: "/#results" },
-	{ key: "nav.blog", href: "/#process" },
-	{ key: "nav.contact", href: "/#contact" },
-];
-
-function NavBar({
-	appUrl,
-	registerUrl,
-	theme,
-	setTheme,
-	resolvedTheme,
-}: {
-	readonly appUrl: string;
-	readonly registerUrl: string;
-	readonly theme: Theme;
-	readonly setTheme: (t: Theme) => void;
-	readonly resolvedTheme: ResolvedTheme;
-}) {
-	const { t } = useLocale();
-	const [mobileOpen, setMobileOpen] = useState(false);
-	const handleToggleMobile = () => setMobileOpen((v) => !v);
-	const handleCloseMobile = () => setMobileOpen(false);
-
-	return (
-		<header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 text-slate-950 backdrop-blur-sm dark:border-cyan-300/10 dark:bg-[#041225]/95 dark:text-white">
-			<div className="mx-auto grid h-14 w-full max-w-[1536px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-4 sm:px-6 lg:px-8">
-				<a
-					href="/"
-					className="col-start-1 flex min-w-0 items-center gap-2 justify-self-start font-bold text-slate-950 dark:text-white"
-				>
-					<LogoIcon theme={resolvedTheme} />
-					<span className="text-lg leading-tight">
-						{"FactorySync"}
-						<span className="block text-sm font-extrabold text-cyan-400 -mt-1">Solutions</span>
-					</span>
-				</a>
-				<nav
-					className="col-start-2 hidden items-center justify-center gap-1 justify-self-center lg:flex"
-					aria-label="Main navigation"
-				>
-					{SITE_NAV_LINKS.map((link, index) => (
-						<a
-							key={link.key}
-							href={link.href}
-							className={cn(
-								"whitespace-nowrap px-2 py-1.5 text-xs transition-colors hover:text-cyan-700 dark:hover:text-cyan-300 xl:px-3 xl:text-sm",
-								index >= 6 && "hidden xl:inline-flex",
-								link.key === "nav.home"
-									? "text-cyan-700 dark:text-cyan-300 drop-shadow-[0_0_12px_rgba(34,211,238,0.65)]"
-									: "text-slate-600 dark:text-slate-300"
-							)}
-						>
-							{t(link.key)}
-						</a>
-					))}
-				</nav>
-				<div className="col-start-3 flex min-w-0 items-center justify-end gap-2 justify-self-end">
-					<LocaleSwitcher className="hidden lg:block" />
-					<ThemeSwitcher theme={theme} setTheme={setTheme} className="hidden lg:block" />
-					<a
-						href={appUrl}
-						className={cn(
-							buttonVariants({ variant: "outline", size: "sm" }),
-							"hidden rounded-md px-4 text-xs 2xl:inline-flex xl:px-5 xl:text-sm"
-						)}
-					>
-						{t("nav.signIn")}
-					</a>
-					<a
-						href={registerUrl}
-						className={cn(
-							buttonVariants({ size: "sm" }),
-							"hidden rounded-md bg-blue-600 px-4 text-xs text-white shadow-[0_0_24px_rgba(37,99,235,0.35)] hover:bg-blue-500 min-[1360px]:inline-flex xl:px-5 xl:text-sm"
-						)}
-					>
-						{t("nav.signUp")}
-					</a>
-					<button
-						type="button"
-						onClick={handleToggleMobile}
-						aria-label="Toggle menu"
-						className="rounded-md p-1.5 text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10 lg:hidden"
-					>
-						{mobileOpen ? <CloseIcon /> : <MenuIcon />}
-					</button>
-				</div>
-			</div>
-
-			{mobileOpen && (
-				<div className="border-t border-slate-200 bg-white shadow-lg dark:border-cyan-300/10 dark:bg-[#06172d] lg:hidden">
-					<nav
-						className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3"
-						aria-label="Main navigation"
-					>
-						{SITE_NAV_LINKS.map((link) => (
-							<a
-								key={link.key}
-								href={link.href}
-								onClick={handleCloseMobile}
-								className="rounded-md px-3 py-2.5 text-base text-slate-700 transition-colors hover:bg-slate-100 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-cyan-300"
-							>
-								{t(link.key)}
-							</a>
-						))}
-						<a
-							href={registerUrl}
-							onClick={handleCloseMobile}
-							className={cn(
-								buttonVariants(),
-								"mt-2 justify-center bg-blue-600 text-white hover:bg-blue-500"
-							)}
-						>
-							{t("nav.signUp")}
-						</a>
-						<a
-							href={appUrl}
-							onClick={handleCloseMobile}
-							className="mt-1 text-center text-sm text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-cyan-300"
-						>
-							{t("nav.signIn")}
-						</a>
-						<div className="mt-3 flex items-center justify-between gap-3">
-							<span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
-								{t("locale.label")}
-							</span>
-							<LocaleSwitcher />
-						</div>
-						<div className="mt-3 flex items-center justify-between gap-3">
-							<span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
-								{t("theme.label")}
-							</span>
-							<ThemeSwitcher theme={theme} setTheme={setTheme} />
-						</div>
-					</nav>
-				</div>
-			)}
-		</header>
-	);
-}
-
-const SEP = <span className="text-slate-300 dark:text-slate-600">|</span>;
-
-function Footer({
-	version,
-	resolvedTheme,
-}: { readonly version: string; readonly resolvedTheme: ResolvedTheme }) {
-	const { t } = useLocale();
-	const year = new Date().getFullYear();
-
-	const legalLinks = [
-		{ href: "/privacy", label: t("footer.privacy") },
-		{ href: "/terms", label: t("footer.terms") },
-		{ href: "/cookies", label: t("footer.cookiePolicy") },
-		{ href: "/marketing", label: t("footer.marketing") },
-		{ href: "/cookie-settings", label: t("footer.cookies") },
-	];
-
-	return (
-		<footer className="border-t border-slate-200 bg-white py-6 text-slate-500 dark:border-cyan-300/15 dark:bg-[#041225] dark:text-slate-400">
-			<div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 sm:px-6 md:flex-row md:items-center md:justify-between">
-				{/* Brand */}
-				<div className="flex items-center gap-3">
-					<LogoIcon theme={resolvedTheme} />
-					<div>
-						<p className="text-sm font-semibold text-slate-900 dark:text-white">
-							FactorySync Solutions Co., Ltd.
-						</p>
-						<p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{t("footer.desc")}</p>
-					</div>
-				</div>
-
-				{/* Legal links + copyright */}
-				<div className="flex flex-col gap-2 text-xs md:items-end">
-					<div className="flex flex-wrap items-center gap-x-2 gap-y-1 md:justify-end">
-						{legalLinks.map((link, index) => (
-							<Fragment key={link.href}>
-								<a
-									href={link.href}
-									className="transition-colors hover:text-blue-700 dark:hover:text-cyan-300"
-								>
-									{link.label}
-								</a>
-								{index < legalLinks.length - 1 && SEP}
-							</Fragment>
-						))}
-					</div>
-					<p className="text-slate-400 dark:text-slate-500">
-						© {year} {t("footer.copyright")}
-						<span className="ml-2 font-mono text-[10px] opacity-60">{version}</span>
-					</p>
-				</div>
-			</div>
-		</footer>
-	);
-}
 
 // ---------------------------------------------------------------------------
 // Legal content — Thai & English
@@ -1134,18 +883,11 @@ function LegalInner({
 }: { readonly page: LegalPageType; readonly appUrl: string; readonly version: string }) {
 	const { locale, t } = useLocale();
 	const { theme, resolvedTheme, setTheme } = useTheme();
-	const registerUrl = getAppRegisterUrl(appUrl, { isDevelopment: import.meta.env.DEV });
 	const title = PAGE_TITLES[page][locale];
 
 	return (
 		<div className="min-h-screen flex flex-col bg-white text-slate-900 dark:bg-[#041225] dark:text-slate-100">
-			<NavBar
-				appUrl={appUrl}
-				registerUrl={registerUrl}
-				theme={theme}
-				setTheme={setTheme}
-				resolvedTheme={resolvedTheme}
-			/>
+			<SiteNav appUrl={appUrl} theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
 			<main className="flex-1">
 				<div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
 					{/* Breadcrumb */}
@@ -1176,7 +918,7 @@ function LegalInner({
 					</div>
 				</div>
 			</main>
-			<Footer version={version} resolvedTheme={resolvedTheme} />
+			<SiteFooter version={version} resolvedTheme={resolvedTheme} />
 		</div>
 	);
 }

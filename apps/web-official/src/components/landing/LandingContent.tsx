@@ -1,9 +1,9 @@
 "use client";
 
+import { SiteNav } from "@/components/SiteNavBar";
 import { getAppRegisterUrl } from "@/lib/appLinks";
 import { LocaleProvider } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
-import { NavBar } from "./NavBar";
 import { BottomCtaSection } from "./sections/BottomCtaSection";
 import { DimensionsSection } from "./sections/DimensionsSection";
 import { ExpertSection } from "./sections/ExpertSection";
@@ -20,13 +20,7 @@ function LandingInner({ appUrl, version }: { readonly appUrl: string; readonly v
 
 	return (
 		<div className="min-h-screen flex flex-col bg-white text-slate-900 dark:bg-[#041225] dark:text-slate-100">
-			<NavBar
-				appUrl={appUrl}
-				registerUrl={registerUrl}
-				theme={theme}
-				setTheme={setTheme}
-				resolvedTheme={resolvedTheme}
-			/>
+			<SiteNav appUrl={appUrl} theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
 			<main className="flex-1">
 				<HeroSection registerUrl={registerUrl} />
 				<TrustBarSection />

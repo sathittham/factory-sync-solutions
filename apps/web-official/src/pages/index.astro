@@ -5,39 +5,11 @@ import Layout from "../layouts/Layout.astro";
 const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
 const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
 
+// Organization / WebSite identity is emitted site-wide by Layout.astro; the home
+// page only adds its page-specific FAQ schema here.
 const schemata = {
 	"@context": "https://schema.org",
 	"@graph": [
-		{
-			"@type": "Organization",
-			name: "FactorySync Solutions",
-			url: "https://www.factorysyncsolutions.com",
-			logo: "https://www.factorysyncsolutions.com/favicon-32x32.png",
-		},
-		{
-			"@type": "LocalBusiness",
-			name: "FactorySync Solutions",
-			url: "https://www.factorysyncsolutions.com",
-			address: {
-				"@type": "PostalAddress",
-				addressCountry: "TH",
-				addressLocality: "Bangkok",
-				addressRegion: "Bangkok",
-			},
-		},
-		{
-			"@type": "WebSite",
-			name: "FactorySync Solutions",
-			url: "https://www.factorysyncsolutions.com",
-			potentialAction: {
-				"@type": "SearchAction",
-				target: {
-					"@type": "EntryPoint",
-					urlTemplate: "https://www.factorysyncsolutions.com/?q={search_term_string}",
-				},
-				"query-input": "required name=search_term_string",
-			},
-		},
 		{
 			"@type": "FAQPage",
 			mainEntity: [

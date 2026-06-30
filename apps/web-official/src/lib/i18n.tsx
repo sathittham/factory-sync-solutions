@@ -1,4 +1,12 @@
-import { type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+	type ReactNode,
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 
 export type Locale = "th" | "en";
 
@@ -20,6 +28,11 @@ export function getInitialLocale(): Locale {
 		// ignore SSR / private-mode errors
 	}
 	return "th";
+}
+
+/** Server-safe translation lookup — usable in Astro frontmatter (no React context). */
+export function translate(key: string, locale: Locale): string {
+	return translations[locale]?.[key] ?? key;
 }
 
 const translations: Record<Locale, Record<string, string>> = {
@@ -114,6 +127,64 @@ const translations: Record<Locale, Record<string, string>> = {
 		"nav.blog": "บทความ",
 		"nav.about": "เกี่ยวกับเรา",
 		"nav.contact": "ติดต่อเรา",
+		"nav.services": "บริการของเรา",
+		"nav.knowledge": "บทความ / ความรู้",
+		"nav.freeCheckCta": "ตรวจสุขภาพโรงงานฟรี",
+		"nav.viewAll": "ดูทั้งหมด",
+		"nav.aboutCompany": "ประวัติบริษัท / วิสัยทัศน์",
+		"nav.aboutTeam": "ทีมวิศวกร",
+		"nav.aboutCaseStudies": "ผลงาน / ลูกค้าที่ไว้วางใจ",
+		"cta.float": "ขอประเมิน / นัดตรวจสุขภาพโรงงานฟรี",
+		"cta.floatShort": "ตรวจโรงงานฟรี",
+		"svc.freeHealthCheck.title": "ตรวจสุขภาพโรงงานเบื้องต้น (ฟรี)",
+		"svc.freeHealthCheck.sub": "ประเมิน 8 มิติ ฟรี พร้อมรายงานและคำแนะนำ",
+		"svc.govSupported.title": "บริการที่รัฐสนับสนุน",
+		"svc.engConsulting.title": "ที่ปรึกษางานวิศวกรรม",
+		"svc.engConsulting.sub": "ภาพรวมและกลยุทธ์งานวิศวกรรมโดยวุฒิวิศวกร",
+		"svc.engDesign.title": "ออกแบบงานวิศวกรรม & เซ็นรับรองแบบ",
+		"svc.digitalFactory360.title": "Digital Factory Layout 360",
+		"svc.smartPreventiveMaintenance.title": "Smart Preventive Maintenance",
+		"svc.shindanLeanKaizen.title": "Shindan–Lean–Kaizen",
+		"svc.onlineMarketingSmartOps.title": "การตลาดออนไลน์ & ระบบทำงานอัจฉริยะ",
+		"svc.inHouseTraining.title": "In-House Training",
+		"svc.factoryLicense.title": "ขอใบอนุญาตโรงงาน (รง.2 / รง.4)",
+		"svc.machineAutomationDesign.title": "ออกแบบเครื่องจักร / ระบบอัตโนมัติ (SA/SI)",
+		"svc.engConsultingProject.title": "ที่ปรึกษาวิศวกรรม (โครงการออกแบบ/เซ็นรับรอง)",
+		"svc.constructionPermits.title": "งานขออนุญาตก่อสร้าง / อาคาร",
+		"svc.specialSystems.title": "งานติดตั้งระบบพิเศษ",
+		"svc.environmentalSystems.title": "งานระบบบำบัดมลพิษ / สิ่งแวดล้อม",
+		"svc.machineRegistration.title": "ขึ้นทะเบียนเครื่องจักร",
+		"svc.certifications.title": "ใบอนุญาตและรับรองระบบ (มาตรฐาน / ISO)",
+		// --- service subtitles (taglines) ---
+		"svc.govSupported.sub": "โครงการที่ได้รับการสนับสนุนจากภาครัฐ ช่วยลดต้นทุนการพัฒนาโรงงาน",
+		"svc.engDesign.sub": "ออกแบบและเซ็นรับรองแบบงานวิศวกรรมโดยวุฒิวิศวกร",
+		"svc.digitalFactory360.sub": "ออกแบบและจัดวางผังโรงงานแบบดิจิทัล 360°",
+		"svc.smartPreventiveMaintenance.sub": "วางระบบบำรุงรักษาเชิงป้องกันอัจฉริยะ",
+		"svc.shindanLeanKaizen.sub": "วินิจฉัยและปรับปรุงกระบวนการด้วย Lean–Kaizen",
+		"svc.onlineMarketingSmartOps.sub": "การตลาดออนไลน์และระบบปฏิบัติการอัจฉริยะ",
+		"svc.inHouseTraining.sub": "อบรมภายในองค์กรตามความต้องการเฉพาะ",
+		"svc.factoryLicense.sub": "ดำเนินการขอใบอนุญาตประกอบกิจการโรงงาน รง.2 / รง.4",
+		"svc.machineAutomationDesign.sub": "ออกแบบเครื่องจักรและระบบอัตโนมัติ (SA/SI)",
+		"svc.engConsultingProject.sub": "ที่ปรึกษาวิศวกรรมสำหรับโครงการออกแบบและเซ็นรับรอง",
+		"svc.constructionPermits.sub": "ดำเนินการขออนุญาตก่อสร้างและดัดแปลงอาคาร",
+		"svc.specialSystems.sub": "ติดตั้งระบบพิเศษสำหรับงานอุตสาหกรรม",
+		"svc.environmentalSystems.sub": "ออกแบบและติดตั้งระบบบำบัดมลพิษและสิ่งแวดล้อม",
+		"svc.machineRegistration.sub": "ดำเนินการขึ้นทะเบียนเครื่องจักรตามกฎหมาย",
+		"svc.certifications.sub": "ขอใบอนุญาตและการรับรองระบบมาตรฐาน / ISO",
+		// --- service page UI ---
+		"svc.ui.breadcrumbServices": "บริการของเรา",
+		"svc.ui.servicesInGroup": "บริการในกลุ่มนี้",
+		"svc.ui.overview": "ภาพรวมบริการ",
+		"svc.ui.otherInGroup": "บริการอื่นในกลุ่มนี้",
+		"svc.ui.relatedServices": "บริการอื่นๆ",
+		"svc.ui.comingSoonTitle": "รายละเอียดบริการเร็วๆ นี้",
+		"svc.ui.comingSoonBody": "ทีมงานกำลังเตรียมข้อมูลบริการนี้ ติดต่อเราเพื่อสอบถามรายละเอียดเพิ่มเติมได้ทันที",
+		"svc.ui.ctaPrimary": "เริ่มประเมินฟรี",
+		"svc.ui.ctaConsult": "ขอคำปรึกษา",
+		"svc.ui.ctaContact": "ติดต่อเรา",
+		"svc.ui.bottomCtaTitle": "พร้อมยกระดับโรงงานของคุณแล้วหรือยัง?",
+		"svc.ui.bottomCtaSub": "เริ่มต้นวันนี้ เพื่อผลลัพธ์ที่ดีกว่าเดิม",
+		"svc.ui.bottomCtaBtn": "เริ่มประเมินฟรีเลย",
 		"locale.label": "ภาษา",
 		"theme.label": "ธีม",
 		"theme.dark": "มืด",
@@ -282,6 +353,70 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.next": "ถัดไป",
 		"register.back": "ย้อนกลับ",
 		"topbar.cta": "สนใจตรวจสุขภาพโรงงาน? ติดต่อ Line @factorysyncsolutions",
+
+		// --- contact page ---
+		"contact.title": "ติดต่อเรา",
+		"contact.subtitle": "สนใจตรวจสุขภาพโรงงาน หรือต้องการข้อมูลเพิ่มเติม ติดต่อทีมงานได้เลย",
+		"contact.lineCard.title": "LINE Official Account",
+		"contact.lineCard.body": "แอดไลน์เพื่อสอบถามข้อมูล นัดตรวจสุขภาพโรงงาน และรับโปรโมชัน",
+		"contact.lineCard.cta": "เพิ่มเพื่อนใน LINE",
+		"contact.emailCard.title": "อีเมล",
+		"contact.emailCard.body": "ส่งคำถามหรือรายละเอียดโครงการมาได้เลย",
+		"contact.phoneCard.title": "โทรศัพท์",
+		"contact.hoursCard.title": "เวลาทำการ",
+		"contact.appCard.title": "เริ่มประเมินฟรีทันที",
+		"contact.appCard.body": "สมัครฟรี ไม่มีค่าใช้จ่าย ใช้เวลาเพียง 15 นาที",
+		"contact.appCard.cta": "เริ่มตรวจสุขภาพโรงงาน",
+
+		// --- about pages ---
+		"about.overview.title": "เกี่ยวกับ FactorySync Solutions",
+		"about.overview.subtitle": "ทีมวุฒิวิศวกรและที่ปรึกษาผู้เชี่ยวชาญ ที่พร้อมยกระดับโรงงานของคุณ",
+		"about.overview.intro":
+			"FactorySync Solutions คือบริษัทที่ปรึกษาด้านวิศวกรรมและการผลิต มุ่งเน้นช่วยให้โรงงานอุตสาหกรรมไทยเติบโตอย่างยั่งยืนด้วยเทคโนโลยีและความเชี่ยวชาญระดับวุฒิวิศวกร",
+		"about.company.link": "ประวัติบริษัท / วิสัยทัศน์",
+		"about.team.link": "ทีมวิศวกร",
+		"about.caseStudies.link": "ผลงาน / ลูกค้าที่ไว้วางใจ",
+		"about.company.title": "ประวัติบริษัทและวิสัยทัศน์",
+		"about.company.subtitle": "จากความเชี่ยวชาญ 15 ปี สู่แพลตฟอร์มตรวจสุขภาพโรงงานอัจฉริยะ",
+		"about.company.historyTitle": "ประวัติความเป็นมา",
+		"about.company.historyBody":
+			"FactorySync Solutions ก่อตั้งโดยทีมวุฒิวิศวกรอุตสาหการที่มีประสบการณ์มากกว่า 15 ปีในอุตสาหกรรมการผลิตของประเทศไทย เราเห็นว่าโรงงานขนาดกลางและขนาดย่อมขาดเครื่องมือที่เข้าถึงได้ง่ายในการประเมินและยกระดับการดำเนินงาน จึงพัฒนาระบบตรวจสุขภาพโรงงานที่ผสมผสาน AI และความเชี่ยวชาญของวุฒิวิศวกรเข้าด้วยกัน",
+		"about.company.visionTitle": "วิสัยทัศน์",
+		"about.company.visionBody":
+			"เป็นพันธมิตรหลักด้านการยกระดับโรงงานอุตสาหกรรมไทย ให้ทุกโรงงานเข้าถึงการประเมินและคำแนะนำจากวุฒิวิศวกรได้อย่างสะดวก รวดเร็ว และมีประสิทธิภาพ",
+		"about.company.missionTitle": "พันธกิจ",
+		"about.company.missionBody":
+			"ให้บริการตรวจสุขภาพโรงงานที่ครอบคลุม 8 มิติ ด้วยเทคโนโลยี AI ที่ตรวจสอบโดยวุฒิวิศวกร เพื่อมอบแผนปรับปรุงที่ปฏิบัติได้จริง วัดผลได้ และยั่งยืน",
+		"about.company.valuesTitle": "ค่านิยมองค์กร",
+		"about.company.values.integrity": "ซื่อสัตย์และมืออาชีพ",
+		"about.company.values.excellence": "มุ่งมั่นความเป็นเลิศ",
+		"about.company.values.impact": "สร้างผลลัพธ์ที่วัดได้",
+		"about.company.values.accessibility": "เข้าถึงได้สำหรับทุกขนาดธุรกิจ",
+		"about.team.title": "ทีมวิศวกรและที่ปรึกษา",
+		"about.team.subtitle": "ทีมผู้เชี่ยวชาญที่พร้อมให้คำปรึกษาและรับรองงานวิศวกรรมอย่างมืออาชีพ",
+		"about.team.engineerTitle": "วุฒิวิศวกร",
+		"about.team.engineerDesc":
+			"ทีมวุฒิวิศวกรอุตสาหการที่ได้รับใบอนุญาตจากสภาวิศวกร มีประสบการณ์ตรวจสุขภาพโรงงานและให้คำปรึกษาครอบคลุม 8 มิติ",
+		"about.team.consultantTitle": "ที่ปรึกษาอาวุโส",
+		"about.team.consultantDesc":
+			"ผู้เชี่ยวชาญด้าน Lean, Kaizen และการปรับปรุงกระบวนการผลิต ที่มีประสบการณ์ทำงานร่วมกับโรงงาน 200+ แห่ง",
+		"about.team.trainerTitle": "วิทยากรผู้เชี่ยวชาญ",
+		"about.team.trainerDesc":
+			"ทีม In-House Training ที่ออกแบบหลักสูตรเฉพาะสำหรับแต่ละโรงงาน ถ่ายทอดความรู้ด้านวิศวกรรมและการผลิตอย่างมืออาชีพ",
+		"about.caseStudies.title": "ผลงานและลูกค้าที่ไว้วางใจ",
+		"about.caseStudies.subtitle": "โรงงานและองค์กรชั้นนำที่เลือกใช้บริการ FactorySync Solutions",
+		"about.caseStudies.stat1.value": "200+",
+		"about.caseStudies.stat1.label": "โรงงานที่ให้บริการ",
+		"about.caseStudies.stat2.value": "8",
+		"about.caseStudies.stat2.label": "มิติการประเมิน",
+		"about.caseStudies.stat3.value": "15+",
+		"about.caseStudies.stat3.label": "ปีประสบการณ์",
+		"about.caseStudies.stat4.value": "98%",
+		"about.caseStudies.stat4.label": "ลูกค้าพึงพอใจ",
+		"about.caseStudies.industriesTitle": "อุตสาหกรรมที่ให้บริการ",
+		"about.caseStudies.ctaTitle": "พร้อมเป็นลูกค้าของเราหรือยัง?",
+		"about.caseStudies.ctaBody": "เริ่มต้นด้วยการตรวจสุขภาพโรงงานฟรี ได้วันนี้เลย",
+		"about.caseStudies.ctaButton": "เริ่มตรวจสุขภาพโรงงานฟรี",
 	},
 	en: {
 		// --- existing keys ---
@@ -376,6 +511,66 @@ const translations: Record<Locale, Record<string, string>> = {
 		"nav.blog": "Blog",
 		"nav.about": "About Us",
 		"nav.contact": "Contact",
+		"nav.services": "Services",
+		"nav.knowledge": "Knowledge Hub",
+		"nav.freeCheckCta": "Free Factory Health Check",
+		"nav.viewAll": "View all",
+		"nav.aboutCompany": "Company / Vision",
+		"nav.aboutTeam": "Engineer Team",
+		"nav.aboutCaseStudies": "Case Studies / Clients",
+		"cta.float": "Get a free factory health check",
+		"cta.floatShort": "Free check",
+		"svc.freeHealthCheck.title": "Free Factory Health Check",
+		"svc.freeHealthCheck.sub": "Free 8-dimension assessment with report & guidance",
+		"svc.govSupported.title": "Government-Supported Services",
+		"svc.engConsulting.title": "Engineering Consulting",
+		"svc.engConsulting.sub": "Engineering overview & strategy by licensed engineers",
+		"svc.engDesign.title": "Engineering Design & Certified Sign-off",
+		"svc.digitalFactory360.title": "Digital Factory Layout 360",
+		"svc.smartPreventiveMaintenance.title": "Smart Preventive Maintenance",
+		"svc.shindanLeanKaizen.title": "Shindan–Lean–Kaizen",
+		"svc.onlineMarketingSmartOps.title": "Online Marketing & Smart Ops",
+		"svc.inHouseTraining.title": "In-House Training",
+		"svc.factoryLicense.title": "Factory License (รง.2 / รง.4)",
+		"svc.machineAutomationDesign.title": "Machine / Automation Design (SA/SI)",
+		"svc.engConsultingProject.title": "Engineering Consulting (design/sign-off)",
+		"svc.constructionPermits.title": "Construction / Building Permits",
+		"svc.specialSystems.title": "Special System Installation",
+		"svc.environmentalSystems.title": "Pollution / Environmental Systems",
+		"svc.machineRegistration.title": "Machine Registration",
+		"svc.certifications.title": "Certifications & Standards (ISO)",
+		// --- service subtitles (taglines) ---
+		"svc.govSupported.sub":
+			"Government-backed programs that cut the cost of upgrading your factory",
+		"svc.engDesign.sub": "Engineering design and certified sign-off by licensed engineers",
+		"svc.digitalFactory360.sub": "Digital 360° factory layout design and planning",
+		"svc.smartPreventiveMaintenance.sub": "Set up an intelligent preventive-maintenance system",
+		"svc.shindanLeanKaizen.sub": "Diagnose and improve processes with Lean–Kaizen",
+		"svc.onlineMarketingSmartOps.sub": "Online marketing paired with smart operations",
+		"svc.inHouseTraining.sub": "In-house training tailored to your needs",
+		"svc.factoryLicense.sub": "Handling factory operating licenses (รง.2 / รง.4)",
+		"svc.machineAutomationDesign.sub": "Machine and automation system design (SA/SI)",
+		"svc.engConsultingProject.sub": "Engineering consulting for design and sign-off projects",
+		"svc.constructionPermits.sub": "Construction and building-modification permits",
+		"svc.specialSystems.sub": "Special-system installation for industrial work",
+		"svc.environmentalSystems.sub": "Pollution-treatment and environmental system design",
+		"svc.machineRegistration.sub": "Statutory machine registration handling",
+		"svc.certifications.sub": "Standard / ISO system licensing and certification",
+		// --- service page UI ---
+		"svc.ui.breadcrumbServices": "Our Services",
+		"svc.ui.servicesInGroup": "Services in this group",
+		"svc.ui.overview": "Overview",
+		"svc.ui.otherInGroup": "Other services in this group",
+		"svc.ui.relatedServices": "Other services",
+		"svc.ui.comingSoonTitle": "Service details coming soon",
+		"svc.ui.comingSoonBody":
+			"We're preparing the details for this service. Contact us anytime for more information.",
+		"svc.ui.ctaPrimary": "Start Free Assessment",
+		"svc.ui.ctaConsult": "Request a consultation",
+		"svc.ui.ctaContact": "Contact us",
+		"svc.ui.bottomCtaTitle": "Ready to level up your factory?",
+		"svc.ui.bottomCtaSub": "Start today for better results.",
+		"svc.ui.bottomCtaBtn": "Start Free Assessment",
 		"locale.label": "Language",
 		"theme.label": "Theme",
 		"theme.dark": "Dark",
@@ -483,8 +678,10 @@ const translations: Record<Locale, Record<string, string>> = {
 		"signin.errorPasswordMismatch": "Passwords do not match",
 		"signin.errorAccountExistsOtherProvider":
 			"This email uses a different sign-in method. Try signing in with Google.",
-		"signin.errorPopupBlocked": "Popup was blocked. Please allow popups for this site and try again.",
-		"signin.errorOperationNotAllowed": "Google sign-in is not enabled. Please contact the administrator.",
+		"signin.errorPopupBlocked":
+			"Popup was blocked. Please allow popups for this site and try again.",
+		"signin.errorOperationNotAllowed":
+			"Google sign-in is not enabled. Please contact the administrator.",
 
 		// --- industry types ---
 		"industry.manufacturing": "Manufacturing",
@@ -547,6 +744,76 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.next": "Next",
 		"register.back": "Back",
 		"topbar.cta": "Interested in a factory health check? Contact Line @factorysyncsolutions",
+
+		// --- contact page ---
+		"contact.title": "Contact Us",
+		"contact.subtitle":
+			"Interested in a factory health check or need more information? Reach out to our team.",
+		"contact.lineCard.title": "LINE Official Account",
+		"contact.lineCard.body":
+			"Add us on LINE to ask questions, book a factory health check, and receive promotions.",
+		"contact.lineCard.cta": "Add on LINE",
+		"contact.emailCard.title": "Email",
+		"contact.emailCard.body": "Send us your questions or project details.",
+		"contact.phoneCard.title": "Phone",
+		"contact.hoursCard.title": "Office Hours",
+		"contact.appCard.title": "Start Your Free Assessment",
+		"contact.appCard.body": "Register free — no charge, takes only 15 minutes.",
+		"contact.appCard.cta": "Start Factory Health Check",
+
+		// --- about pages ---
+		"about.overview.title": "About FactorySync Solutions",
+		"about.overview.subtitle":
+			"Licensed engineers and specialist consultants ready to elevate your factory.",
+		"about.overview.intro":
+			"FactorySync Solutions is an engineering and manufacturing consultancy focused on helping Thai factories grow sustainably through technology and licensed-engineer expertise.",
+		"about.company.link": "Company / Vision",
+		"about.team.link": "Engineer Team",
+		"about.caseStudies.link": "Case Studies / Clients",
+		"about.company.title": "Company History & Vision",
+		"about.company.subtitle":
+			"From 15 years of expertise to an intelligent factory health check platform.",
+		"about.company.historyTitle": "Our History",
+		"about.company.historyBody":
+			"FactorySync Solutions was founded by a team of licensed industrial engineers with over 15 years of experience in Thai manufacturing. We saw that SME factories lacked accessible tools to assess and improve their operations, so we built a factory health check system that combines AI with licensed-engineer expertise.",
+		"about.company.visionTitle": "Vision",
+		"about.company.visionBody":
+			"To be the primary partner for elevating Thai industrial factories, making licensed-engineer assessment and guidance accessible, fast, and effective for every factory.",
+		"about.company.missionTitle": "Mission",
+		"about.company.missionBody":
+			"To deliver comprehensive factory health checks across 8 dimensions — powered by AI and verified by licensed engineers — producing improvement plans that are practical, measurable, and sustainable.",
+		"about.company.valuesTitle": "Our Values",
+		"about.company.values.integrity": "Integrity & Professionalism",
+		"about.company.values.excellence": "Commitment to Excellence",
+		"about.company.values.impact": "Measurable Impact",
+		"about.company.values.accessibility": "Accessible to Every Business",
+		"about.team.title": "Engineer & Consultant Team",
+		"about.team.subtitle":
+			"Specialists ready to consult and certify engineering work professionally.",
+		"about.team.engineerTitle": "Licensed Engineers",
+		"about.team.engineerDesc":
+			"A team of licensed industrial engineers certified by the Engineering Council of Thailand, experienced in factory health checks and consulting across all 8 dimensions.",
+		"about.team.consultantTitle": "Senior Consultants",
+		"about.team.consultantDesc":
+			"Lean, Kaizen, and manufacturing process-improvement specialists with hands-on experience across 200+ factories.",
+		"about.team.trainerTitle": "Expert Trainers",
+		"about.team.trainerDesc":
+			"An In-House Training team that designs factory-specific curricula, delivering engineering and manufacturing knowledge with professionalism.",
+		"about.caseStudies.title": "Case Studies & Trusted Clients",
+		"about.caseStudies.subtitle":
+			"Leading factories and organizations that choose FactorySync Solutions.",
+		"about.caseStudies.stat1.value": "200+",
+		"about.caseStudies.stat1.label": "Factories Served",
+		"about.caseStudies.stat2.value": "8",
+		"about.caseStudies.stat2.label": "Assessment Dimensions",
+		"about.caseStudies.stat3.value": "15+",
+		"about.caseStudies.stat3.label": "Years of Experience",
+		"about.caseStudies.stat4.value": "98%",
+		"about.caseStudies.stat4.label": "Client Satisfaction",
+		"about.caseStudies.industriesTitle": "Industries We Serve",
+		"about.caseStudies.ctaTitle": "Ready to join our clients?",
+		"about.caseStudies.ctaBody": "Start with a free factory health check today.",
+		"about.caseStudies.ctaButton": "Start Free Factory Health Check",
 	},
 };
 

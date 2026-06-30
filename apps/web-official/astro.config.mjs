@@ -13,6 +13,13 @@ export default defineConfig({
 		}),
 	],
 	output: "static",
+	// Legacy service slugs → nested taxonomy (Phase 3). `factory-health-check`
+	// is unchanged (it is now the flagship group slug) so needs no redirect.
+	redirects: {
+		"/services/production-assessment": "/services/government-supported/shindan-lean-kaizen",
+		"/services/efficiency-consulting": "/services/engineering-consulting",
+		"/services/digital-factory": "/services/government-supported/digital-factory-layout-360",
+	},
 	vite: {
 		plugins: [tailwindcss()],
 		optimizeDeps: {

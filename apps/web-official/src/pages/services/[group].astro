@@ -1,0 +1,42 @@
+---
+import { ServiceContent } from "../../components/services/ServiceContent";
+import Layout from "../../layouts/Layout.astro";
+import { translate } from "../../lib/i18n";
+import { getGroupBySlug, groupParams, subKey } from "../../lib/services";
+
+export function getStaticPaths() {
+	return groupParams().map(({ group }) => ({ params: { group } }));
+}
+
+const groupSlug = Astro.params.group as string;
+const group = getGroupBySlug(groupSlug);
+if (!group) {
+	return Astro.redirect("/404");
+}
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
+
+const titleTh = translate(group.labelKey, "th");
+const titleEn = translate(group.labelKey, "en");
+const taglineTh = translate(subKey(group.labelKey), "th");
+const pageTitle = `${titleTh} — FactorySync Solutions`;
+
+const serviceLd = {
+	"@context": "https://schema.org",
+	"@type": "Service",
+	name: titleTh,
+	description: taglineTh,
+	url: `https://www.factorysyncsolutions.com/services/${groupSlug}`,
+	provider: { "@id": "https://www.factorysyncsolutions.com/#organization" },
+	serviceType: titleEn,
+	availableLanguage: ["Thai", "English"],
+};
+---
+
+<Layout title={pageTitle} description={taglineTh}>
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(serviceLd)} />
+  </Fragment>
+  <ServiceContent client:load groupSlug={groupSlug} appUrl={appUrl} version={version} />
+</Layout>
