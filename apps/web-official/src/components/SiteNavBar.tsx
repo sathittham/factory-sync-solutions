@@ -332,7 +332,7 @@ const linkClass =
 	"whitespace-nowrap rounded-md px-2 py-1.5 text-sm text-slate-600 transition-colors hover:text-cyan-700 dark:text-slate-300 dark:hover:text-cyan-300 xl:px-3";
 
 const triggerClass =
-	"flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-sm text-slate-600 transition-colors hover:text-cyan-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 dark:text-slate-300 dark:hover:text-cyan-300 xl:px-3";
+	"flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-sm text-slate-600 transition-colors hover:text-cyan-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 dark:text-slate-300 dark:hover:text-cyan-300 xl:px-3";
 
 type OpenMenu = null | "about" | "services";
 
@@ -343,38 +343,37 @@ type OpenMenu = null | "about" | "services";
 function ServicesMegaPanel() {
 	const { t } = useLocale();
 	return (
-		<div className="grid grid-cols-2 gap-x-8 gap-y-6 lg:grid-cols-4">
+		<div className="grid grid-cols-2 gap-x-12 gap-y-9 lg:grid-cols-4">
 			{SERVICE_GROUPS.map((group) => (
-				<div key={group.id}>
-					<a
-						href={groupHref(group)}
-						className={cn(
-							"block rounded-md px-2 py-1 text-sm font-bold",
-							group.isFlagship
-								? "border border-cyan-400/60 bg-cyan-50 text-cyan-800 dark:border-cyan-300/40 dark:bg-cyan-300/10 dark:text-cyan-200"
-								: "text-slate-900 dark:text-white"
-						)}
-					>
-						{t(group.labelKey)}
-						{group.isFlagship && (
-							<span className="ml-1.5 rounded-full bg-cyan-500 px-1.5 py-0.5 text-[10px] font-bold text-white align-middle">
-								FREE
-							</span>
-						)}
+				<div key={group.id} className="min-w-[12rem]">
+					<a href={groupHref(group)} className="group/col block">
+						<span className="flex min-h-[3rem] items-start gap-2 text-base font-bold leading-snug text-slate-900 transition-colors group-hover/col:text-blue-700 dark:text-white dark:group-hover/col:text-cyan-300">
+							<span>{t(group.labelKey)}</span>
+							{group.isFlagship && (
+								<span className="mt-0.5 shrink-0 rounded-full bg-cyan-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+									FREE
+								</span>
+							)}
+						</span>
+						<span className="mt-2.5 block border-b-2 border-blue-600 dark:border-cyan-300" />
 					</a>
-					{group.children && (
-						<ul className="mt-2 space-y-1">
+					{group.children ? (
+						<ul className="mt-5 space-y-3.5">
 							{group.children.map((child) => (
 								<li key={child.slug}>
 									<a
 										href={childHref(group, child)}
-										className="block rounded-md px-2 py-1 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-cyan-700 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-cyan-300"
+										className="block text-sm leading-snug text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-300 dark:hover:text-cyan-300"
 									>
 										{t(child.labelKey)}
 									</a>
 								</li>
 							))}
 						</ul>
+					) : (
+						<p className="mt-5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+							{t(`${group.labelKey.replace(".title", ".sub")}`)}
+						</p>
 					)}
 				</div>
 			))}
@@ -389,26 +388,26 @@ function ServicesMegaPanel() {
 function AboutPanel() {
 	const { t } = useLocale();
 	return (
-		<ul className="space-y-1">
-			<li>
-				<a
-					href="/about"
-					className="block rounded-md px-3 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-100 hover:text-cyan-700 dark:text-white dark:hover:bg-white/10 dark:hover:text-cyan-300"
-				>
-					{t("nav.about")}
-				</a>
-			</li>
-			{ABOUT_LINKS.map((link) => (
-				<li key={link.labelKey}>
-					<a
-						href={link.href}
-						className="block rounded-md px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-cyan-700 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-cyan-300"
-					>
-						{t(link.labelKey)}
-					</a>
-				</li>
-			))}
-		</ul>
+		<div className="min-w-[14rem]">
+			<a
+				href="/about"
+				className="inline-block border-b-2 border-blue-600 pb-2.5 text-base font-bold text-slate-900 transition-colors hover:text-blue-700 dark:border-cyan-300 dark:text-white dark:hover:text-cyan-300"
+			>
+				{t("nav.about")}
+			</a>
+			<ul className="mt-5 space-y-3.5">
+				{ABOUT_LINKS.map((link) => (
+					<li key={link.labelKey}>
+						<a
+							href={link.href}
+							className="block text-sm leading-snug text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-300 dark:hover:text-cyan-300"
+						>
+							{t(link.labelKey)}
+						</a>
+					</li>
+				))}
+			</ul>
+		</div>
 	);
 }
 
@@ -566,12 +565,18 @@ function MobileDrawer({
 }
 
 // ---------------------------------------------------------------------------
-// SiteNavBarInner
+// SiteNav — accepts theme/setTheme/resolvedTheme from parent, no own provider
 // ---------------------------------------------------------------------------
 
-function SiteNavBarInner({ appUrl }: { readonly appUrl: string }) {
+export interface SiteNavProps {
+	readonly appUrl: string;
+	readonly theme: Theme;
+	readonly setTheme: (t: Theme) => void;
+	readonly resolvedTheme: "dark" | "light";
+}
+
+export function SiteNav({ appUrl, theme, setTheme, resolvedTheme }: SiteNavProps) {
 	const { t } = useLocale();
-	const { theme, setTheme, resolvedTheme } = useTheme();
 	const [mobileOpen, setMobileOpen] = useState(false);
 	const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
 	const [scrolled, setScrolled] = useState(false);
@@ -632,26 +637,40 @@ function SiteNavBarInner({ appUrl }: { readonly appUrl: string }) {
 						<a href="/" className={linkClass}>
 							{t("nav.home")}
 						</a>
-						<button
-							type="button"
-							className={triggerClass}
-							aria-haspopup="menu"
-							aria-expanded={openMenu === "about"}
-							onClick={() => toggleMenu("about")}
-						>
-							{t("nav.about")}
-							<ChevronDownIcon />
-						</button>
-						<button
-							type="button"
-							className={triggerClass}
-							aria-haspopup="menu"
-							aria-expanded={openMenu === "services"}
-							onClick={() => toggleMenu("services")}
-						>
-							{t("nav.services")}
-							<ChevronDownIcon />
-						</button>
+						<div className="relative">
+							<button
+								type="button"
+								className={triggerClass}
+								aria-haspopup="menu"
+								aria-expanded={openMenu === "about"}
+								onClick={() => toggleMenu("about")}
+							>
+								{t("nav.about")}
+								<ChevronDownIcon />
+							</button>
+							{openMenu === "about" && (
+								<div className="absolute left-0 top-full z-50 mt-3 rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_24px_60px_rgba(15,23,42,0.18)] dark:border-cyan-300/15 dark:bg-[#06172d]">
+									<AboutPanel />
+								</div>
+							)}
+						</div>
+						<div className="relative">
+							<button
+								type="button"
+								className={triggerClass}
+								aria-haspopup="menu"
+								aria-expanded={openMenu === "services"}
+								onClick={() => toggleMenu("services")}
+							>
+								{t("nav.services")}
+								<ChevronDownIcon />
+							</button>
+							{openMenu === "services" && (
+								<div className="absolute left-1/2 top-full z-50 mt-3 w-[56rem] max-w-[calc(100vw-3rem)] -translate-x-1/2 rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_24px_60px_rgba(15,23,42,0.18)] dark:border-cyan-300/15 dark:bg-[#06172d]">
+									<ServicesMegaPanel />
+								</div>
+							)}
+						</div>
 						<a href="/knowledge" className={linkClass}>
 							{t("nav.knowledge")}
 						</a>
@@ -686,15 +705,6 @@ function SiteNavBarInner({ appUrl }: { readonly appUrl: string }) {
 						</button>
 					</div>
 				</div>
-
-				{/* Desktop dropdown panels */}
-				{openMenu && (
-					<div className="absolute inset-x-0 top-full hidden border-t border-slate-200 bg-white shadow-[0_24px_48px_rgba(15,23,42,0.16)] dark:border-cyan-300/10 dark:bg-[#06172d] lg:block">
-						<div className="mx-auto w-full max-w-[1536px] px-4 py-6 sm:px-6 lg:px-8">
-							{openMenu === "services" ? <ServicesMegaPanel /> : <AboutPanel />}
-						</div>
-					</div>
-				)}
 			</div>
 
 			{/* Mobile drawer */}
@@ -711,8 +721,15 @@ function SiteNavBarInner({ appUrl }: { readonly appUrl: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Public export — wraps its own LocaleProvider so it works as a standalone island
+// SiteNavBar — standalone island: wraps LocaleProvider + calls useTheme itself
 // ---------------------------------------------------------------------------
+
+function SiteNavBarInner({ appUrl }: { readonly appUrl: string }) {
+	const { theme, setTheme, resolvedTheme } = useTheme();
+	return (
+		<SiteNav appUrl={appUrl} theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
+	);
+}
 
 export function SiteNavBar({ appUrl }: { readonly appUrl: string }) {
 	return (

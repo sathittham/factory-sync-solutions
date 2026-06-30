@@ -112,6 +112,13 @@
 		font-family: "Noto Sans Thai", system-ui, -apple-system, sans-serif;
 	}
 
+	/* Tailwind v4 resets buttons to the browser default cursor; restore the
+	   pointer so all interactive buttons (nav triggers, switchers, etc.) feel clickable. */
+	button:not(:disabled),
+	[role="button"]:not(:disabled) {
+		cursor: pointer;
+	}
+
 	h1,
 	h2,
 	h3,

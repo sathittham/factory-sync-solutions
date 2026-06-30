@@ -132,8 +132,10 @@ const translations: Record<Locale, Record<string, string>> = {
 		"cta.float": "ขอประเมิน / นัดตรวจสุขภาพโรงงานฟรี",
 		"cta.floatShort": "ตรวจโรงงานฟรี",
 		"svc.freeHealthCheck.title": "ตรวจสุขภาพโรงงานเบื้องต้น (ฟรี)",
+		"svc.freeHealthCheck.sub": "ประเมิน 8 มิติ ฟรี พร้อมรายงานและคำแนะนำ",
 		"svc.govSupported.title": "บริการที่รัฐสนับสนุน",
 		"svc.engConsulting.title": "ที่ปรึกษางานวิศวกรรม",
+		"svc.engConsulting.sub": "ภาพรวมและกลยุทธ์งานวิศวกรรมโดยวุฒิวิศวกร",
 		"svc.engDesign.title": "ออกแบบงานวิศวกรรม & เซ็นรับรองแบบ",
 		"svc.digitalFactory360.title": "Digital Factory Layout 360",
 		"svc.smartPreventiveMaintenance.title": "Smart Preventive Maintenance",
@@ -316,6 +318,70 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.next": "ถัดไป",
 		"register.back": "ย้อนกลับ",
 		"topbar.cta": "สนใจตรวจสุขภาพโรงงาน? ติดต่อ Line @factorysyncsolutions",
+
+		// --- contact page ---
+		"contact.title": "ติดต่อเรา",
+		"contact.subtitle": "สนใจตรวจสุขภาพโรงงาน หรือต้องการข้อมูลเพิ่มเติม ติดต่อทีมงานได้เลย",
+		"contact.lineCard.title": "LINE Official Account",
+		"contact.lineCard.body": "แอดไลน์เพื่อสอบถามข้อมูล นัดตรวจสุขภาพโรงงาน และรับโปรโมชัน",
+		"contact.lineCard.cta": "เพิ่มเพื่อนใน LINE",
+		"contact.emailCard.title": "อีเมล",
+		"contact.emailCard.body": "ส่งคำถามหรือรายละเอียดโครงการมาได้เลย",
+		"contact.phoneCard.title": "โทรศัพท์",
+		"contact.hoursCard.title": "เวลาทำการ",
+		"contact.appCard.title": "เริ่มประเมินฟรีทันที",
+		"contact.appCard.body": "สมัครฟรี ไม่มีค่าใช้จ่าย ใช้เวลาเพียง 15 นาที",
+		"contact.appCard.cta": "เริ่มตรวจสุขภาพโรงงาน",
+
+		// --- about pages ---
+		"about.overview.title": "เกี่ยวกับ FactorySync Solutions",
+		"about.overview.subtitle": "ทีมวุฒิวิศวกรและที่ปรึกษาผู้เชี่ยวชาญ ที่พร้อมยกระดับโรงงานของคุณ",
+		"about.overview.intro":
+			"FactorySync Solutions คือบริษัทที่ปรึกษาด้านวิศวกรรมและการผลิต มุ่งเน้นช่วยให้โรงงานอุตสาหกรรมไทยเติบโตอย่างยั่งยืนด้วยเทคโนโลยีและความเชี่ยวชาญระดับวุฒิวิศวกร",
+		"about.company.link": "ประวัติบริษัท / วิสัยทัศน์",
+		"about.team.link": "ทีมวิศวกร",
+		"about.caseStudies.link": "ผลงาน / ลูกค้าที่ไว้วางใจ",
+		"about.company.title": "ประวัติบริษัทและวิสัยทัศน์",
+		"about.company.subtitle": "จากความเชี่ยวชาญ 15 ปี สู่แพลตฟอร์มตรวจสุขภาพโรงงานอัจฉริยะ",
+		"about.company.historyTitle": "ประวัติความเป็นมา",
+		"about.company.historyBody":
+			"FactorySync Solutions ก่อตั้งโดยทีมวุฒิวิศวกรอุตสาหการที่มีประสบการณ์มากกว่า 15 ปีในอุตสาหกรรมการผลิตของประเทศไทย เราเห็นว่าโรงงานขนาดกลางและขนาดย่อมขาดเครื่องมือที่เข้าถึงได้ง่ายในการประเมินและยกระดับการดำเนินงาน จึงพัฒนาระบบตรวจสุขภาพโรงงานที่ผสมผสาน AI และความเชี่ยวชาญของวุฒิวิศวกรเข้าด้วยกัน",
+		"about.company.visionTitle": "วิสัยทัศน์",
+		"about.company.visionBody":
+			"เป็นพันธมิตรหลักด้านการยกระดับโรงงานอุตสาหกรรมไทย ให้ทุกโรงงานเข้าถึงการประเมินและคำแนะนำจากวุฒิวิศวกรได้อย่างสะดวก รวดเร็ว และมีประสิทธิภาพ",
+		"about.company.missionTitle": "พันธกิจ",
+		"about.company.missionBody":
+			"ให้บริการตรวจสุขภาพโรงงานที่ครอบคลุม 8 มิติ ด้วยเทคโนโลยี AI ที่ตรวจสอบโดยวุฒิวิศวกร เพื่อมอบแผนปรับปรุงที่ปฏิบัติได้จริง วัดผลได้ และยั่งยืน",
+		"about.company.valuesTitle": "ค่านิยมองค์กร",
+		"about.company.values.integrity": "ซื่อสัตย์และมืออาชีพ",
+		"about.company.values.excellence": "มุ่งมั่นความเป็นเลิศ",
+		"about.company.values.impact": "สร้างผลลัพธ์ที่วัดได้",
+		"about.company.values.accessibility": "เข้าถึงได้สำหรับทุกขนาดธุรกิจ",
+		"about.team.title": "ทีมวิศวกรและที่ปรึกษา",
+		"about.team.subtitle": "ทีมผู้เชี่ยวชาญที่พร้อมให้คำปรึกษาและรับรองงานวิศวกรรมอย่างมืออาชีพ",
+		"about.team.engineerTitle": "วุฒิวิศวกร",
+		"about.team.engineerDesc":
+			"ทีมวุฒิวิศวกรอุตสาหการที่ได้รับใบอนุญาตจากสภาวิศวกร มีประสบการณ์ตรวจสุขภาพโรงงานและให้คำปรึกษาครอบคลุม 8 มิติ",
+		"about.team.consultantTitle": "ที่ปรึกษาอาวุโส",
+		"about.team.consultantDesc":
+			"ผู้เชี่ยวชาญด้าน Lean, Kaizen และการปรับปรุงกระบวนการผลิต ที่มีประสบการณ์ทำงานร่วมกับโรงงาน 200+ แห่ง",
+		"about.team.trainerTitle": "วิทยากรผู้เชี่ยวชาญ",
+		"about.team.trainerDesc":
+			"ทีม In-House Training ที่ออกแบบหลักสูตรเฉพาะสำหรับแต่ละโรงงาน ถ่ายทอดความรู้ด้านวิศวกรรมและการผลิตอย่างมืออาชีพ",
+		"about.caseStudies.title": "ผลงานและลูกค้าที่ไว้วางใจ",
+		"about.caseStudies.subtitle": "โรงงานและองค์กรชั้นนำที่เลือกใช้บริการ FactorySync Solutions",
+		"about.caseStudies.stat1.value": "200+",
+		"about.caseStudies.stat1.label": "โรงงานที่ให้บริการ",
+		"about.caseStudies.stat2.value": "8",
+		"about.caseStudies.stat2.label": "มิติการประเมิน",
+		"about.caseStudies.stat3.value": "15+",
+		"about.caseStudies.stat3.label": "ปีประสบการณ์",
+		"about.caseStudies.stat4.value": "98%",
+		"about.caseStudies.stat4.label": "ลูกค้าพึงพอใจ",
+		"about.caseStudies.industriesTitle": "อุตสาหกรรมที่ให้บริการ",
+		"about.caseStudies.ctaTitle": "พร้อมเป็นลูกค้าของเราหรือยัง?",
+		"about.caseStudies.ctaBody": "เริ่มต้นด้วยการตรวจสุขภาพโรงงานฟรี ได้วันนี้เลย",
+		"about.caseStudies.ctaButton": "เริ่มตรวจสุขภาพโรงงานฟรี",
 	},
 	en: {
 		// --- existing keys ---
@@ -420,8 +486,10 @@ const translations: Record<Locale, Record<string, string>> = {
 		"cta.float": "Get a free factory health check",
 		"cta.floatShort": "Free check",
 		"svc.freeHealthCheck.title": "Free Factory Health Check",
+		"svc.freeHealthCheck.sub": "Free 8-dimension assessment with report & guidance",
 		"svc.govSupported.title": "Government-Supported Services",
 		"svc.engConsulting.title": "Engineering Consulting",
+		"svc.engConsulting.sub": "Engineering overview & strategy by licensed engineers",
 		"svc.engDesign.title": "Engineering Design & Certified Sign-off",
 		"svc.digitalFactory360.title": "Digital Factory Layout 360",
 		"svc.smartPreventiveMaintenance.title": "Smart Preventive Maintenance",
@@ -609,6 +677,76 @@ const translations: Record<Locale, Record<string, string>> = {
 		"register.next": "Next",
 		"register.back": "Back",
 		"topbar.cta": "Interested in a factory health check? Contact Line @factorysyncsolutions",
+
+		// --- contact page ---
+		"contact.title": "Contact Us",
+		"contact.subtitle":
+			"Interested in a factory health check or need more information? Reach out to our team.",
+		"contact.lineCard.title": "LINE Official Account",
+		"contact.lineCard.body":
+			"Add us on LINE to ask questions, book a factory health check, and receive promotions.",
+		"contact.lineCard.cta": "Add on LINE",
+		"contact.emailCard.title": "Email",
+		"contact.emailCard.body": "Send us your questions or project details.",
+		"contact.phoneCard.title": "Phone",
+		"contact.hoursCard.title": "Office Hours",
+		"contact.appCard.title": "Start Your Free Assessment",
+		"contact.appCard.body": "Register free — no charge, takes only 15 minutes.",
+		"contact.appCard.cta": "Start Factory Health Check",
+
+		// --- about pages ---
+		"about.overview.title": "About FactorySync Solutions",
+		"about.overview.subtitle":
+			"Licensed engineers and specialist consultants ready to elevate your factory.",
+		"about.overview.intro":
+			"FactorySync Solutions is an engineering and manufacturing consultancy focused on helping Thai factories grow sustainably through technology and licensed-engineer expertise.",
+		"about.company.link": "Company / Vision",
+		"about.team.link": "Engineer Team",
+		"about.caseStudies.link": "Case Studies / Clients",
+		"about.company.title": "Company History & Vision",
+		"about.company.subtitle":
+			"From 15 years of expertise to an intelligent factory health check platform.",
+		"about.company.historyTitle": "Our History",
+		"about.company.historyBody":
+			"FactorySync Solutions was founded by a team of licensed industrial engineers with over 15 years of experience in Thai manufacturing. We saw that SME factories lacked accessible tools to assess and improve their operations, so we built a factory health check system that combines AI with licensed-engineer expertise.",
+		"about.company.visionTitle": "Vision",
+		"about.company.visionBody":
+			"To be the primary partner for elevating Thai industrial factories, making licensed-engineer assessment and guidance accessible, fast, and effective for every factory.",
+		"about.company.missionTitle": "Mission",
+		"about.company.missionBody":
+			"To deliver comprehensive factory health checks across 8 dimensions — powered by AI and verified by licensed engineers — producing improvement plans that are practical, measurable, and sustainable.",
+		"about.company.valuesTitle": "Our Values",
+		"about.company.values.integrity": "Integrity & Professionalism",
+		"about.company.values.excellence": "Commitment to Excellence",
+		"about.company.values.impact": "Measurable Impact",
+		"about.company.values.accessibility": "Accessible to Every Business",
+		"about.team.title": "Engineer & Consultant Team",
+		"about.team.subtitle":
+			"Specialists ready to consult and certify engineering work professionally.",
+		"about.team.engineerTitle": "Licensed Engineers",
+		"about.team.engineerDesc":
+			"A team of licensed industrial engineers certified by the Engineering Council of Thailand, experienced in factory health checks and consulting across all 8 dimensions.",
+		"about.team.consultantTitle": "Senior Consultants",
+		"about.team.consultantDesc":
+			"Lean, Kaizen, and manufacturing process-improvement specialists with hands-on experience across 200+ factories.",
+		"about.team.trainerTitle": "Expert Trainers",
+		"about.team.trainerDesc":
+			"An In-House Training team that designs factory-specific curricula, delivering engineering and manufacturing knowledge with professionalism.",
+		"about.caseStudies.title": "Case Studies & Trusted Clients",
+		"about.caseStudies.subtitle":
+			"Leading factories and organizations that choose FactorySync Solutions.",
+		"about.caseStudies.stat1.value": "200+",
+		"about.caseStudies.stat1.label": "Factories Served",
+		"about.caseStudies.stat2.value": "8",
+		"about.caseStudies.stat2.label": "Assessment Dimensions",
+		"about.caseStudies.stat3.value": "15+",
+		"about.caseStudies.stat3.label": "Years of Experience",
+		"about.caseStudies.stat4.value": "98%",
+		"about.caseStudies.stat4.label": "Client Satisfaction",
+		"about.caseStudies.industriesTitle": "Industries We Serve",
+		"about.caseStudies.ctaTitle": "Ready to join our clients?",
+		"about.caseStudies.ctaBody": "Start with a free factory health check today.",
+		"about.caseStudies.ctaButton": "Start Free Factory Health Check",
 	},
 };
 

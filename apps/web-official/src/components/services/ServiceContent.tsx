@@ -1,14 +1,7 @@
 "use client";
 
-import {
-	LocaleSwitcher,
-	LogoIcon,
-	type ResolvedTheme,
-	SiteFooter,
-	type Theme,
-	ThemeSwitcher,
-	useTheme,
-} from "@/components/site/chrome";
+import { SiteNav } from "@/components/SiteNavBar";
+import { SiteFooter, useTheme } from "@/components/site/chrome";
 import { buttonVariants } from "@/components/ui/button";
 import { LocaleProvider, useLocale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -18,54 +11,6 @@ export type ServiceSlug =
 	| "production-assessment"
 	| "efficiency-consulting"
 	| "digital-factory";
-
-// ---------------------------------------------------------------------------
-// NavBar — shared chrome with the landing page
-// ---------------------------------------------------------------------------
-
-function NavBar({
-	appUrl,
-	theme,
-	setTheme,
-	resolvedTheme,
-}: {
-	readonly appUrl: string;
-	readonly theme: Theme;
-	readonly setTheme: (t: Theme) => void;
-	readonly resolvedTheme: ResolvedTheme;
-}) {
-	const { t } = useLocale();
-	return (
-		<header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 text-slate-950 backdrop-blur-sm dark:border-cyan-300/10 dark:bg-[#041225]/95 dark:text-white">
-			<div className="mx-auto flex h-14 max-w-[1180px] items-center justify-between gap-4 px-4 sm:px-6">
-				<a
-					href="/"
-					className="flex items-center gap-2 font-bold text-slate-950 shrink-0 dark:text-white"
-				>
-					<LogoIcon theme={resolvedTheme} />
-					<span className="hidden text-lg leading-tight sm:inline">
-						{"FactorySync"}
-						<span className="block text-sm font-extrabold text-cyan-400 -mt-1">Solutions</span>
-					</span>
-					<span className="font-bold text-slate-950 sm:hidden dark:text-white">FS</span>
-				</a>
-				<div className="flex items-center gap-2 shrink-0">
-					<LocaleSwitcher />
-					<ThemeSwitcher theme={theme} setTheme={setTheme} />
-					<a
-						href={appUrl}
-						className={cn(
-							buttonVariants({ size: "sm" }),
-							"rounded-md bg-blue-600 px-4 text-xs text-white shadow-[0_0_24px_rgba(37,99,235,0.35)] hover:bg-blue-500 xl:px-7 xl:text-sm"
-						)}
-					>
-						{t("nav.signIn")}
-					</a>
-				</div>
-			</div>
-		</header>
-	);
-}
 
 // ---------------------------------------------------------------------------
 // Icons
@@ -414,7 +359,7 @@ function ServiceInner({
 
 	return (
 		<div className="min-h-screen flex flex-col bg-white text-slate-900 dark:bg-[#041225] dark:text-slate-100">
-			<NavBar appUrl={appUrl} theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
+			<SiteNav appUrl={appUrl} theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
 
 			<main className="flex-1">
 				{/* Hero */}

@@ -24,9 +24,7 @@
 
 ## Current State
 
-📝 **Planning.** Phase 0 is approved — decisions locked in [sitemap.md §10](./sitemap.md#10-decisions--open-questions)
-(nested slugs, articles via web-cms + static service copy, keep the one-pager as Home). **Phase 1 (nav
-shell) is implemented**; Phases 2–4 not started.
+⚠️ **Phase 2 complete.** Phase 1 and Phase 2 are shipped; Phases 3–4 not started.
 
 Phase 1 shipped: `SiteNavBar` now renders the routed primary nav (Home · About ▾ · Services ▾ mega · Knowledge ·
 Contact) backed by a shared `SERVICE_GROUPS` taxonomy (`src/lib/services.ts`), a 4-column Services mega menu,
@@ -34,13 +32,12 @@ a mobile accordion drawer, and a persistent top CTA bar (`TopCtaBar`, pinned abo
 calls to action via the **LINE@** official account, mounted globally in `Layout.astro`. Nav/CTA i18n keys
 added (TH/EN). Build + Biome green.
 
-⚠️ **Known interim gaps:** (1) the new nav links to `/about`, `/knowledge`, `/contact`, and nested service
-routes that **do not exist yet** — they 404 until Phases 2–4. The top CTA bar (→ LINE@) and the flagship
-nav CTA (→ `PUBLIC_APP_URL`) work today. (2) The Home page still uses its own `landing/NavBar.tsx` (anchor nav);
-unifying it with the new header is deferred to Phase 2. `@astrojs/sitemap` + service JSON-LD remain wired
-(partial Phase 5).
+Phase 2 shipped (2026-06-30): unified header (`SiteNav`) across Home, Services and Legal pages. New routed
+pages `/contact`, `/about`, `/about/company`, `/about/team`, `/about/case-studies` built and verified. New
+`SiteShell` shared chrome component. All 69 tests green, 15 routes generated.
 
-Both open decisions (Q4, Q5) are resolved (2026-06-30) — Phase 3 unblocked.
+⚠️ **Known gaps:** `/knowledge` route still 404 (Phase 4, blocked on web-cms). `/services/*` nested hub routes
+deferred to Phase 3.
 
 ---
 
@@ -53,7 +50,7 @@ New header (mega menu + mobile drawer) and a persistent top CTA bar, keeping exi
 - [x] Mobile accordion drawer (Services → 4 groups → hub children)
 - [x] Persistent top CTA bar → LINE@ official account — `src/components/TopCtaBar.tsx` (mounted in `Layout.astro`, above sticky header)
 - [x] Nav/CTA i18n keys (About/Services/Knowledge/Contact + service labels, TH/EN) — `src/lib/i18n.tsx`
-- [ ] Unify Home `landing/NavBar.tsx` with the new header (deferred to Phase 2)
+- [x] Unify Home `landing/NavBar.tsx` with the new header (completed in Phase 2)
 
 ### Phase 1 Tests
 - [x] Mega menu / About dropdown open + nested hrefs + Escape-close — `SiteNavBar.test.tsx`
@@ -64,16 +61,24 @@ New header (mega menu + mobile drawer) and a persistent top CTA bar, keeping exi
 
 ---
 
-## Phase 2 — Home + Contact + About
+## Phase 2 — Home + Contact + About ✅
 
-Routed pages; migrate landing sections.
+Routed pages; unified header across all pages.
 
-- [ ] Keep `LandingContent` as Home `/` — `src/pages/index.astro`
-- [ ] `/contact` routed page (extracted from `#contact`)
-- [ ] `/about` overview + `/about/{company,team,case-studies}`
+- [x] Keep `LandingContent` as Home `/` — `src/pages/index.astro`
+- [x] `/contact` routed page — `src/components/contact/ContactContent.tsx` (phone/email/LINE/hours + app CTA)
+- [x] `/about` overview + `/about/{company,team,case-studies}` — `src/components/about/AboutContent.tsx` (page prop dispatch)
+- [x] Unified header: `SiteNav` exported from `SiteNavBar.tsx`; `SiteShell` shared chrome — `src/components/site/SiteShell.tsx`
+- [x] Home `LandingContent` retrofitted to `SiteNav` (Phase 1 gap closed)
+- [x] `ServiceContent` retrofitted to `SiteNav` (inline NavBar removed)
+- [x] `LegalContent` retrofitted to `SiteNav` + `SiteFooter` from chrome (inline NavBar + Footer removed)
+- [x] i18n keys added: `contact.*` (14 keys TH+EN) + `about.*` (33 keys TH+EN) — `src/lib/i18n.tsx`
 
 ### Phase 2 Tests
-- [ ] Each new route builds and returns 200 (astro build smoke)
+- [x] `ContactContent` renders LINE link + email link + app CTA — `ContactContent.test.tsx`
+- [x] `AboutContent` overview renders 3 sub-page links; company/team/case-studies sections render — `AboutContent.test.tsx`
+
+> Verified 2026-06-30: `pnpm --filter @repo/web-official build` → 15 pages built (/contact, /about, /about/company, /about/team, /about/case-studies confirmed). `biome check --write` ✓ no errors. `vitest run` → 10 test files, **69/69 tests** passed.
 
 ---
 
