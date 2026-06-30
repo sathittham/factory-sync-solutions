@@ -6,8 +6,8 @@ author: Sathittham Sangthong
 
 # UI Wireframes
 
-> **Scope:** This file contains wireframes for `fs-app-web` (user-facing app)
-> and `fs-official-web` (public site). Wireframes for `fs-backoffice-web`
+> **Scope:** This file contains wireframes for `web-app` (user-facing app)
+> and `web-official` (public site). Wireframes for `web-backoffice`
 > (FactorySync staff portal) live in
 > [backoffice/feature-spec.md §4](backoffice/feature-spec.md) alongside
 > the sidebar layout, page-level ASCII sketches, and component notes.

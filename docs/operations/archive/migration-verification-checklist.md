@@ -47,7 +47,7 @@ rest are still open actions.
   `.env.production` now uses the canonical `…-241196731341.asia-southeast3.run.app/api/v1`.
 - [x] **Map every CI variable/secret the deploy actually reads.** *(pre-verified from repo,
   2026-06-10)* The frontend build uses GitHub Actions `vars.*`, NOT the committed
-  `apps/fs-app-web/.env.*`. Full list captured in Phase 6 below. *(Mapping done — repointing the
+  `apps/web-app/.env.*`. Full list captured in Phase 6 below. *(Mapping done — repointing the
   values is still a Phase 6 action.)*
 - [x] **Remove the stale `cloudfunctions.net` note** in Phase 7. *(pre-verified from repo,
   2026-06-10 — runbook patched; `grep cloudfunctions docs/operations/migrate-*.md` = 0 hits.)*
@@ -56,7 +56,7 @@ rest are still open actions.
   from the prod project `factory-sync-solutions` (`241196731341`). Service
   `factory-sync-solutions-api-staging` serves the app (JSON 401 on protected routes). Canonical URL
   `https://factory-sync-solutions-api-staging-738710072389.asia-southeast3.run.app/api/v1` is set in
-  `apps/fs-app-web/.env.staging`. Deployed via the new `workflow_dispatch` force path on
+  `apps/web-app/.env.staging`. Deployed via the new `workflow_dispatch` force path on
   `deploy-staging.yml`. ⏳ Still set `vars.VITE_API_BASE_URL` (staging) in GitHub so the CI **web** build
   points at it (the frontend wasn't deployed in this dispatch — `deploy_web=false`).
 - [ ] **No `firebase.json` / `.firebaserc` in the repo.** Phase 4's
@@ -140,7 +140,7 @@ Repository **variables** (`gh variable set`):
 - [ ] `ALLOWED_ORIGINS` (new domains)
 - [ ] `VITE_GTM_ID`, `VITE_GA_MEASUREMENT_ID` (if used)
 
-> `fs-official-web` uses **no Firebase vars** — its only build inputs are the hardcoded
+> `web-official` uses **no Firebase vars** — its only build inputs are the hardcoded
 > `PUBLIC_APP_URL` and `PUBLIC_APP_VERSION` in the workflow. No `vars` to repoint for it.
 
 Repository **secrets** (`gh secret set`):
@@ -153,12 +153,12 @@ Repository **secrets** (`gh secret set`):
 ## Phase 7 — Code & config swap 🤖
 - [ ] `./scripts/migration/swap-project-id.sh factory-health-check factory-sync-solutions` run
 - [ ] `git diff` shows only project-ID changes in the 10 target files (quiz slug untouched)
-- [ ] Firebase web config (apiKey/appId/messagingSenderId) pasted into `apps/fs-app-web/.env.*`
+- [ ] Firebase web config (apiKey/appId/messagingSenderId) pasted into `apps/web-app/.env.*`
       *(local/dev only — CI uses `vars.*` from Phase 6)*
 - [ ] `VITE_API_BASE_URL` set to the new Cloud Run URL in dev env + the staging note resolved
 - [ ] **Gate:** `git grep factory-health-check` shows **no project-config** hits left. Expect these
       *intentional* leftovers to remain (the swap script touches only 10 files): the quiz slug in
-      `apps/fs-official-web/src/components/**`, narrator strings in `.claude/workflows/*.js`, directory-tree
+      `apps/web-official/src/components/**`, narrator strings in `.claude/workflows/*.js`, directory-tree
       examples in `AGENTS.md`/`CLAUDE.md`/`README.md`, doc examples in `docs/operations/env-variables.md`,
       and the usage comment in `swap-project-id.sh`. Anything else is a miss — fix by hand.
 
@@ -197,8 +197,8 @@ Repository **secrets** (`gh secret set`):
       `…/factory-sync-solutions.git`)*
 - [x] Local dir already renamed *(pre-verified 2026-06-10: cwd basename = `factory-sync-solutions`)*
 - [ ] Stale path fixed in `.claude/settings.local.json` (1 `factory-health-check` hit remains)
-- [ ] Stale `GOOGLE_APPLICATION_CREDENTIALS` path fixed in `apps/fs-backend/.env.development`
-- [ ] **Gate:** `make dev` runs; `grep -rn factory-health-check .claude/settings.local.json apps/fs-backend/.env.development` = 0 hits
+- [ ] Stale `GOOGLE_APPLICATION_CREDENTIALS` path fixed in `apps/backend/.env.development`
+- [ ] **Gate:** `make dev` runs; `grep -rn factory-health-check .claude/settings.local.json apps/backend/.env.development` = 0 hits
 - [ ] **✅ Phase 11 complete** — verified by ______ on ______
 
 ## Phase 12 — Decommission 👤 (after grace period)

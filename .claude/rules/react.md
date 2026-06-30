@@ -1,28 +1,28 @@
 ---
 description: React frontend conventions — shadcn/ui, Redux Toolkit, i18n, dayjs, Tailwind, accessibility
 paths:
-  - "apps/fs-app-web/**/*.tsx"
-  - "apps/fs-app-web/**/*.ts"
-  - "apps/fs-official-web/**/*.tsx"
-  - "apps/fs-official-web/**/*.ts"
-  - "apps/fs-official-web/**/*.astro"
+  - "apps/web-app/**/*.tsx"
+  - "apps/web-app/**/*.ts"
+  - "apps/web-official/**/*.tsx"
+  - "apps/web-official/**/*.ts"
+  - "apps/web-official/**/*.astro"
 ---
 
 # React Frontend Rules
 
-> Applies to both frontends: `fs-app-web` (React 19 + Vite, the authenticated app) and
-> `fs-official-web` (Astro 6 + React 19 islands, the marketing site). shadcn/ui, `useLocale()`,
+> Applies to both frontends: `web-app` (React 19 + Vite, the authenticated app) and
+> `web-official` (Astro 6 + React 19 islands, the marketing site). shadcn/ui, `useLocale()`,
 > Biome, and the no-nested-ternary rule apply to both. Redux Toolkit / RTK Query apply to
-> `fs-app-web` only — the official site has no store.
+> `web-app` only — the official site has no store.
 
 ## Stack
 
-- **Framework**: React 19 + Vite (`fs-app-web`) · Astro 6 + React 19 islands (`fs-official-web`)
+- **Framework**: React 19 + Vite (`web-app`) · Astro 6 + React 19 islands (`web-official`)
 - **State**: Redux Toolkit
 - **UI**: shadcn/ui (Radix-based) + Tailwind CSS
-- **Forms**: `@tanstack/react-form` + shadcn `Field`/`FieldGroup` (`fs-app-web` only)
-- **i18n**: custom `useLocale()` hook — TH/EN in `apps/fs-app-web/src/lib/i18n.tsx`
-- **Date**: `dayjs` with `buddhistEra` plugin — utility at `apps/fs-app-web/src/lib/dayjs.ts`
+- **Forms**: `@tanstack/react-form` + shadcn `Field`/`FieldGroup` (`web-app` only)
+- **i18n**: custom `useLocale()` hook — TH/EN in `apps/web-app/src/lib/i18n.tsx`
+- **Date**: `dayjs` with `buddhistEra` plugin — utility at `apps/web-app/src/lib/dayjs.ts`
 - **Linter**: Biome
 
 ## Base Font Size
@@ -41,13 +41,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 ```
 
 Component paths:
-- `apps/fs-app-web/src/components/ui/select.tsx` — Radix-based shadcn Select
-- `apps/fs-app-web/src/components/ui/field.tsx` — `Field`, `FieldGroup`, `FieldLabel`, `FieldError`, `FieldDescription`
+- `apps/web-app/src/components/ui/select.tsx` — Radix-based shadcn Select
+- `apps/web-app/src/components/ui/field.tsx` — `Field`, `FieldGroup`, `FieldLabel`, `FieldError`, `FieldDescription`
 
-## Forms (fs-app-web only) — ALWAYS use TanStack Form
+## Forms (web-app only) — ALWAYS use TanStack Form
 
-All forms in `apps/fs-app-web` use `@tanstack/react-form` with shadcn `Field`/`FieldGroup` components.
-Reference implementation: `apps/fs-app-web/src/components/login-form.tsx`.
+All forms in `apps/web-app` use `@tanstack/react-form` with shadcn `Field`/`FieldGroup` components.
+Reference implementation: `apps/web-app/src/components/login-form.tsx`.
 
 ```tsx
 import { useForm } from '@tanstack/react-form'
@@ -100,7 +100,7 @@ Rules:
 - `form.reset()` to clear form state on mode/step changes
 - `field.state.meta.errors` contains `{ message: string }` objects from Zod — pass directly to `<FieldError errors={...} />`
 - All validator error messages must go through `t()` — define zod schemas inside the component where `t` is available
-- **Never use `react-hook-form`** in `fs-app-web`
+- **Never use `react-hook-form`** in `web-app`
 
 ## i18n
 
@@ -114,7 +114,7 @@ function MyComponent() {
 ```
 
 - All user-visible strings go through `t()` — never hardcode Thai or English text in JSX
-- Add translations to both `th` and `en` objects in `apps/fs-app-web/src/lib/i18n.tsx`
+- Add translations to both `th` and `en` objects in `apps/web-app/src/lib/i18n.tsx`
 
 ## Date / Time
 
@@ -136,7 +136,7 @@ date.toLocaleDateString("th-TH")
 import { useDispatch, useSelector } from "react-redux"
 import { selectQuizStatus } from "@/store/quizSlice"
 
-// Slices in apps/fs-app-web/src/store/
+// Slices in apps/web-app/src/store/
 // Use RTK Query for API calls — not raw fetch in components
 ```
 
@@ -168,7 +168,7 @@ make test-web       # npx vitest run
 ## Rules
 
 - ALWAYS use shadcn/ui components — never native `<select>`, `<dialog>`, or `window.confirm()`
-- ALWAYS use `@tanstack/react-form` + `Field`/`FieldGroup` for forms in `fs-app-web` — never `react-hook-form`
+- ALWAYS use `@tanstack/react-form` + `Field`/`FieldGroup` for forms in `web-app` — never `react-hook-form`
 - ALWAYS use `useLocale()` for text — never hardcode strings in JSX
 - ALWAYS use `formatDateTime()` from `@/lib/dayjs` — never raw `toLocaleDateString()`
 - No nested ternaries — extract to named variables

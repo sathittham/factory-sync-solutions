@@ -9,7 +9,7 @@ status: Partially implemented - Phase 1 complete
 
 General-purpose file and image upload service backed by **Cloudflare R2** (S3-compatible object storage). Phase 1 avatar upload is implemented; later phases define a unified upload pipeline for general public/private files.
 
-**Current implementation status (14 June 2026):** `POST /api/v1/upload/avatar` and `DELETE /api/v1/upload/avatar` are implemented in `apps/fs-backend/services/upload/`, and `fs-app-web` calls those endpoints from `ProfilePage.tsx`. Presign, confirm, read-url, and general file delete flows remain planned.
+**Current implementation status (14 June 2026):** `POST /api/v1/upload/avatar` and `DELETE /api/v1/upload/avatar` are implemented in `apps/backend/services/upload/`, and `web-app` calls those endpoints from `ProfilePage.tsx`. Presign, confirm, read-url, and general file delete flows remain planned.
 
 ---
 
@@ -437,7 +437,7 @@ Used by: `POST /upload/read-url` and `DELETE /upload/file` authorization checks.
 ### Go service structure
 
 ```
-apps/fs-backend/services/upload/
+apps/backend/services/upload/
 ├── handler.go    # HTTP handlers: UploadAvatar, DeleteAvatar, Presign, Confirm, ReadURL, DeleteFile
 ├── service.go    # business logic: validate, process image, upload to R2, update Firestore, membership check
 ├── models.go     # request/response types
@@ -490,7 +490,7 @@ The profile page uploads avatars through the backend:
 2. Backend handles resize + WebP conversion + R2 upload
 3. Response includes CDN URL → stored in Redux and Firestore
 
-**Migration status:** Firebase Storage upload has been removed from `fs-app-web`; avatar changes use `api.postForm('/upload/avatar', formData)` and `api.delete('/upload/avatar')`.
+**Migration status:** Firebase Storage upload has been removed from `web-app`; avatar changes use `api.postForm('/upload/avatar', formData)` and `api.delete('/upload/avatar')`.
 
 ### Large file uploads (presign flow)
 

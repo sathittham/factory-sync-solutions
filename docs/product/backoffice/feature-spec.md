@@ -7,7 +7,7 @@ status: In Progress - scaffold + pages built; audit UI/API planned
 
 # Backoffice — Feature Spec
 
-> Separate web app (`apps/fs-backoffice-web`) for FactorySync staff to manage
+> Separate web app (`apps/web-backoffice`) for FactorySync staff to manage
 > the platform: CRUD projects, invite owners, manage project members, view all
 > quiz results, manage backoffice staff roles, and let superadmins audit
 > user/staff activity. Backed by a new route group `/api/v1/backoffice/`
@@ -17,9 +17,9 @@ status: In Progress - scaffold + pages built; audit UI/API planned
 
 ## 1. Summary
 
-`fs-backoffice-web` is deployed to `backoffice.factorysync.com`, gated by
+`web-backoffice` is deployed to `backoffice.factorysync.com`, gated by
 Cloudflare Access (email allowlist for FactorySync staff). It uses the same
-Firebase project and backend API as `fs-app-web` but authenticates against
+Firebase project and backend API as `web-app` but authenticates against
 the `backofficeRole` custom claim instead of the `role` claim.
 
 Two roles exist:
@@ -49,7 +49,7 @@ See [ADR-021](../../architecture/decisions.md#adr-021) and
 - Let superadmins search the platform audit log.
 - Let superadmins view each user's or staff member's own activity timeline.
 - Bilingual (TH/EN) via `useLocale()`.
-- Consistent design with `fs-app-web` (same shadcn/ui, same Tailwind config).
+- Consistent design with `web-app` (same shadcn/ui, same Tailwind config).
 
 ### Non-Goals
 
@@ -309,7 +309,7 @@ middleware). Superadmin-only routes use an additional `RequireBackofficeRole` fo
 
 ## 6. Backend Service Structure
 
-New service: `apps/fs-backend/services/backoffice/`
+New service: `apps/backend/services/backoffice/`
 
 ```
 services/backoffice/
@@ -357,8 +357,8 @@ SuperAdminGuard: isSuperAdmin?
 
 ## 8. i18n Keys (backoffice namespace)
 
-See `src/lib/i18n.tsx` in `apps/fs-backoffice-web` for the full key list. Keys
-follow the same `namespace.key` pattern as `fs-app-web`.
+See `src/lib/i18n.tsx` in `apps/web-backoffice` for the full key list. Keys
+follow the same `namespace.key` pattern as `web-app`.
 
 ---
 
@@ -458,14 +458,14 @@ follow the same `namespace.key` pattern as `fs-app-web`.
   npm run deploy:staging   # → factory-sync-backoffice-staging (branch: staging)
   npm run deploy:prod      # → factory-sync-backoffice (branch: main)
   ```
-- Environment variables: same `VITE_FIREBASE_*` as `fs-app-web` (same Firebase project)
+- Environment variables: same `VITE_FIREBASE_*` as `web-app` (same Firebase project)
 
 ---
 
 ## 12. References
 
-- Scaffold: [apps/fs-backoffice-web/](../../../apps/fs-backoffice-web/)
-- Backend middleware: [middleware/auth.go](../../../apps/fs-backend/middleware/auth.go)
+- Scaffold: [apps/web-backoffice/](../../../apps/web-backoffice/)
+- Backend middleware: [middleware/auth.go](../../../apps/backend/middleware/auth.go)
 - ADR-021 (separate app): [decisions.md](../../architecture/decisions.md#adr-021)
 - ADR-022 (backofficeRole claim): [decisions.md](../../architecture/decisions.md#adr-022)
 - Existing admin spec: [admin/feature-spec.md](../admin/feature-spec.md)

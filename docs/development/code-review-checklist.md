@@ -123,13 +123,13 @@ After implementing fixes:
 
 ```bash
 # Backend
-cd apps/fs-backend
+cd apps/backend
 go build ./...
 go test -race ./...
 golangci-lint run ./...
 
 # Frontend
-cd apps/fs-app-web
+cd apps/web-app
 npx biome check .
 npm run test
 npx tsc --noEmit

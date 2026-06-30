@@ -23,6 +23,10 @@ on:
         description: "Force-deploy official site"
         type: boolean
         default: true
+      deploy_consumer:
+        description: "Force-deploy domain event consumer"
+        type: boolean
+        default: true
       deploy_backoffice:
         description: "Force-deploy backoffice web"
         type: boolean
@@ -41,6 +45,7 @@ jobs:
       web: ${{ steps.detect.outputs.web }}
       official: ${{ steps.detect.outputs.official }}
       backoffice: ${{ steps.detect.outputs.backoffice }}
+      consumer: ${{ steps.detect.outputs.consumer }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,6 +61,7 @@ jobs:
               echo "gateway=${{ inputs.deploy_gateway }}";
               echo "web=${{ inputs.deploy_web }}";
               echo "official=${{ inputs.deploy_official }}";
+              echo "consumer=${{ inputs.deploy_consumer }}";
               echo "backoffice=${{ inputs.deploy_backoffice }}"; } >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -64,20 +70,20 @@ jobs:
           PREV=$(git tag -l 'v*.*.*' --sort=-creatordate | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -vx "$CURRENT" | head -1)
           if [ -z "$PREV" ]; then
             echo "No previous production tag — deploying all apps."
-            { echo "api=true"; echo "gateway=true"; echo "web=true"; echo "official=true"; echo "backoffice=true"; } >> "$GITHUB_OUTPUT"
+            { echo "api=true"; echo "gateway=true"; echo "web=true"; echo "official=true"; echo "consumer=true"; echo "backoffice=true"; } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "Diffing $PREV..$CURRENT"
           CHANGED=$(git diff --name-only "$PREV" "$CURRENT")
           echo "Changed files:"; echo "$CHANGED"
           api=false; gateway=false; web=false; official=false; backoffice=false
-          if echo "$CHANGED" | grep -qE '^apps/fs-backend/|^\.github/workflows/deploy-production\.yml';    then api=true;        fi
+          if echo "$CHANGED" | grep -qE '^apps/backend/|^\.github/workflows/deploy-production\.yml';    then api=true; consumer=true; fi
           if echo "$CHANGED" | grep -qE '^infra/cloudflare/workers/api-gateway/|^\.github/workflows/deploy-production\.yml'; then gateway=true; fi
-          if echo "$CHANGED" | grep -qE '^apps/fs-app-web/|^\.github/workflows/deploy-production\.yml';    then web=true;        fi
-          if echo "$CHANGED" | grep -qE '^apps/fs-official-web/|^\.github/workflows/deploy-production\.yml'; then official=true; fi
-          if echo "$CHANGED" | grep -qE '^apps/fs-backoffice-web/|^\.github/workflows/deploy-production\.yml'; then backoffice=true; fi
-          echo "Deploy → api=$api gateway=$gateway web=$web official=$official backoffice=$backoffice"
-          { echo "api=$api"; echo "gateway=$gateway"; echo "web=$web"; echo "official=$official"; echo "backoffice=$backoffice"; } >> "$GITHUB_OUTPUT"
+          if echo "$CHANGED" | grep -qE '^apps/web-app/|^\.github/workflows/deploy-production\.yml';    then web=true;        fi
+          if echo "$CHANGED" | grep -qE '^apps/web-official/|^\.github/workflows/deploy-production\.yml'; then official=true; fi
+          if echo "$CHANGED" | grep -qE '^apps/web-backoffice/|^\.github/workflows/deploy-production\.yml'; then backoffice=true; fi
+          echo "Deploy → api=$api gateway=$gateway web=$web official=$official consumer=$consumer backoffice=$backoffice"
+          { echo "api=$api"; echo "gateway=$gateway"; echo "web=$web"; echo "official=$official"; echo "consumer=$consumer"; echo "backoffice=$backoffice"; } >> "$GITHUB_OUTPUT"
 
   deploy-backend:
     name: Deploy Backend to Production
@@ -93,7 +99,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.26.4"
-          cache-dependency-path: apps/fs-backend/go.sum
+          cache-dependency-path: apps/backend/go.sum
 
       - uses: actions/setup-node@v4
         with:
@@ -114,7 +120,7 @@ jobs:
       - name: Build and push Docker image
         run: |
           IMAGE=asia-southeast3-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run/factory-sync-solutions-api:${{ github.sha }}
-          docker build -t $IMAGE apps/fs-backend
+          docker build -t $IMAGE apps/backend
           docker push $IMAGE
 
       - name: Publish Swagger docs to R2
@@ -136,6 +142,48 @@ jobs:
             --allow-unauthenticated \
             --service-account=deployer@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
             --set-env-vars="^@^ENVIRONMENT=production@APP_URL=https://app.factorysyncsolutions.com@RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}@CF_TURNSTILE_SECRET=${{ secrets.CF_TURNSTILE_SECRET }}@SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }}@SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }}@ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }},https://app.factorysyncsolutions.com,https://backoffice.factorysyncsolutions.com,https://factorysyncsolutions.com@R2_ACCOUNT_ID=${{ vars.R2_ACCOUNT_ID }}@R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}@R2_ACCESS_KEY_SECRET=${{ secrets.R2_ACCESS_KEY_SECRET }}@R2_PUBLIC_BUCKET=uploads-factorysyncsolutions-com@R2_PUBLIC_BASE_URL=https://cdn.factorysyncsolutions.com@API_DOCS_SOURCE=r2@API_DOCS_R2_ACCOUNT_ID=${{ secrets.API_DOCS_R2_ACCOUNT_ID }}@API_DOCS_R2_ACCESS_KEY_ID=${{ secrets.API_DOCS_R2_ACCESS_KEY_ID }}@API_DOCS_R2_ACCESS_KEY_SECRET=${{ secrets.API_DOCS_R2_ACCESS_KEY_SECRET }}@API_DOCS_R2_BUCKET=apidoc-factorysyncsolutions-com@API_DOCS_R2_PREFIX=openapi@API_DOCS_SUPPORTED_VERSIONS=v1@API_DOCS_DEFAULT_VERSION=v1@API_DOCS_LOCAL_DIR=docs"
+
+  deploy-domain-event-consumer:
+    name: Deploy Domain Event Consumer to Production
+    needs: [test, changes]
+    if: needs.changes.outputs.consumer == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker asia-southeast3-docker.pkg.dev --quiet
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE=asia-southeast3-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run/factory-sync-solutions-domain-event-consumer:${{ github.sha }}
+          docker build -t $IMAGE apps/backend
+          docker push $IMAGE
+
+      - name: Deploy consumer to Cloud Run
+        run: |
+          gcloud run deploy factory-sync-solutions-domain-event-consumer \
+            --image=asia-southeast3-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run/factory-sync-solutions-domain-event-consumer:${{ github.sha }} \
+            --region=asia-southeast3 \
+            --platform=managed \
+            --command="./domain-event-consumer" \
+            --no-allow-unauthenticated \
+            --service-account=deployer@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
+            --min-instances=1 \
+            --max-instances=3 \
+            --concurrency=1 \
+            --cpu=1 \
+            --memory=512Mi \
+            --set-env-vars="^@^ENVIRONMENT=production@RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}@SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }}@SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }}@DOMAIN_EVENT_SUBSCRIPTION=${{ vars.DOMAIN_EVENT_SUBSCRIPTION }}@DOMAIN_EVENT_INBOX_COLLECTION=${{ vars.DOMAIN_EVENT_INBOX_COLLECTION }}@DOMAIN_EVENT_INBOX_LEASE=${{ vars.DOMAIN_EVENT_INBOX_LEASE }}@DOMAIN_EVENT_MAX_ATTEMPTS=${{ vars.DOMAIN_EVENT_MAX_ATTEMPTS }}@DOMAIN_EVENT_DLQ_PROJECT_ID=${{ vars.DOMAIN_EVENT_DLQ_PROJECT_ID }}@DOMAIN_EVENT_PUBSUB_DLQ_TOPIC=${{ vars.DOMAIN_EVENT_PUBSUB_DLQ_TOPIC }}@DOMAIN_EVENT_SUBSCRIPTION_GOROUTINES=${{ vars.DOMAIN_EVENT_SUBSCRIPTION_GOROUTINES }}@DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_MESSAGES=${{ vars.DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_MESSAGES }}@DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_BYTES=${{ vars.DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_BYTES }}"
 
   deploy-api-gateway:
     name: Deploy API Gateway to Production
@@ -165,7 +213,7 @@ jobs:
     environment: production
     defaults:
       run:
-        working-directory: apps/fs-app-web
+        working-directory: apps/web-app
     steps:
       - uses: actions/checkout@v4
 
@@ -173,7 +221,7 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: apps/fs-app-web/package-lock.json
+          cache-dependency-path: apps/web-app/package-lock.json
 
       - name: Install and build
         run: |
@@ -197,7 +245,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/fs-app-web/dist --project-name=factory-sync-solutions --branch=main
+          command: pages deploy apps/web-app/dist --project-name=factory-sync-solutions --branch=main
 
   deploy-official:
     name: Deploy Official Site to Production
@@ -207,7 +255,7 @@ jobs:
     environment: production
     defaults:
       run:
-        working-directory: apps/fs-official-web
+        working-directory: apps/web-official
     steps:
       - uses: actions/checkout@v4
 
@@ -215,7 +263,7 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: apps/fs-official-web/package-lock.json
+          cache-dependency-path: apps/web-official/package-lock.json
 
       - name: Compute version
         id: version
@@ -243,7 +291,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/fs-official-web/dist --project-name=factory-sync-solutions-official --branch=main
+          command: pages deploy apps/web-official/dist --project-name=factory-sync-solutions-official --branch=main
 
   deploy-backoffice:
     name: Deploy Backoffice to Production
@@ -253,7 +301,7 @@ jobs:
     environment: production
     defaults:
       run:
-        working-directory: apps/fs-backoffice-web
+        working-directory: apps/web-backoffice
     steps:
       - uses: actions/checkout@v4
 
@@ -261,7 +309,7 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: apps/fs-backoffice-web/package-lock.json
+          cache-dependency-path: apps/web-backoffice/package-lock.json
 
       - name: Install and build
         run: |
@@ -281,7 +329,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/fs-backoffice-web/dist --project-name=factory-sync-backoffice --branch=main
+          command: pages deploy apps/web-backoffice/dist --project-name=factory-sync-backoffice --branch=main
 
   notify:
     name: Notify Slack

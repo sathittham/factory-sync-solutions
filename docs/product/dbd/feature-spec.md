@@ -53,12 +53,12 @@ The integration is read-only. It never writes to the DBD system.
 
 | Component | Location | Status |
 |-----------|----------|--------|
-| DBD handler | `apps/fs-backend/services/dbd/handler.go` | ✅ Built |
-| DBD service | `apps/fs-backend/services/dbd/service.go` | ✅ Built |
-| DBD models | `apps/fs-backend/services/dbd/models.go` | ✅ Built |
+| DBD handler | `apps/backend/services/dbd/handler.go` | ✅ Built |
+| DBD service | `apps/backend/services/dbd/service.go` | ✅ Built |
+| DBD models | `apps/backend/services/dbd/models.go` | ✅ Built |
 | Handler + service tests | `handler_test.go` / `service_test.go` | ✅ Built |
 | In-memory cache | `Service.cache` (`map[string]cacheEntry`) | ✅ Built |
-| Frontend call site | `apps/fs-app-web/src/pages/RegisterPage.tsx` | ✅ Built |
+| Frontend call site | `apps/web-app/src/pages/RegisterPage.tsx` | ✅ Built |
 
 ---
 
@@ -257,9 +257,9 @@ in the output.
 
 ## 12. References
 
-- DBD handler: [handler.go](../../../apps/fs-backend/services/dbd/handler.go)
-- DBD service: [service.go](../../../apps/fs-backend/services/dbd/service.go)
-- DBD models: [models.go](../../../apps/fs-backend/services/dbd/models.go)
-- Frontend call site: [RegisterPage.tsx](../../../apps/fs-app-web/src/pages/RegisterPage.tsx)
+- DBD handler: [handler.go](../../../apps/backend/services/dbd/handler.go)
+- DBD service: [service.go](../../../apps/backend/services/dbd/service.go)
+- DBD models: [models.go](../../../apps/backend/services/dbd/models.go)
+- Frontend call site: [RegisterPage.tsx](../../../apps/web-app/src/pages/RegisterPage.tsx)
 - Register feature: [register/feature-spec.md](../register/feature-spec.md)
 - DBD Open Data portal: https://www.dbd.go.th/

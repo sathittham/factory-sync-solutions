@@ -9,12 +9,12 @@
 # Run at CUTOVER time only — see docs/operations/migrate-to-factory-sync-solutions.md.
 #
 # Touches ONLY the files below. It deliberately does NOT touch:
-#   - apps/fs-official-web/src/**          ("factory-health-check" there is a QUIZ SLUG, not the project)
+#   - apps/web-official/src/**          ("factory-health-check" there is a QUIZ SLUG, not the project)
 #   - firebase-sa.json                     (replaced wholesale by the new service-account key)
 #   - .playwright-mcp/**, .claude/settings.local.json (transient / local-machine paths)
 #
 # After running, you must still PASTE the new Firebase web config values
-# (apiKey, appId, messagingSenderId) into apps/fs-app-web/.env.* — this script
+# (apiKey, appId, messagingSenderId) into apps/web-app/.env.* — this script
 # cannot know those; they come from the new Firebase web app.
 
 set -euo pipefail
@@ -27,12 +27,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TARGETS=(
   ".github/workflows/deploy-staging.yml"
   ".github/workflows/deploy-production.yml"
-  "apps/fs-backend/.env.production"
-  "apps/fs-backend/.env.staging"
-  "apps/fs-backend/.env.development"
-  "apps/fs-app-web/.env.production"
-  "apps/fs-app-web/.env.staging"
-  "apps/fs-app-web/.env.development"
+  "apps/backend/.env.production"
+  "apps/backend/.env.staging"
+  "apps/backend/.env.development"
+  "apps/web-app/.env.production"
+  "apps/web-app/.env.staging"
+  "apps/web-app/.env.development"
   "docs/operations/deployment.md"
   "docs/operations/env-variables.md"
 )
@@ -62,7 +62,7 @@ done
 echo
 echo "Done. Files changed: $changed"
 echo
-echo "NEXT (manual): paste new Firebase web config into apps/fs-app-web/.env.*"
+echo "NEXT (manual): paste new Firebase web config into apps/web-app/.env.*"
 echo "  VITE_FIREBASE_API_KEY, VITE_FIREBASE_APP_ID, VITE_FIREBASE_MESSAGING_SENDER_ID"
 echo "  and set VITE_API_BASE_URL to the new Cloud Run URL."
 echo

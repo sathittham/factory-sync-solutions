@@ -1,6 +1,6 @@
 ---
-version: 1.5.1
-lastUpdated: 2026-06-14
+version: 1.5.3
+lastUpdated: 2026-06-18
 author: Sathittham Sangthong
 ---
 
@@ -10,11 +10,12 @@ author: Sathittham Sangthong
 
 | Component | Platform | Method |
 |-----------|----------|--------|
-| `fs-app-web` (user app) | Cloudflare Pages | GitHub Actions (`cloudflare/wrangler-action`) |
-| `fs-backoffice-web` (staff backoffice) | Cloudflare Pages + Cloudflare Access | GitHub Actions (`cloudflare/wrangler-action`) |
-| `fs-official-web` (public site) | Cloudflare Pages | GitHub Actions (`cloudflare/wrangler-action`) |
+| `web-app` (user app) | Cloudflare Pages | GitHub Actions (`cloudflare/wrangler-action`) |
+| `web-backoffice` (staff backoffice) | Cloudflare Pages + Cloudflare Access | GitHub Actions (`cloudflare/wrangler-action`) |
+| `web-official` (public site) | Cloudflare Pages | GitHub Actions (`cloudflare/wrangler-action`) |
 | API gateway Worker | Cloudflare Workers | GitHub Actions (`cloudflare/wrangler-action`) |
-| `fs-backend` (Go API) | Google Cloud Run | Docker container via GitHub Actions |
+| `backend` (Go API) | Google Cloud Run | Docker container via GitHub Actions |
+| `domain-event-consumer` (event worker) | Google Cloud Run | Shared Docker image via GitHub Actions |
 | Public upload CDN | Cloudflare R2 custom domain | Cloudflare zone/R2 bucket configuration |
 | Database | Firestore | Managed service (no deployment needed) |
 | Auth | Firebase Authentication | Managed service (no deployment needed) |
@@ -37,7 +38,7 @@ The `deploy-staging.yml` and `deploy-production.yml` workflows handle all fronte
 2. Builds with Vite (`npx vite build`) with injected `VITE_*` env vars
 3. Deploys via `cloudflare/wrangler-action@v3`
 
-### `fs-app-web` (User App)
+### `web-app` (User App)
 
 | Environment | CF Pages Project | Domain |
 |-------------|-----------------|--------|
@@ -46,12 +47,12 @@ The `deploy-staging.yml` and `deploy-production.yml` workflows handle all fronte
 
 ```bash
 # Manual deploy
-cd apps/fs-app-web
+cd apps/web-app
 npm ci && npx vite build
 npx wrangler pages deploy dist --project-name=factory-sync-solutions
 ```
 
-### `fs-backoffice-web` (Staff Backoffice)
+### `web-backoffice` (Staff Backoffice)
 
 | Environment | CF Pages Project | Domain |
 |-------------|-----------------|--------|
@@ -65,7 +66,7 @@ dashboard — it is separate from Firebase Auth.
 
 ```bash
 # Manual deploy
-cd apps/fs-backoffice-web
+cd apps/web-backoffice
 npm ci && npx vite build
 npx wrangler pages deploy dist --project-name=factory-sync-backoffice
 ```
@@ -98,6 +99,95 @@ gcloud services enable firestore.googleapis.com
 | Runtime | Docker (Go binary) |
 | Region | `asia-southeast3` |
 | Allow unauthenticated | Yes (API handles auth internally) |
+
+### Event-Driven Migration Hook
+
+The backend currently emits domain events from `profile` and `quiz` writes with an internal publisher abstraction:
+
+- `DOMAIN_EVENT_MODE=off` (default) — event publishing is disabled.
+- `DOMAIN_EVENT_MODE=log` — events are emitted as structured logs (`Event` envelope).
+- `DOMAIN_EVENT_MODE=pubsub` — publish domain events to Pub/Sub topic using
+  the shared contract in [`architecture/domain-events.md`](../architecture/domain-events.md).
+
+The adapter change is isolated to `pkg/events` and service setters, so service extraction work can start without changing handler/request code.
+
+For worker rollout, provision:
+
+- one shared topic from `DOMAIN_EVENT_PUBSUB_TOPIC` (for example `factory-sync-domain-events`)
+- optional DLQ topic from `DOMAIN_EVENT_PUBSUB_DLQ_TOPIC`
+- separate consumers per domain with explicit idempotency markers (`eventID` + `aggregateType:aggregateID`)
+
+Cloud Run consumers should keep request timeout low and use dead-letter + alerting instead of
+unbounded synchronous retries.
+
+### Domain Event Consumer (`domain-event-consumer`) on Cloud Run
+
+Use a dedicated Cloud Run service for the worker to support near-real-time asynchronous processing.
+
+#### Create Pub/Sub plumbing (once)
+
+```bash
+gcloud config set project <PROJECT_ID>
+gcloud services enable run.googleapis.com pubsub.googleapis.com firestore.googleapis.com
+
+gcloud pubsub topics create factory-sync-domain-events
+gcloud pubsub topics create factory-sync-domain-events-dlq
+
+gcloud pubsub subscriptions create factory-sync-domain-events-result-consumer \
+  --topic factory-sync-domain-events \
+  --ack-deadline=60 \
+  --max-delivery-attempts=5 \
+  --dead-letter-topic=projects/<PROJECT_ID>/topics/factory-sync-domain-events-dlq
+```
+
+Grant the runtime service account permissions:
+
+```bash
+gcloud projects add-iam-policy-binding <PROJECT_ID> \
+  --member="serviceAccount:deployer@<PROJECT_ID>.iam.gserviceaccount.com" \
+  --role="roles/pubsub.subscriber"
+
+gcloud projects add-iam-policy-binding <PROJECT_ID> \
+  --member="serviceAccount:deployer@<PROJECT_ID>.iam.gserviceaccount.com" \
+  --role="roles/datastore.user"
+```
+
+Or use the one-shot helper (staging or production values from env/vars):
+
+```bash
+./scripts/setup-domain-event-worker.sh --environment staging --project <PROJECT_ID>
+./scripts/setup-domain-event-worker.sh --environment production --project <PROJECT_ID>
+```
+
+Generate monitoring policies for the same environment:
+
+```bash
+./scripts/setup-domain-event-monitoring.sh --environment staging --project <PROJECT_ID>
+./scripts/setup-domain-event-monitoring.sh --environment production --project <PROJECT_ID>
+```
+
+#### Deploy worker service
+
+```bash
+IMAGE=asia-southeast3-docker.pkg.dev/<PROJECT_ID>/cloud-run/factory-sync-solutions-domain-event-consumer:<GIT_SHA>
+docker build -t $IMAGE apps/backend
+docker push $IMAGE
+
+gcloud run deploy factory-sync-solutions-domain-event-consumer-staging \
+  --image=$IMAGE \
+  --region=asia-southeast3 \
+  --platform=managed \
+  --command="./domain-event-consumer" \
+  --no-allow-unauthenticated \
+  --service-account=deployer@<PROJECT_ID>.iam.gserviceaccount.com \
+  --min-instances=1 \
+  --max-instances=2 \
+  --concurrency=1 \
+  --memory=512Mi \
+  --set-env-vars="^@^ENVIRONMENT=staging@DOMAIN_EVENT_SUBSCRIPTION=factory-sync-domain-events-result-consumer@DOMAIN_EVENT_INBOX_COLLECTION=domain_event_inbox@DOMAIN_EVENT_INBOX_LEASE=5m@DOMAIN_EVENT_MAX_ATTEMPTS=5@DOMAIN_EVENT_PUBSUB_DLQ_TOPIC=factory-sync-domain-events-dlq@DOMAIN_EVENT_PUBSUB_TOPIC=factory-sync-domain-events"
+```
+
+> Update the Cloud Run service name and `ENVIRONMENT` value for production (`factory-sync-solutions-domain-event-consumer`).
 
 ## API Gateway (Cloudflare Workers)
 
@@ -133,7 +223,7 @@ make build-api
 
 # Build and push Docker image
 IMAGE=asia-southeast3-docker.pkg.dev/<PROJECT_ID>/cloud-run/factory-sync-solutions-api:latest
-docker build -t $IMAGE apps/fs-backend
+docker build -t $IMAGE apps/backend
 docker push $IMAGE
 
 # Deploy to Cloud Run
@@ -143,6 +233,21 @@ gcloud run deploy factory-sync-solutions-api \
   --platform=managed \
   --allow-unauthenticated \
   --set-env-vars="ENVIRONMENT=staging,ALLOWED_ORIGINS=https://factory-sync-solutions-staging.pages.dev"
+
+# Build and push worker image
+IMAGE=asia-southeast3-docker.pkg.dev/<PROJECT_ID>/cloud-run/factory-sync-solutions-domain-event-consumer-staging:latest
+docker build -t $IMAGE apps/backend
+docker push $IMAGE
+
+# Deploy worker to Cloud Run
+gcloud run deploy factory-sync-solutions-domain-event-consumer-staging \
+  --image=$IMAGE \
+  --region=asia-southeast3 \
+  --platform=managed \
+  --command="./domain-event-consumer" \
+  --no-allow-unauthenticated \
+  --service-account=deployer@<PROJECT_ID>.iam.gserviceaccount.com \
+  --set-env-vars="ENVIRONMENT=staging,DOMAIN_EVENT_SUBSCRIPTION=factory-sync-domain-events-result-consumer,DOMAIN_EVENT_INBOX_COLLECTION=domain_event_inbox,DOMAIN_EVENT_MAX_ATTEMPTS=5,DOMAIN_EVENT_PUBSUB_DLQ_TOPIC=factory-sync-domain-events-dlq"
 ```
 
 ### API Docs Publishing
@@ -224,23 +329,25 @@ Tag v*-staging (staging deploy):
   1. Run tests (reusable test.yml)
   2. Generate Swagger/OpenAPI docs
   3. Build & push Docker image to Artifact Registry
-  4. Deploy fs-backend to Cloud Run (staging)
-  5. Publish Swagger/OpenAPI docs to staging R2
-  6. Deploy API gateway Worker (api-staging.factorysyncsolutions.com)
-  7. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions-staging)
-  8. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice-staging)
-  9. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official-staging)
+  4. Deploy backend to Cloud Run (staging)
+  5. Deploy domain-event-consumer worker to Cloud Run (staging)
+  6. Publish Swagger/OpenAPI docs to staging R2
+  7. Deploy API gateway Worker (api-staging.factorysyncsolutions.com)
+  8. Build web-app with Vite → deploy to CF Pages (factory-sync-solutions-staging)
+  9. Build web-backoffice with Vite → deploy to CF Pages (factory-sync-backoffice-staging)
+  10. Build web-official with Astro → deploy to CF Pages (factory-sync-official-staging)
 
 Tag v*.*.* (production deploy):
   1. Run tests (reusable test.yml)
   2. Generate Swagger/OpenAPI docs
   3. Build & push Docker image to Artifact Registry
-  4. Deploy fs-backend to Cloud Run (production)
-  5. Publish Swagger/OpenAPI docs to production R2
-  6. Deploy API gateway Worker (api.factorysyncsolutions.com)
-  7. Build fs-app-web with Vite → deploy to CF Pages (factory-sync-solutions)
-  8. Build fs-backoffice-web with Vite → deploy to CF Pages (factory-sync-backoffice)
-  9. Build fs-official-web with Astro → deploy to CF Pages (factory-sync-official)
+  4. Deploy backend to Cloud Run (production)
+  5. Deploy domain-event-consumer worker to Cloud Run (production)
+  6. Publish Swagger/OpenAPI docs to production R2
+  7. Deploy API gateway Worker (api.factorysyncsolutions.com)
+  8. Build web-app with Vite → deploy to CF Pages (factory-sync-solutions)
+  9. Build web-backoffice with Vite → deploy to CF Pages (factory-sync-backoffice)
+  10. Build web-official with Astro → deploy to CF Pages (factory-sync-official)
 ```
 
 ### Required GitHub Secrets
@@ -264,7 +371,7 @@ deploy-backend:
     - name: Build and push Docker image
       run: |
         IMAGE=asia-southeast3-docker.pkg.dev/${{ vars.GCP_PROJECT_ID || 'factory-sync-solutions' }}/cloud-run/factory-sync-solutions-api:${{ github.sha }}
-        docker build -t $IMAGE apps/fs-backend
+        docker build -t $IMAGE apps/backend
         docker push $IMAGE
     - name: Deploy to Cloud Run
       run: |
@@ -364,6 +471,9 @@ gcloud run services update-traffic factory-sync-solutions-api \
 - **Cloud Run dashboard**: Check request count, error rate, latency
 - **Cloud Logging**: Filter by `resource.type="cloud_run_revision"`
 - **Firestore usage**: Check read/write counts against free tier limits (50K reads, 20K writes/day)
+- **Domain event consumer health**:
+  - runbook alerts in [monitoring.md](monitoring.md)
+  - confirm worker metrics and Pub/Sub backlog
 - **Slack `#server-status`**: Watch for error alerts
 
 See [monitoring.md](monitoring.md) for detailed monitoring setup.
@@ -385,8 +495,10 @@ See [monitoring.md](monitoring.md) for detailed monitoring setup.
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Updated: Cloud Functions -> Cloud Run, removed turbo references, fixed secrets management, updated deploy commands |
-| 1.2.0 | 2026-06-11 | Added fs-backoffice-web deployment (CF Pages + Cloudflare Access); updated pipeline stages; updated app names to fs-* |
+| 1.2.0 | 2026-06-11 | Added web-backoffice deployment (CF Pages + Cloudflare Access); updated pipeline stages; updated app names to fs-* |
 | 1.3.0 | 2026-06-13 | Fix manual deploy backend path; fix broken monitoring doc link |
 | 1.4.0 | 2026-06-14 | Add Cloudflare API gateway deployment and R2 CDN custom domain guidance |
 | 1.4.1 | 2026-06-14 | Change public API gateway base path from `/api/v1` to `/v1` |
 | 1.5.0 | 2026-06-14 | Move API gateway Worker documentation to the infrastructure layout |
+| 1.5.2 | 2026-06-18 | Add domain-event consumer monitoring pointers in deployment post-deploy checklist |
+| 1.5.3 | 2026-06-18 | Add one-command domain-event monitoring bootstrap helper documentation |

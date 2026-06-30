@@ -47,10 +47,10 @@ status: Released / Draft
 
 | Component | Previous Version | New Version | Change Type |
 |---|---|---|---|
-| fs-backend | vA.B.C | X.Y.Z | [Feature / Fix / Refactor] |
-| fs-app-web | vA.B.C | X.Y.Z | |
-| fs-backoffice-web | vA.B.C | X.Y.Z | |
-| fs-official-web | vA.B.C | X.Y.Z | |
+| backend | vA.B.C | X.Y.Z | [Feature / Fix / Refactor] |
+| web-app | vA.B.C | X.Y.Z | |
+| web-backoffice | vA.B.C | X.Y.Z | |
+| web-official | vA.B.C | X.Y.Z | |
 
 ---
 

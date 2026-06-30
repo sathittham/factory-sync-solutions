@@ -62,17 +62,17 @@ Bot protection is provided by Cloudflare Turnstile (configurable via
 
 | Component | Location | Status |
 |-----------|----------|--------|
-| Registration page | `apps/fs-app-web/src/pages/RegisterPage.tsx` | ✅ Built |
+| Registration page | `apps/web-app/src/pages/RegisterPage.tsx` | ✅ Built |
 | Form schema (Zod) | `RegisterPage.tsx` — `schema` const | ✅ Built |
 | DBD lookup | `GET /api/v1/dbd/:regId` via `handleDbdLookup` | ✅ Built |
 | Duplicate-ID check | `GET /api/v1/profile/check/:regId` | ✅ Built |
-| Backend handler | `apps/fs-backend/services/profile/handler.go` | ✅ Built |
-| Backend service | `apps/fs-backend/services/profile/service.go` | ✅ Built |
-| Profile model | `apps/fs-backend/services/profile/models.go` | ✅ Built |
+| Backend handler | `apps/backend/services/profile/handler.go` | ✅ Built |
+| Backend service | `apps/backend/services/profile/service.go` | ✅ Built |
+| Profile model | `apps/backend/services/profile/models.go` | ✅ Built |
 | Slack notification | `NotifyRegistration()` via `NotificationService` | ✅ Built |
-| Turnstile widget | `apps/fs-app-web/src/components/Turnstile.tsx` | ✅ Built |
-| Legal modals | `apps/fs-app-web/src/components/LegalModal.tsx` | ✅ Built |
-| Auth panel (right column) | `apps/fs-app-web/src/components/AuthPanel.tsx` | ✅ Built |
+| Turnstile widget | `apps/web-app/src/components/Turnstile.tsx` | ✅ Built |
+| Legal modals | `apps/web-app/src/components/LegalModal.tsx` | ✅ Built |
+| Auth panel (right column) | `apps/web-app/src/components/AuthPanel.tsx` | ✅ Built |
 | Analytics events | `registration_submit`, `registration_success`, `registration_error` | ✅ Built |
 | Route guard | Redirects `/register` → `/quiz` if `isRegistered` | ✅ Built |
 
@@ -386,11 +386,11 @@ on mobile (`md:grid-cols-2` only activates at ≥ md breakpoint).
 
 ## 15. References
 
-- Page: [RegisterPage.tsx](../../../apps/fs-app-web/src/pages/RegisterPage.tsx)
-- Backend handler: [handler.go](../../../apps/fs-backend/services/profile/handler.go)
-- Backend service: [service.go](../../../apps/fs-backend/services/profile/service.go)
-- Models: [models.go](../../../apps/fs-backend/services/profile/models.go)
-- Auth panel: [AuthPanel.tsx](../../../apps/fs-app-web/src/components/AuthPanel.tsx)
-- Legal modal: [LegalModal.tsx](../../../apps/fs-app-web/src/components/LegalModal.tsx)
-- Turnstile: [Turnstile.tsx](../../../apps/fs-app-web/src/components/Turnstile.tsx)
+- Page: [RegisterPage.tsx](../../../apps/web-app/src/pages/RegisterPage.tsx)
+- Backend handler: [handler.go](../../../apps/backend/services/profile/handler.go)
+- Backend service: [service.go](../../../apps/backend/services/profile/service.go)
+- Models: [models.go](../../../apps/backend/services/profile/models.go)
+- Auth panel: [AuthPanel.tsx](../../../apps/web-app/src/components/AuthPanel.tsx)
+- Legal modal: [LegalModal.tsx](../../../apps/web-app/src/components/LegalModal.tsx)
+- Turnstile: [Turnstile.tsx](../../../apps/web-app/src/components/Turnstile.tsx)
 - User flow: [user-flow.md](../user-flow.md)

@@ -1,14 +1,14 @@
 ---
 description: Go backend conventions — Chi router, Firestore, Firebase Auth, response format, error handling
 paths:
-  - "apps/fs-backend/**/*.go"
+  - "apps/backend/**/*.go"
 ---
 
 # Go Backend Rules
 
 ## Module
 
-`github.com/sathittham/factory-sync-solutions/apps/fs-backend`
+`github.com/sathittham/factory-sync-solutions/apps/backend`
 
 ## Stack
 
@@ -73,7 +73,7 @@ func RegisterRoutes(r chi.Router, svc *Service) {
 
 ## Service Structure
 
-Each service in `apps/fs-backend/services/<name>/` has:
+Each service in `apps/backend/services/<name>/` has:
 - `handler.go` — HTTP handlers only (parse, call service, respond)
 - `service.go` — business logic
 - `models.go` — request/response/domain types
@@ -134,6 +134,7 @@ if errors.Is(err, service.ErrResultNotFound) {
 - camelCase for JSON struct tags: `json:"quizID"`, `json:"createdAt"`
 - Boolean fields: `IsActive`, `HasCompleted` — `json:"isActive"`, `json:"hasCompleted"`
 - IDs: `userID`, `quizID`, `assessmentID` (not `userId`, `quiz_id`)
+  - **Exception**: `result.Assessment.QuizID` and `quiz` request/response models use `json:"quizId"`/`firestore:"quizId"` (lowercase `d`). This is already the live API contract and the field name on every stored `assessments` document — do not "fix" the casing without a coordinated Firestore data migration and frontend update.
 - Timestamps: `time.Time` fields with `json:"createdAt"` tag
 
 ## Build & Test Commands
@@ -142,7 +143,7 @@ if errors.Is(err, service.ErrResultNotFound) {
 make build-api          # go build ./...
 make test-api           # go test -race -cover ./...
 make lint-api           # go vet ./...
-cd apps/fs-backend && go test -v -race -cover ./services/quiz/...
+cd apps/backend && go test -v -race -cover ./services/quiz/...
 ```
 
 ## Rules
@@ -154,5 +155,5 @@ cd apps/fs-backend && go test -v -race -cover ./services/quiz/...
 - ALWAYS define domain-specific sentinel errors per service (`ErrProfileNotFound`, `ErrAlreadyRegistered`, …) — not generic `ErrNotFound`
 - Use `errors.Is` for error checks, never type assertion `err.(*T)`
 
-*Version: 1.1.0*
-*Last updated: 09 June 2026*
+*Version: 1.2.0*
+*Last updated: 20 June 2026*

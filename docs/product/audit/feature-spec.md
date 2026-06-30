@@ -16,17 +16,17 @@ status: Partially built - personal activity exists; project/backoffice audit vie
 
 ## 1. Summary
 
-The audit logger (`apps/fs-backend/services/audit/audit.go`) provides a `Log`
+The audit logger (`apps/backend/services/audit/audit.go`) provides a `Log`
 method that creates timestamped documents in `audit_events/{uuid}`. It is
 already wired into profile and quiz services and partially wired into admin
 export.
 
 The product direction is:
 
-- Every authenticated user has a personal activity log in `fs-app-web`.
+- Every authenticated user has a personal activity log in `web-app`.
 - Project Owners and System Admins can review company/project activity.
 - FactorySync Super Admins can review every user's activity and all backoffice
-  staff/user/project CRUD events in `fs-backoffice-web`.
+  staff/user/project CRUD events in `web-backoffice`.
 - Audit write failures must never break the primary business operation.
 
 ---
@@ -46,7 +46,7 @@ The product direction is:
 - Expose project/company activity through `GET /api/v1/project/audit`.
 - Expose superadmin audit search through `/api/v1/backoffice/audit` and
   `/api/v1/backoffice/users/{uid}/activity`.
-- Render activity in `fs-app-web` Profile and in `fs-backoffice-web` user/staff
+- Render activity in `web-app` Profile and in `web-backoffice` user/staff
   audit views.
 - Degrade gracefully when Firestore audit writes fail.
 
@@ -64,20 +64,20 @@ The product direction is:
 
 | Component | Location | Status |
 |-----------|----------|--------|
-| `Logger` / `Log` | `apps/fs-backend/services/audit/audit.go` | Built |
-| Base `Event` model | `apps/fs-backend/services/audit/audit.go` | Built, needs `projectID`/target fields |
-| `profile.Service` audit writes | `apps/fs-backend/services/profile/service.go` | Built |
-| `quiz.Service` audit writes | `apps/fs-backend/services/quiz/service.go` | Built |
-| `GET /profile/activity` | `apps/fs-backend/services/profile/handler.go` | Built |
-| `ProfilePage` activity tab | `apps/fs-app-web/src/pages/ProfilePage.tsx` | Built, route/use-date cleanup needed |
-| `admin.export` audit write | `apps/fs-backend/services/admin/handler.go` | Built |
-| `admin.SetUserRole` actor correctness | `apps/fs-backend/services/admin/handler.go` | Needs fix; currently logs target UID as actor |
-| Backoffice audit writer injection | `apps/fs-backend/services/backoffice/handler.go` | Not implemented |
-| Project/company event constants | `apps/fs-backend/services/audit/audit.go` | Not implemented |
-| Staff/user CRUD event constants | `apps/fs-backend/services/audit/audit.go` | Not implemented |
+| `Logger` / `Log` | `apps/backend/services/audit/audit.go` | Built |
+| Base `Event` model | `apps/backend/services/audit/audit.go` | Built, needs `projectID`/target fields |
+| `profile.Service` audit writes | `apps/backend/services/profile/service.go` | Built |
+| `quiz.Service` audit writes | `apps/backend/services/quiz/service.go` | Built |
+| `GET /profile/activity` | `apps/backend/services/profile/handler.go` | Built |
+| `ProfilePage` activity tab | `apps/web-app/src/pages/ProfilePage.tsx` | Built, route/use-date cleanup needed |
+| `admin.export` audit write | `apps/backend/services/admin/handler.go` | Built |
+| `admin.SetUserRole` actor correctness | `apps/backend/services/admin/handler.go` | Needs fix; currently logs target UID as actor |
+| Backoffice audit writer injection | `apps/backend/services/backoffice/handler.go` | Not implemented |
+| Project/company event constants | `apps/backend/services/audit/audit.go` | Not implemented |
+| Staff/user CRUD event constants | `apps/backend/services/audit/audit.go` | Not implemented |
 | `GET /project/audit` | planned route | Not implemented |
 | `GET /backoffice/audit` | planned route | Not implemented |
-| Backoffice audit UI | `apps/fs-backoffice-web` | Not implemented |
+| Backoffice audit UI | `apps/web-backoffice` | Not implemented |
 
 ---
 
@@ -232,7 +232,7 @@ building a complex filter manually.
 
 ## 7. UI Requirements
 
-### `fs-app-web`
+### `web-app`
 
 - Add or keep an Activity tab on the user's profile page/dialog.
 - Show personal events with localized labels via `useLocale()`.
@@ -241,7 +241,7 @@ building a complex filter manually.
 - Company/project audit can be a separate tab visible only to `owner` and
   `system_admin`.
 
-### `fs-backoffice-web`
+### `web-backoffice`
 
 - Add an Audit page visible only to superadmins.
 - Add "View Activity" from each user detail dialog.
@@ -329,9 +329,9 @@ index from the error link and document it here.
 
 ## 12. References
 
-- Audit logger: [audit/audit.go](../../../apps/fs-backend/services/audit/audit.go)
-- Profile service call sites: [profile/service.go](../../../apps/fs-backend/services/profile/service.go)
-- Profile handler activity routes: [profile/handler.go](../../../apps/fs-backend/services/profile/handler.go)
-- Quiz service call sites: [quiz/service.go](../../../apps/fs-backend/services/quiz/service.go)
+- Audit logger: [audit/audit.go](../../../apps/backend/services/audit/audit.go)
+- Profile service call sites: [profile/service.go](../../../apps/backend/services/profile/service.go)
+- Profile handler activity routes: [profile/handler.go](../../../apps/backend/services/profile/handler.go)
+- Quiz service call sites: [quiz/service.go](../../../apps/backend/services/quiz/service.go)
 - Backoffice spec: [backoffice/feature-spec.md](../backoffice/feature-spec.md)
 - Profile spec: [profile/feature-spec.md](../profile/feature-spec.md)

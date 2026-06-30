@@ -28,9 +28,9 @@ You are a strict documentation reviewer for Factory Health Check. Find **real pr
 
 | Folder | Code location | Type |
 |--------|--------------|------|
-| `docs/product/<feature>/` | `apps/fs-backend/services/<feature>/` | Feature SRS + test plan |
+| `docs/product/<feature>/` | `apps/backend/services/<feature>/` | Feature SRS + test plan |
 | `docs/architecture/` | Both apps | Design documents |
-| `docs/api/` | `apps/fs-backend/services/` | API reference |
+| `docs/api/` | `apps/backend/services/` | API reference |
 | `docs/iso29110/` | — | Process artifacts |
 | `docs/operations/` | — | Deployment + runbooks |
 
@@ -96,10 +96,10 @@ If scope is still empty: report "No modified `.md` files found — specify a pat
   grep -E "(GET|POST|PUT|PATCH|DELETE) /api/" <file>
   grep -oE "\`(GET|POST|PUT|PATCH|DELETE) [^\`]+\`" <file>
   ```
-- For each endpoint, find the corresponding handler in `apps/fs-backend/services/`:
+- For each endpoint, find the corresponding handler in `apps/backend/services/`:
   ```bash
   grep -rn "r\.Get\|r\.Post\|r\.Put\|r\.Patch\|r\.Delete\|\.Get(\|\.Post(" \
-    apps/fs-backend/services/ --include="*.go" | grep -v "_test.go"
+    apps/backend/services/ --include="*.go" | grep -v "_test.go"
   ```
 - Flag: endpoint in doc with no handler match
 - Flag: handler path that has no doc entry (undocumented endpoint)

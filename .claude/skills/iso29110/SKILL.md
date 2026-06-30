@@ -150,7 +150,7 @@ Steps:
    ```bash
    git diff <prev-tag>..HEAD --stat 2>/dev/null || git diff --stat HEAD~10..HEAD
    ```
-5. Map changed `apps/fs-backend/services/<name>/` dirs to service names; map `apps/fs-app-web/` and `apps/fs-official-web/` to frontend
+5. Map changed `apps/backend/services/<name>/` dirs to service names; map `apps/web-app/` and `apps/web-official/` to frontend
 6. For each changed feature, read `docs/product/<feature>/feature-spec.md` for the feature title — use the commit subject if no spec exists
 7. Run tests to get current results:
    ```bash
@@ -270,9 +270,9 @@ Steps:
 | SI.O7 | VDD | `docs/iso29110/releases/vX.Y.Z.md` | Per `v*.*.*` tag |
 
 Test commands:
-- Backend: `make test-api` (`go test -race -cover ./...` in `apps/fs-backend`)
-- Frontend: `make test-web` (`npx vitest run` in `apps/fs-app-web`)
-- Single service: `cd apps/fs-backend && go test -v -race -cover ./services/<name>/...`
+- Backend: `make test-api` (`go test -race -cover ./...` in `apps/backend`)
+- Frontend: `make test-web` (`npx vitest run` in `apps/web-app`)
+- Single service: `cd apps/backend && go test -v -race -cover ./services/<name>/...`
 
 *Version: 1.0.0*
 *Last updated: 11 June 2026*

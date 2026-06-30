@@ -11,8 +11,8 @@ export const meta = {
 
 // Usage: Workflow({ name: 'feature-review', args: {
 //   feature: 'quiz',                 // human label for the feature
-//   service: 'quiz',                 // backend dir under apps/fs-backend/services/ (optional)
-//   paths: ['apps/fs-app-web/src/pages/QuizPage.tsx'],  // optional explicit hints
+//   service: 'quiz',                 // backend dir under apps/backend/services/ (optional)
+//   paths: ['apps/web-app/src/pages/QuizPage.tsx'],  // optional explicit hints
 //   reviewDoc: 'docs/reviews/quiz-REVIEW.md',           // optional output path
 // }})
 
@@ -84,7 +84,7 @@ const DIMENSIONS = [
   {
     key: 'correctness',
     agentType: 'backend-dev',
-    prompt: `CORRECTNESS review. Verify business logic matches the quiz/scoring spec (8-dimension Shindan rubric, 43 questions, config at apps/fs-backend/config/questions.json, scoring in apps/fs-backend/services/scoring/). Check edge cases: empty/partial answers, score boundaries, locale fallbacks, error paths. Cite file:line.`,
+    prompt: `CORRECTNESS review. Verify business logic matches the quiz/scoring spec (8-dimension Shindan rubric, 43 questions, config at apps/backend/config/questions.json, scoring in apps/backend/services/scoring/). Check edge cases: empty/partial answers, score boundaries, locale fallbacks, error paths. Cite file:line.`,
   },
   {
     key: 'maintainability',
@@ -102,13 +102,13 @@ const map = await agent(
   `Locate all files implementing the "${feature}" feature.
 
 Search both halves of the stack:
-- Backend: apps/fs-backend/services/${service}/ (handler.go, service.go, models.go, service_test.go) and any related pkg/ usage.
-- Frontend: apps/fs-app-web/src/ — pages/, components/, store/ slices, hooks/, lib/ that reference "${feature}".
+- Backend: apps/backend/services/${service}/ (handler.go, service.go, models.go, service_test.go) and any related pkg/ usage.
+- Frontend: apps/web-app/src/ — pages/, components/, store/ slices, hooks/, lib/ that reference "${feature}".
 ${hintPaths.length ? `Known hint paths: ${hintPaths.join(', ')}` : ''}
 
 Use grep/glob to find them. Return:
-- backendFiles: list of apps/fs-backend/... paths
-- frontendFiles: list of apps/fs-app-web/... paths
+- backendFiles: list of apps/backend/... paths
+- frontendFiles: list of apps/web-app/... paths
 - summary: one paragraph on how the feature is wired end-to-end (endpoint → service → Firestore, and page → slice → api).`,
   { label: 'map', phase: 'Map', agentType: 'Explore', schema: MAP_SCHEMA }
 )

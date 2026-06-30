@@ -374,7 +374,7 @@ from auth context and `targetUID` equal to `{uid}`.
 ### `PUT /backoffice/users/{uid}/role`
 
 Promote or demote the `role` Firebase custom claim for a customer-facing user
-(controls access to `/admin` in `fs-app-web`).
+(controls access to `/admin` in `web-app`).
 
 **Role**: superadmin only
 

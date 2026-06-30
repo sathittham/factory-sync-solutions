@@ -25,9 +25,9 @@ jobs:
         with:
           filters: |
             api:
-              - 'apps/fs-backend/**'
+              - 'apps/backend/**'
             web:
-              - 'apps/fs-app-web/**'
+              - 'apps/web-app/**'
             gateway:
               - 'infra/cloudflare/workers/api-gateway/**'
               - '.github/workflows/test.yml'
@@ -39,14 +39,14 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/fs-backend
+        working-directory: apps/backend
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v5
         with:
           go-version: "1.26.4"
-          cache-dependency-path: apps/fs-backend/go.sum
+          cache-dependency-path: apps/backend/go.sum
 
       - uses: actions/setup-node@v4
         with:
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/fs-app-web
+        working-directory: apps/web-app
     steps:
       - uses: actions/checkout@v4
 
@@ -82,7 +82,7 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: apps/fs-app-web/package-lock.json
+          cache-dependency-path: apps/web-app/package-lock.json
 
       - name: Install dependencies
         run: npm ci

@@ -50,7 +50,7 @@ new project **`factory-sync-solutions`**.
 - Artifact Registry repo: `cloud-run`
 - Cloudflare Pages projects (4): `factory-sync-solutions`, `factory-sync-solutions-staging`,
   `factory-sync-solutions-official`, `factory-sync-solutions-official-staging`
-- **Quiz slug** `"factory-health-check"` in `apps/fs-official-web/src/components/**` — this is a
+- **Quiz slug** `"factory-health-check"` in `apps/web-official/src/components/**` — this is a
   *service/quiz offering name*, NOT the project. Leaving it alone is intentional.
 
 ---
@@ -93,7 +93,7 @@ gcloud artifacts repositories create cloud-run \
    (the new `*.firebaseapp.com`, Cloudflare Pages domains, custom domain).
 3. **Project settings → Your apps → Web app** → register a web app → copy the config:
    `apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId`.
-   These feed the new `apps/fs-app-web/.env.*` (Phase 7).
+   These feed the new `apps/web-app/.env.*` (Phase 7).
 4. **Firestore** → create database in `<REGION>` (match the **old** project's location/mode exactly —
    import requires the same location).
 
@@ -191,7 +191,7 @@ gh secret set CLOUDFLARE_API_TOKEN             # if the Cloudflare account chang
 gh secret set CLOUDFLARE_ACCOUNT_ID
 ```
 
-> `fs-official-web` reads no Firebase vars — its only build inputs are the **hardcoded**
+> `web-official` reads no Firebase vars — its only build inputs are the **hardcoded**
 > `PUBLIC_APP_URL` / `PUBLIC_APP_VERSION` in `deploy-*.yml`. If the public domain changes,
 > hand-edit those workflow lines (the swap script won't).
 
@@ -202,14 +202,14 @@ Run the helper (idempotent; only touches project-ID config, never the quiz slug)
 ./scripts/migration/swap-project-id.sh factory-health-check factory-sync-solutions
 ```
 It does a literal `factory-health-check`→`factory-sync-solutions` string swap on a fixed list of
-10 files: `.github/workflows/deploy-{staging,production}.yml`, `apps/fs-backend/.env.{production,staging,development}`,
-`apps/fs-app-web/.env.{production,staging,development}`, and `docs/operations/{deployment,env-variables}.md`.
+10 files: `.github/workflows/deploy-{staging,production}.yml`, `apps/backend/.env.{production,staging,development}`,
+`apps/web-app/.env.{production,staging,development}`, and `docs/operations/{deployment,env-variables}.md`.
 It does **not** touch the quiz slug, `firebase-sa.json`, or values that don't contain the old project ID.
 
 > **Scope check:** these `.env.*` edits are for **local/dev** only — CI deploys from GitHub
 > `vars.*`/`secrets.*` (Phase 6), so updating the env files alone won't change a deploy. Still set
 > them so `make dev` points at the new project. After the swap, manually fill the values the script
-> can't know into `apps/fs-app-web/.env.*` and the matching `vars.*`:
+> can't know into `apps/web-app/.env.*` and the matching `vars.*`:
 > `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_APP_ID`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, and
 > `VITE_API_BASE_URL` (the new Cloud Run URL — note staging's is currently empty).
 
@@ -252,9 +252,9 @@ git remote get-url origin
 basename "$PWD"
 
 # Check for stale paths still pointing at the old name:
-grep -rn factory-health-check .claude/settings.local.json apps/fs-backend/.env.development
+grep -rn factory-health-check .claude/settings.local.json apps/backend/.env.development
 #   → settings.local.json has 1 hit (a permission-allowlist entry for the swap script — harmless).
-#   → apps/fs-backend/.env.development is already repointed (0 hits — GOOGLE_APPLICATION_CREDENTIALS
+#   → apps/backend/.env.development is already repointed (0 hits — GOOGLE_APPLICATION_CREDENTIALS
 #     now points at .../factory-sync-solutions/firebase-sa.json).
 ```
 These files are **gitignored / local-only** and are not touched by the swap script (Phase 7).

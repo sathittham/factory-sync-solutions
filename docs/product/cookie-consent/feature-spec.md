@@ -7,7 +7,7 @@ status: Draft
 
 # Cookie Consent & Analytics — Feature Spec
 
-> Wire the **existing** cookie-consent UI on `fs-official-web` (and `fs-app-web`)
+> Wire the **existing** cookie-consent UI on `web-official` (and `web-app`)
 > to **Google Tag Manager + Google Analytics 4** through **Google Consent Mode v2**,
 > so tags only fire after the user grants the matching consent category.
 
@@ -44,7 +44,7 @@ vendor (Meta Pixel, LinkedIn, etc.) — those are noted in [§10](#10-future-wor
 - Single source of truth for consent: the three `fss-*` `localStorage` keys.
 - Consent Mode v2 so Google's tag is _present_ but _throttled_ until granted
   (preserves cookieless pings / modelled conversions where applicable).
-- Identical behaviour and copy across `fs-official-web` and `fs-app-web`.
+- Identical behaviour and copy across `web-official` and `web-app`.
 - Toggle analytics off per-environment (staging already strips the IDs).
 
 ### Non-Goals
@@ -59,11 +59,11 @@ vendor (Meta Pixel, LinkedIn, etc.) — those are noted in [§10](#10-future-wor
 
 | Piece | Location | Status |
 |-------|----------|--------|
-| Consent banner + settings modal | `apps/fs-official-web/src/components/CookieConsent.tsx` | ✅ Built |
+| Consent banner + settings modal | `apps/web-official/src/components/CookieConsent.tsx` | ✅ Built |
 | Consent state (3 categories) | `localStorage`: `fss-cookie-consent`, `fss-analytics-consent`, `fss-marketing-consent` | ✅ Built |
 | Re-open settings from footer | `OPEN_SETTINGS_EVENT` custom event | ✅ Built |
-| Cross-app handoff (official → app) | `apps/fs-official-web/src/components/AppHandoff.tsx` + `apps/fs-app-web/index.html` boot script | ✅ Built |
-| App analytics loader | `apps/fs-app-web/src/lib/analytics.ts` (`VITE_GTM_ID`, `VITE_GA_MEASUREMENT_ID`) | ⚠️ Loads **without** consent gating |
+| Cross-app handoff (official → app) | `apps/web-official/src/components/AppHandoff.tsx` + `apps/web-app/index.html` boot script | ✅ Built |
+| App analytics loader | `apps/web-app/src/lib/analytics.ts` (`VITE_GTM_ID`, `VITE_GA_MEASUREMENT_ID`) | ⚠️ Loads **without** consent gating |
 | Official-site analytics loader | — | ❌ Missing |
 | Consent Mode v2 (`gtag('consent', …)`) | — | ❌ Missing (both apps) |
 | Staging IDs stripped from build | `.github/workflows/deploy-staging.yml` | ✅ Built |
@@ -163,10 +163,10 @@ the GTM `<script>`.
 
 ## 6. Implementation
 
-### 6.1 `fs-official-web` (Astro) — new
+### 6.1 `web-official` (Astro) — new
 
 **a. Consent Mode default + GTM bootstrap** — add an `is:inline` script to the
-top of `<head>` in `apps/fs-official-web/src/layouts/Layout.astro`, _before_ the
+top of `<head>` in `apps/web-official/src/layouts/Layout.astro`, _before_ the
 existing theme script, reading the new `PUBLIC_GTM_ID`:
 
 ```astro
@@ -224,7 +224,7 @@ const gtmId = import.meta.env.PUBLIC_GTM_ID ?? "";
 call it from the three existing handlers in `CookieConsent.tsx` — no UI change:
 
 ```ts
-// apps/fs-official-web/src/lib/consent.ts
+// apps/web-official/src/lib/consent.ts
 export function updateConsentMode(analytics: boolean, marketing: boolean) {
   const g = (window as { gtag?: (...a: unknown[]) => void }).gtag;
   if (g) {
@@ -268,7 +268,7 @@ function deleteGoogleAnalyticsCookies() {
 )}
 ```
 
-### 6.2 `fs-app-web` (React) — fix the gating gap
+### 6.2 `web-app` (React) — fix the gating gap
 
 `lib/analytics.ts` currently loads GTM/GA **before** any consent signal. Update
 `initAnalytics()` to push `consent('default', …)` (all gated categories `denied`)
@@ -284,11 +284,11 @@ it must run before `initAnalytics()` (it already does, in `main.tsx`).
 
 | Var | App | Notes |
 |-----|-----|-------|
-| `PUBLIC_GTM_ID` | `fs-official-web` (Astro `PUBLIC_` prefix) | e.g. `GTM-XXXXXXX` |
-| `VITE_GTM_ID` | `fs-app-web` | already referenced |
-| `VITE_GA_MEASUREMENT_ID` | `fs-app-web` | legacy GA4-direct fallback in `analytics.ts` — kept but not provisioned (see §4) |
+| `PUBLIC_GTM_ID` | `web-official` (Astro `PUBLIC_` prefix) | e.g. `GTM-XXXXXXX` |
+| `VITE_GTM_ID` | `web-app` | already referenced |
+| `VITE_GA_MEASUREMENT_ID` | `web-app` | legacy GA4-direct fallback in `analytics.ts` — kept but not provisioned (see §4) |
 
-Add `PUBLIC_GTM_ID` to `apps/fs-official-web/.env.example`. **Production only** —
+Add `PUBLIC_GTM_ID` to `apps/web-official/.env.example`. **Production only** —
 staging builds already omit the IDs (commit `573cebe`), which means no tag loads
 on staging. Never commit real IDs.
 
@@ -347,14 +347,14 @@ on staging. Never commit real IDs.
 
 - **Manual:** Chrome DevTools → Application → Cookies / Local Storage; GTM Preview;
   GA4 DebugView. Walk each acceptance row in both TH and EN locales.
-- **E2E (Playwright — `fs-app-web` only; the official site has no Playwright
+- **E2E (Playwright — `web-app` only; the official site has no Playwright
   setup, Vitest only):** the app shares the same banner, storage keys, and
   consent flow, so cover the behaviour there: assert (1) banner visible on first
   load, (2) `window.dataLayer` contains a `consent default` entry with
   `analytics_storage: 'denied'`, (3) after **Accept All**, a `consent update`
   with `granted`, (4) the `fss-*` keys persist, (5) no banner on reload,
   (6) handoff query params seed consent and are stripped from the URL.
-  (Adding Playwright to `fs-official-web` is optional follow-up tooling, §11.)
+  (Adding Playwright to `web-official` is optional follow-up tooling, §11.)
 - **Unit (Vitest, both apps):** `updateConsentMode()` pushes the correct shape
   onto a mocked `window.gtag`, still deletes `_ga*` cookies when `gtag` is
   absent, and revocation calls the cookie-deletion path.
@@ -391,15 +391,15 @@ on staging. Never commit real IDs.
 - Additional vendors (Meta Pixel, LinkedIn Insight) gated under Marketing —
   these need GTM additional consent checks + a consent-grant `dataLayer` event
   trigger (§7 step 5).
-- Playwright e2e setup for `fs-official-web` (currently Vitest-only) so the
+- Playwright e2e setup for `web-official` (currently Vitest-only) so the
   banner flow is exercised on the marketing site directly, not just in the app.
 
 ---
 
 ## 12. References
 
-- Existing UI: [CookieConsent.tsx](../../../apps/fs-official-web/src/components/CookieConsent.tsx)
-- Handoff: [AppHandoff.tsx](../../../apps/fs-official-web/src/components/AppHandoff.tsx)
-- App analytics loader: [analytics.ts](../../../apps/fs-app-web/src/lib/analytics.ts)
-- Layout: [Layout.astro](../../../apps/fs-official-web/src/layouts/Layout.astro)
+- Existing UI: [CookieConsent.tsx](../../../apps/web-official/src/components/CookieConsent.tsx)
+- Handoff: [AppHandoff.tsx](../../../apps/web-official/src/components/AppHandoff.tsx)
+- App analytics loader: [analytics.ts](../../../apps/web-app/src/lib/analytics.ts)
+- Layout: [Layout.astro](../../../apps/web-official/src/layouts/Layout.astro)
 - Google: Consent Mode v2 — <https://developers.google.com/tag-platform/security/guides/consent>

@@ -74,9 +74,20 @@ deployed by Wrangler.
 | `API_DOCS_R2_PREFIX` | No | R2 prefix for API docs artifacts. Defaults to `openapi`. | `openapi` |
 | `API_DOCS_SUPPORTED_VERSIONS` | No | Comma-separated API versions exposed by docs tooling. | `v1` |
 | `API_DOCS_DEFAULT_VERSION` | No | Default API docs version. | `v1` |
-| `API_DOCS_LOCAL_DIR` | Dev only | Local generated docs directory relative to `apps/fs-backend`. | `docs` |
+| `API_DOCS_LOCAL_DIR` | Dev only | Local generated docs directory relative to `apps/backend`. | `docs` |
+| `DOMAIN_EVENT_MODE` | No | Domain event publisher mode (`off`, `log`, `logging`, `stdout`, `pubsub`, `pubsub-log`). `off` disables writes, `log` emits structured logs, `pubsub` uses queue delivery. | `off` |
+| `DOMAIN_EVENT_PUBSUB_TOPIC` | When `DOMAIN_EVENT_MODE=pubsub` | Optional single shared Pub/Sub topic name for all domain events. | `factory-sync-domain-events` |
+| `DOMAIN_EVENT_PUBSUB_DLQ_TOPIC` | When `DOMAIN_EVENT_MODE=pubsub` | Optional dead-letter Pub/Sub topic for terminal failed deliveries. | `factory-sync-domain-events-dlq` |
+| `DOMAIN_EVENT_SUBSCRIPTION` | Consumer only | Subscription name for Cloud Run worker `domain-event-consumer`. | `factory-sync-domain-events-result-consumer` |
+| `DOMAIN_EVENT_INBOX_COLLECTION` | Consumer only | Firestore collection used for idempotency state in the consumer. | `domain_event_inbox` |
+| `DOMAIN_EVENT_INBOX_LEASE` | Consumer only | Lease window before an in-flight event can be retried. | `5m` |
+| `DOMAIN_EVENT_MAX_ATTEMPTS` | Consumer only | Max retry attempts before DLQ handoff. | `5` |
+| `DOMAIN_EVENT_DLQ_PROJECT_ID` | Consumer only | Optional separate GCP project for the DLQ topic. | `factory-sync-solutions` |
+| `DOMAIN_EVENT_SUBSCRIPTION_GOROUTINES` | Consumer only | Pub/Sub subscriber goroutine count for parallel handling. | `2` |
+| `DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_MESSAGES` | Consumer only | Pub/Sub max unacked messages in-flight. | `200` |
+| `DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_BYTES` | Consumer only | Pub/Sub max in-flight bytes in-flight. | `0` |
 
-## Frontend — `fs-app-web` (User App)
+## Frontend — `web-app` (User App)
 
 Only `VITE_` prefixed variables are exposed to the browser. Never put secrets here.
 
@@ -94,14 +105,14 @@ Only `VITE_` prefixed variables are exposed to the browser. Never put secrets he
 | `VITE_GTM_ID` | No | Google Tag Manager container ID. | `GTM-XXXXXXX` |
 | `VITE_GA_MEASUREMENT_ID` | No | Google Analytics 4 measurement ID. | `G-XXXXXXXXXX` |
 
-## Frontend — `fs-backoffice-web` (Staff Backoffice)
+## Frontend — `web-backoffice` (Staff Backoffice)
 
-Uses the **same Firebase project** as `fs-app-web` — no separate Firebase app needed.
+Uses the **same Firebase project** as `web-app` — no separate Firebase app needed.
 There is no Turnstile widget on the backoffice (Cloudflare Access handles bot/access control at the network layer).
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
-| `VITE_FIREBASE_API_KEY` | Yes | Same Firebase API key as `fs-app-web` | `AIza...` |
+| `VITE_FIREBASE_API_KEY` | Yes | Same Firebase API key as `web-app` | `AIza...` |
 | `VITE_FIREBASE_AUTH_DOMAIN` | Yes | Same Firebase Auth domain | `project-id.firebaseapp.com` |
 | `VITE_FIREBASE_PROJECT_ID` | Yes | Same Firebase project ID | `factory-sync-solutions` |
 | `VITE_FIREBASE_STORAGE_BUCKET` | Yes | Same Firebase storage bucket | `factory-sync-solutions.firebasestorage.app` |
@@ -110,7 +121,7 @@ There is no Turnstile widget on the backoffice (Cloudflare Access handles bot/ac
 | `VITE_API_BASE_URL` | No | Backend API base URL | `http://localhost:8080/api/v1` |
 | `VITE_PROXY_TARGET` | Dev only | Backend proxy target used by Vite dev server. | `http://localhost:8080` |
 
-## Frontend — `fs-official-web` (Public Site)
+## Frontend — `web-official` (Public Site)
 
 Only `PUBLIC_` prefixed variables are exposed to the browser. Never put secrets here.
 
@@ -162,10 +173,19 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | `VITE_FIREBASE_PROJECT_ID` | Firebase project ID | `factory-sync-solutions` |
 | `VITE_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket | `factory-sync-solutions.firebasestorage.app` |
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID | `123456789` |
-| `VITE_FIREBASE_APP_ID` | Firebase app ID (fs-app-web) | `1:123:web:abc` |
-| `VITE_BACKOFFICE_APP_ID` | Firebase app ID (fs-backoffice-web) | `1:123:web:def` |
+| `VITE_FIREBASE_APP_ID` | Firebase app ID (web-app) | `1:123:web:abc` |
+| `VITE_BACKOFFICE_APP_ID` | Firebase app ID (web-backoffice) | `1:123:web:def` |
 | `VITE_API_BASE_URL` | Backend API URL | `https://api.factorysyncsolutions.com/v1` |
 | `BACKOFFICE_APP_URL` | Backoffice URL used for staff invitation password setup links; falls back to `APP_URL` if unset. Customer owner/member invitations use `APP_URL/auth/action`. | `https://backoffice.example.com` |
+| `DOMAIN_EVENT_SUBSCRIPTION` | Consumer subscription for `domain-event-consumer` (staging/production). | `factory-sync-domain-events-result-consumer` |
+| `DOMAIN_EVENT_INBOX_COLLECTION` | Firestore collection used for idempotency state. | `domain_event_inbox` |
+| `DOMAIN_EVENT_INBOX_LEASE` | Idempotency lease interval. | `5m` |
+| `DOMAIN_EVENT_MAX_ATTEMPTS` | Max consumer attempts before DLQ. | `5` |
+| `DOMAIN_EVENT_DLQ_PROJECT_ID` | Optional project for DLQ topic. | `factory-sync-solutions` |
+| `DOMAIN_EVENT_PUBSUB_DLQ_TOPIC` | DLQ topic for terminal failure routing. | `factory-sync-domain-events-dlq` |
+| `DOMAIN_EVENT_SUBSCRIPTION_GOROUTINES` | Consumer parallel pull worker count. | `2` |
+| `DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_MESSAGES` | Pub/Sub receiver max in-flight messages. | `200` |
+| `DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_BYTES` | Pub/Sub receiver max in-flight bytes. | `0` |
 | `R2_ACCOUNT_ID` | Cloudflare account ID for upload storage | `9cfbba8b3a373fdc0d11abaf64071719` |
 | `R2_PUBLIC_BUCKET` | Public R2 bucket for avatar uploads | `uploads-factorysyncsolutions-com-staging` |
 | `R2_PUBLIC_BASE_URL` | Public base URL for uploaded avatars | `https://cdn-staging.factorysyncsolutions.com` |
@@ -194,10 +214,10 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 
 1. Copy the example file for each app:
    ```bash
-   cp apps/fs-backend/.env.example        apps/fs-backend/.env.development
-   cp apps/fs-app-web/.env.example        apps/fs-app-web/.env
-   cp apps/fs-backoffice-web/.env.example apps/fs-backoffice-web/.env.local
-   cp apps/fs-official-web/.env.example   apps/fs-official-web/.env
+   cp apps/backend/.env.example        apps/backend/.env.development
+   cp apps/web-app/.env.example        apps/web-app/.env
+   cp apps/web-backoffice/.env.example apps/web-backoffice/.env.local
+   cp apps/web-official/.env.example   apps/web-official/.env
    ```
 
 2. Fill in your values (see tables above).
@@ -210,7 +230,7 @@ Each deploy environment (`staging`, `production`) has its own set of values.
    # In another terminal, set emulator env vars
    export FIRESTORE_EMULATOR_HOST=localhost:8080
    export FIREBASE_AUTH_EMULATOR_HOST=localhost:9099
-   cd apps/fs-backend && go run main.go
+   cd apps/backend && go run main.go
    ```
 
 4. To test backoffice locally, set `backofficeRole` on a test Firebase user via the Firebase Admin SDK or the emulator UI, then sign in at `http://localhost:5174`.
@@ -230,7 +250,7 @@ Each deploy environment (`staging`, `production`) has its own set of values.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
-| 1.1.0 | 2026-06-11 | Added fs-backoffice-web env vars; updated ALLOWED_ORIGINS to include backoffice origins; updated local dev setup; updated app path references |
+| 1.1.0 | 2026-06-11 | Added web-backoffice env vars; updated ALLOWED_ORIGINS to include backoffice origins; updated local dev setup; updated app path references |
 | 1.2.0 | 2026-06-13 | Fix stale project ID examples; update storage bucket format to firebasestorage.app; add SLACK_WEBHOOK_DEPLOY secret |
 | 1.3.0 | 2026-06-14 | Add API docs R2 publishing variables |
 | 1.4.0 | 2026-06-14 | Add Cloudflare API gateway variables and CDN custom domain examples |

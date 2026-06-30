@@ -34,7 +34,7 @@ Generate IDs in the **service layer** — never in the handler or from client in
 ## Project Structure
 
 ```
-apps/fs-backend/
+apps/backend/
 ├── main.go                    # Entry point, router setup, middleware
 ├── config/
 │   └── questions.json         # Static quiz question definitions
@@ -108,10 +108,10 @@ import (
     chiMiddleware "github.com/go-chi/chi/v5/middleware"
     firebase "firebase.google.com/go/v4"
 
-    "github.com/sathittham/factory-sync-solutions/apps/fs-backend/middleware"
-    "github.com/sathittham/factory-sync-solutions/apps/fs-backend/pkg"
-    "github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/profile"
-    "github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/quiz"
+    "github.com/sathittham/factory-sync-solutions/apps/backend/middleware"
+    "github.com/sathittham/factory-sync-solutions/apps/backend/pkg"
+    "github.com/sathittham/factory-sync-solutions/apps/backend/services/profile"
+    "github.com/sathittham/factory-sync-solutions/apps/backend/services/quiz"
 )
 
 func main() {

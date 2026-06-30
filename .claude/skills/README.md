@@ -9,7 +9,7 @@ Type `/skill-name` in Claude Code:
 ```
 /commit                              # stage, commit, and push current changes
 /code-review                         # review all changed files vs main
-/code-review apps/fs-backend/services/quiz/ # review a specific service
+/code-review apps/backend/services/quiz/ # review a specific service
 ```
 
 ---

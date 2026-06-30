@@ -25,18 +25,18 @@ Apply the 5-point checklist in priority order:
 - Components: `PascalCase` (`QuizCard`, `ResultPage`)
 - Hooks: `camelCase` starting with `use` (`useQuizState`, `useLocale`)
 - Event handlers: `handle<Action>` (`handleSubmit`, `handleCancel`)
-- Redux slices: `<feature>Slice` in `apps/fs-app-web/src/store/`
+- Redux slices: `<feature>Slice` in `apps/web-app/src/store/`
 
 ## Architecture
 
 ```
 apps/
-  fs-backend/
+  backend/
     services/<name>/   # handler.go + service.go + models.go + service_test.go
     pkg/               # response.go, firestore.go, validator.go, turnstile.go
     middleware/        # FirebaseAuth middleware
     config/            # questions.json (quiz config), other config files
-  fs-app-web/
+  web-app/
     src/
       pages/           # page-level components
       components/      # shared components (ui/ = shadcn)
@@ -48,8 +48,8 @@ apps/
 ## Quiz / Scoring Domain
 
 - **8-dimension Shindan rubric-based assessment** — multi-quiz
-- Quiz configs: `apps/fs-backend/config/questions*.json` — one per variant (`questions.json`, `questions-factory.json`, `questions-cybersecurity.json`, `questions-lean.json`, `questions-iso29110.json`)
-- Scoring: `apps/fs-backend/services/scoring/`
+- Quiz configs: `apps/backend/config/questions*.json` — one per variant (`questions.json`, `questions-factory.json`, `questions-cybersecurity.json`, `questions-lean.json`, `questions-iso29110.json`)
+- Scoring: `apps/backend/services/scoring/`
 - Results stored per-user in Firestore
 
 ## Deployment

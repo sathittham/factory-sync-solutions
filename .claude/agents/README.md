@@ -18,8 +18,8 @@ In Claude Code, type `@agent-name` or select from the agent picker:
 
 | Agent | Role | Best for |
 |-------|------|---------|
-| `backend-dev` | Senior Go Engineer | New endpoints, service logic, Firestore queries, Firebase Auth, bug fixes (`apps/fs-backend`) |
-| `frontend-dev` | Senior React Engineer | UI components, pages, forms, Redux state, i18n, shadcn/ui, Biome fixes — both `apps/fs-app-web` (React + Vite) and `apps/fs-official-web` (Astro) |
+| `backend-dev` | Senior Go Engineer | New endpoints, service logic, Firestore queries, Firebase Auth, bug fixes (`apps/backend`) |
+| `frontend-dev` | Senior React Engineer | UI components, pages, forms, Redux state, i18n, shadcn/ui, Biome fixes — both `apps/web-app` (React + Vite) and `apps/web-official` (Astro) |
 | `qa-dev` | Senior QA Engineer | TDD tests first, handler/service test coverage, Vitest unit tests, Playwright E2E, ISO 29110 test-plan.md — both backend (Go) and frontend |
 | `lead-dev` | Lead Developer | Architecture decisions, cross-cutting code reviews (Chi layering, Firestore schema, scoring correctness), TDD enforcement, technical planning |
 | `security-eng` | Cybersecurity Engineer | Security audits (OWASP), Firebase Auth flow review, Firestore rules gaps, secrets exposure, pre-release security check |

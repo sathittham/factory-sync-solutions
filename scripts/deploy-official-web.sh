@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# Manual deploy script for apps/fs-official-web → Cloudflare Pages
+# Manual deploy script for apps/web-official → Cloudflare Pages
 #
 # Usage:
 #   ./scripts/deploy-official-web.sh staging
@@ -19,7 +19,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-APP_DIR="$REPO_ROOT/apps/fs-official-web"
+APP_DIR="$REPO_ROOT/apps/web-official"
 
 # Load local deploy secrets if present (not committed)
 ENV_FILE="$SCRIPT_DIR/.env.deploy"
@@ -56,7 +56,7 @@ PUBLIC_APP_URL="${PUBLIC_APP_URL:-$DEFAULT_APP_URL}"
 # --- Summary -----------------------------------------------------------------
 echo ""
 echo "┌─────────────────────────────────────────────┐"
-echo "│  Deploy: fs-official-web → Cloudflare Pages │"
+echo "│  Deploy: web-official → Cloudflare Pages │"
 echo "└─────────────────────────────────────────────┘"
 echo "  Environment : $ENVIRONMENT"
 echo "  CF Project  : $CF_PROJECT"

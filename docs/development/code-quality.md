@@ -19,7 +19,7 @@ npx biome check --fix .    # Auto-fix issues
 
 ### Backend: golangci-lint
 
-The Go backend uses `golangci-lint` as the primary linting tool. Configuration is in `apps/fs-backend/.golangci.yml`.
+The Go backend uses `golangci-lint` as the primary linting tool. Configuration is in `apps/backend/.golangci.yml`.
 
 **Installation:**
 ```bash
@@ -28,7 +28,7 @@ go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 **Usage:**
 ```bash
-cd apps/fs-backend
+cd apps/backend
 
 # Run on entire project
 golangci-lint run ./...
@@ -77,8 +77,8 @@ import (
     "github.com/go-chi/chi/v5"
 
     // 3. Project internal packages
-    "github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/profile"
-    "github.com/sathittham/factory-sync-solutions/apps/fs-backend/services/scoring"
+    "github.com/sathittham/factory-sync-solutions/apps/backend/services/profile"
+    "github.com/sathittham/factory-sync-solutions/apps/backend/services/scoring"
 )
 ```
 
@@ -156,7 +156,7 @@ issues:
 ### Before Committing
 
 ```bash
-cd apps/fs-backend
+cd apps/backend
 
 # Format code
 gofmt -w .
@@ -194,7 +194,7 @@ Functions exceeding these thresholds must be refactored by extracting helper fun
 `gosec` checks for security issues:
 
 ```bash
-cd apps/fs-backend
+cd apps/backend
 gosec ./...
 
 # Common issues

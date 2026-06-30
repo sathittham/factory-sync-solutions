@@ -16,8 +16,8 @@ status: Done
 
 ## 1. Summary
 
-`apps/fs-official-web` is the public marketing site. It is separate from the
-authenticated app (`fs-app-web`) and has its own URL. Its primary goal is to
+`apps/web-official` is the public marketing site. It is separate from the
+authenticated app (`web-app`) and has its own URL. Its primary goal is to
 explain the service and drive registrations via CTA buttons that link to
 `PUBLIC_APP_URL` (the app).
 
@@ -44,7 +44,7 @@ Astro 6 (SSG)
 Each Astro page is a thin shell that passes `appUrl` and `version` env vars as
 props to a React island. All UI logic lives in the React components.
 
-**Shared chrome** (`apps/fs-official-web/src/components/site/chrome.tsx`):
+**Shared chrome** (`apps/web-official/src/components/site/chrome.tsx`):
 `LogoIcon`, `ThemeSwitcher`, `LocaleSwitcher`, `SiteFooter` — exported and reused
 by both `LandingContent` and `ServiceContent`.
 
@@ -61,7 +61,7 @@ by both `LandingContent` and `ServiceContent`.
 
 ### 3.1 Landing Page (`/`)
 
-**Component:** `apps/fs-official-web/src/components/landing/LandingContent.tsx`
+**Component:** `apps/web-official/src/components/landing/LandingContent.tsx`
 
 A single-page layout with 8 anchor sections, sticky nav, locale switcher, and
 theme switcher. All content strings go through `useLocale()`.
@@ -164,7 +164,7 @@ settings, social links, version badge, and copyright.
 
 ### 3.2 Service Detail Pages (`/services/[slug]`)
 
-**Component:** `apps/fs-official-web/src/components/services/ServiceContent.tsx`
+**Component:** `apps/web-official/src/components/services/ServiceContent.tsx`
 
 Four static routes generated from `SERVICE_ORDER`:
 
@@ -230,16 +230,16 @@ as a React island on the landing page. Documented in
 ## 6. `AppHandoff.tsx`
 
 A React island on the landing page that reads the `?registered=1` query param
-(set by `fs-app-web` after successful registration) and shows a brief success
+(set by `web-app` after successful registration) and shows a brief success
 message before the CTA. This is the only cross-app communication between
-`fs-official-web` and `fs-app-web`.
+`web-official` and `web-app`.
 
 ---
 
 ## 7. Build & Deploy
 
 ```bash
-cd apps/fs-official-web
+cd apps/web-official
 npm run build        # astro build → dist/
 npm run preview      # local preview of static output
 npm run deploy:staging  # wrangler pages deploy dist/ --project-name=... (staging)
@@ -305,12 +305,12 @@ not owned assets. Replace with owned photography or a licensed image service.
 
 ## 11. References
 
-- Landing content: [LandingContent.tsx](../../../apps/fs-official-web/src/components/landing/LandingContent.tsx)
-- Service content: [ServiceContent.tsx](../../../apps/fs-official-web/src/components/services/ServiceContent.tsx)
-- Site chrome: [site/chrome.tsx](../../../apps/fs-official-web/src/components/site/)
-- Landing page: [index.astro](../../../apps/fs-official-web/src/pages/index.astro)
-- Service pages: [services/[slug].astro](../../../apps/fs-official-web/src/pages/services/)
-- Cookie consent: [CookieConsent.tsx](../../../apps/fs-official-web/src/components/CookieConsent.tsx)
-- App handoff: [AppHandoff.tsx](../../../apps/fs-official-web/src/components/AppHandoff.tsx)
+- Landing content: [LandingContent.tsx](../../../apps/web-official/src/components/landing/LandingContent.tsx)
+- Service content: [ServiceContent.tsx](../../../apps/web-official/src/components/services/ServiceContent.tsx)
+- Site chrome: [site/chrome.tsx](../../../apps/web-official/src/components/site/)
+- Landing page: [index.astro](../../../apps/web-official/src/pages/index.astro)
+- Service pages: [services/[slug].astro](../../../apps/web-official/src/pages/services/)
+- Cookie consent: [CookieConsent.tsx](../../../apps/web-official/src/components/CookieConsent.tsx)
+- App handoff: [AppHandoff.tsx](../../../apps/web-official/src/components/AppHandoff.tsx)
 - Legal feature: [legal/feature-spec.md](../legal/feature-spec.md)
 - Cookie consent feature: [cookie-consent/feature-spec.md](../cookie-consent/feature-spec.md)

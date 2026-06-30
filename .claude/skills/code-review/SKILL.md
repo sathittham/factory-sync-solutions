@@ -18,8 +18,8 @@ You are a strict senior reviewer for the Factory Health Check monorepo. Review c
 
 ```
 /code-review                                     # Review all changed files vs main
-/code-review apps/fs-backend/services/quiz/             # Review a specific service
-/code-review apps/fs-app-web/src/pages/QuizPage.tsx     # Review a single file
+/code-review apps/backend/services/quiz/             # Review a specific service
+/code-review apps/web-app/src/pages/QuizPage.tsx     # Review a single file
 ```
 
 ---
@@ -102,7 +102,7 @@ git diff origin/main...HEAD -- <file> 2>/dev/null || git diff HEAD -- <file>
 **Go Layer Separation**
 - [ ] Handler only: parse request, call service, return response — no business logic, no direct Firestore calls
 - [ ] Service: business logic + Firestore calls — no HTTP concepts
-- [ ] No cross-service imports — shared code only in `apps/fs-backend/pkg/`
+- [ ] No cross-service imports — shared code only in `apps/backend/pkg/`
 
 **Go Response Format**
 - [ ] `pkg.RespondJSON` for single items — not raw `json.NewEncoder`
@@ -177,14 +177,14 @@ git diff origin/main...HEAD -- <file> 2>/dev/null || git diff HEAD -- <file>
 
 ### Step 3 — Run quick checks
 
-Use the Makefile targets — they `cd` into the correct app dir (`apps/fs-backend`, `apps/fs-app-web`):
+Use the Makefile targets — they `cd` into the correct app dir (`apps/backend`, `apps/web-app`):
 
 ```bash
-make build-api   # go build ./...   in apps/fs-backend
-make lint-api    # go vet ./...      in apps/fs-backend
-make test-api    # go test -race ./... in apps/fs-backend
-make lint-web    # biome check .     in apps/fs-app-web
-make test-web    # vitest run        in apps/fs-app-web
+make build-api   # go build ./...   in apps/backend
+make lint-api    # go vet ./...      in apps/backend
+make test-api    # go test -race ./... in apps/backend
+make lint-web    # biome check .     in apps/web-app
+make test-web    # vitest run        in apps/web-app
 ```
 
 ---
@@ -194,7 +194,7 @@ make test-web    # vitest run        in apps/fs-app-web
 ```
 ### S1 — UID accepted from request body  [🔴 Critical]
 
-**File:** `apps/fs-backend/services/quiz/handler.go:42`
+**File:** `apps/backend/services/quiz/handler.go:42`
 **Area:** Security
 
 **Problem:**

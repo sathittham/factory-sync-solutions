@@ -45,10 +45,10 @@ Violate any of these and the PR will be blocked at review:
 ```
 factory-health-check/
 ├── apps/
-│   ├── fs-backend/        # Go + Chi + Firestore + Firebase Auth
-│   ├── fs-app-web/        # React 19 + Redux Toolkit + Vite + shadcn/ui (authenticated app)
-│   ├── fs-backoffice-web/ # React 19 + React Router + shadcn/ui (internal backoffice)
-│   └── fs-official-web/   # Astro 6 + React islands + shadcn/ui (public marketing site)
+│   ├── backend/        # Go + Chi + Firestore + Firebase Auth
+│   ├── web-app/        # React 19 + Redux Toolkit + Vite + shadcn/ui (authenticated app)
+│   ├── web-backoffice/ # React 19 + React Router + shadcn/ui (internal backoffice)
+│   └── web-official/   # Astro 6 + React islands + shadcn/ui (public marketing site)
 ├── packages/              # shared scripts/assets
 ├── docs/                  # architecture, api, design, development, operations, product
 ├── firestore.rules        # Firestore security rules
@@ -68,7 +68,7 @@ services/<name>/
 Services: `admin`, `audit`, `dbd`, `notification`, `profile`, `quiz`, `result`, `scoring`.
 Shared packages in `pkg/`: `response.go`, `firestore.go`, `validator.go`, `turnstile.go`.
 
-Frontend layout (`apps/fs-app-web/src/`, `apps/fs-backoffice-web/src/`): `pages/`, `components/` (`ui/` = shadcn), `store/` (Redux slices), `lib/` (`i18n.tsx`, `dayjs.ts`), `hooks/`.
+Frontend layout (`apps/web-app/src/`, `apps/web-backoffice/src/`): `pages/`, `components/` (`ui/` = shadcn), `store/` (Redux slices), `lib/` (`i18n.tsx`, `dayjs.ts`), `hooks/`.
 
 ---
 
@@ -90,7 +90,7 @@ UID always from `middleware.GetUID(r)`. Admin role lives in both the Firestore p
 
 ### Quiz / Scoring
 
-8-dimension Shindan rubric-based assessment, multi-quiz. Configs in `apps/fs-backend/config/questions*.json` (`questions.json`, `questions-factory.json`, `questions-cybersecurity.json`, `questions-lean.json`). Scoring in `services/scoring/`. Results stored per-user in Firestore.
+8-dimension Shindan rubric-based assessment, multi-quiz. Configs in `apps/backend/config/questions*.json` (`questions.json`, `questions-factory.json`, `questions-cybersecurity.json`, `questions-lean.json`). Scoring in `services/scoring/`. Results stored per-user in Firestore.
 
 ---
 
@@ -108,7 +108,7 @@ make lint           # go vet  +  biome check
 make lint-fix       # biome check --fix
 ```
 
-Root `make` targets currently cover `apps/fs-backend` and `apps/fs-app-web`. For `apps/fs-backoffice-web` and `apps/fs-official-web`, run per-app scripts inside `apps/<app>/`: `npm run dev`, `build`, `lint`, `test`, and `test:e2e` where available.
+Root `make` targets currently cover `apps/backend` and `apps/web-app`. For `apps/web-backoffice` and `apps/web-official`, run per-app scripts inside `apps/<app>/`: `npm run dev`, `build`, `lint`, `test`, and `test:e2e` where available.
 
 ---
 
@@ -116,7 +116,7 @@ Root `make` targets currently cover `apps/fs-backend` and `apps/fs-app-web`. For
 
 - Backend tests run with `-race` and table-driven cases; cover error paths.
 - Assert errors with `errors.Is` — never `==`.
-- Frontend: Vitest unit/component tests; Playwright for E2E (`apps/fs-app-web`).
+- Frontend: Vitest unit/component tests; Playwright for E2E (`apps/web-app`).
 - Lint must pass: `go vet` (backend), Biome (frontend).
 
 ---
@@ -152,8 +152,8 @@ Frontend apps → **Cloudflare Pages** via Wrangler. Release deploys → **git t
 ```bash
 npm run deploy:staging          # app-web + official-web → staging
 npm run deploy:prod             # app-web + official-web → production
-cd apps/fs-backoffice-web && npm run deploy:staging  # backoffice → staging
-cd apps/fs-backoffice-web && npm run deploy:prod     # backoffice → production
+cd apps/web-backoffice && npm run deploy:staging  # backoffice → staging
+cd apps/web-backoffice && npm run deploy:prod     # backoffice → production
 git tag v1.2.3-staging && git push origin v1.2.3-staging   # → staging deploy
 git tag v1.2.3 && git push origin v1.2.3                   # → production deploy
 ```

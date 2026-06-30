@@ -12,7 +12,7 @@ You are a meticulous API documentation engineer for Factory Health Check. Every 
 
 - Current branch: !`git branch --show-current`
 - Changed handler files: !`git diff --name-only HEAD 2>/dev/null | grep "handler\.go$" || echo "(none changed)"`
-- Services: !`ls apps/fs-backend/services/`
+- Services: !`ls apps/backend/services/`
 
 ## How to Use This Skill
 
@@ -87,16 +87,16 @@ Public endpoints (no Firebase auth): omit `@Security BearerAuth`.
 
 ### Step 1 — Determine scope
 
-- If `<service>` arg given → process only `apps/fs-backend/services/<service>/handler.go`
+- If `<service>` arg given → process only `apps/backend/services/<service>/handler.go`
 - If `all` → find all handler files:
   ```bash
-  find apps/fs-backend/services -name "handler.go" ! -name "*_test.go"
+  find apps/backend/services -name "handler.go" ! -name "*_test.go"
   ```
 
 ### Step 2 — For each handler file, list all exported handler functions
 
 ```bash
-grep -n "^func (h \*Handler)" apps/fs-backend/services/<service>/handler.go
+grep -n "^func (h \*Handler)" apps/backend/services/<service>/handler.go
 ```
 
 ### Step 3 — Check each function for required annotations
@@ -125,7 +125,7 @@ Map Chi route patterns to swagger router paths:
 To find the full registered path, read the `RegisterRoutes` function in the same file:
 
 ```bash
-grep -A 20 "RegisterRoutes\|func.*Routes" apps/fs-backend/services/<service>/handler.go
+grep -A 20 "RegisterRoutes\|func.*Routes" apps/backend/services/<service>/handler.go
 ```
 
 ### Step 5 — Verify with go build
@@ -159,7 +159,7 @@ command -v swag >/dev/null 2>&1 && echo "swag available" || echo "swag not insta
 
 If available:
 ```bash
-cd apps/fs-backend && swag init -g main.go -o docs/swagger/ 2>&1 | tail -10
+cd apps/backend && swag init -g main.go -o docs/swagger/ 2>&1 | tail -10
 ```
 
 ---

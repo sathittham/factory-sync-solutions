@@ -2,7 +2,7 @@
 version: 1.1.0
 lastUpdated: 2026-06-11
 author: Sathittham Sangthong
-status: Built — not yet routed (fs-app-web); Live (fs-backoffice-web)
+status: Built — not yet routed (web-app); Live (web-backoffice)
 ---
 
 # Dashboard Page — Feature Spec
@@ -11,8 +11,8 @@ status: Built — not yet routed (fs-app-web); Live (fs-backoffice-web)
 > two quick-action cards (View Results / Retake Shindan), and a list of available
 > quizzes not yet completed. Currently built but not wired into the router.
 
-> **Two separate dashboards exist** — this spec covers the `fs-app-web` user
-> dashboard (`DashboardPage.tsx`). The `fs-backoffice-web` backoffice dashboard
+> **Two separate dashboards exist** — this spec covers the `web-app` user
+> dashboard (`DashboardPage.tsx`). The `web-backoffice` backoffice dashboard
 > is a distinct page (same file name, different app) that is already **live and
 > fully routed** at `/dashboard` — it shows platform-wide stats (projects, users,
 > avg score, staff count) and a recent-results table. See
@@ -29,7 +29,7 @@ diagnosis. Two persistent action cards offer fast paths to the Result page and
 Shindan re-take. Quizzes the user has not completed yet are listed below as
 "Start" entries.
 
-**Current status:** The component (`apps/fs-app-web/src/pages/DashboardPage.tsx`,
+**Current status:** The component (`apps/web-app/src/pages/DashboardPage.tsx`,
 436 lines) is fully implemented and exported but **is not imported in `router.tsx`
 and has no route path**. It cannot be reached through normal navigation. This is
 the primary open task for the feature.
@@ -62,12 +62,12 @@ the primary open task for the feature.
 
 | Component | Location | Status |
 |-----------|----------|--------|
-| Dashboard page | `apps/fs-app-web/src/pages/DashboardPage.tsx` | ✅ Built — ❌ not routed |
+| Dashboard page | `apps/web-app/src/pages/DashboardPage.tsx` | ✅ Built — ❌ not routed |
 | `MiniScoreRing` | Inline in `DashboardPage.tsx` | ✅ Built |
-| Route entry in `router.tsx` | `apps/fs-app-web/src/router.tsx` | ❌ Missing |
-| Nav link in `Layout.tsx` | `apps/fs-app-web/src/components/Layout.tsx` | ❌ Missing |
-| Empty-state i18n keys | `apps/fs-app-web/src/lib/i18n.tsx` | ⚠️ Hardcoded TH/EN (not via `t()`) |
-| `quiz.yourCompany` i18n key | `apps/fs-app-web/src/lib/i18n.tsx` | To verify |
+| Route entry in `router.tsx` | `apps/web-app/src/router.tsx` | ❌ Missing |
+| Nav link in `Layout.tsx` | `apps/web-app/src/components/Layout.tsx` | ❌ Missing |
+| Empty-state i18n keys | `apps/web-app/src/lib/i18n.tsx` | ⚠️ Hardcoded TH/EN (not via `t()`) |
+| `quiz.yourCompany` i18n key | `apps/web-app/src/lib/i18n.tsx` | To verify |
 
 ---
 
@@ -279,7 +279,7 @@ No new backend endpoints. The dashboard reuses:
 `DashboardPage` has **zero references** in the app. It is exported from
 `DashboardPage.tsx` but never imported anywhere.
 
-Required changes in `apps/fs-app-web/src/router.tsx`:
+Required changes in `apps/web-app/src/router.tsx`:
 
 ```tsx
 // 1. Import the page
@@ -297,7 +297,7 @@ Also decide the navigation intent:
 
 ### 10.2 Add dashboard link to Layout nav
 
-The nav bar in `apps/fs-app-web/src/components/Layout.tsx` needs a "Dashboard"
+The nav bar in `apps/web-app/src/components/Layout.tsx` needs a "Dashboard"
 nav item pointing to `/dashboard`.
 
 ### 10.3 Fix empty-state i18n
@@ -310,7 +310,7 @@ Lines 422–428 in `DashboardPage.tsx` use raw locale comparisons:
 ```
 
 Fix: add `dashboard.noResults` and `dashboard.noResultsDesc` keys to
-`apps/fs-app-web/src/lib/i18n.tsx` and replace with `t('dashboard.noResults')`.
+`apps/web-app/src/lib/i18n.tsx` and replace with `t('dashboard.noResults')`.
 
 ### 10.4 Retake action hardcoded to `'shindan'`
 
@@ -384,13 +384,13 @@ Options:
 
 ## 15. References
 
-- Dashboard page: [DashboardPage.tsx](../../../apps/fs-app-web/src/pages/DashboardPage.tsx)
-- Router: [router.tsx](../../../apps/fs-app-web/src/router.tsx)
-- Layout nav: [Layout.tsx](../../../apps/fs-app-web/src/components/Layout.tsx)
-- i18n keys: [i18n.tsx](../../../apps/fs-app-web/src/lib/i18n.tsx)
-- Result slice: [resultSlice.ts](../../../apps/fs-app-web/src/store/resultSlice.ts)
-- Quiz slice: [quizSlice.ts](../../../apps/fs-app-web/src/store/quizSlice.ts)
-- Auth slice: [authSlice.ts](../../../apps/fs-app-web/src/store/authSlice.ts)
+- Dashboard page: [DashboardPage.tsx](../../../apps/web-app/src/pages/DashboardPage.tsx)
+- Router: [router.tsx](../../../apps/web-app/src/router.tsx)
+- Layout nav: [Layout.tsx](../../../apps/web-app/src/components/Layout.tsx)
+- i18n keys: [i18n.tsx](../../../apps/web-app/src/lib/i18n.tsx)
+- Result slice: [resultSlice.ts](../../../apps/web-app/src/store/resultSlice.ts)
+- Quiz slice: [quizSlice.ts](../../../apps/web-app/src/store/quizSlice.ts)
+- Auth slice: [authSlice.ts](../../../apps/web-app/src/store/authSlice.ts)
 - Result feature: [result/feature-spec.md](../result/feature-spec.md)
 - Quiz feature: [quiz/feature-spec.md](../quiz/feature-spec.md)
 - Auth feature: [auth/feature-spec.md](../auth/feature-spec.md)

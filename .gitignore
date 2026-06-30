@@ -63,7 +63,7 @@ test-results/
 
 # Go
 # Auto-generated Swagger docs
-apps/fs-backend/docs/
+apps/backend/docs/
 
 # Logs
 *.log

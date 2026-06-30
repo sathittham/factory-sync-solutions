@@ -73,7 +73,7 @@ cd factory-sync-solutions
 make install
 ```
 
-Root `make` targets currently cover `apps/fs-backend` and `apps/fs-app-web`.
+Root `make` targets currently cover `apps/backend` and `apps/web-app`.
 
 ```bash
 make dev        # backend + app web in parallel
@@ -88,13 +88,13 @@ make docs-api   # regenerate backend API docs
 Run backoffice and official web commands inside each app:
 
 ```bash
-cd apps/fs-backoffice-web
+cd apps/web-backoffice
 npm run dev
 npm run build
 npm run lint
 npm test
 
-cd ../fs-official-web
+cd ../web-official
 npm run dev
 npm run build
 npm run lint
@@ -108,9 +108,9 @@ Run the checks that match the files you changed:
 
 - Backend or app-web changes: `make lint` and `make test`.
 - Backend-only changes: `make lint-api` and `make test-api`.
-- App-web-only changes: `make lint-web`, `make test-web`, and `cd apps/fs-app-web && npm run test:e2e` when UI flows changed.
-- Backoffice changes: `cd apps/fs-backoffice-web && npm run lint && npm test && npm run build`.
-- Official-web changes: `cd apps/fs-official-web && npm run lint && npm test && npm run build`; run `npm run test:e2e` for user-facing flow changes.
+- App-web-only changes: `make lint-web`, `make test-web`, and `cd apps/web-app && npm run test:e2e` when UI flows changed.
+- Backoffice changes: `cd apps/web-backoffice && npm run lint && npm test && npm run build`.
+- Official-web changes: `cd apps/web-official && npm run lint && npm test && npm run build`; run `npm run test:e2e` for user-facing flow changes.
 - API route or annotation changes: run `make docs-api` and include generated documentation updates.
 - Documentation-only changes: run `git diff --check` on the changed docs.
 
@@ -140,7 +140,7 @@ These project rules are required for code changes:
 - Go handlers validate input at the handler layer and keep business logic in services.
 - Backend service directories follow `handler.go`, `service.go`, `models.go`, and `service_test.go`.
 - Backend tests should be table-driven where practical and run cleanly with `go test -race`.
-- Quiz definitions live in `apps/fs-backend/config/questions*.json`.
+- Quiz definitions live in `apps/backend/config/questions*.json`.
 - Frontend apps use React 19, React Router 7 where applicable, Redux Toolkit, Vite, Tailwind, and shadcn/ui.
 - Use `react-hook-form` and `zod` for forms when they fit the existing app pattern.
 - Use Biome for frontend linting and formatting.
@@ -165,7 +165,7 @@ test-results/
 firebase-sa.json
 ```
 
-Generated API docs under `apps/fs-backend/docs/` may be committed when produced by `make docs-api`.
+Generated API docs under `apps/backend/docs/` may be committed when produced by `make docs-api`.
 
 ---
 

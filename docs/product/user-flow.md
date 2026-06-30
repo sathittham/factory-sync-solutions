@@ -43,9 +43,9 @@ flowchart TD
     X --> Y[Spider chart + strengths + weaknesses]
 ```
 
-## In-App Admin Flow (`fs-app-web` — `role == "admin"`)
+## In-App Admin Flow (`web-app` — `role == "admin"`)
 
-> This is the `/admin` route inside `fs-app-web` for users with the `role: "admin"` Firebase custom claim.
+> This is the `/admin` route inside `web-app` for users with the `role: "admin"` Firebase custom claim.
 > For the dedicated FactorySync staff portal see **Backoffice Staff Flow** below.
 
 ```mermaid
@@ -62,7 +62,7 @@ flowchart TD
     G --> J[View individual assessment detail]
 ```
 
-## Backoffice Staff Flow (`fs-backoffice-web` — `backofficeRole` claim)
+## Backoffice Staff Flow (`web-backoffice` — `backofficeRole` claim)
 
 > Separate app at `backoffice.factorysync.com` for FactorySync internal staff.
 > Uses a distinct Firebase custom claim (`backofficeRole: "staff"` or `"superadmin"`) —
@@ -153,7 +153,7 @@ flowchart TD
     L -- Yes --> N[Allow access]
 ```
 
-### Route Protection Map — `fs-app-web`
+### Route Protection Map — `web-app`
 
 | Route | Auth | Registered | Admin (`role`) |
 |-------|------|-----------|---------------|
@@ -165,7 +165,7 @@ flowchart TD
 | `/dashboard` | Required | Required | - |
 | `/admin` | Required | Required | Required |
 
-### Route Protection Map — `fs-backoffice-web`
+### Route Protection Map — `web-backoffice`
 
 | Route | Auth | `backofficeRole` claim | Superadmin only |
 |-------|------|----------------------|-----------------|

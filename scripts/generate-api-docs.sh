@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-BACKEND_DIR="${BACKEND_DIR:-$ROOT_DIR/apps/fs-backend}"
+BACKEND_DIR="${BACKEND_DIR:-$ROOT_DIR/apps/backend}"
 API_DOCS_API_VERSION="${API_DOCS_API_VERSION:-v1}"
 API_DOCS_ENVIRONMENT="${API_DOCS_ENVIRONMENT:-development}"
 API_DOCS_R2_PREFIX="${API_DOCS_R2_PREFIX:-openapi}"

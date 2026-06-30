@@ -23,9 +23,9 @@ Multi-quiz factory health assessment platform. Go + Chi + Firestore backend, Rea
 ```
 factory-health-check/
 ├── apps/
-│   ├── fs-backend/        # Go + Chi + Firestore + Firebase Auth
-│   ├── fs-app-web/        # React 19 + Redux Toolkit + Vite + shadcn/ui (authenticated app)
-│   └── fs-official-web/   # Astro 6 + React islands + shadcn/ui (public marketing site)
+│   ├── backend/        # Go + Chi + Firestore + Firebase Auth
+│   ├── web-app/        # React 19 + Redux Toolkit + Vite + shadcn/ui (authenticated app)
+│   └── web-official/   # Astro 6 + React islands + shadcn/ui (public marketing site)
 ├── packages/              # shared scripts/assets
 ├── docs/                  # architecture, api, design, development, operations, product
 ├── firestore.rules        # Firestore security rules
@@ -33,10 +33,10 @@ factory-health-check/
 └── Makefile               # dev / build / test / lint entrypoints
 ```
 
-### Backend layout (`apps/fs-backend/`)
+### Backend layout (`apps/backend/`)
 
 ```
-fs-backend/
+backend/
 ├── main.go               # Chi router + entrypoint
 ├── config/               # questions*.json (quiz configs), other config
 ├── middleware/           # auth (FirebaseAuth/GetUID), cors, ratelimit, security
@@ -46,7 +46,7 @@ fs-backend/
     └── profile/  quiz/  result/  scoring/
 ```
 
-### Frontend layout (`apps/fs-app-web/src/`)
+### Frontend layout (`apps/web-app/src/`)
 
 ```
 src/
@@ -65,8 +65,8 @@ Detailed rules live in `.claude/rules/` (path-gated where noted):
 
 | File | Loads when | Covers |
 |------|-----------|--------|
-| `go.md` | editing `apps/fs-backend/**/*.go` | Chi routes, Firestore, Firebase Auth, response format, error handling |
-| `react.md` | editing `apps/fs-app-web/**/*.{ts,tsx}` | shadcn/ui, Redux, i18n, dayjs, Tailwind, accessibility |
+| `go.md` | editing `apps/backend/**/*.go` | Chi routes, Firestore, Firebase Auth, response format, error handling |
+| `react.md` | editing `apps/web-app/**/*.{ts,tsx}` | shadcn/ui, Redux, i18n, dayjs, Tailwind, accessibility |
 | `git.md` | always | branch naming, commit format, merge strategy, protected branches |
 | `dev-process.md` | always | code-review checklist, naming conventions, architecture, quiz domain |
 
@@ -125,7 +125,7 @@ Full detail in `.claude/rules/git.md` (always loaded). Essentials:
 
 ## Quiz / Scoring Domain
 
-8-dimension Shindan rubric-based assessment, multi-quiz. Configs: `apps/fs-backend/config/questions*.json` (one per variant). Scoring: `apps/fs-backend/services/scoring/`. Results stored per-user in Firestore. Detail in `.claude/rules/dev-process.md`.
+8-dimension Shindan rubric-based assessment, multi-quiz. Configs: `apps/backend/config/questions*.json` (one per variant). Scoring: `apps/backend/services/scoring/`. Results stored per-user in Firestore. Detail in `.claude/rules/dev-process.md`.
 
 <!-- Version: 1.2.0 · Last updated: 09 June 2026 -->
 

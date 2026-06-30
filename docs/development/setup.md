@@ -73,7 +73,7 @@ make test-api              # Run Go tests
 make test-web              # Run Vitest
 ```
 
-Each app has its own build and test commands (`apps/fs-backend/` uses Go toolchain, `apps/fs-app-web/` uses npm/Vite).
+Each app has its own build and test commands (`apps/backend/` uses Go toolchain, `apps/web-app/` uses npm/Vite).
 
 ## Linting & Formatting
 

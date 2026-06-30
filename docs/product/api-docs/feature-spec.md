@@ -7,20 +7,20 @@ status: Implemented
 
 # API Docs Publishing - Feature Spec
 
-Generate versioned backend Swagger/OpenAPI documents from Go annotations, publish the generated artifacts to Cloudflare R2 during CI/CD, and make them readable from `fs-backoffice-web` as a superadmin-only Help page.
+Generate versioned backend Swagger/OpenAPI documents from Go annotations, publish the generated artifacts to Cloudflare R2 during CI/CD, and make them readable from `web-backoffice` as a superadmin-only Help page.
 
 ---
 
 ## 1. Summary
 
-FactorySync has Swagger annotations in `apps/fs-backend`, generated v1 artifacts under `apps/fs-backend/docs/v1/`, CI publishing to Cloudflare R2, and a superadmin-only API Docs page in `fs-backoffice-web`.
+FactorySync has Swagger annotations in `apps/backend`, generated v1 artifacts under `apps/backend/docs/v1/`, CI publishing to Cloudflare R2, and a superadmin-only API Docs page in `web-backoffice`.
 
 This feature defines the controlled documentation pipeline:
 
-1. Generate `swagger.json` and `swagger.yaml` from `apps/fs-backend`.
+1. Generate `swagger.json` and `swagger.yaml` from `apps/backend`.
 2. Upload API-versioned, git-versioned, and environment-current copies to a private R2 bucket.
 3. Add superadmin-only backoffice API endpoints that read the published spec from R2.
-4. Add a Help / API Docs page in `apps/fs-backoffice-web` that renders Swagger UI and offers JSON/YAML downloads.
+4. Add a Help / API Docs page in `apps/web-backoffice` that renders Swagger UI and offers JSON/YAML downloads.
 
 The backoffice app becomes the single superadmin-facing place to inspect current and historical API behavior without exposing operational documentation publicly.
 
@@ -34,7 +34,7 @@ The backoffice app becomes the single superadmin-facing place to inspect current
 - Publish generated docs to Cloudflare R2 for `staging` and `production`.
 - Support API documentation versioning, starting with `v1` and allowing future versions such as `v2`.
 - Keep the published docs superadmin-only by serving them through authenticated `/api/v1/backoffice/` endpoints guarded by `SuperAdminGuard` on the frontend and `RequireBackofficeRole(..., "superadmin")` on the backend.
-- Show API docs in `fs-backoffice-web` under a superadmin-only Help route.
+- Show API docs in `web-backoffice` under a superadmin-only Help route.
 - Show doc metadata: environment, API version, OpenAPI version, generated time, source commit SHA, and download links.
 - Ensure CI fails when docs cannot be generated or uploaded.
 - Keep generated files out of normal source review unless a future decision explicitly commits them.
@@ -54,7 +54,7 @@ The backoffice app becomes the single superadmin-facing place to inspect current
 
 | Area | Current behavior |
 |---|---|
-| Backend annotations | `apps/fs-backend/main.go` and handlers contain Swagger comments. |
+| Backend annotations | `apps/backend/main.go` and handlers contain Swagger comments. |
 | Swagger generation | Active. `swaggo/swag` is in `go.mod`; `make docs-api` runs `scripts/generate-api-docs.sh`. |
 | Backend route | Non-production environments serve Swagger UI at `/api/v1/swagger/*`. |
 | Backoffice UI | `/help/api-docs` renders Swagger UI for superadmins. |
@@ -80,11 +80,11 @@ The backoffice app becomes the single superadmin-facing place to inspect current
 ```text
 Go source annotations
   -> swag init
-  -> apps/fs-backend/docs/{apiVersion}/swagger.json
-  -> apps/fs-backend/docs/{apiVersion}/swagger.yaml
+  -> apps/backend/docs/{apiVersion}/swagger.json
+  -> apps/backend/docs/{apiVersion}/swagger.yaml
   -> CI upload to R2 under openapi/{apiVersion}/...
   -> /api/v1/backoffice/api-docs/{apiVersion}/* reads from R2
-  -> fs-backoffice-web Help / API Docs renders selected API version in Swagger UI
+  -> web-backoffice Help / API Docs renders selected API version in Swagger UI
 ```
 
 ### 5.2 R2 Storage Layout
@@ -146,12 +146,12 @@ These endpoints still use the standard response helpers. The JSON endpoint retur
 
 ### FR-001 - Generate Swagger Artifacts
 
-The system shall generate `swagger.json` and `swagger.yaml` from `apps/fs-backend` source annotations for each supported API version.
+The system shall generate `swagger.json` and `swagger.yaml` from `apps/backend` source annotations for each supported API version.
 
 Acceptance criteria:
 
 - Running the docs generation command from repo root creates both JSON and YAML artifacts.
-- Generation uses `apps/fs-backend/main.go` as the entry point.
+- Generation uses `apps/backend/main.go` as the entry point.
 - Generated artifacts include all routed `/api/v1` services.
 - Generated artifacts declare the API version they document, starting with `apiVersion: "v1"`.
 - Generation fails the command when annotations are invalid.
@@ -207,7 +207,7 @@ Acceptance criteria:
 
 ### FR-005 - Backoffice Help Page
 
-`fs-backoffice-web` shall add a Help / API Docs page for superadmins only.
+`web-backoffice` shall add a Help / API Docs page for superadmins only.
 
 Acceptance criteria:
 
@@ -229,10 +229,10 @@ Developers shall be able to generate and view docs locally without R2.
 
 Acceptance criteria:
 
-- A local command generates OpenAPI files into `apps/fs-backend/docs/`.
+- A local command generates OpenAPI files into `apps/backend/docs/`.
 - Local backend can serve generated docs from disk when R2 env vars are absent.
 - Local backoffice can render docs against the local backend.
-- Local mode supports the same API version path shape, e.g. `apps/fs-backend/docs/v1/swagger.json`.
+- Local mode supports the same API version path shape, e.g. `apps/backend/docs/v1/swagger.json`.
 - Missing local artifacts show a clear backoffice error with the generation command.
 
 ### FR-007 - Documentation Links
@@ -356,7 +356,7 @@ API_DOCS_R2_BUCKET=apidoc-factorysyncsolutions-com-staging
 API_DOCS_R2_PREFIX=openapi
 API_DOCS_SUPPORTED_VERSIONS=v1
 API_DOCS_DEFAULT_VERSION=v1
-API_DOCS_LOCAL_DIR=docs             # relative to apps/fs-backend in local dev
+API_DOCS_LOCAL_DIR=docs             # relative to apps/backend in local dev
 ```
 
 CI:
@@ -391,10 +391,10 @@ Use dedicated API docs R2 credentials instead of the upload service `R2_*` crede
 
 ### Phase 1 - Generation
 
-- Add `swaggo/swag` generation workflow for `apps/fs-backend`.
+- Add `swaggo/swag` generation workflow for `apps/backend`.
 - Add a root or backend script, for example `npm run docs:api` or `make docs-api`.
 - Ensure generated docs include backoffice, upload, profile, quiz, result, dbd, and admin routes.
-- Generate into versioned local folders, starting with `apps/fs-backend/docs/v1/`.
+- Generate into versioned local folders, starting with `apps/backend/docs/v1/`.
 - Add generated docs output to `.gitignore` if not already ignored.
 
 ### Phase 2 - R2 Publishing

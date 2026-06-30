@@ -15,20 +15,20 @@ export const meta = {
 const base = args?.base || 'main'
 const env  = args?.env  || 'staging'
 
-// Only the two deployable frontend apps. fs-backend deploys separately (Cloud Run / Docker).
+// Only the two deployable frontend apps. backend deploys separately (Cloud Run / Docker).
 const APP_CONFIG = {
-  'fs-app-web': {
-    dir:        'apps/fs-app-web',
+  'web-app': {
+    dir:        'apps/web-app',
     staging:    { script: 'deploy:staging', url: 'https://factory-sync-solutions-staging.pages.dev',          cfProject: 'factory-sync-solutions-staging' },
     prod:       { script: 'deploy:prod',    url: 'https://factory-sync-solutions.pages.dev',                  cfProject: 'factory-sync-solutions' },
   },
-  'fs-backoffice-web': {
-    dir:        'apps/fs-backoffice-web',
+  'web-backoffice': {
+    dir:        'apps/web-backoffice',
     staging:    { script: 'deploy:staging', url: 'https://factory-sync-backoffice-staging.pages.dev',         cfProject: 'factory-sync-backoffice-staging' },
     prod:       { script: 'deploy:prod',    url: 'https://factory-sync-backoffice.pages.dev',                 cfProject: 'factory-sync-backoffice' },
   },
-  'fs-official-web': {
-    dir:        'apps/fs-official-web',
+  'web-official': {
+    dir:        'apps/web-official',
     staging:    { script: 'deploy:staging', url: 'https://factory-sync-solutions-official-staging.pages.dev', cfProject: 'factory-sync-solutions-official-staging' },
     prod:       { script: 'deploy:prod',    url: 'https://factory-sync-solutions-official.pages.dev',         cfProject: 'factory-sync-solutions-official' },
   },
@@ -92,7 +92,7 @@ Run:
 Rules:
 - changedApps = intersection with known apps
 - If sharedChanged=true → include ALL apps: ${ALL_APPS.join(', ')}
-- Ignore changes only under apps/fs-backend (deploys separately, not via Cloudflare Pages)
+- Ignore changes only under apps/backend (deploys separately, not via Cloudflare Pages)
 - If nothing relevant changed → changedApps = []
 - reason = one sentence on scope`,
   { label: 'discover', phase: 'Discover', agentType: 'Explore', schema: APPS_SCHEMA }

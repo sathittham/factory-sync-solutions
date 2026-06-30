@@ -49,10 +49,10 @@ lastUpdated: 2026-06-11
 [User Browser]
      │
      ▼
-[fs-app-web / fs-backoffice-web]  (Cloudflare Pages)
+[web-app / web-backoffice]  (Cloudflare Pages)
      │  HTTPS + Bearer token
      ▼
-[fs-backend: Go + Chi]  (Cloud Run)
+[backend: Go + Chi]  (Cloud Run)
      ├── middleware/auth.go   ← Firebase token verification
      ├── services/<feature>/  ← handler.go + service.go
      └── pkg/                 ← response helpers, Firestore client

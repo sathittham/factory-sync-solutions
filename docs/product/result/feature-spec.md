@@ -56,11 +56,11 @@ the API and selects the most recent one.
 
 | Component | Location | Status |
 |-----------|----------|--------|
-| Result page | `apps/fs-app-web/src/pages/ResultPage.tsx` | ✅ Built |
-| Result Redux slice | `apps/fs-app-web/src/store/resultSlice.ts` | ✅ Built |
-| Backend handler | `apps/fs-backend/services/result/handler.go` | ✅ Built |
-| Backend service | `apps/fs-backend/services/result/service.go` | ✅ Built |
-| Result models | `apps/fs-backend/services/result/models.go` | ✅ Built |
+| Result page | `apps/web-app/src/pages/ResultPage.tsx` | ✅ Built |
+| Result Redux slice | `apps/web-app/src/store/resultSlice.ts` | ✅ Built |
+| Backend handler | `apps/backend/services/result/handler.go` | ✅ Built |
+| Backend service | `apps/backend/services/result/service.go` | ✅ Built |
+| Result models | `apps/backend/services/result/models.go` | ✅ Built |
 | Radar chart | `recharts` `RadarChart` inside `QuizResultDetail` | ✅ Built |
 | Score ring | `ScoreRing` SVG component | ✅ Built |
 | Dimension detail | `DimensionDetail` accordion component | ✅ Built |
@@ -408,11 +408,11 @@ navigation — not repeated here.
 
 ## 17. References
 
-- Result page: [ResultPage.tsx](../../../apps/fs-app-web/src/pages/ResultPage.tsx)
-- Result slice: [resultSlice.ts](../../../apps/fs-app-web/src/store/resultSlice.ts)
-- Backend handler: [handler.go](../../../apps/fs-backend/services/result/handler.go)
-- Backend service: [service.go](../../../apps/fs-backend/services/result/service.go)
-- Result models: [models.go](../../../apps/fs-backend/services/result/models.go)
+- Result page: [ResultPage.tsx](../../../apps/web-app/src/pages/ResultPage.tsx)
+- Result slice: [resultSlice.ts](../../../apps/web-app/src/store/resultSlice.ts)
+- Backend handler: [handler.go](../../../apps/backend/services/result/handler.go)
+- Backend service: [service.go](../../../apps/backend/services/result/service.go)
+- Result models: [models.go](../../../apps/backend/services/result/models.go)
 - Quiz feature: [quiz/feature-spec.md](../quiz/feature-spec.md)
 - User flow: [user-flow.md](../user-flow.md)
 - Backoffice results view (all-platform results for FactorySync staff): [backoffice/feature-spec.md §4](../backoffice/feature-spec.md)

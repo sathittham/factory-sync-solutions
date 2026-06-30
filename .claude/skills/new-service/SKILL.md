@@ -1,7 +1,7 @@
 ---
 name: new-service
 allowed-tools: Read, Edit, Write, Bash(mkdir:*), Bash(ls:*), Bash(find:*), Bash(make:*), Bash(go build:*), Bash(go test:*), Bash(go vet:*), Bash(go mod:*), Glob, Grep
-description: Scaffold a new Go service under apps/fs-backend/services/<name>/ with handler, service, models, sentinel errors, mock repository, and table-driven tests — wired to the existing Chi router.
+description: Scaffold a new Go service under apps/backend/services/<name>/ with handler, service, models, sentinel errors, mock repository, and table-driven tests — wired to the existing Chi router.
 ---
 
 # New Service Skill
@@ -10,8 +10,8 @@ You are a senior Go engineer scaffolding a new service for Factory Health Check.
 
 ## Context
 
-- Existing services: !`ls apps/fs-backend/services/`
-- Go module: !`head -1 apps/fs-backend/go.mod`
+- Existing services: !`ls apps/backend/services/`
+- Go module: !`head -1 apps/backend/go.mod`
 
 ## How to Use This Skill
 
@@ -33,7 +33,7 @@ The service name must be a valid Go package name (lowercase letters only, no hyp
 ## Files to Create
 
 ```
-apps/fs-backend/services/<name>/
+apps/backend/services/<name>/
 ├── handler.go        # Chi routes + HTTP handlers — parse, call service, respond
 ├── service.go        # Business logic + Firestore calls + sentinel errors
 ├── models.go         # Request/response/domain structs
@@ -211,8 +211,8 @@ import (
 	firebaseAuth "firebase.google.com/go/v4/auth"
 	"cloud.google.com/go/firestore"
 
-	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/middleware"
-	"github.com/sathittham/factory-sync-solutions/apps/fs-backend/pkg"
+	"github.com/sathittham/factory-sync-solutions/apps/backend/middleware"
+	"github.com/sathittham/factory-sync-solutions/apps/backend/pkg"
 )
 
 type Handler struct {
@@ -447,14 +447,14 @@ func TestService_Get(t *testing.T) {
 ### Step 2 — Check it doesn't already exist
 
 ```bash
-ls apps/fs-backend/services/
+ls apps/backend/services/
 ```
 
 If it exists: report "Service already exists" and stop.
 
 ### Step 3 — Scaffold all four files
 
-Create `apps/fs-backend/services/<name>/` and write:
+Create `apps/backend/services/<name>/` and write:
 1. `models.go` — replace all `<Entity>`, `<entity>`, `<entities>` placeholders with the actual names
 2. `service.go` — replace placeholders; use the actual Firestore collection name
 3. `handler.go` — replace placeholders; add `errors` import if using `errors.Is`
@@ -462,10 +462,10 @@ Create `apps/fs-backend/services/<name>/` and write:
 
 ### Step 4 — Wire into main.go
 
-Read `apps/fs-backend/main.go` to find where other services call `RegisterRoutes`:
+Read `apps/backend/main.go` to find where other services call `RegisterRoutes`:
 
 ```bash
-grep -n "RegisterRoutes\|services\." apps/fs-backend/main.go | head -20
+grep -n "RegisterRoutes\|services\." apps/backend/main.go | head -20
 ```
 
 Add an import and a `RegisterRoutes` call for the new service, matching the exact pattern used by existing services.
@@ -481,7 +481,7 @@ If it fails, fix compilation errors before reporting done. The scaffold must com
 ### Step 6 — Run tests
 
 ```bash
-cd apps/fs-backend && go test -v -race ./services/<name>/... 2>&1
+cd apps/backend && go test -v -race ./services/<name>/... 2>&1
 ```
 
 ### Step 7 — ISO 29110 reminder

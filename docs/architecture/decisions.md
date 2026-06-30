@@ -1,6 +1,6 @@
 ---
 version: 1.2.0
-lastUpdated: 2026-06-10
+lastUpdated: 2026-06-18
 author: Sathittham Sangthong
 ---
 
@@ -249,11 +249,11 @@ or Manager.
 
 ---
 
-## ADR-021: Separate `fs-backoffice-web` Application for FactorySync Staff
+## ADR-021: Separate `web-backoffice` Application for FactorySync Staff
 
 **Decision**: FactorySync staff operations (CRUD projects, invite owners, manage
 project members, view all quiz results) live in a dedicated app
-`apps/fs-backoffice-web`, deployed to `backoffice.factorysync.com` and gated
+`apps/web-backoffice`, deployed to `backoffice.factorysync.com` and gated
 by Cloudflare Access (email allowlist).
 
 **Rationale**:
@@ -262,13 +262,13 @@ by Cloudflare Access (email allowlist).
 - No bundle pollution — admin-only code (project deactivation, staff management)
   never ships to factory-user clients.
 - Different UX needs — backoffice is dense/tabular (sidebar nav, data tables);
-  `fs-app-web` is wizard-flow oriented.
+  `web-app` is wizard-flow oriented.
 - Independent deployment lifecycle — staff app can be deployed on its own
   without risking the customer app.
-- Clear mental model: `fs-app-web` is for factory users,
-  `fs-backoffice-web` is for FactorySync staff.
+- Clear mental model: `web-app` is for factory users,
+  `web-backoffice` is for FactorySync staff.
 
-**Existing `/admin` page in `fs-app-web`** remains as-is — it covers
+**Existing `/admin` page in `web-app`** remains as-is — it covers
 cross-project data viewing and promoting the `role == "admin"` claim, which is
 a lighter-weight "power user" operation rather than structural management.
 
@@ -277,9 +277,9 @@ a lighter-weight "power user" operation rather than structural management.
 ## ADR-022: `backofficeRole` Firebase Custom Claim for Backoffice RBAC
 
 **Decision**: Introduce a separate `backofficeRole: "superadmin" | "staff"`
-Firebase custom claim for `fs-backoffice-web` access control. This claim is
+Firebase custom claim for `web-backoffice` access control. This claim is
 completely independent of the existing `role: "admin" | "user"` claim used by
-`fs-app-web`.
+`web-app`.
 
 **Roles**:
 
@@ -294,7 +294,7 @@ guards destructive-only routes (deactivate, delete, staff management).
 
 **Claim management**: set out-of-band via Firebase Admin SDK seeder or Firebase Console.
 Never self-assignable. A user can hold both `role: "admin"` and `backofficeRole: "superadmin"`
-to access both `fs-app-web /admin` and `fs-backoffice-web`.
+to access both `web-app /admin` and `web-backoffice`.
 
 **Rationale**:
 - Conflating `role` with backoffice access would give FactorySync staff
@@ -308,6 +308,45 @@ naming convention (`role` for customer-facing, `backofficeRole` for staff).
 
 ---
 
+## ADR-023: Domain Event Publisher Abstraction for Service Extraction
+
+**Decision**: Add a domain-event publisher abstraction in `pkg/events` and emit
+critical domain events from profile/quiz service boundaries while keeping side
+effects (notifications/audit writes) inside the same deployment for now.
+
+**Rationale**:
+- Keeps the current monolith stable while enabling incremental service extraction.
+- Prevents large rewrites: synchronous request handlers remain unchanged; only
+  service wiring changes as new services are introduced.
+- Creates clear migration contracts (`ProfileRegistered`, `ProfileUpdated`,
+  `QuizSubmitted`, `ResultReady`) used by future consumers.
+- Supports phased rollout with `DOMAIN_EVENT_MODE` (`off`, `log`, `logging`, `stdout`)
+  so event formats are validated before queue infrastructure is introduced.
+
+**Trade-off**: Additional maintenance overhead for event contracts and
+consumer idempotency. This is necessary to gain lower coupling and independent
+scale for each domain service.
+
+---
+
+## ADR-024: Standardized Domain Event Contract Before Service Split
+
+**Decision**: Publish and consume all cross-domain events through a shared contract
+document (`architecture/domain-events.md`) before extracting services in Cloud Run.
+
+**Rationale**:
+- Enforces schema stability before asynchronous consumers are introduced.
+- Reduces breaking changes during migration by separating payload evolution from
+  business logic changes.
+- Makes idempotency and DLQ behavior explicit for at-least-once Pub/Sub delivery.
+- Keeps event types append-only and prevents silent behavior drift during service
+  decomposition.
+
+**Trade-off**: More process discipline for producers and consumers; this is required
+to keep service splitting low risk and observable.
+
+---
+
 ## Changelog
 
 | Version | Date | Description |
@@ -316,3 +355,5 @@ naming convention (`role` for customer-facing, `backofficeRole` for staff).
 | 1.1.0 | 2026-03-07 | Updated ADR-006 (Turborepo → Makefile), ADR-011 (Swagger status), ADR-013 (Cloud Run), added ADR-015 (i18n) and ADR-016 (DBD) |
 | 1.2.0 | 2026-06-10 | Added ADR-017 through ADR-020 for Project & RBAC feature |
 | 1.3.0 | 2026-06-11 | Added ADR-021 (separate backoffice app) and ADR-022 (backofficeRole claim) |
+| 1.5.2 | 2026-06-18 | Added ADR-023 (domain event abstraction + migration path) |
+| 1.5.3 | 2026-06-18 | Added ADR-024 (standardized domain event contract) |

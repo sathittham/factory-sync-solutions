@@ -37,10 +37,10 @@ Suggested GitHub topics: `go`, `react`, `typescript`, `astro`, `firebase`, `fire
 ```
 factory-sync-solutions/
 ├── apps/
-│   ├── fs-app-web/         # React + Vite SPA (authenticated app)
-│   ├── fs-backoffice-web/  # React + Vite SPA (internal backoffice)
-│   ├── fs-official-web/    # Astro 6 + React islands (public marketing site)
-│   └── fs-backend/         # Go Cloud Run service (backend API)
+│   ├── web-app/         # React + Vite SPA (authenticated app)
+│   ├── web-backoffice/  # React + Vite SPA (internal backoffice)
+│   ├── web-official/    # Astro 6 + React islands (public marketing site)
+│   └── backend/         # Go Cloud Run service (backend API)
 ├── infra/                  # Cloudflare/GCP infrastructure config and Workers
 ├── packages/               # Shared scripts/assets
 ├── Makefile                # Monorepo task runner
@@ -51,8 +51,8 @@ factory-sync-solutions/
 ## Quick Start
 
 ```bash
-# Install app (fs-app-web) dependencies
-# Note: fs-backoffice-web and fs-official-web deps are installed separately.
+# Install app (web-app) dependencies
+# Note: web-backoffice and web-official deps are installed separately.
 make install
 
 # Start backend API + authenticated app in dev mode
@@ -70,13 +70,13 @@ make dev-api
 Copy `.env.example` files and fill in values:
 
 ```bash
-cp apps/fs-app-web/.env.example apps/fs-app-web/.env
-cp apps/fs-backoffice-web/.env.example apps/fs-backoffice-web/.env.local
-cp apps/fs-official-web/.env.example apps/fs-official-web/.env
-cp apps/fs-backend/.env.example apps/fs-backend/.env.development
+cp apps/web-app/.env.example apps/web-app/.env
+cp apps/web-backoffice/.env.example apps/web-backoffice/.env.local
+cp apps/web-official/.env.example apps/web-official/.env
+cp apps/backend/.env.example apps/backend/.env.development
 ```
 
-### Frontend (`apps/fs-app-web/.env`)
+### Frontend (`apps/web-app/.env`)
 
 ```bash
 # Firebase (public config — get from Firebase Console > Project Settings)
@@ -103,7 +103,7 @@ VITE_GA_MEASUREMENT_ID=
 VITE_OFFICIAL_WEB_URL=
 ```
 
-### Backoffice (`apps/fs-backoffice-web/.env.local`)
+### Backoffice (`apps/web-backoffice/.env.local`)
 
 ```bash
 VITE_FIREBASE_API_KEY=
@@ -117,7 +117,7 @@ VITE_PROXY_TARGET=http://localhost:8080
 VITE_OFFICIAL_WEB_URL=https://www.factorysyncsolutions.com
 ```
 
-### Public Site (`apps/fs-official-web/.env`)
+### Public Site (`apps/web-official/.env`)
 
 ```bash
 # URL of the authenticated app (sign-in / CTA links point here)
@@ -140,7 +140,7 @@ PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 PUBLIC_FIREBASE_APP_ID=
 ```
 
-### Backend (`apps/fs-backend/.env.development`)
+### Backend (`apps/backend/.env.development`)
 
 ```bash
 GCP_PROJECT_ID=
@@ -173,7 +173,7 @@ Backend secrets are stored in environment-specific backend env files locally and
 
 ## Available Scripts
 
-Root-level `make` commands currently cover `apps/fs-backend` and `apps/fs-app-web`. Run `fs-backoffice-web` and `fs-official-web` scripts from their app directories.
+Root-level `make` commands currently cover `apps/backend` and `apps/web-app`. Run `web-backoffice` and `web-official` scripts from their app directories.
 
 | Command | Description |
 |---------|-------------|
@@ -186,7 +186,7 @@ Root-level `make` commands currently cover `apps/fs-backend` and `apps/fs-app-we
 | `npm run deploy:api-gateway:staging` | Deploy the staging API gateway Worker |
 | `npm run deploy:api-gateway:prod` | Deploy the production API gateway Worker |
 
-### App (`apps/fs-app-web`)
+### App (`apps/web-app`)
 
 | Command | Description |
 |---------|-------------|
@@ -201,7 +201,7 @@ Root-level `make` commands currently cover `apps/fs-backend` and `apps/fs-app-we
 | `npm run test:e2e` | Run E2E tests (Playwright) |
 | `npm run test:e2e:headed` | Run E2E tests with browser UI |
 
-### Backoffice (`apps/fs-backoffice-web`)
+### Backoffice (`apps/web-backoffice`)
 
 | Command | Description |
 |---------|-------------|
@@ -216,7 +216,7 @@ Root-level `make` commands currently cover `apps/fs-backend` and `apps/fs-app-we
 | `npm run deploy:staging` | Build + deploy to Cloudflare Pages (staging) |
 | `npm run deploy:prod` | Build + deploy to Cloudflare Pages (production) |
 
-### Official Site (`apps/fs-official-web`)
+### Official Site (`apps/web-official`)
 
 | Command | Description |
 |---------|-------------|
@@ -231,7 +231,7 @@ Root-level `make` commands currently cover `apps/fs-backend` and `apps/fs-app-we
 | `npm run deploy:staging` | Build + deploy to Cloudflare Pages (staging) |
 | `npm run deploy:prod` | Build + deploy to Cloudflare Pages (production) |
 
-### Backend (`apps/fs-backend`)
+### Backend (`apps/backend`)
 
 | Command | Description |
 |---------|-------------|
@@ -366,7 +366,7 @@ Active development — core user flow implemented (auth, registration, quiz, res
 | 1.2.0 | 2026-03-07 | Profile dialog (3 sections: account/contact/company), Google avatar in navbar, motion animations (quiz + results), SonarQube fixes, analytics events, data-testid attributes |
 | 1.3.0 | 2026-03-08 | Theme system (light/dark/system) with FOUC prevention, dark mode fixes across all pages, Layout refactoring for SonarQube compliance, admin user management API, app READMEs |
 | 1.4.0 | 2026-06-04 | Rebranded to FactorySync Solutions — updated brand name, abbreviation (FS), localStorage prefix (fss-), Go module path, email domain, CI/CD service names |
-| 1.5.0 | 2026-06-09 | Synced README with actual monorepo layout — corrected legacy app/backend dir names, documented the Astro `fs-official-web` public site (structure, tech stack, scripts), fixed env-setup paths and backend dev command |
+| 1.5.0 | 2026-06-09 | Synced README with actual monorepo layout — corrected legacy app/backend dir names, documented the Astro `web-official` public site (structure, tech stack, scripts), fixed env-setup paths and backend dev command |
 | 1.6.0 | 2026-06-14 | Added backoffice app, clarified Makefile scope, updated env vars, routes, scripts, and docs links |
 | 1.6.1 | 2026-06-14 | Added maintained contributor list and clarified license ownership |
 | 1.6.2 | 2026-06-14 | Added repository About metadata, homepage, topics, and contributor summary |

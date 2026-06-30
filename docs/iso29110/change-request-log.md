@@ -37,7 +37,7 @@ Copy this block and add to the Active section:
 - Schedule: [e.g. +3 days]
 - Effort: [e.g. ~4 hours]
 - Risk: [any new risks?]
-- Affected components: [e.g. fs-backend/services/quiz, fs-app-web/pages/QuizPage]
+- Affected components: [e.g. backend/services/quiz, web-app/pages/QuizPage]
 
 **Decision:**
 - [ ] Approved — proceed
@@ -77,13 +77,13 @@ Add ISO 29110 Basic Profile as a fifth quiz variant. Also create the compliance 
 - Schedule: 0 (same iteration)
 - Effort: ~4 hours
 - Risk: None — additive change, no existing code modified beyond main.go registration
-- Affected components: `apps/fs-backend/config/`, `apps/fs-backend/main.go`, `docs/`
+- Affected components: `apps/backend/config/`, `apps/backend/main.go`, `docs/`
 
 **Decision:** Approved — proceed
 **Decision Date:** 2026-06-11
 **Decision By:** Sathittham Sangthong
 
 **Implementation Notes:**
-- `apps/fs-backend/config/questions-iso29110.json` created (38 questions, 8 dimensions)
-- `apps/fs-backend/main.go` updated to register iso29110 config
+- `apps/backend/config/questions-iso29110.json` created (38 questions, 8 dimensions)
+- `apps/backend/main.go` updated to register iso29110 config
 - `docs/iso29110/` directory created with all compliance artifacts
