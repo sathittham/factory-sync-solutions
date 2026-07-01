@@ -1,0 +1,15 @@
+---
+import { NotFoundContent } from "../components/NotFoundContent";
+import Layout from "../layouts/Layout.astro";
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
+---
+
+<Layout
+  title="404 — FactorySync Solutions"
+  description="ไม่พบหน้าที่คุณค้นหา"
+  noindex={true}
+>
+  <NotFoundContent client:load appUrl={appUrl} version={version} />
+</Layout>
