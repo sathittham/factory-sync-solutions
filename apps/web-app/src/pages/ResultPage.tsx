@@ -19,8 +19,8 @@ import {
   setAssessments,
   setLoading,
 } from '@/store/resultSlice';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
 import {
   PolarAngleAxis,
   PolarGrid,
@@ -478,9 +478,7 @@ export function ResultPage() {
   const isDark = resolvedTheme === 'dark';
   const navigate = useNavigate();
   const location = useLocation();
-  const [showJustCompleted, setShowJustCompleted] = useState(
-    !!(location.state as { fromQuiz?: boolean })?.fromQuiz,
-  );
+  const [showJustCompleted, setShowJustCompleted] = useState(!!location.state.fromQuiz);
   const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
   const [dimCache, setDimCache] = useState<Record<string, QuizDimension[]>>({});
 
@@ -603,7 +601,7 @@ export function ResultPage() {
   const handleStartQuiz = (quizId: string) => {
     dispatch(resetQuiz());
     dispatch(setQuizId(quizId));
-    navigate('/quiz');
+    navigate({ to: '/quiz' });
   };
 
   if (loading) {
@@ -754,7 +752,10 @@ export function ResultPage() {
                             <Button onClick={() => handleStartQuiz(qid)} variant="outline">
                               {t('quiz.retake')}
                             </Button>
-                            <Button onClick={() => navigate('/dashboard')} variant="outline">
+                            <Button
+                              onClick={() => navigate({ to: '/dashboard' })}
+                              variant="outline"
+                            >
                               {t('result.backToDashboard')}
                             </Button>
                           </div>

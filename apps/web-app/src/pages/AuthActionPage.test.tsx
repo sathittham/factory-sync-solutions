@@ -1,9 +1,15 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { fireEvent } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { MemoryRouter } from 'react-router';
 import { LocaleProvider } from '@/lib/i18n';
+import {
+  RouterProvider,
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+} from '@tanstack/react-router';
+import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthActionPage } from './AuthActionPage';
 
 vi.mock('firebase/auth', () => ({
@@ -26,11 +32,6 @@ vi.mock('@/lib/api', () => ({
   },
 }));
 
-vi.mock('react-router', async (importActual) => {
-  const actual = await importActual<typeof import('react-router')>();
-  return { ...actual, useSearchParams: vi.fn() };
-});
-
 // Import after mocks are registered so the mock factory runs first.
 import { api } from '@/lib/api';
 import {
@@ -40,9 +41,7 @@ import {
   updateProfile,
   verifyPasswordResetCode,
 } from 'firebase/auth';
-import { useSearchParams } from 'react-router';
 
-const mockUseSearchParams = vi.mocked(useSearchParams);
 const mockConfirmPasswordReset = vi.mocked(confirmPasswordReset);
 const mockSignInWithEmailAndPassword = vi.mocked(signInWithEmailAndPassword);
 const mockSignOut = vi.mocked(signOut);
@@ -50,14 +49,41 @@ const mockUpdateProfile = vi.mocked(updateProfile);
 const mockVerifyPasswordResetCode = vi.mocked(verifyPasswordResetCode);
 const mockApiPost = vi.mocked(api.post);
 
-function renderPage() {
-  return render(
-    <MemoryRouter>
+interface AuthActionSearch {
+  mode?: string;
+  oobCode?: string;
+}
+
+function validateSearch(search: Record<string, unknown>): AuthActionSearch {
+  return {
+    mode: typeof search.mode === 'string' ? search.mode : undefined,
+    oobCode: typeof search.oobCode === 'string' ? search.oobCode : undefined,
+  };
+}
+
+function renderPage(initialEntry: string) {
+  const rootRoute = createRootRoute({
+    component: () => (
       <LocaleProvider>
         <AuthActionPage />
       </LocaleProvider>
-    </MemoryRouter>,
-  );
+    ),
+  });
+  // Route tree only needs the root — search params are read via useSearch({ strict: false })
+  // from whatever matches, so a single root route with validateSearch covers the test cases.
+  const authActionRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/auth/action',
+    validateSearch,
+  });
+  const routeTree = rootRoute.addChildren([authActionRoute]);
+
+  const router = createRouter({
+    routeTree,
+    history: createMemoryHistory({ initialEntries: [initialEntry] }),
+  });
+
+  return render(<RouterProvider router={router} />);
 }
 
 describe('AuthActionPage', () => {
@@ -65,53 +91,34 @@ describe('AuthActionPage', () => {
     vi.clearAllMocks();
   });
 
-  it('shows error card when oobCode is missing', () => {
-    mockUseSearchParams.mockReturnValue([
-      new URLSearchParams('mode=resetPassword'),
-      vi.fn() as never,
-    ]);
-
-    renderPage();
+  it('shows error card when oobCode is missing', async () => {
+    renderPage('/auth/action?mode=resetPassword');
 
     // The invalid-link heading is rendered in an h1 inside the Card
-    expect(
-      screen.getByRole('heading', { level: 1, name: /ลิงก์ไม่ถูกต้อง/i }),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: /ลิงก์ไม่ถูกต้อง/i })).toBeInTheDocument();
+    });
   });
 
-  it('shows error card when mode is unknown', () => {
-    mockUseSearchParams.mockReturnValue([
-      new URLSearchParams('oobCode=abc'),
-      vi.fn() as never,
-    ]);
+  it('shows error card when mode is unknown', async () => {
+    renderPage('/auth/action?oobCode=abc');
 
-    renderPage();
-
-    expect(
-      screen.getByRole('heading', { level: 1, name: /ลิงก์ไม่ถูกต้อง/i }),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: /ลิงก์ไม่ถูกต้อง/i })).toBeInTheDocument();
+    });
   });
 
-  it('renders the password form when mode=resetPassword and oobCode present', () => {
-    mockUseSearchParams.mockReturnValue([
-      new URLSearchParams('mode=resetPassword&oobCode=test123'),
-      vi.fn() as never,
-    ]);
+  it('renders the password form when mode=resetPassword and oobCode present', async () => {
+    renderPage('/auth/action?mode=resetPassword&oobCode=test123');
 
-    renderPage();
-
-    expect(screen.getByLabelText(/ชื่อผู้ติดต่อ/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByLabelText(/ชื่อผู้ติดต่อ/i)).toBeInTheDocument();
+    });
     expect(screen.getByLabelText(/เบอร์โทรศัพท์/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /บันทึกรหัสผ่าน/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /บันทึกรหัสผ่าน/i })).toBeInTheDocument();
   });
 
   it('shows success state after confirmPasswordReset resolves', async () => {
-    mockUseSearchParams.mockReturnValue([
-      new URLSearchParams('mode=resetPassword&oobCode=test123'),
-      vi.fn() as never,
-    ]);
     mockVerifyPasswordResetCode.mockResolvedValue('invited@example.com');
     mockConfirmPasswordReset.mockResolvedValue(undefined);
     mockSignInWithEmailAndPassword.mockResolvedValue({ user: { uid: 'uid-1' } } as never);
@@ -119,9 +126,9 @@ describe('AuthActionPage', () => {
     mockApiPost.mockResolvedValue({ uid: 'uid-1' });
     mockSignOut.mockResolvedValue(undefined);
 
-    renderPage();
+    renderPage('/auth/action?mode=resetPassword&oobCode=test123');
 
-    const nameInput = screen.getByLabelText(/ชื่อผู้ติดต่อ/i);
+    const nameInput = await screen.findByLabelText(/ชื่อผู้ติดต่อ/i);
     const phoneInput = screen.getByLabelText(/เบอร์โทรศัพท์/i);
     const passwordInput = screen.getByLabelText(/รหัสผ่านใหม่/i);
     const confirmInput = screen.getByLabelText(/ยืนยันรหัสผ่าน/i);
@@ -142,9 +149,7 @@ describe('AuthActionPage', () => {
     await userEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/ตั้งรหัสผ่านเรียบร้อยแล้ว/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/ตั้งรหัสผ่านเรียบร้อยแล้ว/i)).toBeInTheDocument();
     });
 
     expect(mockVerifyPasswordResetCode).toHaveBeenCalledWith({}, 'test123');

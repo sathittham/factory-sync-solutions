@@ -316,8 +316,10 @@ its directory with `pnpm <script>`.
 - **App frontend**: React + Vite + TypeScript
 - **Public site**: Astro 6 + React islands
 - **Styling**: Tailwind CSS + shadcn/ui
-- **State**: Redux Toolkit
-- **Forms**: react-hook-form + zod
+- **Client state**: Redux Toolkit
+- **Server state**: TanStack Query (`@tanstack/react-query`)
+- **Tables**: TanStack Table (`@tanstack/react-table`)
+- **Forms**: TanStack Form (`@tanstack/react-form`) + zod
 - **Charts**: recharts (radar/spider chart)
 - **Animations**: motion (v12+) — page transitions, staggered reveals, scroll-triggered entrances
 - **Auth**: Firebase Authentication (Google Sign-In)

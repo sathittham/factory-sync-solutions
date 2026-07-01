@@ -12,6 +12,7 @@ import { getOfficialWebUrl } from '@shared/lib/officialSite';
 import { GoogleSignInButton } from '@shared/ui/GoogleSignInButton';
 import { LoginPageLayout } from '@shared/ui/LoginPageLayout';
 import { useForm } from '@tanstack/react-form';
+import { Link, type LinkProps } from '@tanstack/react-router';
 import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -21,7 +22,6 @@ import {
 import { Eye, EyeOff } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { Link } from 'react-router';
 import * as z from 'zod';
 
 type Mode = 'signin' | 'signup' | 'reset';
@@ -31,8 +31,8 @@ interface LoginFormProps {
   topContent?: ReactNode;
   frame?: 'page' | 'content';
   hideHeader?: boolean;
-  signInHref?: string;
-  signUpHref?: string;
+  signInHref?: LinkProps['to'];
+  signUpHref?: LinkProps['to'];
 }
 
 function ModeSwitch({
@@ -43,8 +43,8 @@ function ModeSwitch({
   t,
 }: Readonly<{
   mode: Mode;
-  signInHref?: string;
-  signUpHref?: string;
+  signInHref?: LinkProps['to'];
+  signUpHref?: LinkProps['to'];
   switchMode: (next: Mode) => void;
   t: (key: string) => string;
 }>) {

@@ -54,6 +54,7 @@ import fsDarkLogo from '@shared/brand/fs-dark.png';
 import fsLightLogo from '@shared/brand/fs-light.png';
 import { LocaleSwitcher } from '@shared/ui/LocaleSwitcher';
 import { ThemeSwitcher } from '@shared/ui/ThemeSwitcher';
+import { Link, type LinkProps, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
 import { signOut } from 'firebase/auth';
 import {
   BarChart3,
@@ -68,7 +69,6 @@ import {
   UsersRound,
 } from 'lucide-react';
 import { type CSSProperties, Fragment, useEffect, useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 
 /* ─── Types & constants ─── */
 
@@ -215,7 +215,7 @@ function AppLogo({ resolvedTheme }: { readonly resolvedTheme: 'dark' | 'light' }
 /* ─── Nav item type ─── */
 
 interface NavItem {
-  path: string;
+  path: LinkProps['to'];
   icon: typeof LayoutDashboard;
   labelKey: string;
 }
@@ -488,7 +488,7 @@ function AppSidebar({
                       isActive={pathname === '/admin' && adminTab === 'users'}
                       tooltip={t('nav.manageUsers')}
                     >
-                      <Link to="/admin?tab=users">
+                      <Link to="/admin" search={{ tab: 'users' }}>
                         <UsersRound />
                         <span>{t('nav.manageUsers')}</span>
                       </Link>
@@ -568,7 +568,7 @@ export function Layout() {
 
   const handleSignOut = async () => {
     await signOut(auth);
-    navigate('/');
+    navigate({ to: '/' });
   };
 
   const handleCompanySwitch = (companyRegId: string) => {
@@ -587,7 +587,7 @@ export function Layout() {
     location.pathname === '/auth/action';
   const breadcrumbSegments = (() => {
     const path = location.pathname;
-    const adminTab = new URLSearchParams(location.search).get('tab');
+    const adminTab = new URLSearchParams(location.searchStr).get('tab');
 
     if (path === '/profile') {
       return [{ label: t('nav.main') }, { label: t('profile.title') }];
@@ -640,9 +640,9 @@ export function Layout() {
             isAdmin={isAdmin}
             t={t}
             handleSignOut={handleSignOut}
-            onProfileClick={() => navigate('/profile')}
+            onProfileClick={() => navigate({ to: '/profile' })}
             pathname={location.pathname}
-            search={location.search}
+            search={location.searchStr}
           />
         )}
 

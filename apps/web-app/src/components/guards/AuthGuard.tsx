@@ -1,6 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAppSelector } from '@/store';
-import { Navigate, Outlet } from 'react-router';
+import { Navigate, Outlet } from '@tanstack/react-router';
 
 export function AuthGuard() {
   const { isAuthenticated, loading } = useAppSelector((s) => s.auth);

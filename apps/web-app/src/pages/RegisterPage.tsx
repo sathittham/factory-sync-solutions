@@ -30,6 +30,7 @@ import fsDarkLogo from '@shared/brand/fs-dark.png';
 import fsLightLogo from '@shared/brand/fs-light.png';
 import { getOfficialWebUrl } from '@shared/lib/officialSite';
 import { useForm } from '@tanstack/react-form';
+import { Navigate, useNavigate } from '@tanstack/react-router';
 import {
   ArrowLeft,
   ArrowRight,
@@ -41,7 +42,6 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { type ReactNode, useCallback, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router';
 import * as z from 'zod';
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_CF_TURNSTILE_SITE_KEY ?? '';
@@ -472,7 +472,7 @@ export function RegisterPage() {
   });
 
   const handleSuccessContinue = useCallback(() => {
-    navigate('/dashboard');
+    navigate({ to: '/dashboard' });
   }, [navigate]);
 
   const handleSuccessOpenChange = useCallback(

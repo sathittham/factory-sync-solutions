@@ -10,6 +10,7 @@ import fsLightLogo from '@shared/brand/fs-light.png';
 import { getOfficialWebUrl } from '@shared/lib/officialSite';
 import { LoginPageLayout } from '@shared/ui/LoginPageLayout';
 import { useForm } from '@tanstack/react-form';
+import { Link, useSearch } from '@tanstack/react-router';
 import {
   confirmPasswordReset,
   signInWithEmailAndPassword,
@@ -20,16 +21,12 @@ import {
 import { AlertTriangle, CheckCircle2, Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
 import * as z from 'zod';
 
 export function AuthActionPage() {
   const { t } = useLocale();
   const { resolvedTheme } = useTheme();
-  const [searchParams] = useSearchParams();
-
-  const mode = searchParams.get('mode');
-  const oobCode = searchParams.get('oobCode');
+  const { mode, oobCode } = useSearch({ strict: false });
 
   const [done, setDone] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -118,7 +115,7 @@ export function AuthActionPage() {
         >
           {t('auth.setPassword.goSignIn')}
         </Link>
-      </div>
+      </div>,
     );
   }
 
@@ -140,7 +137,7 @@ export function AuthActionPage() {
         <Link to="/" className={buttonVariants({ size: 'lg', className: 'w-full' })}>
           {t('auth.setPassword.goSignIn')}
         </Link>
-      </div>
+      </div>,
     );
   }
 
@@ -315,7 +312,10 @@ export function AuthActionPage() {
         </FieldGroup>
 
         {serverError && (
-          <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
             {serverError}
           </p>
         )}
@@ -335,6 +335,6 @@ export function AuthActionPage() {
       <p className="text-center text-xs text-balance text-muted-foreground">
         {t('auth.setPassword.securityNote')}
       </p>
-    </div>
+    </div>,
   );
 }

@@ -24,8 +24,8 @@ import {
 } from '@/store/quizSlice';
 import { setAssessment } from '@/store/resultSlice';
 import type { Assessment } from '@/store/resultSlice';
+import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
 
 const SKELETON_DIMS = Array.from({ length: 8 }, (_, i) => `dim-skel-${i}`);
 const SKELETON_QUESTIONS = Array.from({ length: 6 }, (_, i) => `q-skel-${i}`);
@@ -425,7 +425,7 @@ export function QuizPage() {
 
   const handleExit = () => {
     dispatch(resetQuiz());
-    navigate('/');
+    navigate({ to: '/' });
   };
 
   const handleSubmit = async () => {
@@ -455,7 +455,7 @@ export function QuizPage() {
       setShowCelebration(true);
       setTimeout(() => {
         dispatch(resetQuiz());
-        navigate('/results', { state: { fromQuiz: true } });
+        navigate({ to: '/results', state: { fromQuiz: true } });
       }, 1800);
     } catch {
       trackEvent('quiz_submit_error');
