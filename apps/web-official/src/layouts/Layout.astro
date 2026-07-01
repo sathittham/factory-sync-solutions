@@ -1,57 +1,60 @@
 ---
-import { AppHandoff } from '../components/AppHandoff';
-import { CookieConsent } from '../components/CookieConsent';
-import { TopCtaBar } from '../components/TopCtaBar';
+import { AppHandoff } from "../components/AppHandoff";
+import { CookieConsent } from "../components/CookieConsent";
+import { TopCtaBar } from "../components/TopCtaBar";
 
 interface Props {
-  title: string;
-  description?: string;
-  ogImage?: string;
-  canonical?: string;
-  noindex?: boolean;
+	title: string;
+	description?: string;
+	ogImage?: string;
+	canonical?: string;
+	noindex?: boolean;
 }
 
 const {
-  title,
-  description = 'FactorySync Solutions — ยกระดับโรงงานของคุณด้วยระบบประเมินสุขภาพที่ชาญฉลาด',
-  ogImage,
-  noindex = false,
+	title,
+	description = "FactorySync Solutions — ยกระดับโรงงานของคุณด้วยระบบประเมินสุขภาพที่ชาญฉลาด",
+	ogImage,
+	noindex = false,
 } = Astro.props;
 const canonicalURL = Astro.props.canonical ?? Astro.url.href;
-const ogImageURL = ogImage ?? new URL('/og-image.png', Astro.site ?? Astro.url).href;
+const ogImageURL = ogImage ?? new URL("/og-image.png", Astro.site ?? Astro.url).href;
 
-const appUrl = import.meta.env.PUBLIC_APP_URL ?? '#';
-const gtmId = import.meta.env.PUBLIC_GTM_ID ?? '';
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const gtmId = import.meta.env.PUBLIC_GTM_ID ?? "";
 
 // Site-wide identity structured data (emitted on every page). Stable @id nodes
 // let page-level schema (Service, FAQPage, …) reference the org without duplicating it.
-const siteUrl = (Astro.site ?? new URL('https://www.factorysyncsolutions.com')).href.replace(/\/$/, '');
+const siteUrl = (Astro.site ?? new URL("https://www.factorysyncsolutions.com")).href.replace(
+	/\/$/,
+	""
+);
 const orgId = `${siteUrl}/#organization`;
 const siteSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'Organization',
-      '@id': orgId,
-      name: 'FactorySync Solutions',
-      url: `${siteUrl}/`,
-      logo: `${siteUrl}/favicon-32x32.png`,
-      address: {
-        '@type': 'PostalAddress',
-        addressCountry: 'TH',
-        addressLocality: 'Bangkok',
-        addressRegion: 'Bangkok',
-      },
-    },
-    {
-      '@type': 'WebSite',
-      '@id': `${siteUrl}/#website`,
-      name: 'FactorySync Solutions',
-      url: `${siteUrl}/`,
-      publisher: { '@id': orgId },
-      inLanguage: 'th-TH',
-    },
-  ],
+	"@context": "https://schema.org",
+	"@graph": [
+		{
+			"@type": "Organization",
+			"@id": orgId,
+			name: "FactorySync Solutions",
+			url: `${siteUrl}/`,
+			logo: `${siteUrl}/favicon-32x32.png`,
+			address: {
+				"@type": "PostalAddress",
+				addressCountry: "TH",
+				addressLocality: "Bangkok",
+				addressRegion: "Bangkok",
+			},
+		},
+		{
+			"@type": "WebSite",
+			"@id": `${siteUrl}/#website`,
+			name: "FactorySync Solutions",
+			url: `${siteUrl}/`,
+			publisher: { "@id": orgId },
+			inLanguage: "th-TH",
+		},
+	],
 };
 ---
 

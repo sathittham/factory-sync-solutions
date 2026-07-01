@@ -170,7 +170,9 @@ describe("getArticles — new fields (image / tags / pinned)", () => {
 	it("defaults new fields safely when absent", async () => {
 		vi.stubEnv("PUBLIC_CMS_URL", "https://cms.test");
 		mockFetchOnce({
-			data: [{ slug: "bare", title: "Bare", category: "environment", status: "published", content: "" }],
+			data: [
+				{ slug: "bare", title: "Bare", category: "environment", status: "published", content: "" },
+			],
 			pagination: { pages: 1 },
 		});
 		const [article] = await getArticles();
@@ -201,7 +203,14 @@ describe("getKnowledgeFacets", () => {
 					tags: "PPE",
 					content: "",
 				},
-				{ slug: "c", title: "C", category: "lean-kaizen", status: "published", tags: "SME", content: "" },
+				{
+					slug: "c",
+					title: "C",
+					category: "lean-kaizen",
+					status: "published",
+					tags: "SME",
+					content: "",
+				},
 			],
 			pagination: { pages: 1 },
 		});

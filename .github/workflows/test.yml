@@ -123,10 +123,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # web-official has no type-check script; `astro build` is the compile-time
-      # check. Runs without secrets — PUBLIC_* vars fall back at build time.
-      - name: Lint, test, and build (web-official)
-        run: pnpm turbo run lint test build --filter=@repo/web-official
+      # Run sequentially: building and unit-testing concurrently starved the
+      # Vitest worker on the runner (SIGSEGV). web-official has no type-check
+      # script — `astro build` is the compile-time check. Runs without secrets;
+      # PUBLIC_* vars fall back at build time.
+      - name: Lint (web-official)
+        run: pnpm --filter @repo/web-official lint
+
+      - name: Unit tests (web-official)
+        run: pnpm --filter @repo/web-official test
+
+      - name: Build (web-official)
+        run: pnpm --filter @repo/web-official build
 
   api-gateway:
     name: API Gateway Tests
