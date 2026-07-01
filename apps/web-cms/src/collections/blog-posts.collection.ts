@@ -61,6 +61,23 @@ export default {
         description: 'Short summary shown on listing cards and used as the meta description.',
         maxLength: 300,
       },
+      featuredImage: {
+        type: 'string',
+        title: 'Featured Image URL',
+        description: 'Cover image shown on listing cards, the featured hero, and the article header.',
+        maxLength: 500,
+      },
+      tags: {
+        type: 'string',
+        title: 'Tags',
+        description: 'Comma-separated tags for the tag cloud, e.g. "รง.4, ใบอนุญาต, SME".',
+        maxLength: 300,
+      },
+      isPinned: {
+        type: 'boolean',
+        title: 'Pin as featured',
+        description: 'Show this post in the featured hero at the top of the Knowledge Hub.',
+      },
       content: {
         type: 'lexical',
         title: 'Content',
@@ -80,7 +97,7 @@ export default {
   },
 
   // List view configuration
-  listFields: ['title', 'category', 'author', 'status', 'publishedAt'],
+  listFields: ['title', 'category', 'isPinned', 'author', 'status', 'publishedAt'],
   searchFields: ['title', 'excerpt', 'content', 'author'],
   defaultSort: 'createdAt',
   defaultSortOrder: 'desc',
