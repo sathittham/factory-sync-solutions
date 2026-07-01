@@ -95,6 +95,16 @@ Adopt two TanStack libraries in `apps/web-app` to replace hand-rolled patterns:
 
 **Implementation Notes:**
 - SRS: [docs/product/tanstack-adoption/feature-spec.md](../product/tanstack-adoption/feature-spec.md)
+- Pilot (v0.12.0): AdminPage assessment table → `DataTable`; assessment list/detail → `useQuery`.
+- Wider rollout (this change): server-state fetching moved to TanStack Query across the app —
+  `useQuery` for results, quiz list, quiz questions, admin user list, and profile activity;
+  `useMutation` for quiz submit, admin role/invite/cancel/resend, and avatar upload/delete;
+  AdminPage users table migrated to `DataTable`. The `result` Redux slice was **retired** and the
+  `quiz` slice trimmed to client state only (in-progress answers/step) — per the rule "do not mirror
+  server data into Redux". Shared query hooks live in `apps/web-app/src/lib/queries.ts`; server-data
+  types in `apps/web-app/src/lib/types.ts`. The static permissions matrix (`PermissionsDialog`) stays
+  a plain `<table>` — it is a fixed reference grid, not fetched/sortable data. `PUT /profile` form
+  submits stay on TanStack Form (already compliant; profile is auth/client state).
 
 ---
 

@@ -31,7 +31,7 @@ import { useLocale } from '@/lib/i18n';
 import { useAppSelector } from '@/store';
 import { canManageUsers } from '@/store/authSlice';
 import { useForm } from '@tanstack/react-form';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Loader2, Pencil, RotateCcw, Search, ShieldCheck, UserPlus, Users, X } from 'lucide-react';
@@ -644,6 +644,7 @@ function PermissionsDialog({
           <DialogDescription>{t('permissions.desc')}</DialogDescription>
         </DialogHeader>
         <div className="overflow-x-auto">
+          {/* Static permissions reference grid — not a data table (no fetch/sort/filter). */}
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/30">
@@ -1098,9 +1099,6 @@ function UserRowActions({
 }
 
 function UsersTab() {
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [updatingUid, setUpdatingUid] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const [roleDialog, setRoleDialog] = useState<AdminUser | null>(null);
   const [detailUser, setDetailUser] = useState<AdminUser | null>(null);
@@ -1109,22 +1107,13 @@ function UsersTab() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [permissionsOpen, setPermissionsOpen] = useState(false);
   const { t, locale } = useLocale();
+  const queryClient = useQueryClient();
 
-  const loadUsers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await api.get<AdminUser[]>('/manage/users');
-      setUsers(data.filter((u) => u.role !== 'admin' && u.role !== 'superadmin'));
-    } catch {
-      // Error loading
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+  const { data: users = [], isPending: loading } = useQuery({
+    queryKey: ['manage-users'],
+    queryFn: () => api.get<AdminUser[]>('/manage/users'),
+    select: (data) => data.filter((u) => u.role !== 'admin' && u.role !== 'superadmin'),
+  });
 
   const filteredUsers = useMemo(
     () =>
@@ -1140,28 +1129,33 @@ function UsersTab() {
     [users, roleFilter, search],
   );
 
-  const openRoleDialog = (user: AdminUser) => {
+  const openRoleDialog = useCallback((user: AdminUser) => {
     setDetailUser(null);
     requestAnimationFrame(() => setRoleDialog(user));
-  };
+  }, []);
 
-  const confirmRoleChange = async (newRole: string) => {
+  const roleMutation = useMutation({
+    mutationFn: ({ uid, role }: { uid: string; role: string }) =>
+      api.put(`/manage/users/${uid}/role`, { role }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['manage-users'] });
+      setToast({ type: 'success', msg: t('admin.roleUpdated') });
+      trackEvent('admin_role_change', { newRole: variables.role });
+    },
+    onError: (_err, variables) => {
+      setToast({ type: 'error', msg: t('admin.roleError') });
+      trackEvent('admin_role_change_error', { newRole: variables.role });
+    },
+  });
+
+  const updatingUid = roleMutation.isPending ? (roleMutation.variables?.uid ?? null) : null;
+
+  const confirmRoleChange = (newRole: string) => {
     if (!roleDialog) return;
     const user = roleDialog;
     setRoleDialog(null);
-    setUpdatingUid(user.uid);
     setToast(null);
-    try {
-      await api.put(`/manage/users/${user.uid}/role`, { role: newRole });
-      setUsers((prev) => prev.map((u) => (u.uid === user.uid ? { ...u, role: newRole } : u)));
-      setToast({ type: 'success', msg: t('admin.roleUpdated') });
-      trackEvent('admin_role_change', { newRole });
-    } catch {
-      setToast({ type: 'error', msg: t('admin.roleError') });
-      trackEvent('admin_role_change_error', { newRole });
-    } finally {
-      setUpdatingUid(null);
-    }
+    roleMutation.mutate({ uid: user.uid, role: newRole });
   };
 
   const roleCounts = useMemo(
@@ -1189,29 +1183,101 @@ function UsersTab() {
     [users, roleCounts],
   );
 
-  const handleCancelInvitation = async (uid: string) => {
-    try {
-      await api.delete(`/manage/invitations/${uid}`);
-      loadUsers();
-    } catch {
+  const cancelInvitationMutation = useMutation({
+    mutationFn: (uid: string) => api.delete(`/manage/invitations/${uid}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['manage-users'] });
+    },
+    onError: () => {
       setToast({ type: 'error', msg: t('admin.roleError') });
-    }
-  };
+    },
+  });
 
-  const handleResendInvitation = async (uid: string) => {
-    try {
-      await api.post(`/manage/invitations/${uid}/resend`, {});
+  const resendInvitationMutation = useMutation({
+    mutationFn: (uid: string) => api.post(`/manage/invitations/${uid}/resend`, {}),
+    onSuccess: () => {
       setToast({ type: 'success', msg: t('admin.inviteResent') });
-    } catch {
+    },
+    onError: () => {
       setToast({ type: 'error', msg: t('admin.inviteError') });
-    }
-  };
+    },
+  });
+
+  const handleCancelInvitation = cancelInvitationMutation.mutate;
+  const handleResendInvitation = resendInvitationMutation.mutate;
 
   const handleInviteSuccess = () => {
     setInviteOpen(false);
     setToast({ type: 'success', msg: t('admin.inviteSent') });
-    loadUsers();
+    queryClient.invalidateQueries({ queryKey: ['manage-users'] });
   };
+
+  const userColumns = useMemo<ColumnDef<AdminUser, unknown>[]>(
+    () => [
+      {
+        id: 'contact',
+        header: () => t('admin.contactName'),
+        cell: ({ row }) => {
+          const u = row.original;
+          return (
+            <div className="flex items-center gap-3">
+              <Avatar className="size-8 rounded-lg shrink-0">
+                <AvatarImage
+                  src={u.photoURL}
+                  alt={u.contactName || u.displayName}
+                  className="rounded-lg"
+                />
+                <AvatarFallback className="rounded-lg text-xs bg-muted">
+                  {(u.contactName || u.displayName || u.email).charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium truncate">
+                    {u.contactName || u.displayName || '--'}
+                  </span>
+                  <RoleBadge role={u.role} isPending={u.isPending} t={t} />
+                </div>
+                <div className="text-[11px] text-muted-foreground font-mono mt-0.5 truncate">
+                  {u.email}
+                </div>
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        id: 'registered',
+        header: () => t('admin.registered'),
+        cell: ({ row }) => {
+          const raw = row.original.isPending ? row.original.invitedAt : row.original.createdAt;
+          return raw ? formatDateTime(raw, locale) : '--';
+        },
+        meta: {
+          headerClassName: 'hidden sm:table-cell',
+          cellClassName: 'text-muted-foreground font-mono text-xs hidden sm:table-cell',
+        },
+      },
+      {
+        id: 'actions',
+        header: () => null,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <div className="text-right" onClick={(e) => e.stopPropagation()}>
+            <UserRowActions
+              user={row.original}
+              updatingUid={updatingUid}
+              onEdit={openRoleDialog}
+              onCancel={handleCancelInvitation}
+              onResend={handleResendInvitation}
+              t={t}
+            />
+          </div>
+        ),
+      },
+    ],
+    [t, locale, updatingUid, openRoleDialog, handleCancelInvitation, handleResendInvitation],
+  );
 
   return (
     <>
@@ -1296,88 +1362,22 @@ function UsersTab() {
           </div>
         </div>
       ) : (
-        <div
-          className="bg-card rounded-lg border overflow-hidden animate-fade-up"
-          data-testid="admin-users-table"
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/30">
-                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">
-                    {t('admin.contactName')}
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground hidden sm:table-cell">
-                    {t('admin.registered')}
-                  </th>
-                  <th className="w-12" />
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((u) => (
-                  <tr
-                    key={u.uid}
-                    className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                    onClick={() => setDetailUser(u)}
-                  >
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="size-8 rounded-lg shrink-0">
-                          <AvatarImage
-                            src={u.photoURL}
-                            alt={u.contactName || u.displayName}
-                            className="rounded-lg"
-                          />
-                          <AvatarFallback className="rounded-lg text-xs bg-muted">
-                            {(u.contactName || u.displayName || u.email).charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium truncate">
-                              {u.contactName || u.displayName || '--'}
-                            </span>
-                            <RoleBadge role={u.role} isPending={u.isPending} t={t} />
-                          </div>
-                          <div className="text-[11px] text-muted-foreground font-mono mt-0.5 truncate">
-                            {u.email}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground font-mono text-xs hidden sm:table-cell">
-                      {(() => {
-                        const raw = u.isPending ? u.invitedAt : u.createdAt;
-                        return raw ? formatDateTime(raw, locale) : '--';
-                      })()}
-                    </td>
-                    <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                      <UserRowActions
-                        user={u}
-                        updatingUid={updatingUid}
-                        onEdit={openRoleDialog}
-                        onCancel={handleCancelInvitation}
-                        onResend={handleResendInvitation}
-                        t={t}
-                      />
-                    </td>
-                  </tr>
-                ))}
-                {filteredUsers.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="py-16 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                          <Users className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                        <p className="text-sm text-muted-foreground">{t('admin.noUsers')}</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+        <div className="animate-fade-up">
+          <DataTable
+            data-testid="admin-users-table"
+            columns={userColumns}
+            data={filteredUsers}
+            getRowId={(u) => u.uid}
+            onRowClick={(u) => setDetailUser(u)}
+            emptyState={
+              <div className="flex flex-col items-center gap-2">
+                <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
+                  <Users className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">{t('admin.noUsers')}</p>
+              </div>
+            }
+          />
         </div>
       )}
 

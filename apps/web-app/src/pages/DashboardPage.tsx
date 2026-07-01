@@ -1,19 +1,12 @@
 import { FadeIn, ScaleIn, StaggerChildren, StaggerItem } from '@/components/motion';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { api } from '@/lib/api';
 import { formatDateTime } from '@/lib/dayjs';
 import { useLocale } from '@/lib/i18n';
+import { useAssessmentsQuery, useQuizzesQuery } from '@/lib/queries';
+import type { Assessment, DimensionScore } from '@/lib/types';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { resetQuiz, setAvailableQuizzes, setQuizId } from '@/store/quizSlice';
-import type { QuizListItem } from '@/store/quizSlice';
-import {
-  type Assessment,
-  type DimensionScore,
-  setAssessment,
-  setAssessments,
-  setLoading as setResultLoading,
-} from '@/store/resultSlice';
+import { resetQuiz, setQuizId } from '@/store/quizSlice';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -116,36 +109,10 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { profile } = useAppSelector((s) => s.auth);
-  const { assessments, loading: resultLoading } = useAppSelector((s) => s.result);
-  const { availableQuizzes } = useAppSelector((s) => s.quiz);
+  const { data: assessments = [], isPending: resultLoading } = useAssessmentsQuery();
+  const { data: availableQuizzes = [], isPending: quizzesLoading } = useQuizzesQuery();
   const { locale, t } = useLocale();
-  const [quizzesLoading, setQuizzesLoading] = useState(false);
   const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (assessments.length === 0 && !resultLoading) {
-      dispatch(setResultLoading(true));
-      api
-        .get<Assessment[]>('/results')
-        .then((data) => {
-          dispatch(setAssessments(data));
-          if (data.length > 0) dispatch(setAssessment(data[0]));
-        })
-        .catch(() => {})
-        .finally(() => dispatch(setResultLoading(false)));
-    }
-  }, [assessments.length, dispatch]);
-
-  useEffect(() => {
-    if (availableQuizzes.length === 0) {
-      setQuizzesLoading(true);
-      api
-        .get<QuizListItem[]>('/quiz/quizzes')
-        .then((data) => dispatch(setAvailableQuizzes(data)))
-        .catch(() => {})
-        .finally(() => setQuizzesLoading(false));
-    }
-  }, [availableQuizzes.length, dispatch]);
 
   const quizGroups = useMemo(() => {
     const groups: Record<string, Assessment[]> = {};

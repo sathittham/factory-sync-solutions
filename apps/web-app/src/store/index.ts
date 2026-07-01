@@ -2,13 +2,11 @@ import { configureStore } from '@reduxjs/toolkit';
 import { useDispatch, useSelector } from 'react-redux';
 import authReducer from './authSlice';
 import quizReducer from './quizSlice';
-import resultReducer from './resultSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     quiz: quizReducer,
-    result: resultReducer,
   },
 });
 

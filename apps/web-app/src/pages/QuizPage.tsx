@@ -11,21 +11,13 @@ import {
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { trackEvent } from '@/lib/analytics';
-import { api } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
+import { useQuizQuestionsQuery, useSubmitQuizMutation } from '@/lib/queries';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setHasCompletedQuiz } from '@/store/authSlice';
-import {
-  resetQuiz,
-  setAnswer,
-  setCurrentStep,
-  setQuestions,
-  setSubmitting,
-} from '@/store/quizSlice';
-import { setAssessment } from '@/store/resultSlice';
-import type { Assessment } from '@/store/resultSlice';
+import { resetQuiz, setAnswer, setCurrentStep } from '@/store/quizSlice';
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 const SKELETON_DIMS = Array.from({ length: 8 }, (_, i) => `dim-skel-${i}`);
 const SKELETON_QUESTIONS = Array.from({ length: 6 }, (_, i) => `q-skel-${i}`);
@@ -353,28 +345,25 @@ function QuizNavigation({
 export function QuizPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { quizId, questions, dimensions, answers, currentStep, isSubmitting, questionsLoaded } =
-    useAppSelector((s) => s.quiz);
+  const { quizId, answers, currentStep } = useAppSelector((s) => s.quiz);
   const { locale, t } = useLocale();
   const [error, setError] = useState<string | null>(null);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
 
+  const {
+    data: quizData,
+    isPending: questionsLoading,
+    isError: questionsError,
+  } = useQuizQuestionsQuery(quizId);
+  const submitMutation = useSubmitQuizMutation();
+  const questions = quizData?.questions ?? [];
+  const dimensions = quizData?.dimensions ?? [];
+  const loadError = questionsError ? t('quiz.loadError') : null;
+
   const useGradeLabels = quizId === 'factory';
 
-  useEffect(() => {
-    if (!questionsLoaded) {
-      api
-        .get<{
-          questions: typeof questions;
-          dimensions: typeof dimensions;
-        }>(`/quiz/questions?quizId=${quizId}`)
-        .then((data) => dispatch(setQuestions(data)))
-        .catch(() => setError(t('quiz.loadError')));
-    }
-  }, [questionsLoaded, quizId, dispatch]);
-
-  if (!questionsLoaded) {
+  if (questionsLoading) {
     return (
       <PageLayout fluid>
         <div className="space-y-4">
@@ -429,7 +418,6 @@ export function QuizPage() {
   };
 
   const handleSubmit = async () => {
-    dispatch(setSubmitting(true));
     setError(null);
     trackEvent('quiz_submit', {
       quiz_id: quizId,
@@ -441,11 +429,7 @@ export function QuizPage() {
         questionId,
         value,
       }));
-      const result = await api.post<Assessment>('/quiz/submit', {
-        quizId,
-        answers: payload,
-      });
-      dispatch(setAssessment(result));
+      const result = await submitMutation.mutateAsync({ quizId, answers: payload });
       dispatch(setHasCompletedQuiz(true));
       trackEvent('quiz_complete', {
         quiz_id: quizId,
@@ -460,7 +444,6 @@ export function QuizPage() {
     } catch {
       trackEvent('quiz_submit_error');
       setError(t('quiz.submitError'));
-      dispatch(setSubmitting(false));
     }
   };
 
@@ -596,9 +579,9 @@ export function QuizPage() {
         </AnimatePresence>
 
         {/* Error */}
-        {error && (
+        {(error || loadError) && (
           <div className="mt-4 p-3 rounded-md bg-destructive/10 text-destructive text-sm text-center animate-scale-in">
-            {error}
+            {error ?? loadError}
           </div>
         )}
 
@@ -606,7 +589,7 @@ export function QuizPage() {
           currentStep={currentStep}
           totalSteps={totalSteps}
           allAnswered={allAnswered}
-          isSubmitting={isSubmitting}
+          isSubmitting={submitMutation.isPending || showCelebration}
           onPrev={handlePrev}
           onNext={handleNext}
           onSubmit={handleSubmit}

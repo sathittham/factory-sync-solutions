@@ -1,12 +1,11 @@
-import { Provider } from 'react-redux';
-import { act, renderHook, waitFor } from '@testing-library/react';
-import { type ReactNode } from 'react';
-import { configureStore } from '@reduxjs/toolkit';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ApiError } from '@/lib/api';
 import authReducer from '@/store/authSlice';
 import quizReducer from '@/store/quizSlice';
-import resultReducer from '@/store/resultSlice';
-import { ApiError } from '@/lib/api';
+import { configureStore } from '@reduxjs/toolkit';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { Provider } from 'react-redux';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAuth } from './useAuth';
 
 const mocks = vi.hoisted(() => ({
@@ -81,7 +80,7 @@ describe('useAuth', () => {
 
   function makeStore() {
     return configureStore({
-      reducer: { auth: authReducer, quiz: quizReducer, result: resultReducer },
+      reducer: { auth: authReducer, quiz: quizReducer },
     });
   }
 
@@ -107,9 +106,7 @@ describe('useAuth', () => {
   });
 
   it('sets user + profile + hasCompletedQuiz on successful login', async () => {
-    mocks.apiGet
-      .mockResolvedValueOnce(mockProfile)
-      .mockResolvedValueOnce([{ id: 'r-1' }]);
+    mocks.apiGet.mockResolvedValueOnce(mockProfile).mockResolvedValueOnce([{ id: 'r-1' }]);
 
     const { store } = renderAuth();
 
@@ -127,9 +124,7 @@ describe('useAuth', () => {
   });
 
   it('sets hasCompletedQuiz=false when results array is empty', async () => {
-    mocks.apiGet
-      .mockResolvedValueOnce(mockProfile)
-      .mockResolvedValueOnce([]);
+    mocks.apiGet.mockResolvedValueOnce(mockProfile).mockResolvedValueOnce([]);
 
     const { store } = renderAuth();
 

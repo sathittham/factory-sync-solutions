@@ -5,20 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { trackEvent } from '@/lib/analytics';
-import { api } from '@/lib/api';
 import { formatDateTime } from '@/lib/dayjs';
 import { useLocale } from '@/lib/i18n';
+import { useAssessmentsQuery, useQuizQuestionsQuery, useQuizzesQuery } from '@/lib/queries';
 import { useTheme } from '@/lib/theme';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { resetQuiz, setAvailableQuizzes, setQuizId } from '@/store/quizSlice';
-import type { QuizDimension, QuizListItem } from '@/store/quizSlice';
-import {
-  type Assessment,
-  type DimensionScore,
-  setAssessment,
-  setAssessments,
-  setLoading,
-} from '@/store/resultSlice';
+import type { Assessment, DimensionScore } from '@/lib/types';
+import { useAppDispatch } from '@/store';
+import { resetQuiz, setQuizId } from '@/store/quizSlice';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -471,8 +464,8 @@ function QuizResultDetail({
 
 export function ResultPage() {
   const dispatch = useAppDispatch();
-  const { assessment, assessments, loading } = useAppSelector((s) => s.result);
-  const { availableQuizzes } = useAppSelector((s) => s.quiz);
+  const { data: assessments = [], isPending: loading } = useAssessmentsQuery();
+  const { data: availableQuizzes = [] } = useQuizzesQuery();
   const { t, locale } = useLocale();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
@@ -480,7 +473,14 @@ export function ResultPage() {
   const location = useLocation();
   const [showJustCompleted, setShowJustCompleted] = useState(!!location.state.fromQuiz);
   const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
-  const [dimCache, setDimCache] = useState<Record<string, QuizDimension[]>>({});
+  const [pickedAssessment, setPickedAssessment] = useState<Assessment | null>(null);
+
+  // Dimensions for the active quiz tab (for localized dimension names). Cached per quizId by Query.
+  const { data: activeQuestions } = useQuizQuestionsQuery(
+    activeQuizId ?? '',
+    Boolean(activeQuizId),
+  );
+  const activeDims = activeQuestions?.dimensions ?? [];
 
   // Auto-dismiss the "just completed" banner and scroll to top
   useEffect(() => {
@@ -490,36 +490,15 @@ export function ResultPage() {
     return () => clearTimeout(timer);
   }, [showJustCompleted]);
 
-  // Fetch all assessments
+  // Track the first result view once assessments load
   useEffect(() => {
-    if (!assessment && !loading) {
-      dispatch(setLoading(true));
-      api
-        .get<Assessment[]>('/results')
-        .then((data) => {
-          dispatch(setAssessments(data));
-          if (data.length > 0) {
-            dispatch(setAssessment(data[0]));
-            trackEvent('result_view', {
-              overall_score: data[0].overallScore,
-              diagnosis: data[0].diagnosis,
-            });
-          }
-        })
-        .catch(() => {})
-        .finally(() => dispatch(setLoading(false)));
+    if (assessments.length > 0) {
+      trackEvent('result_view', {
+        overall_score: assessments[0].overallScore,
+        diagnosis: assessments[0].diagnosis,
+      });
     }
-  }, [assessment, dispatch]);
-
-  // Fetch available quizzes for tab names
-  useEffect(() => {
-    if (availableQuizzes.length === 0) {
-      api
-        .get<QuizListItem[]>('/quiz/quizzes')
-        .then((data) => dispatch(setAvailableQuizzes(data)))
-        .catch(() => {});
-    }
-  }, [availableQuizzes.length, dispatch]);
+  }, [assessments]);
 
   // Group assessments by quizId
   const groupedAssessments = useMemo(() => {
@@ -561,20 +540,6 @@ export function ResultPage() {
     }
   }, [activeQuizId, allQuizIds, completedQuizIdSet]);
 
-  // Fetch dimensions for the active quiz
-  useEffect(() => {
-    if (activeQuizId && !dimCache[activeQuizId]) {
-      api
-        .get<{ dimensions: QuizDimension[]; questions: unknown[] }>(
-          `/quiz/questions?quizId=${activeQuizId}`,
-        )
-        .then((data) => {
-          setDimCache((prev) => ({ ...prev, [activeQuizId]: data.dimensions }));
-        })
-        .catch(() => {});
-    }
-  }, [activeQuizId, dimCache]);
-
   // Quiz name lookup
   const quizNameMap = useMemo(() => {
     const m: Record<string, { th: string; en: string }> = {};
@@ -594,7 +559,7 @@ export function ResultPage() {
     setActiveQuizId(quizId);
     const quizAssessments = groupedAssessments[quizId];
     if (quizAssessments?.[0]) {
-      dispatch(setAssessment(quizAssessments[0]));
+      setPickedAssessment(quizAssessments[0]);
     }
   };
 
@@ -684,10 +649,10 @@ export function ResultPage() {
               const hasResult = completedQuizIdSet.has(qid);
               const quizAssessments = groupedAssessments[qid] ?? [];
               const selectedAssessment =
-                assessment && (assessment.quizId || 'shindan') === qid
-                  ? assessment
+                pickedAssessment && (pickedAssessment.quizId || 'shindan') === qid
+                  ? pickedAssessment
                   : (quizAssessments[0] ?? null);
-              const dims = dimCache[qid] ?? [];
+              const dims = qid === activeQuizId ? activeDims : [];
               const lookup = Object.fromEntries(
                 dims.map((d) => [d.id, { th: d.nameTh, en: d.nameEn }]),
               );
@@ -715,7 +680,7 @@ export function ResultPage() {
                                 <button
                                   key={a.id}
                                   type="button"
-                                  onClick={() => dispatch(setAssessment(a))}
+                                  onClick={() => setPickedAssessment(a)}
                                   className={`w-full flex justify-between items-center p-3 rounded-md text-sm transition-colors ${
                                     a.id === selectedAssessment?.id
                                       ? 'bg-primary/5 border border-primary/15'
