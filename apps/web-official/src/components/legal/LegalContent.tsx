@@ -1,8 +1,8 @@
 "use client";
 
-import { SiteNav } from "@/components/SiteNavBar";
-import { SiteFooter, useTheme } from "@/components/site/chrome";
-import { type Locale, LocaleProvider, useLocale } from "@/lib/i18n";
+import { PageHero } from "@/components/site/PageHero";
+import { SiteShell } from "@/components/site/SiteShell";
+import { type Locale, useLocale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -876,50 +876,27 @@ function LegalSidebar({ page }: { readonly page: LegalPageType }) {
 // Inner + root
 // ---------------------------------------------------------------------------
 
-function LegalInner({
-	page,
-	appUrl,
-	version,
-}: { readonly page: LegalPageType; readonly appUrl: string; readonly version: string }) {
+// LegalBody — rendered inside SiteShell's LocaleProvider
+function LegalBody({ page }: { readonly page: LegalPageType }) {
 	const { locale, t } = useLocale();
-	const { theme, resolvedTheme, setTheme } = useTheme();
 	const title = PAGE_TITLES[page][locale];
 
+	const lastUpdated = locale === "th" ? "แก้ไขล่าสุด: 7 มีนาคม 2568" : "Last updated: March 7, 2025";
+
 	return (
-		<div className="min-h-screen flex flex-col bg-white text-slate-900 dark:bg-[#041225] dark:text-slate-100">
-			<SiteNav appUrl={appUrl} theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
-			<main className="flex-1">
-				<div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-					{/* Breadcrumb */}
-					<nav
-						className="mb-3 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
-						aria-label="Breadcrumb"
-					>
-						<a href="/" className="transition-colors hover:text-slate-900 dark:hover:text-white">
-							{t("nav.home")}
-						</a>
-						<span aria-hidden="true">/</span>
-						<span className="text-slate-700 dark:text-slate-200">{title}</span>
-					</nav>
+		<>
+			<PageHero title={title} crumbs={[{ label: t("nav.home"), href: "/" }, { label: title }]} />
 
-					<h1 className="text-2xl sm:text-3xl font-bold text-slate-950 mb-1 dark:text-white">
-						{title}
-					</h1>
-					<p className="text-sm text-slate-500 mb-6 dark:text-slate-400">
-						{locale === "th" ? "แก้ไขล่าสุด: 7 มีนาคม 2568" : "Last updated: March 7, 2025"}
-					</p>
-
-					{/* Sidebar + content */}
-					<div className="flex flex-col gap-6 md:flex-row md:items-start">
-						<LegalSidebar page={page} />
-						<div className="min-w-0 flex-1 rounded-xl border border-sky-200 bg-white p-6 sm:p-8 shadow-xs dark:border-cyan-300/15 dark:bg-[#06172d]">
-							{CONTENT_MAP[page][locale]}
-						</div>
+			<section className="bg-white px-4 py-12 sm:px-6 dark:bg-[#041225]">
+				<div className="mx-auto flex max-w-[1180px] flex-col gap-6 md:flex-row md:items-start">
+					<LegalSidebar page={page} />
+					<div className="min-w-0 flex-1 rounded-xl border border-sky-200 bg-white p-6 sm:p-8 shadow-xs dark:border-cyan-300/15 dark:bg-[#06172d]">
+						<p className="mb-6 text-sm text-slate-500 dark:text-slate-400">{lastUpdated}</p>
+						{CONTENT_MAP[page][locale]}
 					</div>
 				</div>
-			</main>
-			<SiteFooter version={version} resolvedTheme={resolvedTheme} />
-		</div>
+			</section>
+		</>
 	);
 }
 
@@ -931,8 +908,8 @@ export interface LegalContentProps {
 
 export function LegalContent({ page, appUrl, version }: LegalContentProps) {
 	return (
-		<LocaleProvider>
-			<LegalInner page={page} appUrl={appUrl} version={version} />
-		</LocaleProvider>
+		<SiteShell appUrl={appUrl} version={version}>
+			<LegalBody page={page} />
+		</SiteShell>
 	);
 }

@@ -319,6 +319,121 @@ function LocaleSwitcher({ className }: { readonly className?: string }) {
 }
 
 // ---------------------------------------------------------------------------
+// SettingsMenu — language + theme merged into one dropdown (top bar, saves space)
+// ---------------------------------------------------------------------------
+
+function SettingsMenu({
+	theme,
+	setTheme,
+	className,
+}: {
+	readonly theme: Theme;
+	readonly setTheme: (theme: Theme) => void;
+	readonly className?: string;
+}) {
+	const { locale, setLocale, t } = useLocale();
+	const [open, setOpen] = useState(false);
+	const ref = useRef<HTMLDivElement>(null);
+	const current = LOCALE_OPTIONS.find((o) => o.value === locale) ?? LOCALE_OPTIONS[0];
+
+	useEffect(() => {
+		if (!open) return;
+		const onClickOutside = (e: MouseEvent) => {
+			if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+		};
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === "Escape") setOpen(false);
+		};
+		document.addEventListener("mousedown", onClickOutside);
+		document.addEventListener("keydown", onKey);
+		return () => {
+			document.removeEventListener("mousedown", onClickOutside);
+			document.removeEventListener("keydown", onKey);
+		};
+	}, [open]);
+
+	const itemClass =
+		"flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10";
+	const sectionLabel =
+		"px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500";
+
+	return (
+		<div ref={ref} className={cn("relative", className)}>
+			<button
+				type="button"
+				onClick={() => setOpen((v) => !v)}
+				aria-label={t("settings.label")}
+				aria-haspopup="menu"
+				aria-expanded={open}
+				className="flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 text-xs font-semibold text-slate-700 outline-hidden transition-colors hover:border-slate-400 hover:text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-cyan-300/25 dark:bg-[#071b33] dark:text-white dark:hover:border-cyan-300/50 dark:focus:border-cyan-300 dark:focus:ring-cyan-300/25"
+			>
+				<GlobeIcon />
+				{current.code}
+				<ChevronDownIcon />
+			</button>
+			{open && (
+				<div
+					role="menu"
+					className="absolute right-0 z-50 mt-2 min-w-40 overflow-hidden rounded-md border border-slate-200 bg-white py-1 shadow-lg dark:border-cyan-300/20 dark:bg-[#071b33]"
+				>
+					<p className={sectionLabel}>{t("locale.label")}</p>
+					<div role="radiogroup" aria-label={t("locale.label")}>
+						{LOCALE_OPTIONS.map((option) => (
+							<button
+								key={option.value}
+								type="button"
+								role="menuitemradio"
+								aria-checked={locale === option.value}
+								onClick={() => {
+									setLocale(option.value);
+									setOpen(false);
+								}}
+								className={cn(
+									itemClass,
+									locale === option.value && "text-blue-600 dark:text-cyan-300"
+								)}
+							>
+								<span className="flex h-4 w-7 shrink-0 items-center justify-center text-xs font-bold">
+									{option.code}
+								</span>
+								{option.label}
+							</button>
+						))}
+					</div>
+
+					<div className="my-1 border-t border-slate-200 dark:border-cyan-300/10" />
+
+					<p className={sectionLabel}>{t("theme.label")}</p>
+					<div role="radiogroup" aria-label={t("theme.label")}>
+						{THEME_OPTIONS.map((option) => (
+							<button
+								key={option.value}
+								type="button"
+								role="menuitemradio"
+								aria-checked={theme === option.value}
+								onClick={() => {
+									setTheme(option.value);
+									setOpen(false);
+								}}
+								className={cn(
+									itemClass,
+									theme === option.value && "text-blue-600 dark:text-cyan-300"
+								)}
+							>
+								<span className="flex h-4 w-7 shrink-0 items-center justify-center">
+									{option.icon}
+								</span>
+								{t(option.labelKey)}
+							</button>
+						))}
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
 // Primary nav model — routed multi-page IA (sitemap.md §4)
 // ---------------------------------------------------------------------------
 
@@ -343,10 +458,10 @@ type OpenMenu = null | "about" | "services";
 function ServicesMegaPanel() {
 	const { t } = useLocale();
 	return (
-		<div className="grid grid-cols-2 gap-x-12 gap-y-9 lg:grid-cols-4">
-			{SERVICE_GROUPS.map((group) => (
-				<div key={group.id} className="min-w-[12rem]">
-					<a href={groupHref(group)} className="group/col block">
+		<div className="grid grid-cols-2 gap-x-8 gap-y-8 xl:grid-cols-4">
+			{SERVICE_GROUPS.map((group) => {
+				const header = (
+					<>
 						<span className="flex min-h-[3rem] items-start gap-2 text-base font-bold leading-snug text-slate-900 transition-colors group-hover/col:text-blue-700 dark:text-white dark:group-hover/col:text-cyan-300">
 							<span>{t(group.labelKey)}</span>
 							{group.isFlagship && (
@@ -356,27 +471,38 @@ function ServicesMegaPanel() {
 							)}
 						</span>
 						<span className="mt-2.5 block border-b-2 border-blue-600 dark:border-cyan-300" />
-					</a>
-					{group.children ? (
-						<ul className="mt-5 space-y-3.5">
-							{group.children.map((child) => (
-								<li key={child.slug}>
-									<a
-										href={childHref(group, child)}
-										className="block text-sm leading-snug text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-300 dark:hover:text-cyan-300"
-									>
-										{t(child.labelKey)}
-									</a>
-								</li>
-							))}
-						</ul>
-					) : (
-						<p className="mt-5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-							{t(`${group.labelKey.replace(".title", ".sub")}`)}
-						</p>
-					)}
-				</div>
-			))}
+					</>
+				);
+
+				return (
+					<div key={group.id} className="min-w-[11rem]">
+						{group.children ? (
+							<>
+								<div className="block">{header}</div>
+								<ul className="mt-5 space-y-3.5">
+									{group.children.map((child) => (
+										<li key={child.slug}>
+											<a
+												href={childHref(group, child)}
+												className="block text-sm leading-snug text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-300 dark:hover:text-cyan-300"
+											>
+												{t(child.labelKey)}
+											</a>
+										</li>
+									))}
+								</ul>
+							</>
+						) : (
+							<a href={groupHref(group)} className="group/col block">
+								{header}
+								<span className="mt-5 block text-sm leading-relaxed text-slate-500 transition-colors group-hover/col:text-slate-600 dark:text-slate-400 dark:group-hover/col:text-slate-300">
+									{t(`${group.labelKey.replace(".title", ".sub")}`)}
+								</span>
+							</a>
+						)}
+					</div>
+				);
+			})}
 		</div>
 	);
 }
@@ -433,7 +559,7 @@ function MobileDrawer({
 	return (
 		<div className="border-t border-slate-200 bg-white shadow-lg dark:border-cyan-300/10 dark:bg-[#06172d] lg:hidden">
 			<nav
-				className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3"
+				className="mx-auto flex max-w-[1180px] flex-col gap-1 px-4 sm:px-6 py-3"
 				aria-label="Mobile navigation"
 			>
 				<a
@@ -490,18 +616,24 @@ function MobileDrawer({
 					<div className="ml-3 flex flex-col gap-1 border-l border-slate-200 pl-3 dark:border-cyan-300/15">
 						{SERVICE_GROUPS.map((group) => (
 							<div key={group.id}>
-								<a
-									href={groupHref(group)}
-									onClick={onClose}
-									className={cn(
-										"block rounded-md px-3 py-2 text-sm font-semibold",
-										group.isFlagship
-											? "text-cyan-700 dark:text-cyan-300"
-											: "text-slate-700 dark:text-slate-200"
-									)}
-								>
-									{t(group.labelKey)}
-								</a>
+								{group.children ? (
+									<span className="block px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+										{t(group.labelKey)}
+									</span>
+								) : (
+									<a
+										href={groupHref(group)}
+										onClick={onClose}
+										className={cn(
+											"block rounded-md px-3 py-2 text-sm font-semibold",
+											group.isFlagship
+												? "text-cyan-700 dark:text-cyan-300"
+												: "text-slate-700 dark:text-slate-200"
+										)}
+									>
+										{t(group.labelKey)}
+									</a>
+								)}
 								{group.children && (
 									<div className="ml-2 flex flex-col gap-0.5 border-l border-slate-200 pl-2 dark:border-cyan-300/15">
 										{group.children.map((child) => (
@@ -544,7 +676,7 @@ function MobileDrawer({
 						"mt-2 justify-center bg-blue-600 text-white hover:bg-blue-500"
 					)}
 				>
-					{t("nav.freeCheckCta")}
+					{t("nav.login")}
 				</a>
 
 				<div className="mt-3 flex items-center justify-between gap-3">
@@ -616,7 +748,7 @@ export function SiteNav({ appUrl, theme, setTheme, resolvedTheme }: SiteNavProps
 			)}
 		>
 			<div ref={navRef}>
-				<div className="mx-auto grid h-14 w-full max-w-[1536px] grid-cols-[auto_1fr_auto] items-center gap-x-4 px-4 sm:px-6 lg:px-8">
+				<div className="mx-auto grid h-14 w-full max-w-[1180px] grid-cols-[auto_1fr_auto] items-center gap-x-4 px-4 sm:px-6">
 					{/* Logo */}
 					<a
 						href="/"
@@ -666,7 +798,7 @@ export function SiteNav({ appUrl, theme, setTheme, resolvedTheme }: SiteNavProps
 								<ChevronDownIcon />
 							</button>
 							{openMenu === "services" && (
-								<div className="absolute left-1/2 top-full z-50 mt-3 w-[56rem] max-w-[calc(100vw-3rem)] -translate-x-1/2 rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_24px_60px_rgba(15,23,42,0.18)] dark:border-cyan-300/15 dark:bg-[#06172d]">
+								<div className="absolute left-1/2 top-full z-50 mt-3 w-[34rem] max-w-[calc(100vw-3rem)] -translate-x-1/2 rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_24px_60px_rgba(15,23,42,0.18)] xl:w-[58rem] dark:border-cyan-300/15 dark:bg-[#06172d]">
 									<ServicesMegaPanel />
 								</div>
 							)}
@@ -681,8 +813,7 @@ export function SiteNav({ appUrl, theme, setTheme, resolvedTheme }: SiteNavProps
 
 					{/* Right controls */}
 					<div className="col-start-3 flex shrink-0 items-center justify-end gap-2 justify-self-end">
-						<LocaleSwitcher className="hidden sm:block" />
-						<ThemeSwitcher theme={theme} setTheme={setTheme} className="hidden sm:block" />
+						<SettingsMenu theme={theme} setTheme={setTheme} className="hidden sm:block" />
 
 						<a
 							href={appUrl}
@@ -691,7 +822,7 @@ export function SiteNav({ appUrl, theme, setTheme, resolvedTheme }: SiteNavProps
 								"hidden rounded-md bg-blue-600 px-4 text-sm text-white shadow-[0_0_24px_rgba(37,99,235,0.35)] hover:bg-blue-500 lg:inline-flex xl:px-5"
 							)}
 						>
-							{t("nav.freeCheckCta")}
+							{t("nav.login")}
 						</a>
 
 						{/* Hamburger — below lg */}

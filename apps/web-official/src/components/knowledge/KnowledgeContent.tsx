@@ -1,8 +1,8 @@
-import { SiteNav } from "@/components/SiteNavBar";
-import { SiteFooter, useTheme } from "@/components/site/chrome";
+import { type Crumb, PageHero } from "@/components/site/PageHero";
+import { SiteShell } from "@/components/site/SiteShell";
 import { categoryColor } from "@/lib/categoryColors";
 import { formatArticleDate } from "@/lib/date";
-import { LocaleProvider, useLocale } from "@/lib/i18n";
+import { useLocale } from "@/lib/i18n";
 import {
 	KNOWLEDGE_CATEGORIES,
 	articleHref,
@@ -12,7 +12,7 @@ import {
 	knowledgeHref,
 	tagHref,
 } from "@/lib/knowledge";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 // ---------------------------------------------------------------------------
 // Serializable view models (passed from Astro frontmatter)
@@ -95,6 +95,24 @@ function ChevronIcon({ dir }: { readonly dir: "left" | "right" }) {
 			aria-hidden="true"
 		>
 			<path d={dir === "left" ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
+		</svg>
+	);
+}
+
+function ChevronDownIcon() {
+	return (
+		<svg
+			width="18"
+			height="18"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2.5"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			aria-hidden="true"
+		>
+			<path d="M6 9l6 6 6-6" />
 		</svg>
 	);
 }
@@ -182,11 +200,6 @@ function CardMeta({ article }: { readonly article: ArticleCard }) {
 // Small pieces
 // ---------------------------------------------------------------------------
 
-interface Crumb {
-	readonly label: string;
-	readonly href?: string;
-}
-
 function Breadcrumb({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
 	return (
 		<nav
@@ -223,32 +236,6 @@ function CategoryBadge({ slug }: { readonly slug: string }) {
 		>
 			{t(categoryLabelKey(slug))}
 		</a>
-	);
-}
-
-function Hero({
-	title,
-	subtitle,
-	crumbs,
-}: {
-	readonly title: string;
-	readonly subtitle?: string;
-	readonly crumbs: readonly Crumb[];
-}) {
-	return (
-		<section className="relative overflow-hidden border-b border-slate-200 bg-sky-50 dark:border-cyan-300/10 dark:bg-[#041225]">
-			<div className="relative mx-auto max-w-[1180px] px-4 py-14 sm:px-6 sm:py-16">
-				<Breadcrumb crumbs={crumbs} />
-				<h1 className="max-w-3xl text-3xl font-extrabold leading-tight text-slate-950 sm:text-4xl dark:text-white">
-					{title}
-				</h1>
-				{subtitle && (
-					<p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg dark:text-slate-300">
-						{subtitle}
-					</p>
-				)}
-			</div>
-		</section>
 	);
 }
 
@@ -645,6 +632,68 @@ function PaginatedGrid({
 // Sidebar
 // ---------------------------------------------------------------------------
 
+/** Tracks the lg breakpoint (1024px) so aria state matches the CSS-forced-open desktop layout. */
+function useIsDesktop() {
+	const [isDesktop, setIsDesktop] = useState(false);
+	useEffect(() => {
+		const mq = window.matchMedia("(min-width: 1024px)");
+		const update = () => setIsDesktop(mq.matches);
+		update();
+		mq.addEventListener("change", update);
+		return () => mq.removeEventListener("change", update);
+	}, []);
+	return isDesktop;
+}
+
+/**
+ * Sidebar card whose body collapses on mobile via a header toggle.
+ * On lg+ it is permanently expanded (CSS `lg:block`), so desktop never flashes
+ * and needs no JS; the toggle is disabled and the chevron hidden there.
+ */
+function SidebarCard({
+	title,
+	icon,
+	defaultOpen = true,
+	children,
+}: {
+	readonly title: string;
+	readonly icon?: React.ReactNode;
+	readonly defaultOpen?: boolean;
+	readonly children: React.ReactNode;
+}) {
+	const isDesktop = useIsDesktop();
+	const [openMobile, setOpenMobile] = useState(defaultOpen);
+	const contentId = useId();
+	const expanded = isDesktop || openMobile;
+	const bodyVisibility = openMobile ? "block" : "hidden";
+
+	return (
+		<div className="rounded-2xl border border-sky-200 bg-white p-5 shadow-xs dark:border-cyan-300/15 dark:bg-[#071b33]">
+			<button
+				type="button"
+				onClick={() => setOpenMobile((v) => !v)}
+				aria-expanded={expanded}
+				aria-controls={contentId}
+				className="flex w-full items-center justify-between gap-2 text-left lg:pointer-events-none"
+			>
+				<h2 className="flex items-center gap-2 text-lg font-extrabold text-slate-950 dark:text-white">
+					{icon}
+					{title}
+				</h2>
+				<span
+					className={`shrink-0 text-slate-400 transition-transform lg:hidden ${openMobile ? "rotate-180" : ""}`}
+					aria-hidden="true"
+				>
+					<ChevronDownIcon />
+				</span>
+			</button>
+			<div id={contentId} className={`mt-4 ${bodyVisibility} lg:block`}>
+				{children}
+			</div>
+		</div>
+	);
+}
+
 function Sidebar({
 	facets,
 	activeSlug,
@@ -667,10 +716,7 @@ function Sidebar({
 
 	return (
 		<aside className="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start">
-			<div className="rounded-2xl border border-sky-200 bg-white p-5 shadow-xs dark:border-cyan-300/15 dark:bg-[#071b33]">
-				<h2 className="mb-4 text-lg font-extrabold text-slate-950 dark:text-white">
-					{t("knowledge.categoriesTitle")}
-				</h2>
+			<SidebarCard title={t("knowledge.categoriesTitle")}>
 				<nav aria-label={t("knowledge.browseByCategory")} className="flex flex-col gap-1">
 					<a
 						href={knowledgeHref()}
@@ -711,16 +757,18 @@ function Sidebar({
 						);
 					})}
 				</nav>
-			</div>
+			</SidebarCard>
 
 			{facets.tags.length > 0 && (
-				<div className="rounded-2xl border border-sky-200 bg-white p-5 shadow-xs dark:border-cyan-300/15 dark:bg-[#071b33]">
-					<h2 className="mb-4 flex items-center gap-2 text-lg font-extrabold text-slate-950 dark:text-white">
+				<SidebarCard
+					title={t("knowledge.popularTags")}
+					defaultOpen={false}
+					icon={
 						<span className="text-primary dark:text-cyan-300">
 							<TagIcon />
 						</span>
-						{t("knowledge.popularTags")}
-					</h2>
+					}
+				>
 					<div className="flex flex-wrap gap-2">
 						{facets.tags.map(({ tag, count }) => {
 							const isActive = tag === activeTag;
@@ -741,7 +789,7 @@ function Sidebar({
 							);
 						})}
 					</div>
-				</div>
+				</SidebarCard>
 			)}
 		</aside>
 	);
@@ -764,8 +812,8 @@ function KnowledgeLayout({
 	readonly children: React.ReactNode;
 }) {
 	return (
-		<section className="bg-white py-10 dark:bg-[#041225]">
-			<div className="mx-auto grid max-w-[1180px] gap-8 px-4 sm:px-6 lg:grid-cols-[300px_1fr]">
+		<section className="bg-white py-12 dark:bg-[#041225]">
+			<div className="mx-auto grid max-w-[1180px] grid-cols-1 gap-8 px-4 sm:px-6 lg:grid-cols-[300px_minmax(0,1fr)]">
 				<Sidebar facets={facets} activeSlug={activeSlug} activeTag={activeTag} />
 				<div>{children}</div>
 			</div>
@@ -786,7 +834,7 @@ function HubBody({
 	const rest = articles.filter((article) => !pinnedSlugs.has(article.slug));
 	return (
 		<>
-			<Hero title={t("knowledge.title")} subtitle={t("knowledge.subtitle")} crumbs={crumbs} />
+			<PageHero title={t("knowledge.title")} subtitle={t("knowledge.subtitle")} crumbs={crumbs} />
 			<KnowledgeLayout facets={facets}>
 				<FeaturedSection articles={articles} />
 				<h2 className="mb-6 text-2xl font-extrabold text-slate-950 dark:text-white">
@@ -816,7 +864,7 @@ function CategoryBody({
 	];
 	return (
 		<>
-			<Hero title={label} crumbs={crumbs} />
+			<PageHero title={label} crumbs={crumbs} />
 			<KnowledgeLayout facets={facets} activeSlug={categorySlug}>
 				<h2 className="mb-6 text-2xl font-extrabold text-slate-950 dark:text-white">
 					{t("knowledge.articlesInCategory")}
@@ -844,7 +892,7 @@ function TagBody({
 	];
 	return (
 		<>
-			<Hero title={`#${tag}`} subtitle={t("knowledge.taggedWith")} crumbs={crumbs} />
+			<PageHero title={`#${tag}`} subtitle={t("knowledge.taggedWith")} crumbs={crumbs} />
 			<KnowledgeLayout facets={facets} activeTag={tag}>
 				<h2 className="mb-6 text-2xl font-extrabold text-slate-950 dark:text-white">
 					{t("knowledge.taggedWith")} #{tag}
@@ -871,12 +919,12 @@ function ArticleBody({ article }: { readonly article: ArticleDetailData }) {
 	return (
 		<>
 			<section className="border-b border-slate-200 bg-sky-50 dark:border-cyan-300/10 dark:bg-[#041225]">
-				<div className="mx-auto max-w-[820px] px-4 py-12 sm:px-6 sm:py-14">
+				<div className="mx-auto max-w-[1180px] px-4 py-6 sm:px-6 sm:py-8">
 					<Breadcrumb crumbs={crumbs} />
 					<div className="mb-4">
 						<CategoryBadge slug={article.category} />
 					</div>
-					<h1 className="text-3xl font-extrabold leading-tight text-slate-950 sm:text-4xl dark:text-white">
+					<h1 className="max-w-3xl text-3xl font-extrabold leading-tight text-slate-950 sm:text-4xl dark:text-white">
 						{article.title}
 					</h1>
 					<p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
@@ -901,15 +949,15 @@ function ArticleBody({ article }: { readonly article: ArticleDetailData }) {
 			</section>
 
 			{article.featuredImage && (
-				<div className="mx-auto max-w-[900px] px-4 pt-10 sm:px-6">
-					<div className="aspect-[16/9] overflow-hidden rounded-2xl border border-sky-200 dark:border-cyan-300/15">
+				<div className="mx-auto max-w-[1180px] px-4 pt-12 sm:px-6">
+					<div className="aspect-[21/9] overflow-hidden rounded-2xl border border-sky-200 dark:border-cyan-300/15">
 						<CoverImage src={article.featuredImage} alt={article.title} />
 					</div>
 				</div>
 			)}
 
 			<section className="bg-white py-12 dark:bg-[#041225]">
-				<div className="mx-auto max-w-[820px] px-4 sm:px-6">
+				<div className="mx-auto max-w-[1180px] px-4 sm:px-6">
 					<div
 						className="prose-knowledge text-base leading-relaxed text-slate-700 dark:text-slate-200"
 						// biome-ignore lint/security/noDangerouslySetInnerHtml: build-time sanitized HTML from lexicalToHtml (trusted CMS authors, fixed tag whitelist).
@@ -933,44 +981,34 @@ function ArticleBody({ article }: { readonly article: ArticleDetailData }) {
 // Inner + root
 // ---------------------------------------------------------------------------
 
-function KnowledgeInner({
+// KnowledgeBody — rendered inside SiteShell's LocaleProvider
+function KnowledgeBody({
 	mode,
-	appUrl,
-	version,
 	articles,
 	categorySlug,
 	activeTag,
 	article,
 	facets,
-}: KnowledgeContentProps) {
-	const { theme, resolvedTheme, setTheme } = useTheme();
+}: Omit<KnowledgeContentProps, "appUrl" | "version">) {
 	const resolvedFacets = facets ?? EMPTY_FACETS;
 	const list = articles ?? [];
 
-	let body: React.ReactNode = null;
 	if (mode === "article" && article) {
-		body = <ArticleBody article={article} />;
-	} else if (mode === "tag" && activeTag) {
-		body = <TagBody tag={activeTag} articles={list} facets={resolvedFacets} />;
-	} else if (mode === "category" && categorySlug && getCategoryBySlug(categorySlug)) {
-		body = <CategoryBody categorySlug={categorySlug} articles={list} facets={resolvedFacets} />;
-	} else {
-		body = <HubBody articles={list} facets={resolvedFacets} />;
+		return <ArticleBody article={article} />;
 	}
-
-	return (
-		<div className="min-h-screen flex flex-col bg-white text-slate-900 dark:bg-[#041225] dark:text-slate-100">
-			<SiteNav appUrl={appUrl} theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
-			<main className="flex-1">{body}</main>
-			<SiteFooter version={version} resolvedTheme={resolvedTheme} />
-		</div>
-	);
+	if (mode === "tag" && activeTag) {
+		return <TagBody tag={activeTag} articles={list} facets={resolvedFacets} />;
+	}
+	if (mode === "category" && categorySlug && getCategoryBySlug(categorySlug)) {
+		return <CategoryBody categorySlug={categorySlug} articles={list} facets={resolvedFacets} />;
+	}
+	return <HubBody articles={list} facets={resolvedFacets} />;
 }
 
-export function KnowledgeContent(props: KnowledgeContentProps) {
+export function KnowledgeContent({ appUrl, version, ...bodyProps }: KnowledgeContentProps) {
 	return (
-		<LocaleProvider>
-			<KnowledgeInner {...props} />
-		</LocaleProvider>
+		<SiteShell appUrl={appUrl} version={version}>
+			<KnowledgeBody {...bodyProps} />
+		</SiteShell>
 	);
 }

@@ -114,7 +114,7 @@ export function TrustBarSection() {
 					{items.map((item) => (
 						<div
 							key={item.titleKey}
-							className="flex items-center gap-4 px-5 py-4 first:pl-0 last:pr-0"
+							className="flex items-center gap-4 py-4 sm:px-5 sm:first:pl-0 sm:last:pr-0"
 						>
 							<div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-sky-200 bg-sky-50 dark:border-cyan-300/30 dark:bg-cyan-300/10">
 								{item.icon}

@@ -1,7 +1,7 @@
 "use client";
 
 import { type Locale, useLocale } from "@/lib/i18n";
-import { type ResolvedTheme, type Theme } from "@/lib/theme";
+import type { ResolvedTheme, Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import fsDarkLogo from "@shared/brand/fs-dark.png";
 import fsLightLogo from "@shared/brand/fs-light.png";
@@ -326,7 +326,7 @@ export function SiteFooter({
 					<LogoIcon theme={resolvedTheme} />
 					<div>
 						<p className="text-sm font-semibold text-slate-900 dark:text-white">
-							FactorySync Solutions Co., Ltd.
+							{t("footer.companyName")}
 						</p>
 						<p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{t("footer.desc")}</p>
 					</div>

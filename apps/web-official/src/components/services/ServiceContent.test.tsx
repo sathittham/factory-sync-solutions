@@ -52,9 +52,9 @@ describe("ServiceContent — flagship detail", () => {
 	});
 });
 
-describe("ServiceContent — placeholder detail", () => {
-	it("shows the coming-soon notice for an unauthored nested service", () => {
-		const { container, getByText } = render(
+describe("ServiceContent — draft detail", () => {
+	it("renders draft copy with a draft banner for a mockup nested service", () => {
+		const { container, getByText, queryByText } = render(
 			<ServiceContent
 				groupSlug="government-supported"
 				childSlug="in-house-training"
@@ -62,8 +62,13 @@ describe("ServiceContent — placeholder detail", () => {
 				version={VERSION}
 			/>
 		);
-		expect(getByText("รายละเอียดบริการเร็วๆ นี้")).toBeTruthy();
-		// placeholder pages route the CTA to contact, never to the app
+		// draft pages render the full detail body (overview), not the coming-soon notice
+		expect(getByText("ภาพรวมบริการ")).toBeTruthy();
+		expect(queryByText("รายละเอียดบริการเร็วๆ นี้")).toBeNull();
+		// and a clearly-marked draft banner
+		expect(getByText(/ตัวอย่างเนื้อหา \(ฉบับร่าง\)/)).toBeTruthy();
+
+		// non-flagship pages route the CTA to contact
 		const hrefs = Array.from(container.querySelectorAll("a")).map((a) => a.getAttribute("href"));
 		expect(hrefs).toContain("/contact");
 
