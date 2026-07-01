@@ -210,6 +210,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_WORKERS_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: deploy --config infra/cloudflare/workers/api-gateway/wrangler.toml --env production
 
   deploy-frontend:
@@ -254,6 +255,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: pages deploy apps/web-app/dist --project-name=factory-sync-solutions --branch=main
 
   deploy-official:
@@ -302,6 +304,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: pages deploy apps/web-official/dist --project-name=factory-sync-solutions-official --branch=main
 
   deploy-backoffice:
@@ -342,6 +345,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: pages deploy apps/web-backoffice/dist --project-name=factory-sync-backoffice --branch=main
 
   deploy-cms:

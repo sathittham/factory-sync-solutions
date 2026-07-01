@@ -209,6 +209,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_WORKERS_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: deploy --config infra/cloudflare/workers/api-gateway/wrangler.toml --env staging
 
   deploy-frontend:
@@ -253,6 +254,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: pages deploy apps/web-app/dist --project-name=factory-sync-solutions-staging --branch=staging
 
   deploy-official:
@@ -302,6 +304,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: pages deploy apps/web-official/dist --project-name=factory-sync-solutions-official-staging --branch=staging
 
   deploy-backoffice:
@@ -342,6 +345,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: pages deploy apps/web-backoffice/dist --project-name=factory-sync-backoffice-staging --branch=staging
 
   deploy-cms:
