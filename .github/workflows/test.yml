@@ -14,6 +14,7 @@ jobs:
     outputs:
       api: ${{ steps.filter.outputs.api }}
       web: ${{ steps.filter.outputs.web }}
+      official: ${{ steps.filter.outputs.official }}
       gateway: ${{ steps.filter.outputs.gateway }}
       cms: ${{ steps.filter.outputs.cms }}
     steps:
@@ -32,6 +33,12 @@ jobs:
               - 'packages/shared/**'
               - 'pnpm-lock.yaml'
               - 'turbo.json'
+            official:
+              - 'apps/web-official/**'
+              - 'packages/shared/**'
+              - 'pnpm-lock.yaml'
+              - 'turbo.json'
+              - '.github/workflows/test.yml'
             gateway:
               - 'infra/cloudflare/workers/api-gateway/**'
               - '.github/workflows/test.yml'
@@ -96,6 +103,30 @@ jobs:
 
       - name: Type check, test, and build (web-app)
         run: pnpm turbo run type-check test build --filter=@repo/web-app
+
+  official:
+    name: Official Site Tests
+    needs: changes
+    if: needs.changes.outputs.official == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # web-official has no type-check script; `astro build` is the compile-time
+      # check. Runs without secrets — PUBLIC_* vars fall back at build time.
+      - name: Lint, test, and build (web-official)
+        run: pnpm turbo run lint test build --filter=@repo/web-official
 
   api-gateway:
     name: API Gateway Tests
