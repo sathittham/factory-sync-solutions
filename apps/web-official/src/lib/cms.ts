@@ -48,7 +48,16 @@ export interface KnowledgeFacets {
 const COLLECTION_PATH = "/api/blog-posts";
 const PAGE_SIZE = 100;
 const MAX_PAGES = 50; // hard stop so a misbehaving API can't loop the build forever
-const FETCH_TIMEOUT_MS = 10_000;
+// A cold Cloudflare Worker + D1 can be slow to first byte from a CI runner, so the
+// timeout is generous and transient failures are retried (the first attempt warms
+// the worker). Undersized values here silently shipped an empty Knowledge Hub.
+const FETCH_TIMEOUT_MS = 25_000;
+const MAX_ATTEMPTS = 3;
+const RETRY_BASE_DELAY_MS = 300;
+
+function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 /** Normalised CMS base URL (no trailing slash), or "" when unconfigured. */
 export function getCmsBaseUrl(): string {
@@ -165,24 +174,38 @@ interface ListEnvelope {
 
 async function fetchPage(base: string, page: number): Promise<ListEnvelope | null> {
 	const url = `${base}${COLLECTION_PATH}?limit=${PAGE_SIZE}&page=${page}`;
-	const controller = new AbortController();
-	const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-	try {
-		const res = await fetch(url, {
-			headers: { accept: "application/json" },
-			signal: controller.signal,
-		});
-		if (!res.ok) {
-			console.warn(`[cms] ${url} → HTTP ${res.status}; skipping`);
-			return null;
+	for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+		const last = attempt === MAX_ATTEMPTS;
+		const controller = new AbortController();
+		const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+		try {
+			const res = await fetch(url, {
+				headers: { accept: "application/json" },
+				signal: controller.signal,
+			});
+			if (res.ok) return (await res.json()) as ListEnvelope;
+			// 4xx is a permanent client error (bad request / not found) — don't retry.
+			// 5xx is transient (cold start, worker restart) — retry until the last attempt.
+			if (res.status < 500 || last) {
+				console.warn(`[cms] ${url} → HTTP ${res.status}; giving up after ${attempt} attempt(s)`);
+				return null;
+			}
+			console.warn(`[cms] ${url} → HTTP ${res.status}; retrying (${attempt}/${MAX_ATTEMPTS})`);
+		} catch (error) {
+			const message = (error as Error).message;
+			if (last) {
+				console.warn(`[cms] fetch failed for ${url} after ${attempt} attempt(s): ${message}`);
+				return null;
+			}
+			console.warn(
+				`[cms] fetch failed for ${url} (attempt ${attempt}/${MAX_ATTEMPTS}): ${message}; retrying`
+			);
+		} finally {
+			clearTimeout(timer);
 		}
-		return (await res.json()) as ListEnvelope;
-	} catch (error) {
-		console.warn(`[cms] fetch failed for ${url}: ${(error as Error).message}`);
-		return null;
-	} finally {
-		clearTimeout(timer);
+		await sleep(RETRY_BASE_DELAY_MS * attempt);
 	}
+	return null;
 }
 
 /** Turn one envelope's rows into published, normalised articles. */
