@@ -189,7 +189,7 @@ jobs:
             --concurrency=1 \
             --cpu=1 \
             --memory=512Mi \
-            --set-env-vars="^@^ENVIRONMENT=staging@RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}@SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }}@SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }}@DOMAIN_EVENT_SUBSCRIPTION=${{ vars.DOMAIN_EVENT_SUBSCRIPTION }}@DOMAIN_EVENT_INBOX_COLLECTION=${{ vars.DOMAIN_EVENT_INBOX_COLLECTION }}@DOMAIN_EVENT_INBOX_LEASE=${{ vars.DOMAIN_EVENT_INBOX_LEASE }}@DOMAIN_EVENT_MAX_ATTEMPTS=${{ vars.DOMAIN_EVENT_MAX_ATTEMPTS }}@DOMAIN_EVENT_DLQ_PROJECT_ID=${{ vars.DOMAIN_EVENT_DLQ_PROJECT_ID }}@DOMAIN_EVENT_PUBSUB_DLQ_TOPIC=${{ vars.DOMAIN_EVENT_PUBSUB_DLQ_TOPIC }}@DOMAIN_EVENT_SUBSCRIPTION_GOROUTINES=${{ vars.DOMAIN_EVENT_SUBSCRIPTION_GOROUTINES }}@DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_MESSAGES=${{ vars.DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_MESSAGES }}@DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_BYTES=${{ vars.DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_BYTES }}"
+            --set-env-vars="^@^ENVIRONMENT=staging@GCP_PROJECT_ID=${{ env.GCP_PROJECT_ID }}@RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}@SLACK_WEBHOOK_REGISTRATION=${{ secrets.SLACK_WEBHOOK_REGISTRATION }}@SLACK_WEBHOOK_QUIZ_RESULT=${{ secrets.SLACK_WEBHOOK_QUIZ_RESULT }}@DOMAIN_EVENT_SUBSCRIPTION=${{ vars.DOMAIN_EVENT_SUBSCRIPTION || 'factory-sync-domain-events-result-consumer' }}@DOMAIN_EVENT_INBOX_COLLECTION=${{ vars.DOMAIN_EVENT_INBOX_COLLECTION || 'domain_event_inbox' }}@DOMAIN_EVENT_INBOX_LEASE=${{ vars.DOMAIN_EVENT_INBOX_LEASE || '5m' }}@DOMAIN_EVENT_MAX_ATTEMPTS=${{ vars.DOMAIN_EVENT_MAX_ATTEMPTS || '5' }}@DOMAIN_EVENT_DLQ_PROJECT_ID=${{ vars.DOMAIN_EVENT_DLQ_PROJECT_ID }}@DOMAIN_EVENT_PUBSUB_DLQ_TOPIC=${{ vars.DOMAIN_EVENT_PUBSUB_DLQ_TOPIC || 'factory-sync-domain-events-dlq' }}@DOMAIN_EVENT_SUBSCRIPTION_GOROUTINES=${{ vars.DOMAIN_EVENT_SUBSCRIPTION_GOROUTINES || '2' }}@DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_MESSAGES=${{ vars.DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_MESSAGES || '200' }}@DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_BYTES=${{ vars.DOMAIN_EVENT_SUBSCRIPTION_MAX_OUTSTANDING_BYTES || '0' }}"
 
   deploy-api-gateway:
     name: Deploy API Gateway to Staging
@@ -209,6 +209,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_WORKERS_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: deploy --config infra/cloudflare/workers/api-gateway/wrangler.toml --env staging
 
   deploy-frontend:
@@ -253,6 +254,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: pages deploy apps/web-app/dist --project-name=factory-sync-solutions-staging --branch=staging
 
   deploy-official:
@@ -302,6 +304,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: pages deploy apps/web-official/dist --project-name=factory-sync-solutions-official-staging --branch=staging
 
   deploy-backoffice:
@@ -342,6 +345,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: pages deploy apps/web-backoffice/dist --project-name=factory-sync-backoffice-staging --branch=staging
 
   deploy-cms:
