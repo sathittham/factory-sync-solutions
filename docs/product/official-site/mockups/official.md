@@ -191,6 +191,34 @@ flagship `/services/factory-health-check` uses the same template with marketing 
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
+### 6c. Seed content — mockup articles
+
+Populated state (6a) is backed by **20 seeded `blog_post` records** — the 8 flagship
+articles below (one per category) plus 12 shorter "filler" articles for breadth, so
+pagination, the pinned featured carousel (3 pinned), and category/tag filtering all
+have real data. Each is authored bilingually in a single document (Thai section +
+`— English version —` divider + English section) to match the locale-blind build-time
+fetch in `apps/web-official/src/lib/cms.ts`. Records also carry `featuredImage` (Lorem
+Picsum, per-slug), comma-separated `tags`, and `isPinned`. Source of truth + seeders:
+`apps/web-cms/scripts/knowledge-articles.mjs` (shared data),
+`seed-knowledge.ts` (`pnpm --filter @repo/web-cms seed:knowledge`, local) and
+`seed-knowledge-remote.mjs` (`seed:knowledge:staging` / `:prod`).
+
+| # | Category (slug) | Slug | TH / EN working title |
+|---|-----------------|------|-----------------------|
+| 1 | `law-licensing` | `factory-license-ror-ngor-4-basics` | ใบอนุญาต รง.4 ก่อนเปิดโรงงาน / Factory Licence (Ror.Ngor.4) starter guide |
+| 2 | `factory-safety` | `five-common-factory-hazards` | 5 จุดเสี่ยงที่แก้ได้ทันที / 5 common factory hazards |
+| 3 | `digital-factory` | `starting-a-digital-factory-on-a-budget` | เริ่ม Digital Factory ด้วยงบจำกัด / Digital factory on a budget |
+| 4 | `machinery-automation` | `when-does-automation-pay-off` | ลงทุนอัตโนมัติเมื่อไหร่คุ้ม / When does automation pay off |
+| 5 | `environment` | `meeting-wastewater-standards` | น้ำเสียให้ผ่านมาตรฐาน / Meeting wastewater standards |
+| 6 | `lean-kaizen` | `your-first-kaizen-start-with-5s` | เริ่ม Kaizen ด้วย 5ส / First Kaizen with 5S |
+| 7 | `digital-marketing` | `b2b-factory-lead-generation-online` | โรงงาน B2B หาลูกค้าออนไลน์ / B2B online lead generation |
+| 8 | `gov-benefits` | `boi-incentives-and-grants-for-sme-factories` | สิทธิประโยชน์ BOI & เงินสนับสนุน / BOI incentives & grants |
+
+> Mockup copy only — legal/numeric claims are kept general with a "verify with the
+> authority" line; not vetted regulatory guidance. Replace with marketing-owned
+> articles before launch.
+
 ---
 
 ## 7. `/contact` — Contact page
@@ -211,5 +239,5 @@ flagship `/services/factory-health-check` uses the same template with marketing 
 
 ---
 
-*Version: 0.1.0*
-*Last updated: 30 June 2026*
+*Version: 0.2.0*
+*Last updated: 1 July 2026*

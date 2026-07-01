@@ -314,6 +314,19 @@ function DetailBody({
 
 	return (
 		<>
+			{body.poster && (
+				<section className="bg-white pt-12 dark:bg-[#041225]">
+					<div className="mx-auto max-w-[820px] px-4 sm:px-6">
+						<img
+							src={body.poster.src}
+							alt={body.poster.alt}
+							loading="lazy"
+							className="mx-auto w-full rounded-md border border-sky-200 shadow-sm dark:border-cyan-300/15"
+						/>
+					</div>
+				</section>
+			)}
+
 			<section className="bg-white py-12 dark:bg-[#041225]">
 				<div className="mx-auto max-w-[820px] px-4 sm:px-6">
 					<h2 className="mb-3 text-2xl font-extrabold text-slate-950 dark:text-white">
@@ -347,6 +360,29 @@ function DetailBody({
 					</div>
 				</div>
 			</section>
+
+			{body.virtualTour && (
+				<section className="bg-white py-12 dark:bg-[#041225]">
+					<div className="mx-auto max-w-[1180px] px-4 sm:px-6">
+						<h2 className="mb-3 text-2xl font-extrabold text-slate-950 dark:text-white">
+							{body.virtualTour.title}
+						</h2>
+						<p className="mb-6 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-300">
+							{body.virtualTour.caption}
+						</p>
+						<div className="aspect-video w-full overflow-hidden rounded-md border border-sky-200 shadow-sm dark:border-cyan-300/15">
+							<iframe
+								src={body.virtualTour.embedUrl}
+								title={body.virtualTour.title}
+								className="h-full w-full"
+								allow="xr-spatial-tracking; fullscreen; accelerometer; gyroscope"
+								allowFullScreen
+								loading="lazy"
+							/>
+						</div>
+					</div>
+				</section>
+			)}
 
 			<section className="bg-white py-12 dark:bg-[#041225]">
 				<div className="mx-auto max-w-[1180px] px-4 sm:px-6">

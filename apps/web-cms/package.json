@@ -21,8 +21,11 @@
     "update": "npm install @sonicjs-cms/core@latest --save",
     "update:beta": "npm install @sonicjs-cms/core@beta --save",
     "seed": "tsx scripts/seed-admin.ts",
+    "seed:knowledge": "tsx scripts/seed-knowledge.ts",
     "seed:staging": "node scripts/seed-admin-remote.mjs staging",
     "seed:prod": "node scripts/seed-admin-remote.mjs production",
+    "seed:knowledge:staging": "node scripts/seed-knowledge-remote.mjs staging",
+    "seed:knowledge:prod": "node scripts/seed-knowledge-remote.mjs production",
     "cf:setup:staging": "bash scripts/setup-cloudflare.sh staging",
     "cf:setup:prod": "bash scripts/setup-cloudflare.sh production"
   },

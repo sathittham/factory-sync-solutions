@@ -1,0 +1,69 @@
+---
+import { KnowledgeContent } from "../../components/knowledge/KnowledgeContent";
+import Layout from "../../layouts/Layout.astro";
+import { getArticles } from "../../lib/cms";
+import { translate } from "../../lib/i18n";
+import { categoryLabelKey } from "../../lib/knowledge";
+import { lexicalToHtml, parseLexical } from "../../lib/lexical";
+
+export async function getStaticPaths() {
+	const articles = await getArticles();
+	return articles.map((article) => ({
+		params: { slug: article.slug },
+		props: {
+			article: {
+				slug: article.slug,
+				title: article.title,
+				category: article.category,
+				excerpt: article.excerpt,
+				featuredImage: article.featuredImage,
+				tags: article.tags,
+				isPinned: article.isPinned,
+				readingMinutes: article.readingMinutes,
+				publishedAt: article.publishedAt,
+				author: article.author,
+				htmlContent: lexicalToHtml(parseLexical(article.content)),
+			},
+		},
+	}));
+}
+
+const { article } = Astro.props;
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
+
+const pageTitle = `${article.title} — FactorySync Solutions`;
+const description = article.excerpt || translate("knowledge.metaDescription", "th");
+const articleUrl = `https://www.factorysyncsolutions.com/knowledge/${article.slug}`;
+
+const blogLd = {
+	"@context": "https://schema.org",
+	"@type": "BlogPosting",
+	headline: article.title,
+	description,
+	url: articleUrl,
+	mainEntityOfPage: articleUrl,
+	...(article.featuredImage ? { image: article.featuredImage } : {}),
+	...(article.publishedAt ? { datePublished: article.publishedAt } : {}),
+	...(article.author ? { author: { "@type": "Person", name: article.author } } : {}),
+	...(article.category
+		? { articleSection: translate(categoryLabelKey(article.category), "en") }
+		: {}),
+	publisher: { "@id": "https://www.factorysyncsolutions.com/#organization" },
+	inLanguage: "th-TH",
+};
+---
+
+<Layout title={pageTitle} description={description}>
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(blogLd).replace(/</g, "\\u003c")} />
+  </Fragment>
+  <KnowledgeContent
+    client:load
+    mode="article"
+    appUrl={appUrl}
+    version={version}
+    article={article}
+  />
+</Layout>

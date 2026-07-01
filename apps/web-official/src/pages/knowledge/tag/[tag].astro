@@ -1,0 +1,52 @@
+---
+import { KnowledgeContent } from "../../../components/knowledge/KnowledgeContent";
+import Layout from "../../../layouts/Layout.astro";
+import { getArticles, getKnowledgeFacets } from "../../../lib/cms";
+import { translate } from "../../../lib/i18n";
+
+export async function getStaticPaths() {
+	const facets = await getKnowledgeFacets();
+	// One page per unique tag. Pass the raw tag as the param — Astro URL-encodes the
+	// output path itself; our tagHref() uses encodeURIComponent to match it.
+	return facets.tags.map(({ tag }) => ({
+		params: { tag },
+		props: { tag },
+	}));
+}
+
+const { tag } = Astro.props;
+
+const articles = (await getArticles())
+	.filter((article) => article.tags.includes(tag))
+	.map((article) => ({
+		slug: article.slug,
+		title: article.title,
+		category: article.category,
+		excerpt: article.excerpt,
+		featuredImage: article.featuredImage,
+		tags: article.tags,
+		isPinned: article.isPinned,
+		readingMinutes: article.readingMinutes,
+		publishedAt: article.publishedAt,
+	}));
+
+const facets = await getKnowledgeFacets();
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
+
+const pageTitle = `#${tag} — ${translate("knowledge.title", "th")} — FactorySync Solutions`;
+const description = `${translate("knowledge.taggedWith", "th")} #${tag}`;
+---
+
+<Layout title={pageTitle} description={description}>
+  <KnowledgeContent
+    client:load
+    mode="tag"
+    appUrl={appUrl}
+    version={version}
+    activeTag={tag}
+    articles={articles}
+    facets={facets}
+  />
+</Layout>

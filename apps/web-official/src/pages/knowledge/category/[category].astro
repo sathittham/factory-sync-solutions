@@ -1,0 +1,48 @@
+---
+import { KnowledgeContent } from "../../../components/knowledge/KnowledgeContent";
+import Layout from "../../../layouts/Layout.astro";
+import { getArticlesByCategory, getKnowledgeFacets } from "../../../lib/cms";
+import { translate } from "../../../lib/i18n";
+import { categoryLabelKey, categoryParams } from "../../../lib/knowledge";
+
+export function getStaticPaths() {
+	return categoryParams().map(({ category }) => ({ params: { category } }));
+}
+
+// categorySlug is always one of the 8 valid slugs — getStaticPaths only emits those.
+const categorySlug = Astro.params.category as string;
+
+const articles = (await getArticlesByCategory(categorySlug)).map((article) => ({
+	slug: article.slug,
+	title: article.title,
+	category: article.category,
+	excerpt: article.excerpt,
+	featuredImage: article.featuredImage,
+	tags: article.tags,
+	isPinned: article.isPinned,
+	readingMinutes: article.readingMinutes,
+	publishedAt: article.publishedAt,
+}));
+
+// Facets span ALL articles (sidebar counts), not just this category's.
+const facets = await getKnowledgeFacets();
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
+
+const labelTh = translate(categoryLabelKey(categorySlug), "th");
+const pageTitle = `${labelTh} — ${translate("knowledge.title", "th")} — FactorySync Solutions`;
+const description = `${translate("knowledge.subtitle", "th")} (${labelTh})`;
+---
+
+<Layout title={pageTitle} description={description}>
+  <KnowledgeContent
+    client:load
+    mode="category"
+    appUrl={appUrl}
+    version={version}
+    categorySlug={categorySlug}
+    articles={articles}
+    facets={facets}
+  />
+</Layout>

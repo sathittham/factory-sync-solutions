@@ -17,6 +17,14 @@ export interface ServiceBody {
 	readonly features: readonly string[];
 	readonly processTitle: string;
 	readonly process: ReadonlyArray<{ step: string; detail: string }>;
+	/** Optional marketing poster shown at the top of the detail body. */
+	readonly poster?: { readonly src: string; readonly alt: string };
+	/** Optional embedded 360° virtual tour (e.g. Matterport). */
+	readonly virtualTour?: {
+		readonly title: string;
+		readonly caption: string;
+		readonly embedUrl: string;
+	};
 }
 
 export interface ServiceBodyI18n {
@@ -63,6 +71,69 @@ const SERVICE_BODIES: Record<string, ServiceBodyI18n> = {
 				{ step: "Analysis", detail: "AI analyses the data, reviewed by a licensed engineer" },
 				{ step: "Receive report", detail: "An in-depth report with a practical improvement plan" },
 			],
+		},
+	},
+	"government-supported:digital-factory-layout-360": {
+		th: {
+			overview:
+				"บริการจัดทำ LAYOUT โรงงาน 3 มิติ พร้อมฐานข้อมูลรายการเครื่องจักรและอุปกรณ์ เพื่อใช้ตรวจสอบ วิเคราะห์ วางแผน สื่อสารการตลาด และประกอบการยื่นขออนุญาตขยายหรือเปลี่ยนแปลงกิจการโรงงานต่อกรมโรงงานอุตสาหกรรม สำรวจจริง ทำผังจริง เห็นโรงงานจริงแบบ 360° พร้อมเอกสารรับรองโดยวุฒิวิศวกร",
+			featuresTitle: "สิ่งที่คุณจะได้รับ",
+			features: [
+				"แผนผังติดตั้งเครื่องจักร (Machine Installation Layout) ตามมาตรฐานวิศวกรรม",
+				"ชมโรงงานจริงแบบ 360° Virtual Walkthrough ได้ทุกมุมมอง",
+				"ฐานข้อมูลรายการเครื่องจักร (Machine List Mapping) ครบถ้วน ตรวจสอบได้",
+				"จำลองสถานการณ์และรายงาน KPI วิเคราะห์คอขวดและประสิทธิภาพการผลิต",
+				"เอกสารรับรองโดยวุฒิวิศวกร สำหรับยื่นกรมโรงงานอุตสาหกรรม",
+			],
+			processTitle: "ขั้นตอนการทำงาน",
+			process: [
+				{ step: "สำรวจจริง", detail: "ลงพื้นที่สำรวจหน้างานและถ่ายภาพโรงงานแบบ 360°" },
+				{ step: "ทำผังจริง", detail: "จัดทำผังโรงงาน 3 มิติ พร้อมฐานข้อมูลเครื่องจักร" },
+				{ step: "วิเคราะห์", detail: "จำลองสถานการณ์ วิเคราะห์คอขวดและ KPI การผลิต" },
+				{ step: "รับรอง", detail: "วุฒิวิศวกรรับรองเอกสารสำหรับยื่นขออนุญาต" },
+			],
+			poster: {
+				src: "/services/digital-factory-layout-360-poster.jpg",
+				alt: "Digital Factory Layout 360° — บริการจัดทำผังโรงงาน 3 มิติ พร้อมวุฒิวิศวกรรับรอง",
+			},
+			virtualTour: {
+				title: "ตัวอย่างโรงงานจริงแบบ 360°",
+				caption:
+					"ตัวอย่างผังโรงงาน 360° พร้อมรายการเครื่องจักรและการจำลอง 1 กระบวนการ — ลากเพื่อหมุนดูได้ทุกมุมมอง",
+				embedUrl: "https://my.matterport.com/show/?m=uwumTddZfAY",
+			},
+		},
+		en: {
+			overview:
+				"A 3D factory layout service with a complete machine and equipment database — used to inspect, analyse, plan, support marketing, and file expansion or modification permits with the Department of Industrial Works (DIW). We survey the real site, build a real layout, and let you see the real factory in 360°, complete with documentation certified by a licensed engineer.",
+			featuresTitle: "What you get",
+			features: [
+				"An engineering-standard Machine Installation Layout",
+				"A 360° virtual walkthrough of the real factory from every angle",
+				"A complete, auditable Machine List Mapping database",
+				"Simulation and KPI reporting to analyse bottlenecks and production efficiency",
+				"Documentation certified by a licensed engineer for DIW permit filing",
+			],
+			processTitle: "How it works",
+			process: [
+				{ step: "Survey", detail: "On-site survey and 360° photography of the real factory" },
+				{ step: "Layout", detail: "Build the 3D factory layout with a machine database" },
+				{
+					step: "Analyse",
+					detail: "Simulate scenarios and analyse bottlenecks and production KPIs",
+				},
+				{ step: "Certify", detail: "A licensed engineer certifies documents for permit filing" },
+			],
+			poster: {
+				src: "/services/digital-factory-layout-360-poster.jpg",
+				alt: "Digital Factory Layout 360° — 3D factory layout service, certified by a licensed engineer",
+			},
+			virtualTour: {
+				title: "See a real factory in 360°",
+				caption:
+					"A sample 360° factory layout with a machine list and a one-process simulation — drag to look around from any angle.",
+				embedUrl: "https://my.matterport.com/show/?m=uwumTddZfAY",
+			},
 		},
 	},
 	"engineering-consulting": {
