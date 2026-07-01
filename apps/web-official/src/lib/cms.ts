@@ -48,12 +48,16 @@ export interface KnowledgeFacets {
 const COLLECTION_PATH = "/api/blog-posts";
 const PAGE_SIZE = 100;
 const MAX_PAGES = 50; // hard stop so a misbehaving API can't loop the build forever
-// A cold Cloudflare Worker + D1 can be slow to first byte from a CI runner, so the
-// timeout is generous and transient failures are retried (the first attempt warms
-// the worker). Undersized values here silently shipped an empty Knowledge Hub.
-const FETCH_TIMEOUT_MS = 25_000;
+// A cold Cloudflare Worker + D1 is slow and erratic to first byte from a CI runner
+// (observed >25s cold vs ~0.5s warm on the prod zone). The timeout is generous and
+// transient failures are retried; an explicit warm-up primes the worker before the
+// real fetch. Undersizing these silently shipped an empty Knowledge Hub.
+const FETCH_TIMEOUT_MS = 45_000;
 const MAX_ATTEMPTS = 3;
 const RETRY_BASE_DELAY_MS = 300;
+// A cheap request that lets a cold worker + D1 fully warm before the paged fetch —
+// repeated aborts alone never warm it (the server-side run is cancelled on abort).
+const WARMUP_TIMEOUT_MS = 60_000;
 
 function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -208,6 +212,24 @@ async function fetchPage(base: string, page: number): Promise<ListEnvelope | nul
 	return null;
 }
 
+/**
+ * Best-effort warm-up: a single cheap request that lets a cold worker + D1 spin up
+ * before the real paged fetch. Failures are swallowed — this only improves the odds
+ * that the subsequent fetch hits a warm worker within FETCH_TIMEOUT_MS.
+ */
+async function warmUp(base: string): Promise<void> {
+	const url = `${base}${COLLECTION_PATH}?limit=1&page=1`;
+	const controller = new AbortController();
+	const timer = setTimeout(() => controller.abort(), WARMUP_TIMEOUT_MS);
+	try {
+		await fetch(url, { headers: { accept: "application/json" }, signal: controller.signal });
+	} catch (error) {
+		console.warn(`[cms] warm-up request failed (continuing): ${(error as Error).message}`);
+	} finally {
+		clearTimeout(timer);
+	}
+}
+
 /** Turn one envelope's rows into published, normalised articles. */
 function collectArticles(data: unknown): Article[] {
 	const rows = Array.isArray(data) ? data : [];
@@ -228,6 +250,9 @@ async function fetchAllArticles(): Promise<Article[]> {
 		console.warn("[cms] PUBLIC_CMS_URL is unset — Knowledge Hub builds with no articles.");
 		return [];
 	}
+
+	// Prime a cold worker/D1 once so the real paged fetch below hits a warm instance.
+	await warmUp(base);
 
 	const articles: Article[] = [];
 	let page = 1;
