@@ -2,7 +2,8 @@
 //
 // web-official is a fully static SSG site (Cloudflare Pages). Articles are
 // authored in web-cms (SonicJS) and pulled at *build* time from its public REST
-// API (`GET /api/content/blog-posts`, `public: ['read']` on the collection).
+// API (`GET /api/blog-posts`, `public: ['read']` on the collection — SonicJS
+// exposes each collection's list at `/api/<collection-slug>`).
 //
 // Resilience is a hard requirement: the build MUST succeed even when the CMS is
 // unreachable, unset, or empty (see feature-spec / status.md Phase 4 tests). Any
@@ -20,6 +21,14 @@ export interface Article {
 	readonly category: string;
 	/** Plain-text summary for listing cards + meta description. */
 	readonly excerpt: string;
+	/** Cover image URL (listing card / hero / article header), or "" when none. */
+	readonly featuredImage: string;
+	/** Normalised, de-duplicated tag list (may be empty). */
+	readonly tags: readonly string[];
+	/** Whether the article is pinned as the featured hero. */
+	readonly isPinned: boolean;
+	/** Estimated reading time in whole minutes (≥1), from the content length. */
+	readonly readingMinutes: number;
 	/** Raw Lexical editor state (string or parsed object) for detail rendering. */
 	readonly content: unknown;
 	readonly author: string;
@@ -27,7 +36,16 @@ export interface Article {
 	readonly publishedAt: string | null;
 }
 
-const COLLECTION_PATH = "/api/content/blog-posts";
+/** Aggregated counts for the Knowledge Hub sidebar (categories + tag cloud). */
+export interface KnowledgeFacets {
+	readonly total: number;
+	/** Article count per category slug (only categories with ≥1 article). */
+	readonly categoryCounts: Readonly<Record<string, number>>;
+	/** Tags sorted by frequency (desc), then alphabetically. */
+	readonly tags: ReadonlyArray<{ readonly tag: string; readonly count: number }>;
+}
+
+const COLLECTION_PATH = "/api/blog-posts";
 const PAGE_SIZE = 100;
 const MAX_PAGES = 50; // hard stop so a misbehaving API can't loop the build forever
 const FETCH_TIMEOUT_MS = 10_000;
@@ -50,6 +68,31 @@ function pick(record: Record<string, unknown>, key: string): unknown {
 
 function asString(value: unknown): string {
 	return typeof value === "string" ? value : "";
+}
+
+/** Coerce a CMS value to boolean (accepts booleans, 0/1, "true"/"1"). */
+function asBool(value: unknown): boolean {
+	if (typeof value === "boolean") return value;
+	if (typeof value === "number") return value === 1;
+	if (typeof value === "string") return value === "true" || value === "1";
+	return false;
+}
+
+/** Parse tags from a comma-separated string or an array; trimmed + de-duplicated. */
+function asTags(value: unknown): string[] {
+	const raw = Array.isArray(value)
+		? value.map((item) => asString(item))
+		: asString(value).split(",");
+	const seen = new Set<string>();
+	const out: string[] = [];
+	for (const item of raw) {
+		const tag = item.trim();
+		if (tag && !seen.has(tag.toLowerCase())) {
+			seen.add(tag.toLowerCase());
+			out.push(tag);
+		}
+	}
+	return out;
 }
 
 /** Coerce a CMS timestamp (ISO string or epoch s/ms) to an ISO string or null. */
@@ -77,6 +120,15 @@ function isPublished(record: Record<string, unknown>): boolean {
 	return true;
 }
 
+/**
+ * Rough reading time in whole minutes. Counts non-space characters (works for
+ * Thai, which is unspaced) at ~400 chars/min; always ≥1.
+ */
+function estimateReadingMinutes(text: string): number {
+	const chars = text.replace(/\s+/g, "").length;
+	return Math.max(1, Math.round(chars / 400));
+}
+
 function normalizeArticle(record: Record<string, unknown>): Article | null {
 	const slug = asString(pick(record, "slug"));
 	const title = asString(pick(record, "title"));
@@ -86,8 +138,9 @@ function normalizeArticle(record: Record<string, unknown>): Article | null {
 	const category = KNOWLEDGE_CATEGORY_SLUGS.has(rawCategory) ? rawCategory : "";
 
 	const content = pick(record, "content") ?? null;
+	const plainText = lexicalToPlainText(parseLexical(content));
 	const explicitExcerpt = asString(pick(record, "excerpt")).trim();
-	const excerpt = explicitExcerpt || lexicalToPlainText(parseLexical(content)).slice(0, 200);
+	const excerpt = explicitExcerpt || plainText.slice(0, 200);
 
 	return {
 		id: asString(pick(record, "id")) || slug,
@@ -95,6 +148,10 @@ function normalizeArticle(record: Record<string, unknown>): Article | null {
 		title,
 		category,
 		excerpt,
+		featuredImage: asString(pick(record, "featuredImage") ?? pick(record, "featured_image")),
+		tags: asTags(pick(record, "tags")),
+		isPinned: asBool(pick(record, "isPinned") ?? pick(record, "is_pinned")),
+		readingMinutes: estimateReadingMinutes(plainText || excerpt),
 		content,
 		author: asString(pick(record, "author")),
 		publishedAt: toIso(pick(record, "publishedAt") ?? pick(record, "published_at")),
@@ -171,8 +228,15 @@ async function fetchAllArticles(): Promise<Article[]> {
 // Fetch once per build, then serve every page module from the cached promise.
 let cache: Promise<Article[]> | null = null;
 
-/** All published articles (build-cached). Returns [] on any failure. */
+/**
+ * All published articles (build-cached). Returns [] on any failure.
+ *
+ * In dev (`astro dev`) the cache is bypassed so edits/reseeds in web-cms show up
+ * on the next page load without restarting the server. In a production build the
+ * promise is cached so the CMS is hit once, not once per generated page.
+ */
 export function getArticles(): Promise<Article[]> {
+	if (import.meta.env.DEV) return fetchAllArticles();
 	cache ??= fetchAllArticles();
 	return cache;
 }
@@ -187,6 +251,28 @@ export async function getArticlesByCategory(categorySlug: string): Promise<Artic
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
 	const all = await getArticles();
 	return all.find((article) => article.slug === slug) ?? null;
+}
+
+/** Build sidebar facets (category counts + tag cloud) from all published articles. */
+export async function getKnowledgeFacets(): Promise<KnowledgeFacets> {
+	const all = await getArticles();
+	const categoryCounts: Record<string, number> = {};
+	const tagCounts = new Map<string, number>();
+
+	for (const article of all) {
+		if (article.category) {
+			categoryCounts[article.category] = (categoryCounts[article.category] ?? 0) + 1;
+		}
+		for (const tag of article.tags) {
+			tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+		}
+	}
+
+	const tags = [...tagCounts.entries()]
+		.map(([tag, count]) => ({ tag, count }))
+		.sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+
+	return { total: all.length, categoryCounts, tags };
 }
 
 /** Reset the build cache — test-only. */

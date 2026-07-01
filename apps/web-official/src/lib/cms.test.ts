@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { __resetCmsCache, getArticles, getCmsBaseUrl } from "./cms";
+import { __resetCmsCache, getArticles, getCmsBaseUrl, getKnowledgeFacets } from "./cms";
 
 function mockFetchOnce(payload: unknown, ok = true, status = 200) {
 	const fetchMock = vi.fn().mockResolvedValue({
@@ -140,5 +140,77 @@ describe("getArticles — normalization", () => {
 		});
 		const [article] = await getArticles();
 		expect(article.excerpt).toBe("Derived summary text.");
+	});
+});
+
+describe("getArticles — new fields (image / tags / pinned)", () => {
+	it("normalizes featuredImage, comma tags (deduped), and boolean-ish isPinned", async () => {
+		vi.stubEnv("PUBLIC_CMS_URL", "https://cms.test");
+		mockFetchOnce({
+			data: [
+				{
+					slug: "with-extras",
+					title: "With Extras",
+					category: "factory-safety",
+					status: "published",
+					featuredImage: "https://img.test/cover.jpg",
+					tags: " PPE , Checklist ,ppe, ",
+					isPinned: 1,
+					content: "",
+				},
+			],
+			pagination: { pages: 1 },
+		});
+		const [article] = await getArticles();
+		expect(article.featuredImage).toBe("https://img.test/cover.jpg");
+		expect(article.tags).toEqual(["PPE", "Checklist"]); // trimmed + case-insensitive dedupe
+		expect(article.isPinned).toBe(true);
+	});
+
+	it("defaults new fields safely when absent", async () => {
+		vi.stubEnv("PUBLIC_CMS_URL", "https://cms.test");
+		mockFetchOnce({
+			data: [{ slug: "bare", title: "Bare", category: "environment", status: "published", content: "" }],
+			pagination: { pages: 1 },
+		});
+		const [article] = await getArticles();
+		expect(article.featuredImage).toBe("");
+		expect(article.tags).toEqual([]);
+		expect(article.isPinned).toBe(false);
+	});
+});
+
+describe("getKnowledgeFacets", () => {
+	it("counts categories and ranks tags by frequency", async () => {
+		vi.stubEnv("PUBLIC_CMS_URL", "https://cms.test");
+		mockFetchOnce({
+			data: [
+				{
+					slug: "a",
+					title: "A",
+					category: "factory-safety",
+					status: "published",
+					tags: "PPE, SME",
+					content: "",
+				},
+				{
+					slug: "b",
+					title: "B",
+					category: "factory-safety",
+					status: "published",
+					tags: "PPE",
+					content: "",
+				},
+				{ slug: "c", title: "C", category: "lean-kaizen", status: "published", tags: "SME", content: "" },
+			],
+			pagination: { pages: 1 },
+		});
+		const facets = await getKnowledgeFacets();
+		expect(facets.total).toBe(3);
+		expect(facets.categoryCounts["factory-safety"]).toBe(2);
+		expect(facets.categoryCounts["lean-kaizen"]).toBe(1);
+		// PPE (2) ranks before SME (2 too) — tie broken alphabetically; both counted.
+		expect(facets.tags[0]).toEqual({ tag: "PPE", count: 2 });
+		expect(facets.tags).toContainEqual({ tag: "SME", count: 2 });
 	});
 });

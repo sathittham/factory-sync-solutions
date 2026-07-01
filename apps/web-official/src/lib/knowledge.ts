@@ -42,6 +42,11 @@ export function articleHref(slug: string): string {
 	return `/knowledge/${slug}`;
 }
 
+/** Public route for a tag listing page (tags may contain Thai / dots). */
+export function tagHref(tag: string): string {
+	return `/knowledge/tag/${encodeURIComponent(tag)}`;
+}
+
 /** Look up a category by its slug segment. */
 export function getCategoryBySlug(slug: string): KnowledgeCategory | undefined {
 	return KNOWLEDGE_CATEGORIES.find((category) => category.slug === slug);
