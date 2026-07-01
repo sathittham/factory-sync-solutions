@@ -308,6 +308,58 @@ jobs:
           packageManager: npm
           command: pages deploy apps/web-official/dist --project-name=factory-sync-solutions-official-staging --branch=staging
 
+  e2e-official:
+    name: E2E Official Site (Staging)
+    needs: [changes, deploy-official]
+    if: needs.changes.outputs.official == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+    defaults:
+      run:
+        working-directory: apps/web-official
+    env:
+      STAGING_URL: https://staging.factorysyncsolutions.com
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers (chromium)
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Wait for staging deployment to be live
+        run: |
+          echo "Polling $STAGING_URL for a 200…"
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$STAGING_URL/" || echo "000")
+            if [ "$code" = "200" ]; then echo "Live after ${i} attempt(s)."; exit 0; fi
+            echo "  attempt $i → HTTP $code; retrying in 5s"
+            sleep 5
+          done
+          echo "::error::Staging site did not return 200 within timeout"; exit 1
+
+      - name: Run Playwright e2e against staging
+        run: pnpm exec playwright test --project=chromium --project=mobile-chrome
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ env.STAGING_URL }}
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-official
+          path: apps/web-official/playwright-report/
+          retention-days: 14
+
   deploy-backoffice:
     name: Deploy Backoffice to Staging
     needs: [test, changes]
@@ -383,7 +435,7 @@ jobs:
 
   notify:
     name: Notify Slack
-    needs: [test, changes, deploy-backend, deploy-api-gateway, deploy-frontend, deploy-official, deploy-backoffice, deploy-cms]
+    needs: [test, changes, deploy-backend, deploy-api-gateway, deploy-frontend, deploy-official, e2e-official, deploy-backoffice, deploy-cms]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -397,6 +449,7 @@ jobs:
           GATEWAY_RESULT: ${{ needs.deploy-api-gateway.result }}
           FRONTEND_RESULT: ${{ needs.deploy-frontend.result }}
           OFFICIAL_RESULT: ${{ needs.deploy-official.result }}
+          OFFICIAL_E2E_RESULT: ${{ needs.e2e-official.result }}
           BACKOFFICE_RESULT: ${{ needs.deploy-backoffice.result }}
           CMS_RESULT: ${{ needs.deploy-cms.result }}
           TAG: ${{ github.ref_name }}
@@ -423,7 +476,7 @@ jobs:
 
           # Overall outcome: failure if any required job failed or was cancelled.
           OVERALL="success"
-          for r in "$TEST_RESULT" "$CHANGES_RESULT" "$BACKEND_RESULT" "$GATEWAY_RESULT" "$FRONTEND_RESULT" "$OFFICIAL_RESULT" "$BACKOFFICE_RESULT" "$CMS_RESULT"; do
+          for r in "$TEST_RESULT" "$CHANGES_RESULT" "$BACKEND_RESULT" "$GATEWAY_RESULT" "$FRONTEND_RESULT" "$OFFICIAL_RESULT" "$OFFICIAL_E2E_RESULT" "$BACKOFFICE_RESULT" "$CMS_RESULT"; do
             if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then OVERALL="failure"; fi
           done
 
@@ -447,6 +500,7 @@ jobs:
             --arg gateway "$(status_label "$GATEWAY_RESULT")" \
             --arg frontend "$(status_label "$FRONTEND_RESULT")" \
             --arg official "$(status_label "$OFFICIAL_RESULT")" \
+            --arg official_e2e "$(status_label "$OFFICIAL_E2E_RESULT")" \
             --arg backoffice "$(status_label "$BACKOFFICE_RESULT")" \
             --arg cms "$(status_label "$CMS_RESULT")" \
             --arg run_url "$RUN_URL" \
@@ -465,6 +519,7 @@ jobs:
                   { type: "mrkdwn", text: "*API Gateway:*\n\($gateway)" },
                   { type: "mrkdwn", text: "*App Web:*\n\($frontend)" },
                   { type: "mrkdwn", text: "*Official Web:*\n\($official)" },
+                  { type: "mrkdwn", text: "*Official E2E:*\n\($official_e2e)" },
                   { type: "mrkdwn", text: "*Backoffice:*\n\($backoffice)" },
                   { type: "mrkdwn", text: "*CMS:*\n\($cms)" }
                 ]},

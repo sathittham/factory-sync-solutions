@@ -1,9 +1,11 @@
 import { type Page, expect, test } from "@playwright/test";
 
-// Switch the nav-bar locale to EN.
-// The locale button has aria-label "ภาษา" (TH) — distinct from the theme button.
+// Switch the nav-bar locale to EN via the desktop Settings menu.
+// The desktop nav exposes a single "การตั้งค่า" (Settings) button that opens a
+// menu containing the locale + theme radiogroups. The locale option reads
+// "EN English", so match it loosely.
 async function switchToEnglish(page: Page) {
-	await page.getByRole("button", { name: "ภาษา" }).click();
+	await page.getByRole("button", { name: "การตั้งค่า" }).click();
 	await page.getByRole("menuitemradio", { name: /english/i }).click();
 }
 
@@ -40,7 +42,10 @@ test.describe("Landing page", () => {
 		await expect(page.locator("#contact")).toBeVisible();
 	});
 
-	test("nav bar sign-in link points to app", async ({ page }) => {
+	test("nav bar sign-in link points to app", async ({ page, isMobile }) => {
+		// The header sign-in button is desktop-only (lg:inline-flex); on mobile it
+		// lives inside the hamburger drawer.
+		test.skip(isMobile, "header sign-in link is in the drawer on mobile");
 		const signInLink = page
 			.locator("header a")
 			.filter({ hasText: /เข้าสู่ระบบ|Sign In/i })
@@ -74,6 +79,8 @@ test.describe("Landing page — locale switching", () => {
 		// Locale switcher is hidden in the desktop nav on mobile; tested separately via hamburger menu.
 		test.skip(isMobile, "locale switcher in desktop nav hidden on mobile");
 		await switchToEnglish(page);
-		await expect(page.getByText("Intelligent Factory Health Check")).toBeVisible({ timeout: 3_000 });
+		await expect(page.getByText("Intelligent Factory Health Check")).toBeVisible({
+			timeout: 3_000,
+		});
 	});
 });
