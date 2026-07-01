@@ -42,9 +42,37 @@ test.describe("Smoke — routes serve 200 with header + footer", () => {
 	}
 });
 
+// The Knowledge Hub is CMS-driven and rendered statically at build time. An empty
+// hub means the build captured no CMS content — a silent-degradation failure that
+// must fail the deploy gate, not pass it. Enforced against a deployed target
+// (staging/prod, PLAYWRIGHT_BASE_URL set); relaxed for local dev runs where the CMS
+// may legitimately be unseeded.
+const isDeployedTarget = Boolean(process.env.PLAYWRIGHT_BASE_URL);
+
+// An article-detail link is `/knowledge/<slug>` — excluding the hub itself and the
+// category/tag listing routes.
+const ARTICLE_LINK =
+	"a[href^='/knowledge/']:not([href='/knowledge/']):not([href^='/knowledge/category/']):not([href^='/knowledge/tag/'])";
+
+test.describe("Smoke — knowledge hub renders CMS content", () => {
+	test("hub lists at least one article card", async ({ page }) => {
+		await page.goto("/knowledge");
+
+		const articleLinks = page.locator(ARTICLE_LINK);
+		const count = await articleLinks.count();
+
+		test.skip(
+			!isDeployedTarget && count === 0,
+			"no knowledge content seeded in this local environment"
+		);
+
+		expect(count, "Knowledge Hub must render at least one article card").toBeGreaterThan(0);
+		await expect(articleLinks.first()).toBeVisible();
+	});
+});
+
 // Knowledge dynamic routes are CMS-seeded, so we derive real URLs from the hub
-// rather than hardcoding slugs that differ per environment. Skips gracefully
-// when no content is seeded (e.g. a local build with no CMS data).
+// rather than hardcoding slugs that differ per environment.
 test.describe("Smoke — knowledge dynamic routes", () => {
 	test("an article, a category, and a tag page each load with chrome", async ({ page }) => {
 		await page.goto("/knowledge");
@@ -64,7 +92,11 @@ test.describe("Smoke — knowledge dynamic routes", () => {
 		const category = hrefs.find((h) => h.startsWith("/knowledge/category/"));
 		const tag = hrefs.find((h) => h.startsWith("/knowledge/tag/"));
 
-		test.skip(!article && !category && !tag, "no knowledge content seeded in this environment");
+		const noContent = !article && !category && !tag;
+		// Locally the CMS may be unseeded — skip. Against a deployed target this is a
+		// hard failure: the hub must expose real content.
+		test.skip(!isDeployedTarget && noContent, "no knowledge content seeded in this environment");
+		expect(noContent, "deployed Knowledge Hub must expose article/category/tag links").toBe(false);
 
 		for (const url of [article, category, tag]) {
 			if (!url) continue;

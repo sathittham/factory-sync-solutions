@@ -1,7 +1,7 @@
 ---
 import { KnowledgeContent } from "../../components/knowledge/KnowledgeContent";
 import Layout from "../../layouts/Layout.astro";
-import { getArticles, getKnowledgeFacets } from "../../lib/cms";
+import { getArticles, getCmsBaseUrl, getKnowledgeFacets } from "../../lib/cms";
 import { translate } from "../../lib/i18n";
 
 const articles = (await getArticles()).map((article) => ({
@@ -15,6 +15,17 @@ const articles = (await getArticles()).map((article) => ({
 	readingMinutes: article.readingMinutes,
 	publishedAt: article.publishedAt,
 }));
+
+// Fail the build rather than silently shipping an empty Knowledge Hub. getArticles()
+// degrades to [] on any CMS failure (unreachable/empty) by design, so a production
+// build with a *configured* CMS that yields zero articles means the build captured an
+// unavailable or unseeded CMS — never ship that. Dev/unset builds (getCmsBaseUrl() === "")
+// keep the resilient empty state.
+if (import.meta.env.PROD && getCmsBaseUrl() !== "" && articles.length === 0) {
+	throw new Error(
+		"[knowledge] PUBLIC_CMS_URL is set but the CMS returned 0 articles — refusing to build an empty Knowledge Hub. Ensure the CMS is reachable and seeded before building."
+	);
+}
 
 const facets = await getKnowledgeFacets();
 
