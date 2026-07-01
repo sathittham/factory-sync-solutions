@@ -31,6 +31,10 @@ on:
         description: "Force-deploy backoffice web"
         type: boolean
         default: true
+      deploy_cms:
+        description: "Force-deploy CMS worker"
+        type: boolean
+        default: true
 
 jobs:
   test:
@@ -46,6 +50,7 @@ jobs:
       official: ${{ steps.detect.outputs.official }}
       backoffice: ${{ steps.detect.outputs.backoffice }}
       consumer: ${{ steps.detect.outputs.consumer }}
+      cms: ${{ steps.detect.outputs.cms }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,27 +67,29 @@ jobs:
               echo "web=${{ inputs.deploy_web }}";
               echo "official=${{ inputs.deploy_official }}";
               echo "consumer=${{ inputs.deploy_consumer }}";
-              echo "backoffice=${{ inputs.deploy_backoffice }}"; } >> "$GITHUB_OUTPUT"
+              echo "backoffice=${{ inputs.deploy_backoffice }}";
+              echo "cms=${{ inputs.deploy_cms }}"; } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           CURRENT="${GITHUB_REF_NAME}"
           PREV=$(git tag -l 'v*-staging' 'v*-staging-*' --sort=-creatordate | grep -vx "$CURRENT" | head -1)
           if [ -z "$PREV" ]; then
             echo "No previous staging tag — deploying all apps."
-            { echo "api=true"; echo "gateway=true"; echo "web=true"; echo "official=true"; echo "consumer=true"; echo "backoffice=true"; } >> "$GITHUB_OUTPUT"
+            { echo "api=true"; echo "gateway=true"; echo "web=true"; echo "official=true"; echo "consumer=true"; echo "backoffice=true"; echo "cms=true"; } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "Diffing $PREV..$CURRENT"
           CHANGED=$(git diff --name-only "$PREV" "$CURRENT")
           echo "Changed files:"; echo "$CHANGED"
-          api=false; gateway=false; web=false; official=false; backoffice=false
+          api=false; gateway=false; web=false; official=false; backoffice=false; cms=false
           if echo "$CHANGED" | grep -qE '^apps/backend/|^\.github/workflows/deploy-staging\.yml'; then api=true; consumer=true; fi
           if echo "$CHANGED" | grep -qE '^infra/cloudflare/workers/api-gateway/|^\.github/workflows/deploy-staging\.yml'; then gateway=true; fi
           if echo "$CHANGED" | grep -qE '^apps/web-app/|^packages/shared/|^pnpm-lock\.yaml|^\.github/workflows/deploy-staging\.yml';     then web=true;        fi
           if echo "$CHANGED" | grep -qE '^apps/web-official/|^packages/shared/|^pnpm-lock\.yaml|^\.github/workflows/deploy-staging\.yml'; then official=true; fi
           if echo "$CHANGED" | grep -qE '^apps/web-backoffice/|^packages/shared/|^pnpm-lock\.yaml|^\.github/workflows/deploy-staging\.yml'; then backoffice=true; fi
-          echo "Deploy → api=$api gateway=$gateway web=$web official=$official consumer=$consumer backoffice=$backoffice"
-          { echo "api=$api"; echo "gateway=$gateway"; echo "web=$web"; echo "official=$official"; echo "consumer=$consumer"; echo "backoffice=$backoffice"; } >> "$GITHUB_OUTPUT"
+          if echo "$CHANGED" | grep -qE '^apps/web-cms/|^pnpm-lock\.yaml|^\.github/workflows/deploy-staging\.yml'; then cms=true; fi
+          echo "Deploy → api=$api gateway=$gateway web=$web official=$official consumer=$consumer backoffice=$backoffice cms=$cms"
+          { echo "api=$api"; echo "gateway=$gateway"; echo "web=$web"; echo "official=$official"; echo "consumer=$consumer"; echo "backoffice=$backoffice"; echo "cms=$cms"; } >> "$GITHUB_OUTPUT"
 
   deploy-backend:
     name: Deploy Backend to Staging
@@ -337,9 +344,41 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy apps/web-backoffice/dist --project-name=factory-sync-backoffice-staging --branch=staging
 
+  deploy-cms:
+    name: Deploy CMS to Staging
+    needs: [test, changes]
+    if: needs.changes.outputs.cms == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply D1 migrations (staging)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm --filter @repo/web-cms db:migrate:staging
+
+      - name: Deploy CMS worker (staging)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm --filter @repo/web-cms deploy:staging
+
   notify:
     name: Notify Slack
-    needs: [test, changes, deploy-backend, deploy-api-gateway, deploy-frontend, deploy-official, deploy-backoffice]
+    needs: [test, changes, deploy-backend, deploy-api-gateway, deploy-frontend, deploy-official, deploy-backoffice, deploy-cms]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -354,6 +393,7 @@ jobs:
           FRONTEND_RESULT: ${{ needs.deploy-frontend.result }}
           OFFICIAL_RESULT: ${{ needs.deploy-official.result }}
           BACKOFFICE_RESULT: ${{ needs.deploy-backoffice.result }}
+          CMS_RESULT: ${{ needs.deploy-cms.result }}
           TAG: ${{ github.ref_name }}
           ACTOR: ${{ github.actor }}
           SHA: ${{ github.sha }}
@@ -378,7 +418,7 @@ jobs:
 
           # Overall outcome: failure if any required job failed or was cancelled.
           OVERALL="success"
-          for r in "$TEST_RESULT" "$CHANGES_RESULT" "$BACKEND_RESULT" "$GATEWAY_RESULT" "$FRONTEND_RESULT" "$OFFICIAL_RESULT" "$BACKOFFICE_RESULT"; do
+          for r in "$TEST_RESULT" "$CHANGES_RESULT" "$BACKEND_RESULT" "$GATEWAY_RESULT" "$FRONTEND_RESULT" "$OFFICIAL_RESULT" "$BACKOFFICE_RESULT" "$CMS_RESULT"; do
             if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then OVERALL="failure"; fi
           done
 
@@ -403,6 +443,7 @@ jobs:
             --arg frontend "$(status_label "$FRONTEND_RESULT")" \
             --arg official "$(status_label "$OFFICIAL_RESULT")" \
             --arg backoffice "$(status_label "$BACKOFFICE_RESULT")" \
+            --arg cms "$(status_label "$CMS_RESULT")" \
             --arg run_url "$RUN_URL" \
             '{
               blocks: [
@@ -419,7 +460,8 @@ jobs:
                   { type: "mrkdwn", text: "*API Gateway:*\n\($gateway)" },
                   { type: "mrkdwn", text: "*App Web:*\n\($frontend)" },
                   { type: "mrkdwn", text: "*Official Web:*\n\($official)" },
-                  { type: "mrkdwn", text: "*Backoffice:*\n\($backoffice)" }
+                  { type: "mrkdwn", text: "*Backoffice:*\n\($backoffice)" },
+                  { type: "mrkdwn", text: "*CMS:*\n\($cms)" }
                 ]},
                 { type: "actions", elements: [
                   { type: "button", text: { type: "plain_text", text: "View workflow run", emoji: true }, url: $run_url }

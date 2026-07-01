@@ -15,6 +15,7 @@ jobs:
       api: ${{ steps.filter.outputs.api }}
       web: ${{ steps.filter.outputs.web }}
       gateway: ${{ steps.filter.outputs.gateway }}
+      cms: ${{ steps.filter.outputs.cms }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,6 +34,10 @@ jobs:
               - 'turbo.json'
             gateway:
               - 'infra/cloudflare/workers/api-gateway/**'
+              - '.github/workflows/test.yml'
+            cms:
+              - 'apps/web-cms/**'
+              - 'pnpm-lock.yaml'
               - '.github/workflows/test.yml'
 
   backend:
@@ -113,3 +118,28 @@ jobs:
 
       - name: Test
         run: pnpm --filter @repo/api-gateway test
+
+  cms:
+    name: CMS Tests
+    needs: changes
+    if: needs.changes.outputs.cms == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm --filter @repo/web-cms type-check
+
+      - name: Test
+        run: pnpm --filter @repo/web-cms test
