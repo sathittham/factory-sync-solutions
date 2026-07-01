@@ -28,6 +28,39 @@ export default {
         required: true,
         maxLength: 200,
       },
+      category: {
+        type: 'select',
+        title: 'Category',
+        required: true,
+        // Slugs MUST stay in sync with the public site's Knowledge Hub taxonomy
+        // (apps/web-official/src/lib/knowledge.ts) and sitemap.md §5.
+        enum: [
+          'law-licensing',
+          'factory-safety',
+          'digital-factory',
+          'machinery-automation',
+          'environment',
+          'lean-kaizen',
+          'digital-marketing',
+          'gov-benefits',
+        ],
+        enumLabels: [
+          'Law / Factory Licensing',
+          'Factory Safety',
+          'Digital Factory & Tech',
+          'Machinery & Automation',
+          'Environment / Pollution Treatment',
+          'Lean & Kaizen / Productivity',
+          'Online Marketing & DX',
+          'Gov Benefits / Intl Standards',
+        ],
+      },
+      excerpt: {
+        type: 'textarea',
+        title: 'Excerpt',
+        description: 'Short summary shown on listing cards and used as the meta description.',
+        maxLength: 300,
+      },
       content: {
         type: 'lexical',
         title: 'Content',
@@ -47,8 +80,8 @@ export default {
   },
 
   // List view configuration
-  listFields: ['title', 'author', 'status', 'publishedAt'],
-  searchFields: ['title', 'content', 'author'],
+  listFields: ['title', 'category', 'author', 'status', 'publishedAt'],
+  searchFields: ['title', 'excerpt', 'content', 'author'],
   defaultSort: 'createdAt',
   defaultSortOrder: 'desc',
 

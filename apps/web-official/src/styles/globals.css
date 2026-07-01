@@ -262,3 +262,84 @@
 		}
 	}
 }
+
+/* Knowledge Hub article body — styles the build-time HTML rendered from Lexical
+   (src/lib/lexical.ts) via dangerouslySetInnerHTML, which Tailwind utilities
+   can't reach. Keeps the marketing-site look without the typography plugin. */
+.prose-knowledge > :first-child {
+	margin-top: 0;
+}
+.prose-knowledge p {
+	margin: 0 0 1.15rem;
+}
+.prose-knowledge h2 {
+	margin: 2rem 0 0.85rem;
+	font-size: 1.5rem;
+	font-weight: 800;
+	line-height: 1.25;
+	color: var(--foreground);
+}
+.prose-knowledge h3 {
+	margin: 1.6rem 0 0.7rem;
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: var(--foreground);
+}
+.prose-knowledge h4 {
+	margin: 1.4rem 0 0.6rem;
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: var(--foreground);
+}
+.prose-knowledge ul,
+.prose-knowledge ol {
+	margin: 0 0 1.15rem;
+	padding-left: 1.5rem;
+}
+.prose-knowledge ul {
+	list-style: disc;
+}
+.prose-knowledge ol {
+	list-style: decimal;
+}
+.prose-knowledge li {
+	margin: 0.35rem 0;
+}
+.prose-knowledge a {
+	color: #2563eb;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+.dark .prose-knowledge a {
+	color: #67e8f9;
+}
+.prose-knowledge blockquote {
+	margin: 1.25rem 0;
+	border-left: 3px solid #93c5fd;
+	padding: 0.25rem 0 0.25rem 1rem;
+	color: #475569;
+	font-style: italic;
+}
+.dark .prose-knowledge blockquote {
+	border-left-color: rgba(103, 232, 249, 0.4);
+	color: #cbd5e1;
+}
+.prose-knowledge code {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.9em;
+	background: rgba(37, 99, 235, 0.08);
+	padding: 0.1rem 0.35rem;
+	border-radius: 0.25rem;
+}
+.prose-knowledge pre {
+	margin: 0 0 1.15rem;
+	overflow-x: auto;
+	background: #0f172a;
+	color: #e2e8f0;
+	padding: 1rem 1.15rem;
+	border-radius: 0.5rem;
+}
+.prose-knowledge pre code {
+	background: transparent;
+	padding: 0;
+}

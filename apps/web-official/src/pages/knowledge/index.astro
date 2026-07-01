@@ -1,0 +1,30 @@
+---
+import { KnowledgeContent } from "../../components/knowledge/KnowledgeContent";
+import Layout from "../../layouts/Layout.astro";
+import { getArticles } from "../../lib/cms";
+import { translate } from "../../lib/i18n";
+
+const articles = (await getArticles()).map((article) => ({
+	slug: article.slug,
+	title: article.title,
+	category: article.category,
+	excerpt: article.excerpt,
+	publishedAt: article.publishedAt,
+}));
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
+const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
+
+const pageTitle = `${translate("knowledge.title", "th")} — FactorySync Solutions`;
+const description = translate("knowledge.metaDescription", "th");
+---
+
+<Layout title={pageTitle} description={description}>
+  <KnowledgeContent
+    client:load
+    mode="hub"
+    appUrl={appUrl}
+    version={version}
+    articles={articles}
+  />
+</Layout>

@@ -24,8 +24,11 @@
 
 ## Current State
 
-⚠️ **Phases 1–3 shipped + Phase 5 SEO largely done.** Phase 4 (Knowledge Hub) blocked on web-cms;
-Phase 5's only open item is replacing Unsplash imagery with owned assets.
+⚠️ **Phases 1–3 shipped + Phase 5 SEO largely done. Phase 4 (Knowledge Hub) code-complete**
+(2026-07-01) — `/knowledge` + 8 category pages + article pages build green via a graceful CMS
+fetch layer; remaining items are operational: set `PUBLIC_CMS_URL` for staging/prod and author
+category-tagged articles in web-cms. Phase 5's only open item is replacing Unsplash imagery with
+owned assets.
 
 Phase 1 shipped: `SiteNavBar` now renders the routed primary nav (Home · About ▾ · Services ▾ mega · Knowledge ·
 Contact) backed by a shared `SERVICE_GROUPS` taxonomy (`src/lib/services.ts`), a 4-column Services mega menu,
@@ -45,8 +48,9 @@ placeholder detail. Per the **scaffold + placeholder** decision, the 13 nested d
 `engineering-consulting` carry migrated real copy with a flagship CTA deep-linking into the web-app. Legacy
 slugs 301-redirect to their new targets. All 80 tests green, 28 pages built (17 service routes + 3 redirects).
 
-⚠️ **Known gaps:** `/knowledge` route still 404 (Phase 4, blocked on web-cms). The 13 nested detail pages
-carry placeholder body copy pending marketing-owned content.
+⚠️ **Known gaps:** Knowledge Hub renders an empty state until `PUBLIC_CMS_URL` is set and articles are
+authored in web-cms (the build degrades gracefully to zero articles without it). The 13 nested detail
+pages carry placeholder body copy pending marketing-owned content.
 
 ---
 
@@ -116,15 +120,36 @@ Q4 (dedicated flagship marketing page + deep-link CTA) and Q5 (uniform template)
 
 ---
 
-## Phase 4 — Knowledge Hub
+## Phase 4 — Knowledge Hub ⚠️
 
-⛔ Blocked on `feature/web-cms-sonicjs` exposing build-time article data.
+Code-complete 2026-07-01. web-cms now exposes a public read API (`GET /api/content/blog-posts`,
+`public: ['read']`), so the original blocker is lifted. A `category` select field (8 enum slugs) was
+added to the web-cms `blog_post` collection (no D1 migration — SonicJS stores collection fields in the
+`documents.data` JSON column). Articles are pulled at **build** time with a graceful empty fallback, so
+the SSG build always succeeds even when the CMS is unset/unreachable. Lexical content is rendered to
+sanitized HTML at build (no `@lexical` runtime dep).
 
-- [ ] `/knowledge` listing + 8 category pages + article pages
-- [ ] web-cms (SonicJS) fetch at build — `src/lib/cms.ts`
+- [x] `category` select field (8 slugs) on web-cms `blog_post` collection — `apps/web-cms/src/collections/blog-posts.collection.ts`
+- [x] 8-category taxonomy (single source of truth, slugs synced with CMS enum) — `src/lib/knowledge.ts`
+- [x] Build-time article fetch with graceful empty fallback + build cache — `src/lib/cms.ts`
+- [x] Lexical JSON → sanitized HTML renderer + plain-text excerpt — `src/lib/lexical.ts`
+- [x] `/knowledge` listing + `/knowledge/category/[category]` (8) + `/knowledge/[slug]` (CMS-driven) — `src/pages/knowledge/**`
+- [x] `KnowledgeContent` island (hub / category / article modes) + `.prose-knowledge` styles
+- [x] Buddhist-era date formatter (no dayjs in web-official) — `src/lib/date.ts`
+- [x] `knowledge.*` i18n keys incl. 8 category labels (TH/EN); `BlogPosting` JSON-LD on article pages
+- [x] `PUBLIC_CMS_URL` documented in `.env.example`
+- [ ] **Operational:** set `PUBLIC_CMS_URL` for staging/prod + author category-tagged articles, then verify article rendering against live CMS
 
 ### Phase 4 Tests
-- [ ] 8 category routes 200; article renders from web-cms; graceful build when CMS unreachable
+- [x] Knowledge taxonomy (8 categories, params, lookups) — `knowledge.test.ts`
+- [x] CMS fetch: graceful `[]` when unset/unreachable/non-200; normalization, draft filtering, unknown-category sanitization, nested-`data` shape — `cms.test.ts`
+- [x] Lexical renderer: headings/lists/format flags/safe links, HTML escaping (XSS), plain-text extract — `lexical.test.ts`
+- [x] `KnowledgeContent`: hub lists + 8 category links, category active-state, article HTML render, empty states — `KnowledgeContent.test.tsx`
+- [ ] Live smoke: article renders from web-cms once `PUBLIC_CMS_URL` + content exist
+
+> Verified 2026-07-01: `pnpm --filter @repo/web-official build` → **37 pages** (was 28): `/knowledge`
+> + 8 category routes, all in `sitemap.xml`; article routes correctly emit 0 with no CMS configured
+> (graceful fallback). `biome check` ✓. `tsc --noEmit` ✓ (web-official + web-cms). `vitest run` → **110/110** (was 80).
 
 ---
 
@@ -166,5 +191,5 @@ Mirrors [sitemap.md §10](./sitemap.md#10-decisions--open-questions). All resolv
 
 ---
 
-*Version: 0.4.0*
-*Last updated: 30 June 2026*
+*Version: 0.5.0*
+*Last updated: 1 July 2026*

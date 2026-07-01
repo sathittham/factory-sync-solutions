@@ -138,7 +138,7 @@ const siteSchema = {
       rel="stylesheet"
     />
     <title>{title}</title>
-    <script type="application/ld+json" is:inline set:html={JSON.stringify(siteSchema)} />
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(siteSchema).replace(/</g, "\\u003c")} />
     <slot name="head" />
   </head>
   <body class="bg-background text-foreground">
