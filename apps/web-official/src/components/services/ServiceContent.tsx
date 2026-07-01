@@ -1,9 +1,9 @@
 "use client";
 
-import { SiteNav } from "@/components/SiteNavBar";
-import { SiteFooter, useTheme } from "@/components/site/chrome";
+import { type Crumb, PageHero } from "@/components/site/PageHero";
+import { SiteShell } from "@/components/site/SiteShell";
 import { buttonVariants } from "@/components/ui/button";
-import { LocaleProvider, useLocale } from "@/lib/i18n";
+import { useLocale } from "@/lib/i18n";
 import { getServiceBody, isPlaceholderService } from "@/lib/serviceContent";
 import {
 	SERVICE_GROUPS,
@@ -101,36 +101,6 @@ function iconFor(groupId: string) {
 // Shared chrome
 // ---------------------------------------------------------------------------
 
-interface Crumb {
-	readonly label: string;
-	readonly href?: string;
-}
-
-function Breadcrumb({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
-	return (
-		<nav
-			className="mb-4 flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
-			aria-label="Breadcrumb"
-		>
-			{crumbs.map((crumb, index) => (
-				<span key={crumb.label} className="flex items-center gap-2">
-					{index > 0 && <span aria-hidden="true">/</span>}
-					{crumb.href ? (
-						<a
-							href={crumb.href}
-							className="transition-colors hover:text-slate-900 dark:hover:text-white"
-						>
-							{crumb.label}
-						</a>
-					) : (
-						<span className="text-slate-700 dark:text-slate-200">{crumb.label}</span>
-					)}
-				</span>
-			))}
-		</nav>
-	);
-}
-
 function BottomCta({ href }: { readonly href: string }) {
 	const { t } = useLocale();
 	return (
@@ -215,35 +185,21 @@ function ServiceHero({
 	const primaryLabel = group.isFlagship ? t("svc.ui.ctaPrimary") : t("svc.ui.ctaContact");
 
 	return (
-		<section className="relative overflow-hidden border-b border-slate-200 bg-sky-50 dark:border-cyan-300/10 dark:bg-[#041225]">
-			<div className="relative mx-auto max-w-[1180px] px-4 py-14 sm:px-6 sm:py-16">
-				<Breadcrumb crumbs={crumbs} />
-				<div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-blue-600 text-white shadow-[0_0_28px_rgba(37,99,235,0.4)]">
-					{iconFor(group.id)}
-				</div>
-				<h1 className="max-w-3xl text-3xl font-extrabold leading-tight text-slate-950 sm:text-4xl dark:text-white">
-					{title}
-				</h1>
-				<p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg dark:text-slate-300">
-					{tagline}
-				</p>
-				<div className="mt-7 flex flex-wrap gap-3">
-					<a
-						href={primaryHref}
-						className="inline-flex h-11 items-center gap-2 rounded-md bg-blue-600 px-7 font-semibold text-white shadow-[0_0_28px_rgba(37,99,235,0.5)] transition-colors hover:bg-blue-500"
-					>
-						{primaryLabel}
-						<ArrowRightIcon />
-					</a>
-					<a
-						href="/contact"
-						className="inline-flex h-11 items-center gap-2 rounded-md border border-blue-200 bg-white/75 px-7 font-medium text-slate-900 transition-colors hover:bg-white dark:border-cyan-300/35 dark:bg-[#06172d]/45 dark:text-white dark:hover:bg-white/10"
-					>
-						{t("svc.ui.ctaConsult")}
-					</a>
-				</div>
-			</div>
-		</section>
+		<PageHero title={title} subtitle={tagline} crumbs={crumbs}>
+			<a
+				href={primaryHref}
+				className="inline-flex h-11 items-center gap-2 rounded-md bg-blue-600 px-7 font-semibold text-white shadow-[0_0_28px_rgba(37,99,235,0.5)] transition-colors hover:bg-blue-500"
+			>
+				{primaryLabel}
+				<ArrowRightIcon />
+			</a>
+			<a
+				href="/contact"
+				className="inline-flex h-11 items-center gap-2 rounded-md border border-blue-200 bg-white/75 px-7 font-medium text-slate-900 transition-colors hover:bg-white dark:border-cyan-300/35 dark:bg-[#06172d]/45 dark:text-white dark:hover:bg-white/10"
+			>
+				{t("svc.ui.ctaConsult")}
+			</a>
+		</PageHero>
 	);
 }
 
@@ -314,6 +270,16 @@ function DetailBody({
 
 	return (
 		<>
+			{body.isDraft && (
+				<section className="bg-white pt-12 dark:bg-[#041225]">
+					<div className="mx-auto max-w-[1180px] px-4 sm:px-6">
+						<p className="rounded-md border border-dashed border-amber-400 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900 dark:border-amber-300/40 dark:bg-amber-300/10 dark:text-amber-200">
+							{t("svc.ui.draftNotice")}
+						</p>
+					</div>
+				</section>
+			)}
+
 			{body.poster && (
 				<section className="bg-white pt-12 dark:bg-[#041225]">
 					<div className="mx-auto max-w-[820px] px-4 sm:px-6">
@@ -467,33 +433,23 @@ function RelatedBody({
 // Inner + root
 // ---------------------------------------------------------------------------
 
-function ServiceInner({
+// ServiceBody — rendered inside SiteShell's LocaleProvider
+function ServiceBody({
 	groupSlug,
 	childSlug,
 	appUrl,
-	version,
 }: {
 	readonly groupSlug: string;
 	readonly childSlug?: string;
 	readonly appUrl: string;
-	readonly version: string;
 }) {
 	const { t } = useLocale();
-	const { theme, resolvedTheme, setTheme } = useTheme();
 
 	const group = getGroupBySlug(groupSlug);
 	const child = group && childSlug ? getChildBySlug(group, childSlug) : undefined;
 
-	const shell = (inner: React.ReactNode) => (
-		<div className="min-h-screen flex flex-col bg-white text-slate-900 dark:bg-[#041225] dark:text-slate-100">
-			<SiteNav appUrl={appUrl} theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
-			<main className="flex-1">{inner}</main>
-			<SiteFooter version={version} resolvedTheme={resolvedTheme} />
-		</div>
-	);
-
 	// Static paths guarantee a valid group; guard defensively for type-narrowing.
-	if (!group) return shell(null);
+	if (!group) return null;
 
 	const isHub = group.type === "hub" && !child;
 	const labelKey = child ? child.labelKey : group.labelKey;
@@ -520,7 +476,7 @@ function ServiceInner({
 		body = <DetailBody groupId={group.id} childSlug={child?.slug} />;
 	}
 
-	return shell(
+	return (
 		<>
 			<ServiceHero group={group} title={title} tagline={tagline} crumbs={crumbs} appUrl={appUrl} />
 			{body}
@@ -539,8 +495,8 @@ export interface ServiceContentProps {
 
 export function ServiceContent({ groupSlug, childSlug, appUrl, version }: ServiceContentProps) {
 	return (
-		<LocaleProvider>
-			<ServiceInner groupSlug={groupSlug} childSlug={childSlug} appUrl={appUrl} version={version} />
-		</LocaleProvider>
+		<SiteShell appUrl={appUrl} version={version}>
+			<ServiceBody groupSlug={groupSlug} childSlug={childSlug} appUrl={appUrl} />
+		</SiteShell>
 	);
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHero } from "@/components/site/PageHero";
 import { SiteShell } from "@/components/site/SiteShell";
 import { useLocale } from "@/lib/i18n";
 
@@ -99,21 +100,15 @@ function ContactBody({ appUrl }: { readonly appUrl: string }) {
 
 	return (
 		<>
-			{/* Hero */}
-			<section className="border-b border-slate-200 bg-sky-50 px-4 py-14 sm:px-6 dark:border-cyan-300/10 dark:bg-[#06172d]">
-				<div className="mx-auto max-w-3xl text-center">
-					<h1 className="text-3xl font-extrabold text-slate-950 sm:text-4xl dark:text-white">
-						{t("contact.title")}
-					</h1>
-					<p className="mt-3 text-base leading-relaxed text-slate-600 sm:text-lg dark:text-slate-300">
-						{t("contact.subtitle")}
-					</p>
-				</div>
-			</section>
+			<PageHero
+				title={t("contact.title")}
+				subtitle={t("contact.subtitle")}
+				crumbs={[{ label: t("nav.home"), href: "/" }, { label: t("contact.title") }]}
+			/>
 
 			{/* Contact cards */}
 			<section className="bg-white px-4 py-12 sm:px-6 dark:bg-[#041225]">
-				<div className="mx-auto grid max-w-4xl grid-cols-1 gap-5 sm:grid-cols-2">
+				<div className="mx-auto grid max-w-[1180px] grid-cols-1 gap-5 sm:grid-cols-2">
 					{/* LINE */}
 					<div className="flex flex-col gap-4 rounded-xl border border-sky-200 bg-white p-6 shadow-xs dark:border-cyan-300/15 dark:bg-[#06172d]">
 						<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500 text-white">
@@ -208,7 +203,7 @@ function ContactBody({ appUrl }: { readonly appUrl: string }) {
 
 			{/* App CTA */}
 			<section className="border-t border-sky-200 bg-sky-50 px-4 py-12 sm:px-6 dark:border-cyan-300/10 dark:bg-[#06172d]">
-				<div className="mx-auto flex max-w-4xl flex-col items-start gap-5 rounded-xl border border-blue-200 bg-[#06285a] px-6 py-8 text-white shadow-[0_0_34px_rgba(37,99,235,0.2)] sm:flex-row sm:items-center sm:justify-between dark:border-cyan-300/20">
+				<div className="mx-auto flex max-w-[1180px] flex-col items-start gap-5 rounded-xl border border-blue-200 bg-[#06285a] px-6 py-8 text-white shadow-[0_0_34px_rgba(37,99,235,0.2)] sm:flex-row sm:items-center sm:justify-between dark:border-cyan-300/20">
 					<div>
 						<h2 className="text-xl font-extrabold sm:text-2xl">{t("contact.appCard.title")}</h2>
 						<p className="mt-1 text-sm text-cyan-100">{t("contact.appCard.body")}</p>

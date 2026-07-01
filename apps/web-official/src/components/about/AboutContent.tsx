@@ -1,5 +1,6 @@
 "use client";
 
+import { type Crumb, PageHero } from "@/components/site/PageHero";
 import { SiteShell } from "@/components/site/SiteShell";
 import { useLocale } from "@/lib/i18n";
 
@@ -89,32 +90,128 @@ function TrophyIcon() {
 	);
 }
 
+function CheckBadgeIcon() {
+	return (
+		<svg
+			width="14"
+			height="14"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="3"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			aria-hidden="true"
+		>
+			<path d="M20 6 9 17l-5-5" />
+		</svg>
+	);
+}
+
+function ShieldCheckIcon() {
+	return (
+		<svg
+			width="22"
+			height="22"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			aria-hidden="true"
+		>
+			<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+			<path d="m9 12 2 2 4-4" />
+		</svg>
+	);
+}
+
+function SparklesIcon() {
+	return (
+		<svg
+			width="22"
+			height="22"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			aria-hidden="true"
+		>
+			<path d="M9.94 3.34a.5.5 0 0 1 .94 0l1.42 3.84a.5.5 0 0 0 .3.3l3.84 1.42a.5.5 0 0 1 0 .94l-3.84 1.42a.5.5 0 0 0-.3.3l-1.42 3.84a.5.5 0 0 1-.94 0l-1.42-3.84a.5.5 0 0 0-.3-.3L4.38 9.78a.5.5 0 0 1 0-.94l3.84-1.42a.5.5 0 0 0 .3-.3z" />
+			<path d="M18 15.5 18.7 17.3 20.5 18 18.7 18.7 18 20.5 17.3 18.7 15.5 18 17.3 17.3z" />
+		</svg>
+	);
+}
+
+function AcademicCapIcon() {
+	return (
+		<svg
+			width="22"
+			height="22"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			aria-hidden="true"
+		>
+			<path d="M22 10 12 5 2 10l10 5 10-5Z" />
+			<path d="M6 12v5c0 1 2.5 2.5 6 2.5s6-1.5 6-2.5v-5" />
+		</svg>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Avatar — mockup monogram avatar (CSP-safe; swap for real photos when ready)
+// ---------------------------------------------------------------------------
+
+function Avatar({
+	initials,
+	gradient,
+	licensed,
+	licensedLabel,
+}: {
+	readonly initials: string;
+	readonly gradient: string;
+	readonly licensed: boolean;
+	readonly licensedLabel: string;
+}) {
+	return (
+		<div className="relative">
+			<div
+				className={`flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-lg font-bold tracking-wide text-white shadow-md ring-4 ring-white dark:ring-[#06172d]`}
+				aria-hidden="true"
+			>
+				{initials}
+			</div>
+			{licensed && (
+				<span
+					className="absolute -right-0.5 -bottom-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white ring-2 ring-white dark:ring-[#06172d]"
+					title={licensedLabel}
+				>
+					<CheckBadgeIcon />
+					<span className="sr-only">{licensedLabel}</span>
+				</span>
+			)}
+		</div>
+	);
+}
+
 // ---------------------------------------------------------------------------
 // Breadcrumb
 // ---------------------------------------------------------------------------
 
-function Breadcrumb({ label }: { readonly label: string }) {
-	const { t } = useLocale();
-	return (
-		<nav
-			className="mb-4 flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
-			aria-label="Breadcrumb"
-		>
-			<a href="/" className="transition-colors hover:text-slate-900 dark:hover:text-white">
-				{t("nav.home")}
-			</a>
-			<span aria-hidden="true">/</span>
-			<a href="/about" className="transition-colors hover:text-slate-900 dark:hover:text-white">
-				{t("nav.about")}
-			</a>
-			{label && (
-				<>
-					<span aria-hidden="true">/</span>
-					<span className="text-slate-700 dark:text-slate-200">{label}</span>
-				</>
-			)}
-		</nav>
-	);
+/** Crumbs for an About sub-page: home / about / <label>. */
+function aboutCrumbs(t: (key: string) => string, label: string): Crumb[] {
+	return [
+		{ label: t("nav.home"), href: "/" },
+		{ label: t("nav.about"), href: "/about" },
+		{ label },
+	];
 }
 
 // ---------------------------------------------------------------------------
@@ -132,19 +229,14 @@ function OverviewBody() {
 
 	return (
 		<>
-			<section className="border-b border-slate-200 bg-sky-50 px-4 py-14 sm:px-6 dark:border-cyan-300/10 dark:bg-[#06172d]">
-				<div className="mx-auto max-w-3xl text-center">
-					<h1 className="text-3xl font-extrabold text-slate-950 sm:text-4xl dark:text-white">
-						{t("about.overview.title")}
-					</h1>
-					<p className="mt-3 text-base leading-relaxed text-slate-600 sm:text-lg dark:text-slate-300">
-						{t("about.overview.subtitle")}
-					</p>
-				</div>
-			</section>
+			<PageHero
+				title={t("about.overview.title")}
+				subtitle={t("about.overview.subtitle")}
+				crumbs={[{ label: t("nav.home"), href: "/" }, { label: t("nav.about") }]}
+			/>
 
 			<section className="bg-white px-4 py-12 sm:px-6 dark:bg-[#041225]">
-				<div className="mx-auto max-w-3xl">
+				<div className="mx-auto max-w-[1180px]">
 					<p className="text-base leading-relaxed text-slate-600 dark:text-slate-300">
 						{t("about.overview.intro")}
 					</p>
@@ -179,7 +271,7 @@ function OverviewBody() {
 // CompanyBody
 // ---------------------------------------------------------------------------
 
-function CompanyBody() {
+function CompanyBody({ appUrl }: { readonly appUrl: string }) {
 	const { t } = useLocale();
 
 	const values = [
@@ -191,20 +283,14 @@ function CompanyBody() {
 
 	return (
 		<>
-			<section className="border-b border-slate-200 bg-sky-50 px-4 py-14 sm:px-6 dark:border-cyan-300/10 dark:bg-[#06172d]">
-				<div className="mx-auto max-w-3xl">
-					<Breadcrumb label={t("about.company.link")} />
-					<h1 className="text-3xl font-extrabold text-slate-950 sm:text-4xl dark:text-white">
-						{t("about.company.title")}
-					</h1>
-					<p className="mt-3 text-base leading-relaxed text-slate-600 sm:text-lg dark:text-slate-300">
-						{t("about.company.subtitle")}
-					</p>
-				</div>
-			</section>
+			<PageHero
+				title={t("about.company.title")}
+				subtitle={t("about.company.subtitle")}
+				crumbs={aboutCrumbs(t, t("about.company.link"))}
+			/>
 
 			<section className="bg-white px-4 py-12 sm:px-6 dark:bg-[#041225]">
-				<div className="mx-auto max-w-3xl space-y-10">
+				<div className="mx-auto max-w-[1180px] space-y-10">
 					<div>
 						<h2 className="text-xl font-bold text-slate-950 dark:text-white">
 							{t("about.company.historyTitle")}
@@ -250,6 +336,23 @@ function CompanyBody() {
 					</div>
 				</div>
 			</section>
+
+			{/* CTA */}
+			<section className="border-t border-sky-200 bg-sky-50 px-4 py-12 sm:px-6 dark:border-cyan-300/10 dark:bg-[#06172d]">
+				<div className="mx-auto flex max-w-[1180px] flex-col items-start gap-5 rounded-xl border border-blue-200 bg-[#06285a] px-6 py-8 text-white shadow-[0_0_34px_rgba(37,99,235,0.2)] sm:flex-row sm:items-center sm:justify-between dark:border-cyan-300/20">
+					<div>
+						<h2 className="text-xl font-extrabold sm:text-2xl">{t("about.company.ctaTitle")}</h2>
+						<p className="mt-1 text-sm text-cyan-100">{t("about.company.ctaBody")}</p>
+					</div>
+					<a
+						href={appUrl}
+						className="inline-flex shrink-0 items-center gap-2 rounded-md bg-blue-500 px-7 py-3 text-base font-semibold text-white shadow-[0_0_24px_rgba(37,99,235,0.45)] transition-colors hover:bg-blue-400"
+					>
+						{t("about.company.ctaButton")}
+						<ArrowRightIcon />
+					</a>
+				</div>
+			</section>
 		</>
 	);
 }
@@ -258,48 +361,83 @@ function CompanyBody() {
 // TeamBody
 // ---------------------------------------------------------------------------
 
-function TeamBody() {
+const TEAM_MEMBERS = [
+	{
+		key: "m1",
+		initials: "SW",
+		gradient: "from-blue-500 to-cyan-400",
+		licensed: true,
+	},
+	{
+		key: "m2",
+		initials: "PS",
+		gradient: "from-cyan-500 to-teal-400",
+		licensed: false,
+	},
+	{
+		key: "m3",
+		initials: "AB",
+		gradient: "from-indigo-500 to-blue-400",
+		licensed: true,
+	},
+	{
+		key: "m4",
+		initials: "KT",
+		gradient: "from-sky-500 to-cyan-400",
+		licensed: false,
+	},
+	{
+		key: "m5",
+		initials: "WR",
+		gradient: "from-blue-600 to-indigo-400",
+		licensed: false,
+	},
+	{
+		key: "m6",
+		initials: "SM",
+		gradient: "from-teal-500 to-cyan-400",
+		licensed: true,
+	},
+] as const;
+
+function TeamBody({ appUrl }: { readonly appUrl: string }) {
 	const { t } = useLocale();
 
-	const roles = [
+	const expertise = [
 		{
 			titleKey: "about.team.engineerTitle",
 			descKey: "about.team.engineerDesc",
 			badge: t("landing.trust.eng"),
-			accent: "bg-blue-600",
+			icon: <ShieldCheckIcon />,
 		},
 		{
 			titleKey: "about.team.consultantTitle",
 			descKey: "about.team.consultantDesc",
 			badge: t("landing.trust.consult"),
-			accent: "bg-cyan-600",
+			icon: <SparklesIcon />,
 		},
 		{
 			titleKey: "about.team.trainerTitle",
 			descKey: "about.team.trainerDesc",
 			badge: null,
-			accent: "bg-slate-600",
+			icon: <AcademicCapIcon />,
 		},
 	];
 
+	const licensedLabel = t("about.team.licensedLabel");
+
 	return (
 		<>
-			<section className="border-b border-slate-200 bg-sky-50 px-4 py-14 sm:px-6 dark:border-cyan-300/10 dark:bg-[#06172d]">
-				<div className="mx-auto max-w-3xl">
-					<Breadcrumb label={t("about.team.link")} />
-					<h1 className="text-3xl font-extrabold text-slate-950 sm:text-4xl dark:text-white">
-						{t("about.team.title")}
-					</h1>
-					<p className="mt-3 text-base leading-relaxed text-slate-600 sm:text-lg dark:text-slate-300">
-						{t("about.team.subtitle")}
-					</p>
-				</div>
-			</section>
+			<PageHero
+				title={t("about.team.title")}
+				subtitle={t("about.team.subtitle")}
+				crumbs={aboutCrumbs(t, t("about.team.link"))}
+			/>
 
 			<section className="bg-white px-4 py-12 sm:px-6 dark:bg-[#041225]">
-				<div className="mx-auto max-w-3xl">
-					{/* Trust stats */}
-					<div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
+				<div className="mx-auto max-w-[1180px] space-y-14">
+					{/* Trust points */}
+					<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
 						{(
 							[
 								["landing.trust.exp", "landing.trust.expSub"],
@@ -310,44 +448,101 @@ function TeamBody() {
 						).map(([main, sub]) => (
 							<div
 								key={main}
-								className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-center dark:border-cyan-300/15 dark:bg-[#06172d]"
+								className="rounded-xl border border-sky-200 bg-sky-50 p-4 dark:border-cyan-300/15 dark:bg-[#06172d]"
 							>
-								<p className="text-sm font-bold text-slate-900 dark:text-white">{t(main)}</p>
+								<span className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600/10 text-blue-600 dark:bg-cyan-300/10 dark:text-cyan-300">
+									<CheckBadgeIcon />
+								</span>
+								<p className="text-sm font-bold leading-snug text-slate-900 dark:text-white">
+									{t(main)}
+								</p>
 								<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t(sub)}</p>
 							</div>
 						))}
 					</div>
 
-					{/* Role cards */}
-					<div className="space-y-5">
-						{roles.map((role) => (
-							<div
-								key={role.titleKey}
-								className="rounded-xl border border-sky-200 bg-white p-6 shadow-xs dark:border-cyan-300/15 dark:bg-[#06172d]"
-							>
-								<div className="flex items-start gap-4">
-									<span
-										className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${role.accent} text-xs font-bold text-white`}
-									>
-										{t(role.titleKey).slice(0, 2)}
+					{/* Meet the specialists */}
+					<div>
+						<div className="mb-6 text-center">
+							<h2 className="text-2xl font-extrabold text-slate-950 dark:text-white">
+								{t("about.team.membersTitle")}
+							</h2>
+							<p className="mt-2 text-base text-slate-600 dark:text-slate-300">
+								{t("about.team.membersSubtitle")}
+							</p>
+						</div>
+						<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5">
+							{TEAM_MEMBERS.map((member) => (
+								<div
+									key={member.key}
+									className="flex flex-col items-center rounded-2xl border border-sky-200 bg-white p-5 text-center shadow-xs transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md dark:border-cyan-300/15 dark:bg-[#06172d] dark:hover:border-cyan-300/40"
+								>
+									<Avatar
+										initials={member.initials}
+										gradient={member.gradient}
+										licensed={member.licensed}
+										licensedLabel={licensedLabel}
+									/>
+									<h3 className="mt-4 font-bold text-slate-900 dark:text-white">
+										{t(`about.team.${member.key}.name`)}
+									</h3>
+									<p className="mt-0.5 text-sm font-medium text-blue-600 dark:text-cyan-300">
+										{t(`about.team.${member.key}.role`)}
+									</p>
+									<span className="mt-3 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-medium text-slate-600 dark:border-cyan-300/20 dark:bg-[#041225] dark:text-slate-300">
+										{t(`about.team.${member.key}.tag`)}
 									</span>
-									<div>
-										<h2 className="text-lg font-bold text-slate-900 dark:text-white">
-											{t(role.titleKey)}
-										</h2>
-										{role.badge && (
-											<p className="mt-0.5 text-sm font-semibold text-cyan-700 dark:text-cyan-300">
-												{role.badge}
-											</p>
-										)}
-										<p className="mt-2 text-base leading-relaxed text-slate-600 dark:text-slate-300">
-											{t(role.descKey)}
-										</p>
-									</div>
 								</div>
-							</div>
-						))}
+							))}
+						</div>
 					</div>
+
+					{/* Areas of expertise */}
+					<div>
+						<h2 className="mb-6 text-2xl font-extrabold text-slate-950 dark:text-white">
+							{t("about.team.expertiseTitle")}
+						</h2>
+						<div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+							{expertise.map((area) => (
+								<div
+									key={area.titleKey}
+									className="flex flex-col rounded-xl border border-sky-200 bg-white p-6 shadow-xs dark:border-cyan-300/15 dark:bg-[#06172d]"
+								>
+									<span className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600/10 text-blue-600 dark:bg-cyan-300/10 dark:text-cyan-300">
+										{area.icon}
+									</span>
+									<h3 className="text-lg font-bold text-slate-900 dark:text-white">
+										{t(area.titleKey)}
+									</h3>
+									{area.badge && (
+										<p className="mt-0.5 text-sm font-semibold text-cyan-700 dark:text-cyan-300">
+											{area.badge}
+										</p>
+									)}
+									<p className="mt-2 text-base leading-relaxed text-slate-600 dark:text-slate-300">
+										{t(area.descKey)}
+									</p>
+								</div>
+							))}
+						</div>
+					</div>
+				</div>
+			</section>
+
+			{/* CTA */}
+			<section className="border-t border-sky-200 bg-sky-50 px-4 py-12 sm:px-6 dark:border-cyan-300/10 dark:bg-[#06172d]">
+				<div className="mx-auto flex max-w-[1180px] flex-col items-start gap-5 rounded-xl border border-blue-200 bg-[#06285a] px-6 py-8 text-white shadow-[0_0_34px_rgba(37,99,235,0.2)] sm:flex-row sm:items-center sm:justify-between dark:border-cyan-300/20">
+					<div>
+						<h2 className="text-xl font-extrabold sm:text-2xl">{t("about.team.ctaTitle")}</h2>
+						<p className="mt-1 text-sm text-cyan-100">{t("about.team.ctaBody")}</p>
+					</div>
+					<a
+						href={appUrl}
+						className="inline-flex shrink-0 items-center gap-2 rounded-md bg-blue-500 px-7 py-3 text-base font-semibold text-white shadow-[0_0_24px_rgba(37,99,235,0.45)] transition-colors hover:bg-blue-400"
+					>
+						{t("about.team.ctaButton")}
+						<ArrowRightIcon />
+					</a>
 				</div>
 			</section>
 		</>
@@ -381,20 +576,14 @@ function CaseStudiesBody({ appUrl }: { readonly appUrl: string }) {
 
 	return (
 		<>
-			<section className="border-b border-slate-200 bg-sky-50 px-4 py-14 sm:px-6 dark:border-cyan-300/10 dark:bg-[#06172d]">
-				<div className="mx-auto max-w-3xl">
-					<Breadcrumb label={t("about.caseStudies.link")} />
-					<h1 className="text-3xl font-extrabold text-slate-950 sm:text-4xl dark:text-white">
-						{t("about.caseStudies.title")}
-					</h1>
-					<p className="mt-3 text-base leading-relaxed text-slate-600 sm:text-lg dark:text-slate-300">
-						{t("about.caseStudies.subtitle")}
-					</p>
-				</div>
-			</section>
+			<PageHero
+				title={t("about.caseStudies.title")}
+				subtitle={t("about.caseStudies.subtitle")}
+				crumbs={aboutCrumbs(t, t("about.caseStudies.link"))}
+			/>
 
 			<section className="bg-white px-4 py-12 sm:px-6 dark:bg-[#041225]">
-				<div className="mx-auto max-w-3xl space-y-10">
+				<div className="mx-auto max-w-[1180px] space-y-10">
 					{/* Stats */}
 					<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
 						{stats.map((stat) => (
@@ -433,7 +622,7 @@ function CaseStudiesBody({ appUrl }: { readonly appUrl: string }) {
 
 			{/* CTA */}
 			<section className="border-t border-sky-200 bg-sky-50 px-4 py-12 sm:px-6 dark:border-cyan-300/10 dark:bg-[#06172d]">
-				<div className="mx-auto flex max-w-3xl flex-col items-start gap-5 rounded-xl border border-blue-200 bg-[#06285a] px-6 py-8 text-white shadow-[0_0_34px_rgba(37,99,235,0.2)] sm:flex-row sm:items-center sm:justify-between dark:border-cyan-300/20">
+				<div className="mx-auto flex max-w-[1180px] flex-col items-start gap-5 rounded-xl border border-blue-200 bg-[#06285a] px-6 py-8 text-white shadow-[0_0_34px_rgba(37,99,235,0.2)] sm:flex-row sm:items-center sm:justify-between dark:border-cyan-300/20">
 					<div>
 						<h2 className="text-xl font-extrabold sm:text-2xl">
 							{t("about.caseStudies.ctaTitle")}
@@ -464,8 +653,8 @@ function AboutBody({
 	readonly page: AboutPage;
 	readonly appUrl: string;
 }) {
-	if (page === "company") return <CompanyBody />;
-	if (page === "team") return <TeamBody />;
+	if (page === "company") return <CompanyBody appUrl={appUrl} />;
+	if (page === "team") return <TeamBody appUrl={appUrl} />;
 	if (page === "case-studies") return <CaseStudiesBody appUrl={appUrl} />;
 	return <OverviewBody />;
 }
