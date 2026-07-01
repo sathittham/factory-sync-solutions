@@ -10,14 +10,14 @@ import {
 import { auth } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
 import { useAppSelector } from '@/store';
-import { Outlet, useNavigate } from 'react-router';
+import { Outlet, useNavigate } from '@tanstack/react-router';
 
 export function RegisterGuard() {
   const { isRegistered } = useAppSelector((s) => s.auth);
   const { t } = useLocale();
   const navigate = useNavigate();
 
-  const handleCreateCompany = () => navigate('/register');
+  const handleCreateCompany = () => navigate({ to: '/register' });
   const handleSignOut = () => auth.signOut();
 
   if (isRegistered) return <Outlet />;

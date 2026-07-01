@@ -22,7 +22,6 @@
     "deploy:prod": "pnpm run build && CLOUDFLARE_ACCOUNT_ID=9cfbba8b3a373fdc0d11abaf64071719 npx wrangler pages deploy dist --project-name=factory-sync-solutions --branch=main"
   },
   "dependencies": {
-    "@repo/shared": "workspace:*",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-avatar": "^1.1.12",
     "@radix-ui/react-collapsible": "^1.1.13",
@@ -37,7 +36,12 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.9",
     "@reduxjs/toolkit": "^2.5.0",
+    "@repo/shared": "workspace:*",
+    "@tanstack/history": "^1.162.0",
     "@tanstack/react-form": "^1.33.0",
+    "@tanstack/react-query": "^5.101.2",
+    "@tanstack/react-router": "^1.170.16",
+    "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.19",
@@ -48,7 +52,6 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.0",
     "react-redux": "^9.2.0",
-    "react-router": "^7.15.0",
     "recharts": "^2.15.0",
     "tailwind-merge": "^3.6.0",
     "zod": "^3.24.0"
@@ -58,6 +61,7 @@
     "@playwright/test": "^1.49.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.3.2",
+    "@tanstack/router-plugin": "^1.168.18",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.1.0",

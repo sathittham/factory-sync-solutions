@@ -16,7 +16,7 @@ per-dimension spider chart, and get actionable recommendations.
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![Redux Toolkit](https://img.shields.io/badge/Redux_Toolkit-2-764ABC?logo=redux&logoColor=white)
-![React Router](https://img.shields.io/badge/React_Router-7-CA4245?logo=reactrouter&logoColor=white)
+![TanStack Router](https://img.shields.io/badge/TanStack_Router-1-FF4154?logo=react-query&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-11-FFCA28?logo=firebase&logoColor=black)
 
 [← Monorepo root](../../README.md) · [Tech Stack](#tech-stack) · [Structure](#project-structure) · [Scripts](#scripts) · [Testing](#testing) · [Routes](#routes)
@@ -31,10 +31,12 @@ per-dimension spider chart, and get actionable recommendations.
 |---|---|
 | Framework | React 19 + TypeScript |
 | Build | Vite 8 |
-| Routing | React Router 7 (`react-router`) |
-| State | Redux Toolkit |
+| Routing | TanStack Router (`@tanstack/react-router`, file-based) |
+| Client state | Redux Toolkit (auth session, in-progress quiz answers) |
+| Server state | TanStack Query (`@tanstack/react-query`) |
 | Styling | Tailwind CSS 4 (CSS-config) + shadcn/ui (Radix primitives) |
-| Forms | React Hook Form + Zod |
+| Tables | TanStack Table (`@tanstack/react-table`) via `DataTable` |
+| Forms | TanStack Form (`@tanstack/react-form`) + Zod |
 | Charts | Recharts |
 | Animation | Motion |
 | Auth | Firebase Auth (Google sign-in) |

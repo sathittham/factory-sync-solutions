@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
+import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv } from 'vite';
 
@@ -19,7 +20,10 @@ export default defineConfig(({ mode }) => {
   const proxyTarget = env.VITE_PROXY_TARGET || 'http://localhost:8080';
 
   return {
-    plugins: [react(), tailwindcss()],
+    // TanStack Router plugin generates src/routeTree.gen.ts from src/routes/** and regenerates it
+    // on dev/build. The generated file IS committed (not git-ignored) so `tsc -b`/`type-check` works
+    // on a fresh checkout and in CI without a prior build. Plugin must run before react().
+    plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react(), tailwindcss()],
     define: {
       __APP_VERSION__: JSON.stringify(getAppVersion()),
     },

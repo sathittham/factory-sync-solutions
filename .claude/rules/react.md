@@ -12,14 +12,16 @@ paths:
 
 > Applies to both frontends: `web-app` (React 19 + Vite, the authenticated app) and
 > `web-official` (Astro 6 + React 19 islands, the marketing site). shadcn/ui, `useLocale()`,
-> Biome, and the no-nested-ternary rule apply to both. Redux Toolkit / RTK Query apply to
-> `web-app` only — the official site has no store.
+> Biome, and the no-nested-ternary rule apply to both. Redux Toolkit, TanStack Query, and TanStack
+> Table apply to `web-app` only — the official site has no store.
 
 ## Stack
 
 - **Framework**: React 19 + Vite (`web-app`) · Astro 6 + React 19 islands (`web-official`)
-- **State**: Redux Toolkit
+- **Client state**: Redux Toolkit — auth session, in-progress quiz answers, UI state
+- **Server state**: `@tanstack/react-query` — data fetched from the backend (`web-app` only)
 - **UI**: shadcn/ui (Radix-based) + Tailwind CSS
+- **Tables**: `@tanstack/react-table` via the reusable `DataTable` (`components/ui/data-table.tsx`)
 - **Forms**: `@tanstack/react-form` + shadcn `Field`/`FieldGroup` (`web-app` only)
 - **i18n**: custom `useLocale()` hook — TH/EN in `apps/web-app/src/lib/i18n.tsx`
 - **Date**: `dayjs` with `buddhistEra` plugin — utility at `apps/web-app/src/lib/dayjs.ts`
@@ -130,15 +132,42 @@ new Date().toLocaleDateString()
 date.toLocaleDateString("th-TH")
 ```
 
-## Redux Toolkit
+## State: server vs client
+
+Two owners — keep the boundary clean:
+
+- **Server state → TanStack Query.** Anything fetched from the backend (assessments, results, quiz
+  configs). Use `useQuery`/`useMutation` — never hand-roll `fetch` + `useState(loading/error)` +
+  `useEffect` in components. Fetch through the `api` helper in `@/lib/api` inside the `queryFn`.
+  The `QueryClient` lives in `@/lib/queryClient`; the provider is wired in `App.tsx`.
+- **Client state → Redux Toolkit.** Auth session, in-progress quiz answers, and other UI state that is
+  not owned by the backend. Do NOT mirror server data into Redux.
 
 ```tsx
-import { useDispatch, useSelector } from "react-redux"
-import { selectQuizStatus } from "@/store/quizSlice"
+// ✅ Server state
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/api'
 
-// Slices in apps/web-app/src/store/
-// Use RTK Query for API calls — not raw fetch in components
+const { data = [], isPending, isError } = useQuery({
+  queryKey: ['admin-assessments', industryFilter, sizeFilter],
+  queryFn: () => api.get<AdminAssessment[]>('/admin/assessments'),
+})
+
+// ✅ Client state
+import { useSelector } from 'react-redux'
+import { selectQuizStatus } from '@/store/quizSlice' // slices in apps/web-app/src/store/
 ```
+
+> Historical note: earlier revisions specified RTK Query. As of CR-003 the project standardized on
+> TanStack Query for server state (the app already uses `@tanstack/react-form` and `@tanstack/react-table`).
+
+## Tables — use the `DataTable` (TanStack Table)
+
+Tabular data uses `@tanstack/react-table` via the reusable `DataTable` in
+`components/ui/data-table.tsx` — never hand-roll `<table>` with manual sort/filter/pagination state.
+It provides client-side sorting, pagination, and a search box, plus an optional `renderExpandedRow`
+for accordion detail rows. Per-column responsive classes go through column `meta.headerClassName` /
+`meta.cellClassName`. Reference usage: the assessment table in `pages/AdminPage.tsx`.
 
 ## Component Conventions
 
@@ -174,5 +203,5 @@ make test-web       # npx vitest run
 - No nested ternaries — extract to named variables
 - Min font size `text-sm` for labels, `text-base` for content
 
-*Version: 1.1.0*
-*Last updated: 12 June 2026*
+*Version: 1.2.0*
+*Last updated: 01 July 2026*

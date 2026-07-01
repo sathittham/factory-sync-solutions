@@ -307,6 +307,10 @@ const translations: Record<Locale, Record<string, string>> = {
     'admin.diagnosis': 'ผลวินิจฉัย',
     'admin.date': 'วันที่',
     'admin.noAssessments': 'ไม่พบข้อมูลการประเมิน',
+    'admin.searchCompany': 'ค้นหาชื่อบริษัท',
+    'table.page': 'หน้า',
+    'table.previous': 'ก่อนหน้า',
+    'table.next': 'ถัดไป',
     'admin.company': 'บริษัท',
     'admin.contactName': 'ผู้ติดต่อ',
     'admin.contactEmail': 'อีเมลผู้ติดต่อ',
@@ -496,8 +500,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'auth.setPassword.linkProblem': 'ตรวจสอบลิงก์',
     'auth.setPassword.genericError': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง',
     'auth.setPassword.goSignIn': 'ไปยังหน้าเข้าสู่ระบบ',
-    'auth.setPassword.securityNote':
-      'ลิงก์นี้ใช้ได้ครั้งเดียวเท่านั้น หากมีปัญหา กรุณาขอคำเชิญใหม่จากผู้ดูแลระบบ',
+    'auth.setPassword.securityNote': 'ลิงก์นี้ใช้ได้ครั้งเดียวเท่านั้น หากมีปัญหา กรุณาขอคำเชิญใหม่จากผู้ดูแลระบบ',
     'auth.setPassword.footer': 'FactorySync Solutions · @factorysyncsolutions',
 
     // 404
@@ -765,6 +768,10 @@ const translations: Record<Locale, Record<string, string>> = {
     'admin.diagnosis': 'Diagnosis',
     'admin.date': 'Date',
     'admin.noAssessments': 'No assessments found.',
+    'admin.searchCompany': 'Search company name',
+    'table.page': 'Page',
+    'table.previous': 'Previous',
+    'table.next': 'Next',
     'admin.company': 'Company',
     'admin.contactName': 'Contact',
     'admin.contactEmail': 'Contact Email',

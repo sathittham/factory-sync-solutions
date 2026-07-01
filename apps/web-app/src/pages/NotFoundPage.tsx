@@ -1,8 +1,8 @@
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useLocale } from '@/lib/i18n';
 import { useAppSelector } from '@/store';
+import { Link, useRouter } from '@tanstack/react-router';
 import { BarChart3, ChevronLeft, FileText, Home, LayoutDashboard, LogIn } from 'lucide-react';
-import { Link, useNavigate } from 'react-router';
 
 const MAIN_GEAR_CENTER = { x: 78, y: 92 };
 const SMALL_GEAR_CENTER = { x: 148, y: 44 };
@@ -125,12 +125,14 @@ function FactoryIllustration() {
 
 export function NotFoundPage() {
   const { t } = useLocale();
-  const navigate = useNavigate();
+  const router = useRouter();
   const { isAuthenticated, isRegistered } = useAppSelector((s) => s.auth);
+
+  const handleGoBack = () => router.history.back();
 
   const quickLinks =
     isAuthenticated && isRegistered
-      ? [
+      ? ([
           {
             to: '/dashboard',
             label: t('nav.dashboard'),
@@ -142,8 +144,10 @@ export function NotFoundPage() {
             label: t('nav.results'),
             icon: <BarChart3 size={14} aria-hidden="true" />,
           },
-        ]
-      : [{ to: '/', label: t('nav.login'), icon: <LogIn size={14} aria-hidden="true" /> }];
+        ] as const)
+      : ([
+          { to: '/', label: t('nav.login'), icon: <LogIn size={14} aria-hidden="true" /> },
+        ] as const);
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center p-6">
@@ -165,7 +169,7 @@ export function NotFoundPage() {
 
         {/* Primary actions */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
-          <Button variant="outline" size="lg" onClick={() => navigate(-1)}>
+          <Button variant="outline" size="lg" onClick={handleGoBack}>
             <ChevronLeft size={16} aria-hidden="true" />
             {t('notFound.goBack')}
           </Button>

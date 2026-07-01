@@ -2,6 +2,7 @@ import { PageHeader, PageLayout } from '@/components/PageLayout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { DataTable } from '@/components/ui/data-table';
 import {
   Dialog,
   DialogContent,
@@ -30,9 +31,11 @@ import { useLocale } from '@/lib/i18n';
 import { useAppSelector } from '@/store';
 import { canManageUsers } from '@/store/authSlice';
 import { useForm } from '@tanstack/react-form';
+import { useQuery } from '@tanstack/react-query';
+import { useLocation } from '@tanstack/react-router';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Loader2, Pencil, RotateCcw, Search, ShieldCheck, UserPlus, Users, X } from 'lucide-react';
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as z from 'zod';
 
 interface DimensionScore {
@@ -128,58 +131,41 @@ function QuizTab({
   onExport,
   exportError,
 }: Readonly<{ onExport: () => Promise<void>; exportError: string | null }>) {
-  const [assessments, setAssessments] = useState<AdminAssessment[]>([]);
-  const [loading, setLoading] = useState(true);
   const [industryFilter, setIndustryFilter] = useState('');
   const [sizeFilter, setSizeFilter] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [detailData, setDetailData] = useState<AdminAssessment | null>(null);
   const { t, locale } = useLocale();
 
-  const fetchAssessments = useCallback(async () => {
-    setLoading(true);
-    try {
+  // Server state via TanStack Query — list is keyed by the active filters,
+  // so each filter combination is cached and refetched independently.
+  const { data: assessments = [], isPending: loading } = useQuery({
+    queryKey: ['admin-assessments', industryFilter, sizeFilter],
+    queryFn: () => {
       const params = new URLSearchParams();
       if (industryFilter) params.set('industryType', industryFilter);
       if (sizeFilter) params.set('companySize', sizeFilter);
       const query = params.toString();
       const path = query ? `/admin/assessments?${query}` : '/admin/assessments';
-      const data = await api.get<AdminAssessment[]>(path);
-      setAssessments(data);
-    } catch {
-      // Error loading
-    } finally {
-      setLoading(false);
-    }
-  }, [industryFilter, sizeFilter]);
+      return api.get<AdminAssessment[]>(path);
+    },
+  });
 
-  useEffect(() => {
-    fetchAssessments();
-  }, [fetchAssessments]);
+  const selectedRow = assessments.find((a) => a.id === selectedId) ?? null;
+  const hasInlineScores = !!(selectedRow?.scores && selectedRow.scores.length > 0);
 
-  const handleSelectAssessment = async (a: AdminAssessment) => {
-    if (selectedId === a.id) {
-      setSelectedId(null);
-      setDetailData(null);
-      return;
-    }
-    setSelectedId(a.id);
+  // Per-row detail is fetched only when the selected row lacks inline scores;
+  // Query caches each assessment's detail by id.
+  const { data: fetchedDetail, isFetching: detailFetching } = useQuery({
+    queryKey: ['admin-assessment', selectedId],
+    queryFn: () => api.get<AdminAssessment>(`/admin/assessments/${selectedId}`),
+    enabled: !!selectedId && !hasInlineScores,
+  });
 
-    if (a.scores && a.scores.length > 0) {
-      setDetailData(a);
-      return;
-    }
+  const detailData = hasInlineScores ? selectedRow : (fetchedDetail ?? selectedRow);
+  const detailLoading = !!selectedId && !hasInlineScores && detailFetching;
 
-    setDetailLoading(true);
-    try {
-      const detail = await api.get<AdminAssessment>(`/admin/assessments/${a.id}`);
-      setDetailData(detail);
-    } catch {
-      setDetailData(a);
-    } finally {
-      setDetailLoading(false);
-    }
+  const handleSelectAssessment = (a: AdminAssessment) => {
+    setSelectedId((prev) => (prev === a.id ? null : a.id));
   };
 
   const totalSubmissions = assessments.length;
@@ -315,6 +301,88 @@ function QuizTab({
     return <p className="text-sm text-muted-foreground">{t('admin.noDetail')}</p>;
   };
 
+  const columns = useMemo<ColumnDef<AdminAssessment, unknown>[]>(
+    () => [
+      {
+        id: 'id',
+        header: () => t('admin.id'),
+        enableSorting: false,
+        cell: ({ row }) => `${row.original.id.slice(0, 8)}...`,
+        meta: {
+          headerClassName: 'hidden sm:table-cell',
+          cellClassName: 'font-mono text-xs text-muted-foreground hidden sm:table-cell',
+        },
+      },
+      {
+        id: 'companyName',
+        accessorFn: (a) => a.companyName ?? '',
+        header: () => t('admin.company'),
+        cell: ({ row }) => (
+          <>
+            <div className="text-sm font-medium">{row.original.companyName || '--'}</div>
+            <div className="text-[11px] text-muted-foreground sm:hidden mt-0.5">
+              {formatDateTime(row.original.submittedAt, locale)}
+            </div>
+          </>
+        ),
+      },
+      {
+        id: 'quizId',
+        header: () => t('admin.tabQuiz'),
+        enableSorting: false,
+        cell: ({ row }) => (
+          <Badge className="text-[10px] border bg-muted text-muted-foreground border-border">
+            {row.original.quizId || 'shindan'}
+          </Badge>
+        ),
+        meta: { headerClassName: 'hidden sm:table-cell', cellClassName: 'hidden sm:table-cell' },
+      },
+      {
+        id: 'overallScore',
+        accessorKey: 'overallScore',
+        header: () => t('admin.score'),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <span className="font-semibold font-mono tabular-nums text-sm">
+              {row.original.overallScore.toFixed(2)}
+            </span>
+            <div className="hidden sm:block w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full"
+                style={{ width: `${(row.original.overallScore / 5) * 100}%` }}
+              />
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'diagnosis',
+        accessorKey: 'diagnosis',
+        header: () => t('admin.diagnosis'),
+        enableSorting: false,
+        cell: ({ row }) => (
+          <Badge className={`text-[10px] border ${diagnosisColors[row.original.diagnosis] || ''}`}>
+            <span
+              className={`h-1.5 w-1.5 rounded-full mr-1.5 ${diagnosisDots[row.original.diagnosis] || 'bg-muted-foreground'}`}
+            />
+            {t(`diagnosis.${row.original.diagnosis}`)}
+          </Badge>
+        ),
+      },
+      {
+        id: 'submittedAt',
+        accessorKey: 'submittedAt',
+        header: () => t('admin.date'),
+        cell: ({ row }) => formatDateTime(row.original.submittedAt, locale),
+        meta: {
+          headerClassName: 'hidden sm:table-cell',
+          cellClassName: 'text-muted-foreground font-mono text-xs hidden sm:table-cell',
+        },
+      },
+    ],
+    [t, locale],
+  );
+
   return (
     <>
       {exportError && (
@@ -443,126 +511,48 @@ function QuizTab({
           </div>
         </div>
       ) : (
-        <div
-          className="bg-card rounded-lg border overflow-hidden animate-fade-up delay-4"
-          data-testid="admin-assessment-table"
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/30">
-                  <th className="text-left py-3 px-3 sm:px-5 text-xs font-medium text-muted-foreground hidden sm:table-cell">
-                    {t('admin.id')}
-                  </th>
-                  <th className="text-left py-3 px-3 sm:px-5 text-xs font-medium text-muted-foreground">
-                    {t('admin.company')}
-                  </th>
-                  <th className="text-left py-3 px-3 sm:px-5 text-xs font-medium text-muted-foreground hidden sm:table-cell">
-                    {t('admin.tabQuiz')}
-                  </th>
-                  <th className="text-left py-3 px-3 sm:px-5 text-xs font-medium text-muted-foreground">
-                    {t('admin.score')}
-                  </th>
-                  <th className="text-left py-3 px-3 sm:px-5 text-xs font-medium text-muted-foreground">
-                    {t('admin.diagnosis')}
-                  </th>
-                  <th className="text-left py-3 px-3 sm:px-5 text-xs font-medium text-muted-foreground hidden sm:table-cell">
-                    {t('admin.date')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {assessments.map((a) => (
-                  <Fragment key={a.id}>
-                    <tr
-                      onClick={() => handleSelectAssessment(a)}
-                      className={`border-b last:border-0 cursor-pointer transition-colors ${
-                        selectedId === a.id ? 'bg-primary/5' : 'hover:bg-muted/30'
-                      }`}
-                    >
-                      <td className="py-3 px-3 sm:px-5 font-mono text-xs text-muted-foreground hidden sm:table-cell">
-                        {a.id.slice(0, 8)}...
-                      </td>
-                      <td className="py-3 px-3 sm:px-5">
-                        <div className="text-sm font-medium">{a.companyName || '--'}</div>
-                        <div className="text-[11px] text-muted-foreground sm:hidden mt-0.5">
-                          {formatDateTime(a.submittedAt, locale)}
-                        </div>
-                      </td>
-                      <td className="py-3 px-3 sm:px-5 hidden sm:table-cell">
-                        <Badge className="text-[10px] border bg-muted text-muted-foreground border-border">
-                          {a.quizId || 'shindan'}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-3 sm:px-5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold font-mono tabular-nums text-sm">
-                            {a.overallScore.toFixed(2)}
-                          </span>
-                          <div className="hidden sm:block w-16 h-1.5 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary rounded-full"
-                              style={{ width: `${(a.overallScore / 5) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3 sm:px-5">
-                        <Badge
-                          className={`text-[10px] border ${diagnosisColors[a.diagnosis] || ''}`}
-                        >
-                          <span
-                            className={`h-1.5 w-1.5 rounded-full mr-1.5 ${diagnosisDots[a.diagnosis] || 'bg-muted-foreground'}`}
-                          />
-                          {t(`diagnosis.${a.diagnosis}`)}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-3 sm:px-5 text-muted-foreground font-mono text-xs hidden sm:table-cell">
-                        {formatDateTime(a.submittedAt, locale)}
-                      </td>
-                    </tr>
-                    {selectedId === a.id && (
-                      <tr>
-                        <td colSpan={5} className="p-0">
-                          <div
-                            className="border-t bg-muted/10 p-5 animate-fade-up"
-                            style={{ animationDelay: '0s' }}
-                          >
-                            {renderDetailContent()}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                ))}
-                {assessments.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="py-16 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                          <svg
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            className="text-muted-foreground"
-                          >
-                            <path
-                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        </div>
-                        <p className="text-muted-foreground text-sm">{t('admin.noAssessments')}</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+        <div className="animate-fade-up delay-4">
+          <DataTable
+            data-testid="admin-assessment-table"
+            columns={columns}
+            data={assessments}
+            getRowId={(a) => a.id}
+            searchColumnId="companyName"
+            searchPlaceholder={t('admin.searchCompany')}
+            onRowClick={handleSelectAssessment}
+            isRowExpanded={(a) => selectedId === a.id}
+            rowClassName={(_row, expanded) => (expanded ? 'bg-primary/5' : 'hover:bg-muted/30')}
+            renderExpandedRow={() => (
+              <div
+                className="border-t bg-muted/10 p-5 animate-fade-up"
+                style={{ animationDelay: '0s' }}
+              >
+                {renderDetailContent()}
+              </div>
+            )}
+            emptyState={
+              <div className="flex flex-col items-center gap-2">
+                <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="text-muted-foreground"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+                <p className="text-muted-foreground text-sm">{t('admin.noAssessments')}</p>
+              </div>
+            }
+          />
         </div>
       )}
     </>
@@ -1429,18 +1419,18 @@ export function AdminPage() {
   const [exportError, setExportError] = useState<string | null>(null);
   const canViewAssessments = isAdmin;
   const canManageUserList = canManageUsers(profile, isAdmin);
-  const requestedTab = new URLSearchParams(location.search).get('tab');
+  const requestedTab = new URLSearchParams(location.searchStr).get('tab');
   const fallbackTab = canViewAssessments ? 'quiz' : 'users';
   const initialTab = requestedTab === 'users' && canManageUserList ? 'users' : fallbackTab;
   const [activeTab, setActiveTab] = useState(initialTab);
 
   useEffect(() => {
-    const tab = new URLSearchParams(location.search).get('tab');
+    const tab = new URLSearchParams(location.searchStr).get('tab');
     const wantsUsersTab = tab === 'users' && canManageUserList;
     const defaultTab = canViewAssessments ? 'quiz' : 'users';
     const next = wantsUsersTab ? 'users' : defaultTab;
     setActiveTab(next);
-  }, [location.search, canManageUserList, canViewAssessments]);
+  }, [location.searchStr, canManageUserList, canViewAssessments]);
 
   const handleExport = async () => {
     setExportError(null);
