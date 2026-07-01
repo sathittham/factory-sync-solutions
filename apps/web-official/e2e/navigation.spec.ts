@@ -6,8 +6,8 @@ test.describe("Navigation", () => {
 		expect(res?.status()).toBe(200);
 	});
 
-	test("register page loads with 200", async ({ page }) => {
-		const res = await page.goto("/register");
+	test("knowledge hub loads with 200", async ({ page }) => {
+		const res = await page.goto("/knowledge");
 		expect(res?.status()).toBe(200);
 	});
 
@@ -21,13 +21,13 @@ test.describe("Navigation", () => {
 		await expect(page.locator("header").first()).toBeVisible();
 	});
 
-	test("header is visible on register page", async ({ page }) => {
-		await page.goto("/register");
+	test("header is visible on knowledge hub", async ({ page }) => {
+		await page.goto("/knowledge");
 		await expect(page.locator("header").first()).toBeVisible();
 	});
 
 	test("logo links back to homepage", async ({ page }) => {
-		await page.goto("/register");
+		await page.goto("/contact");
 		await page.locator("header a[href='/']").first().click();
 		await expect(page).toHaveURL("/");
 	});
