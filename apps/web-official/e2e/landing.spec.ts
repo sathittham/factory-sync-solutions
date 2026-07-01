@@ -4,9 +4,17 @@ import { type Page, expect, test } from "@playwright/test";
 // The desktop nav exposes a single "การตั้งค่า" (Settings) button that opens a
 // menu containing the locale + theme radiogroups. The locale option reads
 // "EN English", so match it loosely.
+//
+// The nav is a client:load island: a click that lands before hydration is a
+// no-op, so retry opening the menu until the option actually appears.
 async function switchToEnglish(page: Page) {
-	await page.getByRole("button", { name: "การตั้งค่า" }).click();
-	await page.getByRole("menuitemradio", { name: /english/i }).click();
+	const settings = page.getByRole("button", { name: "การตั้งค่า" });
+	const englishOption = page.getByRole("menuitemradio", { name: /english/i });
+	await expect(async () => {
+		await settings.click();
+		await expect(englishOption).toBeVisible({ timeout: 1_000 });
+	}).toPass({ timeout: 10_000 });
+	await englishOption.click();
 }
 
 test.describe("Landing page", () => {
@@ -80,7 +88,7 @@ test.describe("Landing page — locale switching", () => {
 		test.skip(isMobile, "locale switcher in desktop nav hidden on mobile");
 		await switchToEnglish(page);
 		await expect(page.getByText("Intelligent Factory Health Check")).toBeVisible({
-			timeout: 3_000,
+			timeout: 5_000,
 		});
 	});
 });
