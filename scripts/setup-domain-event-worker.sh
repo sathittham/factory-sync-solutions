@@ -149,6 +149,30 @@ ensure_iam_binding() {
     --role="$role"
 }
 
+# Dead-lettering requires the Pub/Sub service agent to publish to the DLQ topic
+# and to ack messages on the source subscription. Without these, terminal
+# failures silently redeliver forever instead of routing to the DLQ.
+ensure_dead_letter_iam() {
+  local subscription_name="$1"
+  local dlq_topic_name="$2"
+
+  local project_number
+  project_number=$(gcloud projects describe "$PROJECT_ID" --format="value(projectNumber)")
+  local pubsub_agent="service-${project_number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+
+  echo "▶ Granting Pub/Sub service agent publisher on DLQ topic: $dlq_topic_name"
+  gcloud pubsub topics add-iam-policy-binding "$dlq_topic_name" \
+    --project "$PROJECT_ID" \
+    --member="serviceAccount:${pubsub_agent}" \
+    --role="roles/pubsub.publisher"
+
+  echo "▶ Granting Pub/Sub service agent subscriber on subscription: $subscription_name"
+  gcloud pubsub subscriptions add-iam-policy-binding "$subscription_name" \
+    --project "$PROJECT_ID" \
+    --member="serviceAccount:${pubsub_agent}" \
+    --role="roles/pubsub.subscriber"
+}
+
 ENVIRONMENT=""
 PROJECT_ID="${GCP_PROJECT_ID:-${GOOGLE_CLOUD_PROJECT:-}}"
 TOPIC_NAME="${DOMAIN_EVENT_PUBSUB_TOPIC:-factory-sync-domain-events}"
@@ -204,6 +228,8 @@ ensure_iam_binding "roles/pubsub.publisher" "$API_SERVICE_ACCOUNT"
 ensure_iam_binding "roles/pubsub.subscriber" "$WORKER_SERVICE_ACCOUNT"
 ensure_iam_binding "roles/pubsub.publisher" "$WORKER_SERVICE_ACCOUNT"
 ensure_iam_binding "roles/datastore.user" "$WORKER_SERVICE_ACCOUNT"
+
+ensure_dead_letter_iam "$SUBSCRIPTION_NAME" "$DLQ_TOPIC_NAME"
 
 echo ""
 echo "✓ Domain event worker bootstrap completed."
