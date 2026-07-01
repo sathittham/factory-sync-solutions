@@ -78,3 +78,8 @@ npm-debug.log*
 
 # Local symlink to shared personal tooling (points outside the repo)
 .claude/skills/shadcn
+
+# Local-only artifacts (business docs, scratch screenshots) — not versioned
+/FactorySync_Cost_Estimate.xlsx
+/knowledge-collapsed.png
+/knowledge-mobile-fixed.png
