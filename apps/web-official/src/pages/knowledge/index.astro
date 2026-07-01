@@ -1,7 +1,7 @@
 ---
 import { KnowledgeContent } from "../../components/knowledge/KnowledgeContent";
 import Layout from "../../layouts/Layout.astro";
-import { getArticles } from "../../lib/cms";
+import { getArticles, getKnowledgeFacets } from "../../lib/cms";
 import { translate } from "../../lib/i18n";
 
 const articles = (await getArticles()).map((article) => ({
@@ -9,8 +9,14 @@ const articles = (await getArticles()).map((article) => ({
 	title: article.title,
 	category: article.category,
 	excerpt: article.excerpt,
+	featuredImage: article.featuredImage,
+	tags: article.tags,
+	isPinned: article.isPinned,
+	readingMinutes: article.readingMinutes,
 	publishedAt: article.publishedAt,
 }));
+
+const facets = await getKnowledgeFacets();
 
 const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
 const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
@@ -26,5 +32,6 @@ const description = translate("knowledge.metaDescription", "th");
     appUrl={appUrl}
     version={version}
     articles={articles}
+    facets={facets}
   />
 </Layout>

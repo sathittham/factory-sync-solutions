@@ -16,6 +16,10 @@ export async function getStaticPaths() {
 				title: article.title,
 				category: article.category,
 				excerpt: article.excerpt,
+				featuredImage: article.featuredImage,
+				tags: article.tags,
+				isPinned: article.isPinned,
+				readingMinutes: article.readingMinutes,
 				publishedAt: article.publishedAt,
 				author: article.author,
 				htmlContent: lexicalToHtml(parseLexical(article.content)),
@@ -40,9 +44,12 @@ const blogLd = {
 	description,
 	url: articleUrl,
 	mainEntityOfPage: articleUrl,
+	...(article.featuredImage ? { image: article.featuredImage } : {}),
 	...(article.publishedAt ? { datePublished: article.publishedAt } : {}),
 	...(article.author ? { author: { "@type": "Person", name: article.author } } : {}),
-	...(article.category ? { articleSection: translate(categoryLabelKey(article.category), "en") } : {}),
+	...(article.category
+		? { articleSection: translate(categoryLabelKey(article.category), "en") }
+		: {}),
 	publisher: { "@id": "https://www.factorysyncsolutions.com/#organization" },
 	inLanguage: "th-TH",
 };

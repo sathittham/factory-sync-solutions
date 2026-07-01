@@ -1,7 +1,7 @@
 ---
 import { KnowledgeContent } from "../../../components/knowledge/KnowledgeContent";
 import Layout from "../../../layouts/Layout.astro";
-import { getArticlesByCategory } from "../../../lib/cms";
+import { getArticlesByCategory, getKnowledgeFacets } from "../../../lib/cms";
 import { translate } from "../../../lib/i18n";
 import { categoryLabelKey, categoryParams } from "../../../lib/knowledge";
 
@@ -17,8 +17,15 @@ const articles = (await getArticlesByCategory(categorySlug)).map((article) => ({
 	title: article.title,
 	category: article.category,
 	excerpt: article.excerpt,
+	featuredImage: article.featuredImage,
+	tags: article.tags,
+	isPinned: article.isPinned,
+	readingMinutes: article.readingMinutes,
 	publishedAt: article.publishedAt,
 }));
+
+// Facets span ALL articles (sidebar counts), not just this category's.
+const facets = await getKnowledgeFacets();
 
 const appUrl = import.meta.env.PUBLIC_APP_URL ?? "#";
 const version = import.meta.env.PUBLIC_APP_VERSION ?? "dev";
@@ -36,5 +43,6 @@ const description = `${translate("knowledge.subtitle", "th")} (${labelTh})`;
     version={version}
     categorySlug={categorySlug}
     articles={articles}
+    facets={facets}
   />
 </Layout>
