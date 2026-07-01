@@ -291,6 +291,7 @@ jobs:
           PUBLIC_APP_URL: https://app-staging.factorysyncsolutions.com
           PUBLIC_APP_VERSION: ${{ steps.version.outputs.version }}
           PUBLIC_API_BASE_URL: https://api-staging.factorysyncsolutions.com/v1
+          PUBLIC_CMS_URL: https://cms-staging.factorysyncsolutions.com
           PUBLIC_CF_TURNSTILE_SITE_KEY: ${{ vars.VITE_CF_TURNSTILE_SITE_KEY }}
           PUBLIC_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
           PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
