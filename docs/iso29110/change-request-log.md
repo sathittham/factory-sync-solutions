@@ -55,6 +55,49 @@ Copy this block and add to the Active section:
 
 ## Active Change Requests
 
+### CR-003 | Adopt TanStack Table + Query in web-app | Approved
+
+| Field | Value |
+|---|---|
+| **Date Raised** | 2026-07-01 |
+| **Raised By** | Sathittham Sangthong |
+| **Type** | Architecture change (frontend server-state + table layer) |
+| **Priority** | Medium |
+
+**Description:**
+Adopt two TanStack libraries in `apps/web-app` to replace hand-rolled patterns:
+1. **`@tanstack/react-table`** — drive the AdminPage assessment table (headless), adding client-side
+   sorting, pagination, and search while preserving the existing bespoke row markup, expandable detail
+   rows, responsive columns, and `data-testid` hooks. Introduces a reusable shadcn `DataTable` +
+   `table` primitive under `components/ui/`.
+2. **`@tanstack/react-query`** — introduce server-state management to replace the hand-rolled
+   `fetch` + `useState(loading/error)` + `useEffect` pattern (8 files). Piloted on one read-heavy page
+   first; Redux is retained for genuine client state (auth session, in-progress quiz answers).
+
+**Impact Analysis:**
+- Schedule: 1 iteration (Table migration + Query pilot).
+- Effort: ~1 day.
+- Risk: (1) AdminPage is a 1,523-line critical page — mitigated by keeping markup/testids intact and
+  verifying with build + Vitest + Playwright; (2) TanStack Query overlaps Redux for server state —
+  mitigated by a clear boundary (Query owns server data, Redux owns client state) and a single-page pilot
+  before wider rollout; (3) supersedes the "use RTK Query for API calls" guidance in
+  `.claude/rules/react.md` — rule file updated as part of this CR.
+- Affected components: `apps/web-app/src/pages/AdminPage.tsx`, `apps/web-app/src/components/ui/`,
+  `apps/web-app/src/main.tsx` (QueryClientProvider), one pilot page, `.claude/rules/react.md`.
+
+**Decision:**
+- [x] Approved — proceed
+- [ ] Rejected — reason: [reason]
+- [ ] Deferred to version: [vX.Y.Z]
+
+**Decision Date:** 2026-07-01
+**Decision By:** Sathittham Sangthong
+
+**Implementation Notes:**
+- SRS: [docs/product/tanstack-adoption/feature-spec.md](../product/tanstack-adoption/feature-spec.md)
+
+---
+
 ### CR-002 | Official site restructure (multi-page IA) | Approved
 
 | Field | Value |

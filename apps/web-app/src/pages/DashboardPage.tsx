@@ -14,8 +14,8 @@ import {
   setAssessments,
   setLoading as setResultLoading,
 } from '@/store/resultSlice';
+import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router';
 
 const diagnosisConfig: Record<
   string,
@@ -194,7 +194,7 @@ export function DashboardPage() {
   const handleStartQuiz = (quizId: string) => {
     dispatch(resetQuiz());
     dispatch(setQuizId(quizId));
-    navigate('/quiz');
+    navigate({ to: '/quiz' });
   };
 
   const isLoading = resultLoading && assessments.length === 0;
@@ -441,7 +441,7 @@ export function DashboardPage() {
                   <div className="flex flex-col gap-3 h-full">
                     <button
                       type="button"
-                      onClick={() => navigate('/results')}
+                      onClick={() => navigate({ to: '/results' })}
                       className="group w-full bg-card rounded-xl border p-5 text-left hover:border-primary/40 hover:shadow-sm transition-all duration-200 flex-1"
                     >
                       <div className="flex items-center gap-3 mb-3">

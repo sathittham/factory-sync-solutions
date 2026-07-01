@@ -1,6 +1,6 @@
 import { LoginForm } from '@/components/login-form';
 import { useAppSelector } from '@/store';
-import { Navigate } from 'react-router';
+import { Navigate } from '@tanstack/react-router';
 
 export function SignInPage() {
   const { isAuthenticated, loading } = useAppSelector((s) => s.auth);
