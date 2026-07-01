@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
 	type ArticleCard,
 	type ArticleDetailData,
@@ -7,25 +7,10 @@ import {
 	type KnowledgeFacets,
 } from "./KnowledgeContent";
 
+// window.matchMedia is stubbed globally in src/test/setup.ts.
+
 const APP_URL = "https://app.example.com";
 const VERSION = "0.1.0-test";
-
-// SiteNav → useTheme() reads window.matchMedia (jsdom doesn't implement it)
-beforeAll(() => {
-	vi.stubGlobal(
-		"matchMedia",
-		vi.fn().mockImplementation((query: string) => ({
-			matches: false,
-			media: query,
-			onchange: null,
-			addEventListener: vi.fn(),
-			removeEventListener: vi.fn(),
-			addListener: vi.fn(),
-			removeListener: vi.fn(),
-			dispatchEvent: vi.fn(),
-		}))
-	);
-});
 
 const SAMPLE: ArticleCard[] = [
 	{

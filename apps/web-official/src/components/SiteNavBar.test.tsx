@@ -1,25 +1,10 @@
 import { fireEvent, render } from "@testing-library/react";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { SiteNavBar } from "./SiteNavBar";
 
-const APP_URL = "https://app.example.com";
+// window.matchMedia is stubbed globally in src/test/setup.ts.
 
-// useTheme() reads window.matchMedia, which jsdom does not implement.
-beforeAll(() => {
-	vi.stubGlobal(
-		"matchMedia",
-		vi.fn().mockImplementation((query: string) => ({
-			matches: false,
-			media: query,
-			onchange: null,
-			addEventListener: vi.fn(),
-			removeEventListener: vi.fn(),
-			addListener: vi.fn(),
-			removeListener: vi.fn(),
-			dispatchEvent: vi.fn(),
-		}))
-	);
-});
+const APP_URL = "https://app.example.com";
 
 describe("SiteNavBar — mega menu", () => {
 	beforeEach(() => {
