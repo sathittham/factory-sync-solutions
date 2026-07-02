@@ -1,7 +1,7 @@
 ---
 isoOutput: PM.O2 / PM.O3
-version: 1.0.0
-lastUpdated: 2026-06-11
+version: 1.1.0
+lastUpdated: 2026-07-02
 author: Sathittham Sangthong
 ---
 
@@ -49,6 +49,43 @@ Copy and prepend above the previous entries:
 ---
 
 ## Progress Entries
+
+### 2026-07-02 | Iteration 11 | Status: On Track
+
+**Participants:** Sathittham Sangthong
+**Duration:** week of 2026-06-30 → 2026-07-02
+
+#### Accomplishments
+- Released **v0.13.0** to production — completed the TanStack Query rollout in `web-app` (CR-003): server-state fetching for results, quizzes, quiz questions, admin users, and profile activity migrated to `useQuery`; quiz submit and admin/profile writes to `useMutation`.
+- Retired the `result` Redux slice; trimmed the `quiz` slice to client state only (in-progress answers/step).
+- Centralized the three duplicated raw `PUT /profile` writes behind `useUpdateProfileMutation` (Phase 1 of the profile server-state reclassification).
+- Shipped the v0.12.x web hotfix line ahead of this (Knowledge Hub build-fetch gating, CMS cold-start warm-up — #28/#29/#30).
+- Promotion flow executed end-to-end: feature → develop (ff) → staging (`v0.13.0-staging`, squash reconcile) → main (`v0.13.0`, ff). Staging smoke-tested before production.
+
+#### Planned for Next Iteration
+- **CR-003 Phase 2**: move profile *reads* off Redux behind `useProfileQuery` (extract role/permission selectors, migrate ~18 consumers + 4 guards, port `useAuth` bootstrap + company-switching to the Query cache). Needs live Firebase to verify auth flows.
+- web-backoffice: initial scaffold and auth flow (carried over from Iteration 10).
+- Frontend: ISO 29110 result page — capability level labels (Level 0–3) (carried over).
+
+#### Issues & Action Items
+| # | Issue | Owner | Due | Status |
+|---|---|---|---|---|
+| 1 | CR-003 Phase 2 (profile reads → useProfileQuery) not started | Sathittham | v0.14.0 | Open |
+| 2 | ISO 29110 result page capability labels not yet implemented | Sathittham | TBD | Open |
+| 3 | web-backoffice initial build not started | Sathittham | TBD | Open |
+
+#### Risk Review
+- New risk **R-009** added — server-state migration regression / cache-freshness in `web-app` (see risk-register.md).
+
+#### Metrics
+| Metric | Value |
+|---|---|
+| Frontend unit tests (web-app) | 80/80 pass (11 files) |
+| Backend test coverage (scoring) | 96.3% (unchanged) |
+| Quiz variants available | 5 (shindan, factory, lean, cybersecurity, iso29110) |
+| Change requests pending | 1 (CR-003 Phase 2) |
+
+---
 
 ### 2026-06-11 | Iteration 10 | Status: On Track
 

@@ -1,7 +1,7 @@
 ---
 isoOutput: PM.O1 (Risk Register)
-version: 1.0.0
-lastUpdated: 2026-06-11
+version: 1.1.0
+lastUpdated: 2026-07-02
 author: Sathittham Sangthong
 ---
 
@@ -29,6 +29,7 @@ Review at every progress meeting. Add new risks immediately when identified. Clo
 | R-006 | Cloudflare Pages deploy fails silently (wrong env vars) | M | M | Monitor | Smoke-test workflow (`deploy-smoke-test.js`) verifies URLs post-deploy | Sathittham | Open |
 | R-007 | ISO 29110 artifact maintenance becomes overhead | M | M | Monitor | Templates pre-filled; artifacts map to existing docs where possible; `dev-process.md` enforces habit | Sathittham | Open |
 | R-008 | Backoffice claim (`backofficeRole`) misconfigured in Firebase | L | H | Monitor | Claims set by backend superadmin staff endpoints only; BackofficeGuard + SuperAdminGuard on all routes | Sathittham | Open |
+| R-009 | `web-app` server-state migration (TanStack Query, CR-003) regresses data freshness or an auth-gated data flow | L | M | Monitor | Vitest 80/80 + tsc gate before each promotion; staging smoke test before prod; `staleTime` 30s / `retry` 1 conservative defaults; Phase 2 (profile reads) deferred until auth flows can be e2e-verified with live Firebase | Sathittham | Open |
 
 ---
 
@@ -50,3 +51,11 @@ Copy this row template into the Active Risks table:
 ```
 
 Assign the next sequential ID (check closed risks too). Update the `lastUpdated` frontmatter.
+
+---
+
+## Review History
+
+| Date | Reviewer | Notes |
+|---|---|---|
+| 2026-07-02 | Sathittham Sangthong | v0.13.0 release review. All 8 prior risks re-confirmed Open with mitigations current; no scores changed. Added R-009 (server-state migration regression, L×M → Monitor). No High/Critical open risks require escalation beyond R-005 (bus-factor, already Mitigate). |

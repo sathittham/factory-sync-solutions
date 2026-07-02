@@ -166,6 +166,6 @@ git push origin vX.Y.Z    # → triggers GitHub Actions production deploy
 
 | Version | Date | Summary |
 |---|---|---|
-| *(none yet)* | — | — |
+| [v0.13.0](releases/v0.13.0.md) | 2026-07-02 | Complete TanStack Query rollout in web-app (CR-003) |
 
 *Add a row here when each VDD is created in `docs/iso29110/releases/`.*
