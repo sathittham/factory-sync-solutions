@@ -11,8 +11,9 @@ import { ApiError, api } from '@/lib/api';
 import { formatDateTime } from '@/lib/dayjs';
 import { auth, googleProvider } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
+import { useUpdateProfileMutation } from '@/lib/queries';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { type Profile, setProfile, setUser } from '@/store/authSlice';
+import { setProfile, setUser } from '@/store/authSlice';
 import { useForm } from '@tanstack/react-form';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
@@ -822,8 +823,8 @@ function SubmitFeedback({
 // ── ProfileTab — contact person only ─────────────────────────────────────────
 
 function ProfileTab() {
-  const dispatch = useAppDispatch();
   const { profile } = useAppSelector((s) => s.auth);
+  const updateProfile = useUpdateProfileMutation();
   const { t } = useLocale();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -845,14 +846,13 @@ function ProfileTab() {
       setError(null);
       setSuccess(false);
       try {
-        const updated = await api.put<Profile>('/profile', {
+        await updateProfile.mutateAsync({
           companyName: profile?.companyName || '',
           industryType: profile?.industryType || '',
           companySize: profile?.companySize || '',
           emailNotifications: profile?.emailNotifications ?? false,
           ...value,
         });
-        dispatch(setProfile(updated));
         setSuccess(true);
         setTimeout(() => setSuccess(false), 3000);
       } catch (err) {
@@ -982,8 +982,8 @@ function ProfileTab() {
 // ── NotificationsTab ──────────────────────────────────────────────────────────
 
 function NotificationsTab() {
-  const dispatch = useAppDispatch();
   const { profile } = useAppSelector((s) => s.auth);
+  const updateProfile = useUpdateProfileMutation();
   const { t } = useLocale();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -994,7 +994,7 @@ function NotificationsTab() {
       setError(null);
       setSuccess(false);
       try {
-        const updated = await api.put<Profile>('/profile', {
+        await updateProfile.mutateAsync({
           companyName: profile?.companyName || '',
           industryType: profile?.industryType || '',
           companySize: profile?.companySize || '',
@@ -1003,7 +1003,6 @@ function NotificationsTab() {
           contactPhone: profile?.contactPhone || '',
           ...value,
         });
-        dispatch(setProfile(updated));
         setSuccess(true);
         setTimeout(() => setSuccess(false), 3000);
       } catch (err) {

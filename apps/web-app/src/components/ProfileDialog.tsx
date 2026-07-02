@@ -13,11 +13,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { trackEvent } from '@/lib/analytics';
-import { ApiError, api } from '@/lib/api';
+import { ApiError } from '@/lib/api';
 import { auth, googleProvider } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
+import { useUpdateProfileMutation } from '@/lib/queries';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { type Profile, setProfile, setUser } from '@/store/authSlice';
+import { setUser } from '@/store/authSlice';
 import { useForm } from '@tanstack/react-form';
 import {
   EmailAuthProvider,
@@ -664,7 +665,7 @@ interface ProfileDialogProps {
 }
 
 export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
-  const dispatch = useAppDispatch();
+  const updateProfile = useUpdateProfileMutation();
   const { profile, user } = useAppSelector((s) => s.auth);
   const { t } = useLocale();
   const [error, setError] = useState<string | null>(null);
@@ -690,8 +691,7 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
       setSuccess(false);
       trackEvent('profile_save', { industry: value.industryType, size: value.companySize });
       try {
-        const updated = await api.put<Profile>('/profile', value);
-        dispatch(setProfile(updated));
+        await updateProfile.mutateAsync(value);
         setSuccess(true);
         trackEvent('profile_save_success', {
           industry: value.industryType,
