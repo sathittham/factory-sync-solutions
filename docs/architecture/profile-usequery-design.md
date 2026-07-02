@@ -172,9 +172,19 @@ Steps 3–7 require live Firebase and MUST NOT merge until step 7 passes.
 
 ## 5. Test Strategy
 - **Unit (offline):** `lib/profile.ts` pure helpers (normalize/permissions) —
-  table-driven Vitest. `fetchProfile` branch logic with a mocked `api`.
-- **Integration (live Firebase, manual/e2e):** the step-7 regression checklist,
-  focusing on the three guard failure modes in §3.7.
+  table-driven Vitest (`src/lib/profile.test.ts`, done). `fetchProfile` branch
+  logic with a mocked `api`.
+- **Integration (live Firebase, e2e):** the step-7 regression checklist is
+  codified as `e2e/profile-usequery.spec.ts` — dashboard-no-flash, admin +
+  company-settings guard access, profile-save persistence, results/quiz reach,
+  and a page-error sweep across the migrated routes. Run it against staging
+  before merging steps 3–7:
+  ```bash
+  E2E_BASE_URL=https://app-staging.factorysyncsolutions.com \
+  E2E_USER_EMAIL=… E2E_USER_PASSWORD=… \
+    pnpm --filter @repo/web-app exec playwright test profile-usequery
+  ```
+  The spec skips cleanly when credentials are absent, so it stays repeatable.
 
 ---
 
