@@ -1,7 +1,7 @@
 ---
 isoOutput: PM.O1 (Change Control)
-version: 1.0.0
-lastUpdated: 2026-06-11
+version: 1.1.0
+lastUpdated: 2026-07-02
 author: Sathittham Sangthong
 ---
 
@@ -105,6 +105,23 @@ Adopt two TanStack libraries in `apps/web-app` to replace hand-rolled patterns:
   types in `apps/web-app/src/lib/types.ts`. The static permissions matrix (`PermissionsDialog`) stays
   a plain `<table>` — it is a fixed reference grid, not fetched/sortable data. `PUT /profile` form
   submits stay on TanStack Form (already compliant; profile is auth/client state).
+
+**Addendum (2026-07-02) — profile server-state reclassification:**
+Review of the rollout found the profile is genuinely server state that was being
+mirrored into Redux and written via three duplicated raw `api.put('/profile')`
+calls — revising the earlier "profile is auth/client state" position above.
+Migration is staged to protect the auth-critical read path:
+- **Phase 1 — done** (commit `e772805`): writes centralized in
+  `useUpdateProfileMutation` (`lib/queries.ts`). Redux remains the profile source
+  of truth for the 4 route guards and the `useAuth` bootstrap; the hook syncs the
+  fresh copy back via `setProfile` on success — no dual-mirror. Verified: tsc +
+  Biome clean, Vitest 80/80.
+- **Phase 2 — planned** (separate branch/PR, needs live Firebase to verify auth
+  flows): introduce `useProfileQuery` (`queryKey: ['profile']`, `select` runs
+  `normalizeProfile`, 404 ⇒ not-registered); extract `isAdmin`/`isRegistered`/
+  `canManageUsers`/`canManageCompanySettings` into pure selectors; migrate the ~18
+  consumers + guards; move `useAuth` bootstrap and company-switching to
+  `queryClient.setQueryData(['profile'], …)`; trim `authSlice` to session only.
 
 ---
 
