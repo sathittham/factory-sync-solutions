@@ -11,9 +11,11 @@ import { ApiError, api } from '@/lib/api';
 import { formatDateTime } from '@/lib/dayjs';
 import { auth, googleProvider } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
+import { useUpdateProfileMutation } from '@/lib/queries';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { type Profile, setProfile, setUser } from '@/store/authSlice';
+import { setProfile, setUser } from '@/store/authSlice';
 import { useForm } from '@tanstack/react-form';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   EmailAuthProvider,
   linkWithCredential,
@@ -108,13 +110,40 @@ function AvatarUpload({
   const { t } = useLocale();
   const dispatch = useAppDispatch();
   const { profile } = useAppSelector((s) => s.auth);
-  const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const hasCustomAvatar = Boolean(profile?.avatarURL);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const uploadMutation = useMutation({
+    mutationFn: (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return api.postForm<AvatarUploadResponse>('/upload/avatar', formData);
+    },
+    onSuccess: (uploaded) => {
+      if (!profile) return;
+      dispatch(setProfile({ ...profile, avatarURL: uploaded.avatarURL }));
+    },
+    onError: () => {
+      setUploadError(t('profile.avatarError'));
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.delete<void>('/upload/avatar'),
+    onSuccess: () => {
+      if (!profile) return;
+      dispatch(setProfile({ ...profile, avatarURL: '' }));
+    },
+    onError: () => {
+      setUploadError(t('profile.avatarError'));
+    },
+  });
+
+  const uploading = uploadMutation.isPending || deleteMutation.isPending;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (inputRef.current) inputRef.current.value = '';
     if (!file || !profile) return;
@@ -129,31 +158,13 @@ function AvatarUpload({
     }
 
     setUploadError(null);
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const uploaded = await api.postForm<AvatarUploadResponse>('/upload/avatar', formData);
-      dispatch(setProfile({ ...profile, avatarURL: uploaded.avatarURL }));
-    } catch {
-      setUploadError(t('profile.avatarError'));
-    } finally {
-      setUploading(false);
-    }
+    uploadMutation.mutate(file);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!profile) return;
     setUploadError(null);
-    setUploading(true);
-    try {
-      await api.delete<void>('/upload/avatar');
-      dispatch(setProfile({ ...profile, avatarURL: '' }));
-    } catch {
-      setUploadError(t('profile.avatarError'));
-    } finally {
-      setUploading(false);
-    }
+    deleteMutation.mutate();
   };
 
   return (
@@ -812,8 +823,8 @@ function SubmitFeedback({
 // ── ProfileTab — contact person only ─────────────────────────────────────────
 
 function ProfileTab() {
-  const dispatch = useAppDispatch();
   const { profile } = useAppSelector((s) => s.auth);
+  const updateProfile = useUpdateProfileMutation();
   const { t } = useLocale();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -835,14 +846,13 @@ function ProfileTab() {
       setError(null);
       setSuccess(false);
       try {
-        const updated = await api.put<Profile>('/profile', {
+        await updateProfile.mutateAsync({
           companyName: profile?.companyName || '',
           industryType: profile?.industryType || '',
           companySize: profile?.companySize || '',
           emailNotifications: profile?.emailNotifications ?? false,
           ...value,
         });
-        dispatch(setProfile(updated));
         setSuccess(true);
         setTimeout(() => setSuccess(false), 3000);
       } catch (err) {
@@ -972,8 +982,8 @@ function ProfileTab() {
 // ── NotificationsTab ──────────────────────────────────────────────────────────
 
 function NotificationsTab() {
-  const dispatch = useAppDispatch();
   const { profile } = useAppSelector((s) => s.auth);
+  const updateProfile = useUpdateProfileMutation();
   const { t } = useLocale();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -984,7 +994,7 @@ function NotificationsTab() {
       setError(null);
       setSuccess(false);
       try {
-        const updated = await api.put<Profile>('/profile', {
+        await updateProfile.mutateAsync({
           companyName: profile?.companyName || '',
           industryType: profile?.industryType || '',
           companySize: profile?.companySize || '',
@@ -993,7 +1003,6 @@ function NotificationsTab() {
           contactPhone: profile?.contactPhone || '',
           ...value,
         });
-        dispatch(setProfile(updated));
         setSuccess(true);
         setTimeout(() => setSuccess(false), 3000);
       } catch (err) {
@@ -1101,27 +1110,14 @@ function parseUserAgent(ua: string): string {
 
 function ActivityTab() {
   const { t, locale } = useLocale();
-  const [events, setEvents] = useState<ActivityEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    api
-      .get<ActivityEvent[]>('/profile/activity')
-      .then((data) => {
-        if (!cancelled) setEvents(data);
-      })
-      .catch(() => {
-        if (!cancelled) setFetchError(true);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const {
+    data: events = [],
+    isPending: loading,
+    isError: fetchError,
+  } = useQuery({
+    queryKey: ['profile-activity'],
+    queryFn: () => api.get<ActivityEvent[]>('/profile/activity'),
+  });
 
   const formatLabel = (eventType: string) => {
     const key = `profile.activity.${eventType.replace('.', '_')}`;
