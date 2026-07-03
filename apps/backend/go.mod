@@ -3,6 +3,7 @@ module github.com/sathittham/factory-sync-solutions/apps/backend
 go 1.26.4
 
 require (
+	cloud.google.com/go/auth v0.18.2
 	cloud.google.com/go/firestore v1.21.0
 	cloud.google.com/go/pubsub v1.50.1
 	firebase.google.com/go/v4 v4.19.0
@@ -29,7 +30,6 @@ require (
 require (
 	cel.dev/expr v0.25.1 // indirect
 	cloud.google.com/go v0.123.0 // indirect
-	cloud.google.com/go/auth v0.18.2 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	cloud.google.com/go/iam v1.5.3 // indirect
