@@ -1,6 +1,6 @@
 ---
 version: 1.2.0
-lastUpdated: 2026-06-11
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Done — email/password added; backoffice auth documented
 ---
@@ -537,3 +537,8 @@ Never commit any of these values. They are git-ignored via `.env*` and
 ### Cross-cutting
 - User flow: [user-flow.md](../user-flow.md)
 - Register feature: [register/feature-spec.md](../register/feature-spec.md)
+
+---
+
+*Version: 1.2.0*
+*Last updated: 3 July 2026*

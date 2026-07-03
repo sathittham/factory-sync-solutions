@@ -1,6 +1,6 @@
 ---
 version: 1.2.0
-lastUpdated: 2026-06-10
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Planned
 ---
@@ -978,3 +978,8 @@ being a member. Currently scoped to their own memberships only.
 - Admin feature (system-level admin): [admin/feature-spec.md](../admin/feature-spec.md)
 - Result feature (assessment scoping): [result/feature-spec.md](../result/feature-spec.md)
 - Notification service: [notification/feature-spec.md](../notification/feature-spec.md)
+
+---
+
+*Version: 1.2.0*
+*Last updated: 3 July 2026*

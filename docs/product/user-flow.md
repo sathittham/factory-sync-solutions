@@ -1,6 +1,6 @@
 ---
 version: 1.2.0
-lastUpdated: 2026-06-11
+lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 ---
 
@@ -211,3 +211,8 @@ stateDiagram-v2
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Fix route names (/result -> /results), remove /auth route, add /profile route, fix redirect targets |
 | 1.2.0 | 2026-06-11 | Add backoffice staff flow diagram; split route-protection table per app; distinguish `role: "admin"` from `backofficeRole` claim |
+
+---
+
+*Version: 1.2.0*
+*Last updated: 4 July 2026*

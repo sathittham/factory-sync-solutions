@@ -1,7 +1,7 @@
 ---
 isoOutput: SI.O4 / SI.O5
 version: 1.0.0
-lastUpdated: 2026-07-01
+lastUpdated: 2026-07-04
 ---
 
 # Test Plan — Official Marketing Site (`web-official`)
@@ -150,3 +150,8 @@ Run: `pnpm --filter @repo/web-official test:coverage`
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-07-01 | Sathittham (Phoo) | Initial test plan — documents web-official unit + e2e suites, coverage results, and known gaps |
+
+---
+
+*Version: 1.0.0*
+*Last updated: 4 July 2026*

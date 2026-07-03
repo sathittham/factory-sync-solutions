@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-lastUpdated: 2026-06-10
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Done
 ---
@@ -549,3 +549,8 @@ Collection: `assessments` · Document ID: UUID v4
 - ISO 29110 config: [questions-iso29110.json](../../../apps/backend/config/questions-iso29110.json)
 - User flow: [user-flow.md](../user-flow.md)
 - Result feature: (see `docs/product/result/` — to be created)
+
+---
+
+*Version: 1.0.0*
+*Last updated: 3 July 2026*

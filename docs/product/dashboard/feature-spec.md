@@ -1,6 +1,6 @@
 ---
 version: 1.1.0
-lastUpdated: 2026-06-11
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Built — not yet routed (web-app); Live (web-backoffice)
 ---
@@ -228,7 +228,7 @@ makes the dashboard instant when navigating back from `/results` or `/quiz`.
 | Slice | Fields read | Fields written |
 |-------|-------------|----------------|
 | `authSlice` | `profile.companyName` | — |
-| `resultSlice` | `assessments`, `loading` | `setAssessments`, `setAssessment`, `setLoading` |
+| `resultSlice` *(retired — now TanStack Query in `lib/queries.ts`)* | `assessments`, `loading` | `setAssessments`, `setAssessment`, `setLoading` |
 | `quizSlice` | `availableQuizzes` | `setAvailableQuizzes`, `resetQuiz`, `setQuizId` |
 
 No new slice actions are needed — all dispatched actions already exist.
@@ -388,9 +388,14 @@ Options:
 - Router: [router.tsx](../../../apps/web-app/src/router.tsx)
 - Layout nav: [Layout.tsx](../../../apps/web-app/src/components/Layout.tsx)
 - i18n keys: [i18n.tsx](../../../apps/web-app/src/lib/i18n.tsx)
-- Result slice: [resultSlice.ts](../../../apps/web-app/src/store/resultSlice.ts)
+- Result server-state (TanStack Query, formerly `resultSlice`): [queries.ts](../../../apps/web-app/src/lib/queries.ts)
 - Quiz slice: [quizSlice.ts](../../../apps/web-app/src/store/quizSlice.ts)
 - Auth slice: [authSlice.ts](../../../apps/web-app/src/store/authSlice.ts)
 - Result feature: [result/feature-spec.md](../result/feature-spec.md)
 - Quiz feature: [quiz/feature-spec.md](../quiz/feature-spec.md)
 - Auth feature: [auth/feature-spec.md](../auth/feature-spec.md)
+
+---
+
+*Version: 1.1.0*
+*Last updated: 3 July 2026*

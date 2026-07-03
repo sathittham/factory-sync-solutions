@@ -1,6 +1,6 @@
 ---
 version: 1.1.0
-lastUpdated: 2026-06-14
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Done - ProfileDialog and ProfilePage active; activity tab needs date cleanup
 ---
@@ -481,3 +481,8 @@ avoid drift.
 - Register feature (initial profile creation): [register/feature-spec.md](../register/feature-spec.md)
 - Auth feature (`GetProfile` on sign-in): [auth/feature-spec.md](../auth/feature-spec.md)
 - Backoffice user/profile management (FactorySync staff view of all profiles): [backoffice/feature-spec.md §4](../backoffice/feature-spec.md)
+
+---
+
+*Version: 1.1.0*
+*Last updated: 3 July 2026*

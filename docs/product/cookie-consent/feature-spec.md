@@ -1,6 +1,6 @@
 ---
 version: 1.1.0
-lastUpdated: 2026-06-10
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Draft
 ---
@@ -403,3 +403,8 @@ on staging. Never commit real IDs.
 - App analytics loader: [analytics.ts](../../../apps/web-app/src/lib/analytics.ts)
 - Layout: [Layout.astro](../../../apps/web-official/src/layouts/Layout.astro)
 - Google: Consent Mode v2 — <https://developers.google.com/tag-platform/security/guides/consent>
+
+---
+
+*Version: 1.1.0*
+*Last updated: 3 July 2026*

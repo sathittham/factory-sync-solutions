@@ -1,6 +1,6 @@
 ---
 version: 1.1.0
-lastUpdated: 2026-06-11
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Done
 ---
@@ -637,3 +637,8 @@ write order (claims first, Firestore second) and accept that Firestore may lag.
 - Profile service (used by admin): [profile/service.go](../../../apps/backend/services/profile/service.go)
 - Auth feature (RequireAdmin, custom claims): [auth/feature-spec.md](../auth/feature-spec.md)
 - Result feature (assessment model): [result/feature-spec.md](../result/feature-spec.md)
+
+---
+
+*Version: 1.1.0*
+*Last updated: 3 July 2026*

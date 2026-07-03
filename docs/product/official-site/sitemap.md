@@ -1,6 +1,6 @@
 ---
 version: 0.1.0
-lastUpdated: 2026-06-30
+lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 status: Draft
 ---
@@ -301,3 +301,8 @@ This document is the **IA source of truth** for the restructure. The feature fol
 - Legal pages: [legal/feature-spec.md](../legal/feature-spec.md)
 - CMS work: `feature/web-cms-sonicjs` branch, `apps/web-cms`
 - SRS template (for per-page specs): [srs-template.md](../../iso29110/srs-template.md)
+
+---
+
+*Version: 0.1.0*
+*Last updated: 4 July 2026*
