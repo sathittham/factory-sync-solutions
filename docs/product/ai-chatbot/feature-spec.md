@@ -17,7 +17,7 @@ status: Draft
 | Field | Value |
 |---|---|
 | **Feature / Module** | AI Customer Support Chatbot (`chat`) |
-| **Version** | 0.1.0 |
+| **Version** | 0.2.0 |
 | **Status** | Draft |
 | **Author** | Sathittham Sangthong |
 | **Date** | 2026-07-03 |
@@ -45,7 +45,7 @@ and a **Conversations page in `web-backoffice`** (transcript review, human takeo
 ### 1.2 Scope
 
 **In scope:**
-- New backend `chat` service: conversations, messages, AI reply engine (Claude API), channel adapters
+- New backend `chat` service: conversations, messages, AI reply engine (Vertex AI Gemini), channel adapters
 - Escalation workflow: bot → escalated (Slack notified) → human takeover → closed
 - Web chat widget (shared React component) mounted in `web-app` and `web-official`
 - LINE Official Account integration (Messaging API webhook + replies)
@@ -84,7 +84,7 @@ and a **Conversations page in `web-backoffice`** (transcript review, human takeo
 | Notification service (existing Slack/email patterns) | [docs/product/notification/feature-spec.md](../notification/feature-spec.md) |
 | LINE Messaging API | https://developers.line.biz/en/docs/messaging-api/ |
 | Slack Events API | https://api.slack.com/apis/events-api |
-| Claude API | https://docs.claude.com/en/api/overview |
+| Vertex AI Gemini | https://cloud.google.com/vertex-ai/generative-ai/docs |
 
 ---
 
@@ -104,11 +104,15 @@ The chatbot spans four apps and one new backend service:
   (already forwards `X-Turnstile-Token`), Slack notification patterns from
   `services/notification/slack.go`.
 
+For `web-official`, chat routes are authenticated via Firebase anonymous tokens in the same
+`Authorization: Bearer <token>` pattern as all other chat routes; the widget must sign in
+anonymously before opening the first conversation.
+
 ### 2.2 User Classes & Characteristics
 
 | User Class | Description | Access Level |
 |---|---|---|
-| Anonymous Visitor | web-official visitor using the chat bubble | Firebase Anonymous Auth + Turnstile |
+| Anonymous Visitor | web-official visitor using the chat bubble | Firebase Anonymous Auth token + Turnstile |
 | End User | Registered factory operator chatting in web-app | Authenticated |
 | LINE User | Customer messaging the LINE Official Account | LINE webhook (signature-verified) |
 | Support Agent | Backoffice staff answering escalations | `backofficeRole: staff/superadmin` |
@@ -123,7 +127,7 @@ The chatbot spans four apps and one new backend service:
 - Vertex AI API enabled on the existing GCP project; Gemini Flash (env-overridable
   `CHATBOT_MODEL`) accessed via the Cloud Run service account (ADC) — no API key secret.
 - Firebase **Anonymous Auth provider is enabled** for the web-official widget (reuses the
-  existing `FirebaseAuth` middleware unchanged).
+  existing `FirebaseAuth` middleware unchanged after anonymous token issuance in the widget).
 - Knowledge content (services, quiz variants, contact info, FAQs) is curated into a
   versioned knowledge file; accuracy of answers is bounded by this file.
 - Depends on existing: `pkg/events` publisher, `pkg/turnstile.go`, api-gateway CORS allowlist.
@@ -135,9 +139,11 @@ The chatbot spans four apps and one new backend service:
 - All UI text bilingual TH/EN via i18n — including bot canned messages and widget chrome.
 - Webhook endpoints (`/webhooks/line`, `/webhooks/slack`) are public routes but MUST verify
   platform signatures before processing (LINE `X-Line-Signature`; Slack signing secret).
-- AI failures must degrade gracefully: if the Claude API is unavailable, the bot sends a
+- AI failures must degrade gracefully: if the Gemini API is unavailable, the bot sends a
   bilingual canned apology and auto-escalates — a chat message must never 500 the customer.
 - Chat transcripts contain PII → Firestore access is backend-only (no client SDK reads).
+- All conversation ownership and actor IDs for chat endpoints must come from `middleware.GetUID(r)` only
+  (including web-official anonymous sessions after Firebase sign-in).
 
 ---
 
@@ -160,9 +166,11 @@ their first message. `web-official` conversations additionally require a valid T
 **Acceptance Criteria:**
 - Given an authenticated web-app user, when they POST their first message, then a conversation
   is created with `channel: "web-app"`, `userID` from auth context, `status: "bot"`.
-- Given an anonymous web-official visitor with a valid Turnstile token, when they start a chat,
-  then a conversation is created with `channel: "web-official"` bound to their anonymous UID.
+- Given an anonymous web-official visitor with a valid Turnstile token and a valid Firebase anonymous
+  token, when they start a chat, then a conversation is created with `channel: "web-official"` bound to their anonymous UID.
 - Given a missing/invalid Turnstile token on `web-official`, then the API responds 400 and no
+  conversation is created.
+- Given a missing/invalid Firebase anonymous token on `web-official`, then the API responds 401 and no
   conversation is created.
 
 #### FR-002 — Send message and receive AI reply
@@ -436,7 +444,7 @@ and gate conversation creation with Turnstile.
 
 ### 4.4 Reliability
 - [ ] AI/Slack/LINE delivery failures never fail the customer-facing request (fire-and-forget + logged, canned fallback per FR-005)
-- [ ] LINE webhook idempotent per `webhookEventId` (redeliveries don't duplicate messages)
+- [ ] LINE webhook idempotent: each `webhookEventId` is persisted and replayed events are ignored (dedupe TTL: 48h)
 - [ ] Escalation Slack alert deduplicated per conversation
 
 ### 4.5 Maintainability
@@ -453,10 +461,10 @@ and gate conversation creation with Turnstile.
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| POST | `/api/v1/chat/conversations` | Bearer (anon ok) + Turnstile (web-official) | Start conversation with first message |
-| GET | `/api/v1/chat/conversations/current` | Bearer (anon ok) | Caller's open conversation, if any |
-| POST | `/api/v1/chat/conversations/{conversationID}/messages` | Bearer (anon ok) | Send message; returns AI reply when status=bot |
-| GET | `/api/v1/chat/conversations/{conversationID}/messages` | Bearer (anon ok) | History + poll cursor |
+| POST | `/api/v1/chat/conversations` | Firebase Bearer token required (anonymous allowed for web-official) + Turnstile (web-official) | Start conversation with first message |
+| GET | `/api/v1/chat/conversations/current` | Firebase Bearer token required | Caller's open conversation, if any |
+| POST | `/api/v1/chat/conversations/{conversationID}/messages` | Firebase Bearer token required | Send message; returns AI reply when status=bot |
+| GET | `/api/v1/chat/conversations/{conversationID}/messages` | Firebase Bearer token required | History + poll cursor |
 | POST | `/api/v1/webhooks/line` | Public + `X-Line-Signature` | LINE Messaging API events |
 | POST | `/api/v1/webhooks/slack` | Public + Slack signing secret | Slack Events API (Phase 5) |
 | GET | `/api/v1/backoffice/chat/conversations` | backofficeRole | List/filter conversations |
@@ -489,8 +497,9 @@ and gate conversation creation with Turnstile.
 |---|---|---|---|
 | `conversations` | UUIDv4 | `channel: string`, `userID: string`, `lineUserID: string?`, `status: string`, `locale: string`, `lastMessageAt: Timestamp`, `lastMessagePreview: string`, `messageCount: number`, `slackThreadTS: string?`, `escalatedAt/closedAt: Timestamp?`, `agentUID: string?`, `createdAt` | One open conversation per (userID or lineUserID) |
 | `conversations/{id}/messages` | UUIDv4 | `role: "customer"\|"bot"\|"agent"`, `text: string`, `senderID: string`, `channelMessageID: string?`, `createdAt: Timestamp` | Subcollection; chronological |
+| `chat_webhook_events` | UUIDv4 | `platform: "line"`, `webhookEventID: string`, `eventFingerprint: string`, `payloadSHA256: string`, `conversationID: string`, `seenAt: Timestamp`, `expiresAt: Timestamp` | Dedupe cache for webhook retries |
 
-**Indexes:** `conversations(status ASC, lastMessageAt DESC)` and `conversations(userID ASC, lastMessageAt DESC)`; single-field on `lineUserID`.
+**Indexes:** `conversations(status ASC, lastMessageAt DESC)` and `conversations(userID ASC, lastMessageAt DESC)`; `conversations(status ASC, channel ASC, lastMessageAt DESC)` for backoffice filtering; and single-field on `lineUserID`.
 **Security rules:** backend-only (`allow read, write: if false`) — all access via the API.
 
 ### 6.2 Data Validation Rules

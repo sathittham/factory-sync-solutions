@@ -19,7 +19,7 @@ status: Active
 |---|---|
 | **Feature / Module** | AI Customer Support Chatbot (`chat`) |
 | **Version** | 0.1.0 (covers Phase 1) |
-| **Status** | Active |
+| **Status** | Draft |
 | **Author** | Sathittham Sangthong |
 | **Date** | 2026-07-03 |
 | **SRS Reference** | [docs/product/ai-chatbot/feature-spec.md](feature-spec.md) |
@@ -80,6 +80,7 @@ status: Active
 | UT-023 | Nil engine — graceful fallback | Engine unconfigured | Customer msg | Canned bilingual apology + auto-escalate; no error to caller (FR-005) | — |
 | UT-024 | Model error — graceful fallback | Stub model returns error | Customer msg | Same fallback path as UT-023; error logged not propagated | — |
 | UT-025 | History windowing | 30 messages in conversation | New msg | Model receives system prompt + last 20 turns only | — |
+| UT-026 | LINE webhook dedupe | Same LINE webhook event ID replayed | Duplicate webhook payload | Customer message stored once; dedupe record updated; second payload ignored | — |
 
 ### 2.3 Frontend — `chat-widget/*.test.tsx`
 
@@ -110,6 +111,7 @@ status: Active
 | IT-006 | `POST /chat/conversations/{id}/messages` | Non-owner UID | `{text}` | 404 | `NOT_FOUND` | — |
 | IT-007 | `GET /chat/conversations/{id}/messages` | Owner UID | `?limit=50` | 200 | `RespondList` shape with `nextCursor` meta | — |
 | IT-008 | `POST .../messages` rate-limited | Owner UID | 11th msg in window | 429 | `RATE_LIMITED` | — |
+| IT-009 | `POST /webhooks/line` duplicate event | Valid signature | Same event payload sent twice (same `webhookEventId`) | 200 both times; one stored message total | — |
 
 ### 3.2 End-to-End (Playwright) — deferred to staging deploy
 
@@ -137,7 +139,7 @@ Run: `cd apps/backend && go test -v -race -cover ./services/chat/...`
 
 | Run Date | Environment | Backend Coverage | Frontend Tests | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-07-03 | Local (`go test -race`, Vitest) | `service.go` 99.4% · `engine.go` 93.1% · `handler.go` 68.1% (75/75 tests) | shared 9/9 (UT-F01..F08) · web-app 80/80 (no regressions) | ✅ Pass | Phase 1 initial run; `go vet` + `tsc` clean; adapters (repository/slack/Vertex SDK) excluded per §4 |
+| 2026-07-03 | Not yet executed (planned during implementation) | — | — | — | Phase 1 manual smoke and pipeline hooks to be added before Phase 1 implementation complete |
 
 ---
 
@@ -146,3 +148,6 @@ Run: `cd apps/backend && go test -v -race -cover ./services/chat/...`
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 0.1.0 | 2026-07-03 | Sathittham Sangthong | Phase 1 test cases (core service, engine, widget) |
+
+*Version: 0.1.0*
+*Last updated: 3 July 2026*

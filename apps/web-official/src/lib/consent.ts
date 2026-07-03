@@ -3,6 +3,16 @@
 // this module pushes the *update* when the user makes or changes a choice.
 // See docs/product/cookie-consent/feature-spec.md.
 
+// Custom DOM event contract: any element (e.g. the "Manage cookie preferences"
+// button on /cookie-settings) can call openCookieSettings() to reopen the
+// consent modal owned by the CookieConsent island — they live in separate
+// React islands, so a DOM event is the bridge between them.
+export const OPEN_SETTINGS_EVENT = "fss:open-cookie-settings";
+
+export function openCookieSettings() {
+	globalThis.dispatchEvent(new CustomEvent(OPEN_SETTINGS_EVENT));
+}
+
 export function updateConsentMode(analytics: boolean, marketing: boolean) {
 	globalThis.gtag?.("consent", "update", {
 		analytics_storage: analytics ? "granted" : "denied",

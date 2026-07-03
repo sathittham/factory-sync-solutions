@@ -1,6 +1,6 @@
 ---
 isoOutput: PM.O1 (Change Control)
-version: 1.2.0
+version: 1.3.0
 lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 ---
@@ -54,6 +54,51 @@ Copy this block and add to the Active section:
 ---
 
 ## Active Change Requests
+
+### CR-005 | MCP server for external AI agents | Draft
+
+| Field | Value |
+|---|---|
+| **Date Raised** | 2026-07-03 |
+| **Raised By** | Sathittham Sangthong |
+| **Type** | Scope change (new integration surface: Model Context Protocol) |
+| **Priority** | Medium |
+
+**Description:**
+Expose FactorySync data to external AI agents (Claude Code, Claude Desktop/claude.ai, Codex
+CLI, Cursor, …) via a remote MCP server over Streamable HTTP at
+`mcp(-staging).factorysyncsolutions.com`. Phase 1 is read-only: public tools (quiz catalog,
+Knowledge Hub search) plus API-key-authenticated tools scoped to the key owner's UID
+(own results, own profile). Includes an `apiKeys` service + key-management UI in **both
+web-app and web-backoffice** (key `scope: user|backoffice` derived server-side from the
+creator's role). OAuth 2.1, write tools, and backoffice-scoped tools deferred to follow-up CRs.
+
+**Impact Analysis:**
+- Schedule: ~3–5 days for Phase 1 (server + apikey service + settings UI + docs)
+- Effort: largest in the MCP transport/auth layer and key lifecycle; tools are thin reads
+  over existing services
+- Risk: API-key leakage (keys hashed, shown once, revocable ≤ 60s); data exposure via
+  misscoped tools (UID always from verified key, not caller input); new public endpoint
+  (rate limiting + audit logging required) — add entries to the risk register on approval
+- Affected components: `apps/mcp-server` (new, placement decision in SDD — Worker vs
+  in-backend), `apps/backend/services/apikey` (new), `apps/web-app` Settings page,
+  `apps/web-backoffice` Settings page, `firestore.rules`, `firestore.indexes.json`,
+  deploy workflow
+
+**Decision:**
+- [ ] Approved — proceed
+- [ ] Rejected — reason: [reason]
+- [ ] Deferred to version: [vX.Y.Z]
+
+**Decision Date:** —
+**Decision By:** —
+
+**Implementation Notes:**
+- SRS: [docs/product/mcp-server/feature-spec.md](../product/mcp-server/feature-spec.md)
+- Client quickstart: [docs/product/mcp-server/README.md](../product/mcp-server/README.md)
+- SDD: `docs/architecture/mcp-server-design.md` (to be created before implementation)
+
+---
 
 ### CR-004 | AI customer support chatbot (omni-channel) | Approved
 
@@ -240,3 +285,6 @@ Add ISO 29110 Basic Profile as a fifth quiz variant. Also create the compliance 
 - `apps/backend/config/questions-iso29110.json` created (38 questions, 8 dimensions)
 - `apps/backend/main.go` updated to register iso29110 config
 - `docs/iso29110/` directory created with all compliance artifacts
+
+*Version: 1.3.0*
+*Last updated: 3 July 2026*
