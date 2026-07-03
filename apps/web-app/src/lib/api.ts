@@ -1,6 +1,8 @@
 import { auth } from './firebase';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+/** Exported for consumers outside this module's `request()` wrapper — e.g. the shared
+ * `ChatWidget` (`@shared/ui/chat-widget`), which is host-agnostic and takes its base URL as a prop. */
+export const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 export function apiUrl(path: string): string {
   return `${API_BASE}${path}`;

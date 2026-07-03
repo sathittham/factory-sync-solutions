@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { trackEvent, trackPageView } from '@/lib/analytics';
+import { API_BASE } from '@/lib/api';
 import { auth } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
 import { type Theme, useTheme } from '@/lib/theme';
@@ -54,6 +55,7 @@ import fsDarkLogo from '@shared/brand/fs-dark.png';
 import fsLightLogo from '@shared/brand/fs-light.png';
 import { LocaleSwitcher } from '@shared/ui/LocaleSwitcher';
 import { ThemeSwitcher } from '@shared/ui/ThemeSwitcher';
+import { ChatWidget } from '@shared/ui/chat-widget';
 import { Link, type LinkProps, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
 import { signOut } from 'firebase/auth';
 import {
@@ -571,6 +573,14 @@ export function Layout() {
     navigate({ to: '/' });
   };
 
+  // ChatWidget only mounts once `isAuthenticated && profile`, so `auth.currentUser` is
+  // reliably set here — but guard anyway rather than a non-null assertion.
+  const getChatIdToken = async () => {
+    const user = auth.currentUser;
+    if (!user) throw new Error('getChatIdToken: no signed-in user');
+    return user.getIdToken();
+  };
+
   const handleCompanySwitch = (companyRegId: string) => {
     dispatch(setActiveCompany(companyRegId));
     trackEvent('company_switch', { source: 'header' });
@@ -697,6 +707,10 @@ export function Layout() {
           <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
             <Outlet />
           </main>
+
+          {isAuthenticated && profile && (
+            <ChatWidget getIdToken={getChatIdToken} apiBaseUrl={API_BASE} locale={locale} />
+          )}
 
           <FooterSection
             t={t}

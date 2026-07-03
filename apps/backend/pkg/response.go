@@ -49,6 +49,19 @@ func RespondList(w http.ResponseWriter, data any, count int) {
 	})
 }
 
+// RespondListMeta is like RespondList but also attaches a meta object —
+// used for cursor-paginated collections (e.g. chat message history).
+func RespondListMeta(w http.ResponseWriter, data any, count int, meta map[string]any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    data,
+		"count":   count,
+		"meta":    meta,
+	})
+}
+
 func RespondError(w http.ResponseWriter, status int, code, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

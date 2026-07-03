@@ -30,6 +30,7 @@ import (
 	"github.com/sathittham/factory-sync-solutions/apps/backend/services/admin"
 	auditpkg "github.com/sathittham/factory-sync-solutions/apps/backend/services/audit"
 	"github.com/sathittham/factory-sync-solutions/apps/backend/services/backoffice"
+	"github.com/sathittham/factory-sync-solutions/apps/backend/services/chat"
 	"github.com/sathittham/factory-sync-solutions/apps/backend/services/dbd"
 	"github.com/sathittham/factory-sync-solutions/apps/backend/services/notification"
 	"github.com/sathittham/factory-sync-solutions/apps/backend/services/profile"
@@ -171,6 +172,21 @@ func main() {
 	// Backoffice
 	backofficeHandler := backoffice.NewHandler(resultSvc, profileSvc, authClient, firestoreClient, auditLogger, notifSvc)
 
+	// Chat (AI customer support chatbot — Phase 1: core service + engine + web-app bubble)
+	chatRepo := chat.NewRepository(firestoreClient)
+	chatModelClient, err := chat.NewVertexModelClientFromEnv(ctx)
+	if err != nil {
+		slog.Warn("chatbot AI engine disabled", "error", err)
+	}
+	chatSystemPrompt, err := chat.LoadSystemPrompt("config/chatbot-knowledge.md")
+	if err != nil {
+		log.Fatalf("load chatbot knowledge file: %v", err)
+	}
+	chatEngine := chat.NewEngine(chatModelClient, chatSystemPrompt)
+	chatSlack := chat.NewSlackClientFromEnv()
+	chatSvc := chat.NewService(chatRepo, chatEngine, chatSlack)
+	chatHandler := chat.NewHandler(chatSvc, turnstileClient)
+
 	// DBD
 	dbdSvc := dbd.NewDefaultService()
 	dbdHandler := dbd.NewHandler(dbdSvc)
@@ -222,6 +238,7 @@ func main() {
 			r.Route("/results", resultHandler.Routes)
 			r.Route("/dbd", dbdHandler.Routes)
 			r.Route("/upload", uploadHandler.Routes)
+			r.Route("/chat", chatHandler.Routes)
 
 			// Invitation acceptance — authenticated but no role check (invited user has no profile yet)
 			r.Post("/invitations/accept", adminHandler.AcceptInvitation)
