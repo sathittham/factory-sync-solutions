@@ -55,6 +55,45 @@ Copy this block and add to the Active section:
 
 ## Active Change Requests
 
+### CR-006 | Backoffice GA4 Analytics Dashboard | Approved
+
+| Field | Value |
+|---|---|
+| **Date Raised** | 2026-07-03 |
+| **Raised By** | Sathittham Sangthong |
+| **Type** | Scope change (new backoffice dashboard section + backend service) |
+| **Priority** | Medium |
+
+**Description:**
+Add a Web Analytics section to the backoffice `/dashboard` surfacing GA4 reporting
+data (traffic overview, top pages, acquisition channels, audience) for the public
+site and app, backed by a new `apps/backend/services/analytics` GA4 Data API proxy
+with in-memory TTL cache and stale-while-error fallback. CR numbered 006 because
+CR-004/005 are raised on the parallel `feature/chatbot-core` branch.
+
+**Impact Analysis:**
+- Schedule: 0 (same iteration)
+- Effort: ~1 day
+- Risk: GA4 Data API quota exhaustion — mitigated by 15m TTL cache (R-014 candidate);
+  new runtime secrets (`GA4_PROPERTY_ID`, `GA4_SA_CREDENTIALS_JSON`) must be provisioned
+  per environment — service degrades gracefully (503 `ANALYTICS_UNAVAILABLE`) if unset.
+- Affected components: `apps/backend/services/analytics` (new), `apps/backend/main.go`,
+  `apps/web-backoffice` dashboard + analytics components.
+
+**Decision:**
+- [x] Approved — proceed
+- [ ] Rejected — reason: [reason]
+- [ ] Deferred to version: [vX.Y.Z]
+
+**Decision Date:** 2026-07-03
+**Decision By:** Sathittham Sangthong
+
+**Implementation Notes:**
+- SRS: [docs/product/bo-dashboard-ga4/feature-spec.md](../product/bo-dashboard-ga4/feature-spec.md)
+- Branch: `feature/bo-dashboard-ga4` — Phase 1 (all four endpoints + dashboard section) implemented
+  with backend coverage 84.3% and frontend analytics coverage 97.6%; Playwright E2E deferred
+  (no Playwright infra in `web-backoffice` yet — tracked in status.md as follow-up).
+
 ### CR-003 | Adopt TanStack Table + Query in web-app | Approved
 
 | Field | Value |

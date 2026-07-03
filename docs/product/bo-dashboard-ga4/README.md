@@ -1,6 +1,6 @@
 # Backoffice GA4 Analytics Dashboard
 
-**Status:** Draft — not yet implemented · [feature-spec.md](./feature-spec.md)
+**Status:** Phase 1 implemented (E2E + env provisioning pending) · [feature-spec.md](./feature-spec.md)
 
 Authenticated backoffice dashboard enhancement that adds a GA4 Analytics section on
 `/dashboard` for staff and super-admin users. Data is provided by new
@@ -53,9 +53,10 @@ Authenticated backoffice dashboard enhancement that adds a GA4 Analytics section
 
 ## Current State
 
-No implementation has been started yet in this branch. The feature remains at
-**Draft** in design and test-planning stage. Work is expected to follow the
-phased sequence below, with feature completion tracked in [status.md](./status.md).
+Phase 1 is implemented and verified on `feature/bo-dashboard-ga4` — backend
+`services/analytics` (84.3% coverage), the dashboard Web Analytics section, and
+36 frontend component tests (97.6% coverage). Playwright E2E and GA4 env/IAM
+provisioning remain open; progress is tracked in [status.md](./status.md).
 
 ## Design overview
 
@@ -129,6 +130,8 @@ flowchart LR
 - [feature-spec.md](./feature-spec.md)
 - [test-plan.md](./test-plan.md)
 - [status.md](./status.md)
+- [user-journeys.md](./user-journeys.md)
+- [mockups/app.md](./mockups/app.md)
 - [Dashboard page](../../../apps/web-backoffice/src/pages/DashboardPage.tsx)
 - [GA4 docs](https://developers.google.com/analytics/devguides/reporting/data/v1)
 

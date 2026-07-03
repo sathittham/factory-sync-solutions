@@ -579,13 +579,13 @@ web-backoffice/src/
 
 | Requirement | Design Reference | Test Case | Status |
 |---|---|---|---|
-| FR-001 Overview cards | §5.1 overview, §7 | TC-001 | Not Started |
-| FR-002 Time-series | §6.4 overview series, §8 | TC-002 | Not Started |
-| FR-003 Date range | §5.1, §3.1 | TC-003 | Not Started |
-| FR-004 Top pages | §5.1 top-pages, §6.4 | TC-004 | Not Started |
-| FR-005 Channels | §5.1 channels, §6.4 | TC-005 | Not Started |
-| FR-006 Audience | §5.1 audience, §6.4 | TC-006 | Not Started |
-| FR-007 Auth & degradation | §9, §4.4 | TC-007 | Not Started |
+| FR-001 Overview cards | §5.1 overview, §7 | TC-001 | Verified (unit + component; E2E deferred) |
+| FR-002 Time-series | §6.4 overview series, §8 | TC-002 | Verified (unit + component; E2E deferred) |
+| FR-003 Date range | §5.1, §3.1 | TC-003 | Verified (unit + component; E2E deferred) |
+| FR-004 Top pages | §5.1 top-pages, §6.4 | TC-004 | Verified (unit + component; E2E deferred) |
+| FR-005 Channels | §5.1 channels, §6.4 | TC-005 | Verified (unit + component; E2E deferred) |
+| FR-006 Audience | §5.1 audience, §6.4 | TC-006 | Verified (unit + component; E2E deferred) |
+| FR-007 Auth & degradation | §9, §4.4 | TC-007 | Verified (unit + component; E2E deferred) |
 
 *Update status: Not Started / In Progress / Implemented / Verified.*
 
@@ -607,3 +607,8 @@ web-backoffice/src/
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 0.1.0 | 2026-07-03 | Sathittham Sangthong | Initial draft |
+
+---
+
+*Version: 0.1.0*
+*Last updated: 3 July 2026*
