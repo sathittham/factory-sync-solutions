@@ -1,7 +1,7 @@
 ---
 isoOutput: PM.O1 (Risk Register)
-version: 1.1.0
-lastUpdated: 2026-07-02
+version: 1.2.0
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 ---
 
@@ -30,6 +30,10 @@ Review at every progress meeting. Add new risks immediately when identified. Clo
 | R-007 | ISO 29110 artifact maintenance becomes overhead | M | M | Monitor | Templates pre-filled; artifacts map to existing docs where possible; `dev-process.md` enforces habit | Sathittham | Open |
 | R-008 | Backoffice claim (`backofficeRole`) misconfigured in Firebase | L | H | Monitor | Claims set by backend superadmin staff endpoints only; BackofficeGuard + SuperAdminGuard on all routes | Sathittham | Open |
 | R-009 | `web-app` server-state migration (TanStack Query, CR-003) regresses data freshness or an auth-gated data flow | L | M | Monitor | Vitest 80/80 + tsc gate before each promotion; staging smoke test before prod; `staleTime` 30s / `retry` 1 conservative defaults; Phase 2 (profile reads) deferred until auth flows can be e2e-verified with live Firebase | Sathittham | Open |
+| R-010 | Chatbot (CR-004) gives wrong/hallucinated answers to customers (pricing, commitments) | M | M | Monitor | Grounded system prompt from versioned knowledge file; instructed to decline out-of-scope + offer escalation; `escalate_to_human` tool; transcripts reviewable in backoffice | Sathittham | Open |
+| R-011 | Vertex AI (Gemini) cost blowout from chat abuse on the public site | M | M | Monitor | Turnstile on conversation creation; per-conversation rate limit (10 msg/min); `max_tokens` 1024; Gemini Flash tier only; GCP budget alert on the project (personal-account ownership — verify alerts are watched) | Sathittham | Open |
+| R-012 | Chat transcripts accumulate customer PII (names, contacts, business details) | L | H | Monitor | Firestore rules backend-only for `conversations`; access via role-gated API; Slack alerts carry preview only, not full transcript; retention policy to define before Phase 3 (anonymous visitors) | Sathittham | Open |
+| R-013 | Third-party channel dependency (LINE / Slack API outage or breaking change) | L | M | Watch | Adapters isolated behind interface; delivery fire-and-forget with one retry + logging; web channel unaffected by LINE/Slack outages | Sathittham | Open |
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 isoOutput: PM.O1 (Change Control)
-version: 1.1.0
-lastUpdated: 2026-07-02
+version: 1.2.0
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 ---
 
@@ -54,6 +54,53 @@ Copy this block and add to the Active section:
 ---
 
 ## Active Change Requests
+
+### CR-004 | AI customer support chatbot (omni-channel) | Approved
+
+| Field | Value |
+|---|---|
+| **Date Raised** | 2026-07-03 |
+| **Raised By** | Sathittham Sangthong |
+| **Type** | Scope change (new feature domain: customer support) |
+| **Priority** | High |
+
+**Description:**
+Add an AI-first customer support chatbot answering TH/EN questions about FactorySync services
+and the health-check quizzes, with human escalation. Customer-facing: LINE Official Account +
+chat bubble on `web-app` (authenticated) and `web-official` (anonymous, Turnstile-gated).
+Team-facing: Slack (escalation alerts, later two-way thread relay) + a Conversations page in
+`web-backoffice`. New backend `chat` service (Vertex AI Gemini Flash engine via ADC,
+LINE/Slack adapters); delivered in 5 phases (core+web-app → backoffice → web-official →
+LINE → Slack two-way), with agentic tools/ADK-Go and Knowledge-Hub RAG deferred to
+follow-up CRs (SDD §2.3 roadmap).
+
+**Impact Analysis:**
+- Schedule: 5 phases, each its own branch/PR; Phase 1 estimate ~2–3 days, later phases ~1–2 days each.
+- Effort: largest in Phase 1 (service + engine + widget) and Phase 4 (LINE adapter).
+- Risk: LLM answer quality/hallucination (R-010), Anthropic API cost under abuse (R-011),
+  PII in transcripts (R-012), third-party channel dependency (R-013) — added to risk register.
+  New external setup needed: Vertex AI API enabled + `roles/aiplatform.user` on the Cloud Run
+  service account + GCP budget alert, LINE OA + Messaging API, Slack app (bot token).
+  Firebase Anonymous Auth provider must be enabled for web-official.
+- Affected components: `apps/backend/services/chat/` (new), `apps/backend/main.go`,
+  `apps/backend/config/chatbot-knowledge.md` (new), `packages/shared` (ChatWidget),
+  `apps/web-app/src/components/Layout.tsx`, `apps/web-official/src/layouts/Layout.astro`,
+  `apps/web-backoffice` (Conversations pages), `firestore.rules`, `firestore.indexes.json`.
+
+**Decision:**
+- [x] Approved — proceed
+- [ ] Rejected — reason: [reason]
+- [ ] Deferred to version: [vX.Y.Z]
+
+**Decision Date:** 2026-07-03
+**Decision By:** Sathittham Sangthong
+
+**Implementation Notes:**
+- SRS: [docs/product/ai-chatbot/feature-spec.md](../product/ai-chatbot/feature-spec.md)
+- SDD: [docs/architecture/ai-chatbot-design.md](../architecture/ai-chatbot-design.md)
+- Test plan per phase: `docs/product/ai-chatbot/test-plan.md` (to be created at Phase 1 start)
+
+---
 
 ### CR-003 | Adopt TanStack Table + Query in web-app | Approved
 
