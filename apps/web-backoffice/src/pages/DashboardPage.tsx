@@ -1,5 +1,6 @@
 import { backofficeApi } from '@/api/backoffice';
 import type { Assessment, BackofficeStats } from '@/api/types';
+import { WebAnalyticsSection } from '@/components/analytics/WebAnalyticsSection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDateTime } from '@/lib/dayjs';
@@ -131,6 +132,8 @@ export function DashboardPage() {
             )}
           </CardContent>
         </Card>
+
+        <WebAnalyticsSection />
       </div>
     </PageLayout>
   );
