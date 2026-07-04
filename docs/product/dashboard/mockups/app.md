@@ -2,14 +2,13 @@
 
 Surface: `web-app` (authenticated React app). Design system: shadcn/ui · Tailwind.
 The dashboard is a single full-width page (gradient header + content column) — layout
-per [feature-spec.md § 4](../feature-spec.md#4-ui-layout). Route `/dashboard` is not yet
-wired; these wireframes show the built component.
+per [feature-spec.md § 4](../feature-spec.md#4-ui-layout). Live at `/dashboard`.
 
 ---
 
 ## 1. `/dashboard` — Dashboard
 
-### 1a. State: default (completed + uncompleted quizzes)
+### 1a. State: filled (has completed assessments)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -17,25 +16,26 @@ wired; these wireframes show the built component.
 │  ยินดีต้อนรับกลับ / Welcome back,                            │
 │  <Company Name>                 ← authSlice profile          │
 ├─────────────────────────────────────────────────────────────┤
-│  คะแนนล่าสุด / LATEST SCORE                                  │
-│                                                             │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │   ◠ 3.5 ◡   │  │   ◠ 4.1 ◡   │  │   ◠ … ◡     │          │
-│  │  Shindan    │  │  Factory    │  │  …          │          │
-│  │ [Established]│ │ [Advanced]  │  │             │          │
-│  │ 10 มิ.ย. 69 │  │ 09 มิ.ย. 69 │  │             │          │
-│  │ 3 ครั้ง      │  │             │  │             │          │
-│  └─────────────┘  └─────────────┘  └─────────────┘          │
-│  (click any card → /results)                                │
+│  [ Shindan ] [ Factory ] …   ← selector tabs (>1 quiz only) │
 ├─────────────────────────────────────────────────────────────┤
-│  ┌────────────────────────┐  ┌────────────────────────┐     │
-│  │ 📊 ดูผลลัพธ์            │  │ 🔄 ทำแบบประเมินใหม่     │     │
-│  │    View Results        │  │    Retake Assessment   │     │
-│  │ <desc>                 │  │ <desc>                 │     │
-│  │ View results →         │  │ Start over →           │     │
-│  └────────────────────────┘  └────────────────────────┘     │
-│   → /results                  → /quiz (quizId='shindan')    │
-├─────────────────────────────────────────────────────────────┤
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐        │
+│  │ คะแนนรวม │ │ ระดับ     │ │ ครั้งที่  │ │ ประเมิน   │        │
+│  │  3.52    │ │[Establish-│ │ ประเมิน  │ │ เมื่อ     │        │
+│  │  / 5.00  │ │ ed badge] │ │  3 ครั้ง  │ │10 มิ.ย.69│        │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘        │
+│   KPI stat cards — 2-col mobile / 4-col desktop             │
+├───────────────────────────────────┬─────────────────────────┤
+│  คะแนนรายมิติ / DIMENSION SCORES   │  ┌───────────────────┐  │
+│                                   │  │ 📊 ดูผลลัพธ์       │  │
+│  Management   ▓▓▓▓▓▓▓░░░  3.5     │  │   View Results    │  │
+│  Production   ▓▓▓▓▓▓▓▓▓░  4.5     │  │   View results →  │  │
+│  Quality      ▓▓▓▓░░░░░░  2.0     │  ├───────────────────┤  │
+│  … (one row per dimension)        │  │ 🔄 ทำแบบประเมินใหม่│  │
+│                                   │  │   Retake          │  │
+│  bar color: ≥4 emerald · ≥3 blue  │  │   Start over →    │  │
+│  ≥2 amber · <2 red                │  └───────────────────┘  │
+│  (2/3 width on lg)                │  → /results · /quiz     │
+├───────────────────────────────────┴─────────────────────────┤
 │  แบบประเมินอื่น / OTHER ASSESSMENTS                           │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │ 📋 Cybersecurity Assessment              Start →    │    │
@@ -46,7 +46,7 @@ wired; these wireframes show the built component.
 │   Section hidden when all quizzes are completed.            │
 └─────────────────────────────────────────────────────────────┘
 
-◠ n ◡ = MiniScoreRing (SVG arc ∝ score/5, numeric score centred)
+Retake targets the ACTIVE quiz (selected tab), not a fixed quiz.
 ```
 
 ### 1b. State: empty (no assessments yet)
@@ -56,40 +56,50 @@ wired; these wireframes show the built component.
 │  ░░░░░░░░░░░░░░░░ gradient header ░░░░░░░░░░░░░░░░░░░░░░░░  │
 │  ยินดีต้อนรับกลับ / Welcome back,  <Company Name>            │
 ├─────────────────────────────────────────────────────────────┤
-│  ┌────────────────────────┐  ┌────────────────────────┐     │
-│  │ 📊 View Results        │  │ 🔄 Retake Assessment   │     │
-│  └────────────────────────┘  └────────────────────────┘     │
-│   (action cards always visible)                             │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐        │
+│  │ คะแนนรวม │ │ ระดับ     │ │ ครั้งที่  │ │ ประเมิน  │        │
+│  │   --     │ │   --     │ │   --     │ │   --     │        │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘        │
+│   ghost KPI row — dashed borders, previews the dashboard    │
 ├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│                       [ 📋 icon ]                           │
-│                  ยังไม่มีผลประเมิน                            │
-│                  No assessments yet                         │
-│     เริ่มทำแบบประเมินเพื่อตรวจสุขภาพโรงงานของคุณ                │
-│     Start an assessment to check your factory health        │
-│                                                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ [📊]  ยังไม่มีผลประเมิน / No assessments yet          │    │
+│  │       เริ่มทำแบบประเมินเพื่อตรวจสุขภาพโรงงานของคุณ      │    │
+│  │       Start an assessment to check your factory      │    │
+│  │       health                                         │    │
+│  └─────────────────────────────────────────────────────┘    │
+│   onboarding banner — t('quiz.noResults.title'/'.desc')     │
+├─────────────────────────────────────────────────────────────┤
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐         │
+│  │ 📋 Shindan   │ │ 📋 Factory   │ │ 📋 Cyber…    │         │
+│  │ เริ่มทำแบบ    │ │ เริ่มทำแบบ    │ │ เริ่มทำแบบ    │         │
+│  │ ประเมินชุดใหม่│ │ ประเมินชุดใหม่│ │ ประเมินชุดใหม่│         │
+│  │ เริ่มทำ →     │ │ เริ่มทำ →     │ │ เริ่มทำ →     │         │
+│  └──────────────┘ └──────────────┘ └──────────────┘         │
+│   available quizzes — 1/2/3-col grid, each → /quiz          │
 └─────────────────────────────────────────────────────────────┘
-
-Known issue: this copy is inline locale-ternary today — must move to
-t('dashboard.noResults') / t('dashboard.noResultsDesc') before shipping.
 ```
 
-### 1c. State: loading (resultLoading, no cached assessments)
+### 1c. State: loading (query pending, no cached assessments)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  ░░░░░░░░░░░░░░░░ gradient header ░░░░░░░░░░░░░░░░░░░░░░░░  │
 ├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │ ▒▒▒▒▒▒▒▒▒▒▒ │  │ ▒▒▒▒▒▒▒▒▒▒▒ │  │ ▒▒▒▒▒▒▒▒▒▒▒ │          │
-│  │ ▒▒▒▒▒▒▒▒▒▒▒ │  │ ▒▒▒▒▒▒▒▒▒▒▒ │  │ ▒▒▒▒▒▒▒▒▒▒▒ │          │
-│  │ ▒▒▒▒▒▒▒▒▒▒▒ │  │ ▒▒▒▒▒▒▒▒▒▒▒ │  │ ▒▒▒▒▒▒▒▒▒▒▒ │          │
-│  └─────────────┘  └─────────────┘  └─────────────┘          │
-│   3 × Skeleton (h-44 rounded-xl)                            │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐                │
+│  │ ▒▒▒▒▒▒ │ │ ▒▒▒▒▒▒ │ │ ▒▒▒▒▒▒ │ │ ▒▒▒▒▒▒ │  4 × h-24      │
+│  └────────┘ └────────┘ └────────┘ └────────┘                │
+│  ┌──────────────────────────────────┐ ┌────────────────┐    │
+│  │ ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ │ │ ▒▒▒▒▒▒▒▒▒▒▒▒▒▒ │    │
+│  │ ▒▒▒▒▒▒▒▒▒▒ h-64 (2/3) ▒▒▒▒▒▒▒▒ │ │ ▒▒ h-64 ▒▒▒▒▒▒ │    │
+│  └──────────────────────────────────┘ └────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
+
+The empty state's quiz grid has its own 3 × h-32 skeletons while
+the quizzes query is pending.
 ```
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 2.0.0*
+*Last updated: 4 July 2026*

@@ -20,69 +20,71 @@
 
 ## Current State
 
-**Built, not shipped.** `DashboardPage.tsx` (436 lines, including the inline
-`MiniScoreRing`) is fully implemented and exported — but it has **zero references** in the
-app: it is not imported in `router.tsx`, has no route path, and has no nav link in
-`Layout.tsx`. It cannot be reached through normal navigation. Wiring the route is the
-single blocking task; everything else is polish behind it.
+**Live.** `DashboardPage.tsx` (597 lines, with inline `StatCard` / `GhostStatCard` /
+`DimensionRow`) is routed at `/dashboard` via
+`routes/_authed/_registered/dashboard.tsx`, listed first in the `Layout.tsx` nav, and is
+the post-login landing page (`SignInPage` and `RegisterPage` both redirect there). The
+route/nav wiring shipped with the TanStack Router adoption (PR #25, 1 July 2026); the
+current KPI-cards + dimension-bars design and TanStack Query data layer shipped in the
+Query rollout (2 July 2026), which also retired the old `resultSlice` flow and the
+earlier `MiniScoreRing` card-grid design.
 
-Two known code-quality gaps in the built component: the empty-state copy uses inline
-`locale === 'th' ? … : …` comparisons instead of `t()` (violates the i18n rule), and the
-"Retake Assessment" action card is hardcoded to `quizId='shindan'` even for users who have
-never taken the Shindan quiz.
+Both formerly open decisions are resolved in code: the retake action targets the
+**active** quiz (`activeId ?? 'shindan'`, fallback defensive only), and `/dashboard` is
+the post-login landing route.
 
-One drift note: the spec's data flow reads `resultSlice`, which has since been retired in
-the TanStack Query migration — the fetch/caching wiring needs revisiting when the page is
-routed. The separate `web-backoffice` dashboard is unaffected and already live
+**What remains:** test coverage ([test-plan.md](./test-plan.md)) and two minor i18n
+cleanups — the inline `locale === 'th' ? 'ครั้ง' : 'times'` ternary and the trailing
+space in `quiz.assessedOn` (worked around with `.trim()`).
+
+No backend work — the page reuses `GET /results` and `GET /quiz/quizzes` through
+TanStack Query. The separate `web-backoffice` dashboard is unaffected and live
 ([backoffice/feature-spec.md](../backoffice/feature-spec.md)).
-
-No backend work — the page reuses `GET /results` and `GET /quiz/quizzes`.
 
 ---
 
 ## Build Checklist
 
 Mirrors [feature-spec.md § 3](./feature-spec.md#3-current-state) and
-[§ 10](./feature-spec.md#10-open-tasks-before-shipping):
+[§ 10](./feature-spec.md#10-open-tasks):
 
 - [x] `DashboardPage` component — `apps/web-app/src/pages/DashboardPage.tsx`
-- [x] `MiniScoreRing` (inline SVG) — in `DashboardPage.tsx`
-- [ ] **BLOCKING** — `/dashboard` route entry — `apps/web-app/src/router.tsx`
-- [ ] "Dashboard" nav link — `apps/web-app/src/components/Layout.tsx`
-- [ ] Empty-state i18n keys (`dashboard.noResults`, `dashboard.noResultsDesc`) — `apps/web-app/src/lib/i18n.tsx`
-- [ ] Verify `quiz.yourCompany` / `quiz.startNewAssessment` / `quiz.start` i18n keys exist
-- [ ] Resolve hardcoded `'shindan'` retake target
-- [ ] Decide post-login navigation intent (`/`, `useAuth`, `SignInPage` → `/dashboard`?)
+- [x] `StatCard` / `GhostStatCard` / `DimensionRow` (inline) — in `DashboardPage.tsx`
+- [x] `/dashboard` route — `apps/web-app/src/routes/_authed/_registered/dashboard.tsx`
+- [x] "Dashboard" nav item — `apps/web-app/src/components/Layout.tsx` (`getNavItems()`)
+- [x] Post-login / post-registration redirect to `/dashboard` — `SignInPage.tsx`, `RegisterPage.tsx`
+- [x] Empty-state i18n keys (`quiz.noResults.title`, `quiz.noResults.desc`) — `lib/i18n.tsx`
+- [x] `quiz.yourCompany` / `quiz.startNewAssessment` / `quiz.start` i18n keys — verified present (TH + EN)
+- [x] Retake target derives from the active quiz (`activeId`)
+- [ ] i18n cleanup — `'ครั้ง'/'times'` inline ternary + `quiz.assessedOn` trailing space
 
 ### Tests
 
-Planned per [feature-spec.md § 14](./feature-spec.md#14-testing) — none written yet:
+Planned per [test-plan.md](./test-plan.md) — unit suite not written yet:
 
+- [ ] Vitest — `quizGroups` / `uncompletedQuizzes` / `activeId` derivations
+- [ ] Vitest — `getDimBarColor` / `getDimScoreText` thresholds; `DimensionRow` width + name fallback
 - [ ] Vitest — `handleStartQuiz` dispatches `resetQuiz()`, `setQuizId(id)`, navigates `/quiz`
-- [ ] Vitest — `quizGroups` / `uncompletedQuizzes` derivations
-- [ ] Vitest — `MiniScoreRing` arc math (score 2.5 → 50% arc)
-- [ ] Playwright — empty state · populated cards · card → `/results` · Start → `/quiz`
-- [ ] `make lint-web` + `make test-web` pass with the route wired
+- [ ] Vitest — loading / empty / filled state selection
+- [x] Playwright — post-login redirect lands on `/dashboard` (`e2e/login.spec.ts`)
+- [ ] Playwright — `dashboard.spec.ts`: empty state · KPI values · tab switching · Start/Retake → `/quiz` · View Results → `/results`
+- [ ] `make lint-web` + `make test-web` green with the new suites
 
 ---
 
 ## Open Decisions
 
-Mirrors [README.md § Open decisions](./README.md#open-items--future-work).
-
-| # | Decision | Resolution |
-|---|----------|------------|
-| 1 | Retake target hardcoded to `'shindan'` | **Open**: keep + relabel "Retake Shindan", or derive from first completed quiz |
-| 2 | Post-login landing route | **Open**: `/results` today; `/dashboard` candidate once routed |
+None. Both prior decisions are resolved and recorded in
+[feature-spec.md § 10.3](./feature-spec.md#103-resolved-decisions-for-the-record).
 
 ---
 
 ## Related Documents
 
-- [README.md](./README.md) · [feature-spec.md](./feature-spec.md) · [dashboard-page.md](./dashboard-page.md)
+- [README.md](./README.md) · [feature-spec.md](./feature-spec.md) · [test-plan.md](./test-plan.md) · [dashboard-page.md](./dashboard-page.md)
 - [docs/iso29110/progress-log.md](../../iso29110/progress-log.md) · [risk-register.md](../../iso29110/risk-register.md)
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 2.0.0*
+*Last updated: 4 July 2026*

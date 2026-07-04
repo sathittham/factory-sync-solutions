@@ -253,7 +253,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'quiz.start': 'เริ่มทำ',
     'quiz.totalAssessments': 'คุณมีผลประเมินทั้งหมด {count} ครั้ง',
     'quiz.latestScore': 'คะแนนล่าสุด',
-    'quiz.assessedOn': 'ประเมินเมื่อ ',
+    'quiz.assessedOn': 'ประเมินเมื่อ',
     'quiz.exit': 'ออก',
     'quiz.exitConfirm.title': 'ออกจากแบบประเมิน?',
     'quiz.exitConfirm.desc': 'คำตอบที่ทำไว้จะไม่ถูกบันทึก คุณแน่ใจหรือไม่?',
@@ -267,6 +267,7 @@ const translations: Record<Locale, Record<string, string>> = {
     // Dashboard KPI labels
     'dashboard.level': 'ระดับ',
     'dashboard.assessmentCount': 'ครั้งที่ประเมิน',
+    'dashboard.times': 'ครั้ง',
 
     // Results
     'result.overallScore': 'คะแนนรวม',
@@ -714,7 +715,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'quiz.start': 'Start',
     'quiz.totalAssessments': 'You have {count} assessments total',
     'quiz.latestScore': 'Latest Score',
-    'quiz.assessedOn': 'Assessed on ',
+    'quiz.assessedOn': 'Assessed on',
     'quiz.exit': 'Exit',
     'quiz.exitConfirm.title': 'Exit assessment?',
     'quiz.exitConfirm.desc': 'Your answers will not be saved. Are you sure?',
@@ -728,6 +729,7 @@ const translations: Record<Locale, Record<string, string>> = {
     // Dashboard KPI labels
     'dashboard.level': 'Level',
     'dashboard.assessmentCount': 'Assessments',
+    'dashboard.times': 'times',
 
     // Results
     'result.overallScore': 'Overall Score',

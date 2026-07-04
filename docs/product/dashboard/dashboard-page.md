@@ -1,85 +1,97 @@
-# DashboardPage + MiniScoreRing (web-app)
+# DashboardPage (web-app)
 
 ## Summary
 
-The authenticated user's landing screen, aggregating all assessment results by quiz
-variant. Lives at `apps/web-app/src/pages/DashboardPage.tsx` (436 lines) with the
-`MiniScoreRing` SVG defined inline. Built and exported, but not yet imported anywhere —
-routing it is the feature's blocking task.
+The authenticated user's landing screen. Lives at
+`apps/web-app/src/pages/DashboardPage.tsx` (597 lines) with three inline helpers:
+`StatCard`, `GhostStatCard`, and `DimensionRow`. Live at `/dashboard` via the file-based
+route `routes/_authed/_registered/dashboard.tsx`; first item in the `Layout.tsx` nav.
 
 ## Implementation
 
-- `DashboardPage()` — page component; on mount fetches `GET /results` and
-  `GET /quiz/quizzes` **only if** the respective Redux slice is empty, then derives:
-  - `quizGroups` — assessments grouped by `quizId`; the first entry per group is the latest.
-  - `uncompletedQuizzes` — `availableQuizzes` minus IDs in `completedQuizIds`.
-- `MiniScoreRing({ score, size = 64 })` — inline SVG: background track circle
-  (`--border`) + filled arc (`--primary`), arc angle proportional to `score / 5`, stroke
-  5px, animated via `transition-all duration-1000 ease-out`. The numeric score is an
-  absolutely-positioned `<span>` centred over the SVG; the SVG itself is decorative.
+- `DashboardPage()` — named export. Reads server state through TanStack Query
+  (`useAssessmentsQuery` → `GET /results`, `useQuizzesQuery` → `GET /quiz/quizzes`) and
+  derives with `useMemo`:
+  - `quizGroups` — assessments grouped by `quizId` (missing ID falls back to
+    `'shindan'`); index 0 per group is the latest.
+  - `completedQuizIds` / `uncompletedQuizzes` — available quizzes split by completion.
+  - `activeId` — the tab-selected quiz (`activeQuizId` local state), defaulting to the
+    first completed quiz; `latest`, `dimensionScores`, and `totalAttempts` derive from it.
+- `StatCard({ label, children })` — bordered KPI tile; `GhostStatCard({ label })` — the
+  dashed `--` variant used in the empty state's preview row.
+- `DimensionRow({ dim, locale })` — score bar per dimension: width `score / 5 × 100 %`
+  (capped), 700 ms ease-out transition, color by threshold (≥4 emerald · ≥3 blue ·
+  ≥2 amber · <2 red via `getDimBarColor` / `getDimScoreText`), locale-aware name with
+  cross-fallback, score as `toFixed(1)`.
 - `handleStartQuiz(quizId)` — `dispatch(resetQuiz())` → `dispatch(setQuizId(quizId))` →
-  `navigate('/quiz')`. Used by the retake action card (hardcoded `'shindan'`) and every
-  uncompleted-quiz "Start" row.
+  `navigate({ to: '/quiz' })`. Used by the retake action (`activeId ?? 'shindan'` —
+  fallback is defensive only), every uncompleted-quiz row, and the empty-state quiz grid.
 
 ### Sections and states
 
+Body states are mutually exclusive: `isLoading` (`resultLoading && assessments.length === 0`),
+`isEmpty` (`!resultLoading && assessments.length === 0`), else the filled dashboard.
+
 | Section | Behavior |
 |---------|----------|
-| Gradient header | "Welcome back, {companyName}" from `authSlice.profile.companyName` |
-| Completed quiz cards | `StaggerChildren` grid (0.08s); each card is a `<button>` → `/results`; shows ring, quiz name (locale-aware), diagnosis badge (`diagnosisConfig` shared with `ResultPage`), formatted date, count line when > 1 assessment |
-| Action cards | Always rendered; "View Results" → `/results`, "Retake Assessment" → `handleStartQuiz('shindan')` |
-| Uncompleted list | `FadeIn` (0.25s); hidden when all quizzes are completed |
-| Empty state | `ScaleIn`; rendered instead of the card grid when no assessments exist |
-| Loading skeleton | Three `h-44 rounded-xl` `Skeleton`s while `resultLoading && assessments.length === 0` |
+| Gradient header | Always rendered; `quiz.welcomeBack` + `profile.companyName` (fallback `quiz.yourCompany`) from `authSlice` |
+| Quiz selector tabs | Only when `completedQuizIds.length > 1`; pill per quiz, active = `bg-primary text-white`; sets `activeQuizId` |
+| KPI stat cards | `StaggerChildren` (0.06 s): overall score (`toFixed(2)` + `/ 5.00`, diagnosis-tinted), level `Badge` (`diagnosisConfig`), attempt count, `formatDateTime(latest.submittedAt, locale)` |
+| Dimension panel | `FadeIn` 0.15 s, 2/3 width on `lg`; one `DimensionRow` per `latest.scores` entry |
+| Quick actions | `FadeIn` 0.2 s: "View Results" → `/results`; "Retake" → `handleStartQuiz(activeId)` |
+| Uncompleted list | `FadeIn` 0.3 s; hidden when all quizzes completed; rows call `handleStartQuiz(q.id)` |
+| Empty state | `ScaleIn`: 4 × `GhostStatCard`, onboarding banner (`quiz.noResults.title` / `.desc`), available-quiz card grid (`StaggerChildren` 0.07 s) |
+| Loading skeleton | 4 × `h-24` KPI skeletons + `h-64` panel/actions skeletons; empty-state grid shows 3 × `h-32` while `quizzesLoading` |
 
-### Known issues (must fix before shipping)
+### Known issues (minor)
 
-- Empty-state copy (lines ~422–428) uses inline `locale === 'th' ? '…' : '…'` instead of
-  `t()` — extract `dashboard.noResults` / `dashboard.noResultsDesc` keys.
-- Retake card is hardcoded to `'shindan'` even if the user never took that quiz —
-  decision open (relabel vs. derive from first completed quiz).
-- The spec's data flow reads `resultSlice`, which was retired in the TanStack Query
-  migration — re-verify the fetch/caching wiring when routing the page.
+- Attempt-count unit uses an inline `locale === 'th' ? 'ครั้ง' : 'times'` ternary
+  (line ~372) instead of a `t()` key.
+- `quiz.assessedOn` i18n values carry a trailing space, worked around with `.trim()`.
+- No Vitest/Playwright coverage yet — see [test-plan.md](./test-plan.md).
 
 ## Usage
 
-Planned call site: `apps/web-app/src/router.tsx` (not yet wired).
+```tsx
+// apps/web-app/src/routes/_authed/_registered/dashboard.tsx (actual wiring)
+import { DashboardPage } from '@/pages/DashboardPage';
+import { createFileRoute } from '@tanstack/react-router';
 
-```
-# pseudocode — the blocking route wiring
-import DashboardPage from '@/pages/DashboardPage'
-
-<RegisterGuard>
-  <Route path="/dashboard" element={<DashboardPage />} />
-</RegisterGuard>
-
-# plus a "Dashboard" nav item in components/Layout.tsx
+export const Route = createFileRoute('/_authed/_registered/dashboard')({
+  component: DashboardPage,
+});
 ```
 
-```
-# pseudocode — cache-aware fetch on mount
-if assessments empty      → GET /api/v1/results       → setAssessments + setAssessment(first)
-if availableQuizzes empty → GET /api/v1/quiz/quizzes  → setAvailableQuizzes
-# both skipped when Redux already has data → instant back-navigation
-```
+Nav entry: `Layout.tsx` `getNavItems()` —
+`{ path: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' }`. Post-login
+redirects land here from `SignInPage` (authenticated `<Navigate>`) and `RegisterPage`
+(after registration).
 
 ## Acceptance Criteria
 
-- Given a routed `/dashboard`, when a registered user navigates there, then the gradient header shows their company name and one card renders per distinct `quizId`.
-- Given a completed quiz card or the "View Results" action card, when clicked, then the app navigates to `/results`.
-- Given an uncompleted quiz row, when "Start" is clicked, then `resetQuiz()` + `setQuizId(q.id)` are dispatched and the app navigates to `/quiz`.
-- Given no assessments, when the page renders, then the empty-state card appears (in the active locale) with the action cards still visible.
-- Given cached Redux data, when navigating back from `/results`, then no re-fetch occurs.
+- Given a signed-in, registered user, when they land on `/dashboard`, then the header
+  shows their company name and the KPI cards reflect the latest assessment of the active quiz.
+- Given more than one completed quiz, when a selector tab is clicked, then KPI cards and
+  dimension bars swap to that quiz's latest assessment.
+- Given the "Retake" action, when clicked, then `resetQuiz()` + `setQuizId(activeId)` are
+  dispatched and the app navigates to `/quiz`; "View Results" navigates to `/results`.
+- Given an uncompleted quiz row (or empty-state quiz card), when "Start" is clicked, then
+  the same dispatch sequence runs with that quiz's ID.
+- Given no assessments, when the page renders, then the ghost KPI row, onboarding banner,
+  and available-quiz grid appear (all copy via `t()`).
+- Given cached TanStack Query data, when navigating back from `/results`, then the page
+  renders without a loading state.
 
 ## Status
 
 - [x] `DashboardPage.tsx` implemented (all sections + states)
-- [x] `MiniScoreRing` implemented inline
-- [ ] Route + nav wiring — `router.tsx` / `Layout.tsx`
-- [ ] Empty-state i18n fix — `lib/i18n.tsx`
-- [ ] Vitest unit suite (`handleStartQuiz`, derivations, ring arc math) + Playwright E2E
+- [x] Route + nav wiring — `routes/_authed/_registered/dashboard.tsx` / `Layout.tsx`
+- [x] Post-login + post-registration redirects to `/dashboard`
+- [x] Empty-state i18n via `quiz.noResults.title` / `quiz.noResults.desc`
+- [ ] Minor i18n cleanup (`'ครั้ง'/'times'` ternary, `quiz.assessedOn` trailing space)
+- [ ] Vitest unit suite + dashboard Playwright spec — [test-plan.md](./test-plan.md)
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 2.0.0*
+*Last updated: 4 July 2026*

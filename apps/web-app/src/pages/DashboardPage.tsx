@@ -207,7 +207,7 @@ export function DashboardPage() {
                 <GhostStatCard label={t('result.overallScore')} />
                 <GhostStatCard label={t('dashboard.level')} />
                 <GhostStatCard label={t('dashboard.assessmentCount')} />
-                <GhostStatCard label={t('quiz.assessedOn').trim()} />
+                <GhostStatCard label={t('quiz.assessedOn')} />
               </div>
 
               {/* Onboarding call-to-action banner */}
@@ -368,14 +368,12 @@ export function DashboardPage() {
                     <p className="text-3xl font-bold tabular-nums tracking-tight text-foreground">
                       {totalAttempts}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {locale === 'th' ? 'ครั้ง' : 'times'}
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t('dashboard.times')}</p>
                   </StatCard>
                 </StaggerItem>
 
                 <StaggerItem>
-                  <StatCard label={t('quiz.assessedOn').trim()}>
+                  <StatCard label={t('quiz.assessedOn')}>
                     <p className="text-base font-semibold text-foreground mt-1 leading-snug">
                       {formatDateTime(latest.submittedAt, locale)}
                     </p>

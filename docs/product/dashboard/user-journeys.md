@@ -3,9 +3,8 @@
 How the authenticated user moves through the dashboard. See [README.md](./README.md) for
 the design spec and [feature-spec.md](./feature-spec.md) for the formal requirements.
 
-> Reflects what is **built today** — the component exists but the `/dashboard` route does
-> not, so the entry step itself is roadmap (shown dashed). Everything after entry
-> describes the built component's behavior once routed.
+> Reflects what is **live today** — `/dashboard` is routed, in the nav, and the
+> post-login landing page.
 
 ---
 
@@ -17,20 +16,22 @@ the design spec and [feature-spec.md](./feature-spec.md) for the formal requirem
 
 ## Factory operator — landing on the dashboard
 
-A signed-in, registered operator lands on the dashboard to see all quiz scores at a
-glance and jump to results or a new assessment.
+A signed-in, registered operator lands on the dashboard to see the latest score at a
+glance and jump to results, a re-take, or a new assessment.
 
 ```mermaid
 flowchart TD
-    A["Sign in (post-login redirect)"] -.->|"roadmap — route not wired"| B["/dashboard"]
+    A["Sign in / complete registration"] -->|"redirect"| B["/dashboard"]
     B --> C{"Has assessments?"}
-    C -->|No| D["Empty state + action cards"]
-    D -->|"Start an assessment"| Q["/quiz"]
-    C -->|Yes| E["Completed quiz cards (MiniScoreRing + diagnosis badge)"]
-    E -->|"click a card"| R["/results"]
-    B --> F["Action cards"]
-    F -->|"View Results"| R
-    F -->|"Retake Assessment (quizId='shindan')"| Q
+    C -->|No| D["Empty state: ghost KPI row + onboarding banner"]
+    D --> DG["Available-quiz card grid"]
+    DG -->|"Start (resetQuiz + setQuizId)"| Q["/quiz"]
+    C -->|Yes| E["KPI cards + dimension score bars (active quiz)"]
+    E -->|">1 quiz completed"| T["Selector tabs — switch active quiz"]
+    T --> E
+    B --> F["Quick actions"]
+    F -->|"View Results"| R["/results"]
+    F -->|"Retake (active quiz)"| Q
     B --> G{"Uncompleted quizzes remain?"}
     G -->|Yes| H["Other Assessments list"]
     H -->|"Start (resetQuiz + setQuizId)"| Q
@@ -38,8 +39,9 @@ flowchart TD
 ```
 
 **Guard(s):** requires an authenticated Firebase session and a completed profile — the
-route is planned inside `RegisterGuard` in `router.tsx`; data comes from the
-Bearer-authenticated `GET /results` and `GET /quiz/quizzes`. Detail in
+route lives in the `_authed/_registered` file-route group; data comes from the
+Bearer-authenticated `GET /results` and `GET /quiz/quizzes` via TanStack Query, so
+back-navigation from `/results` or `/quiz` renders instantly from cache. Detail in
 [dashboard-page.md](./dashboard-page.md).
 
 ---
@@ -48,5 +50,5 @@ Bearer-authenticated `GET /results` and `GET /quiz/quizzes`. Detail in
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 2.0.0*
+*Last updated: 4 July 2026*
