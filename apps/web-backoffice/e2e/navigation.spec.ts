@@ -29,7 +29,7 @@ test.describe('Navigation', () => {
     expect(response?.status()).toBe(200);
     // UnauthorizedPage only redirects when the signed-in user IS a backoffice
     // user — an unauthenticated visitor sees the card (title/message/sign-out).
-    await expect(page.getByText(/ไม่มีสิทธิ์เข้าถึง|Unauthorized/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /ไม่มีสิทธิ์เข้าถึง|Unauthorized/i })).toBeVisible();
   });
 
   test(
