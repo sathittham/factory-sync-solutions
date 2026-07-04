@@ -85,6 +85,9 @@ flowchart LR
 
 All routes require `Authorization: Bearer {firebase-id-token}` and
 `backofficeRole ∈ {superadmin, staff}`. `range` ∈ `{7d, 28d, 90d}` (default `28d`).
+The six data endpoints also accept `site` ∈ `{all, official, app}` (default
+`all`) — `official`/`app` filter every report by GA4 `hostName` (see
+[bo-analytics-menu](../bo-analytics-menu/README.md), FR-006).
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
@@ -173,5 +176,5 @@ staff + superadmin; cache policy = 15m TTL + stale-while-error, cold-cache → 5
 - [Analytics page](../../../apps/web-backoffice/src/pages/AnalyticsPage.tsx)
 - [GA4 docs](https://developers.google.com/analytics/devguides/reporting/data/v1)
 
-*Version: 0.3.0*
+*Version: 0.4.0*
 *Last updated: 4 July 2026*

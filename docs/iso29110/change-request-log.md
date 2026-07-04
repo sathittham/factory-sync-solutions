@@ -90,6 +90,11 @@ sidebar menu item. `WebAnalyticsSection`, its panels, and the backend
 - SRS: [docs/product/bo-analytics-menu/feature-spec.md](../product/bo-analytics-menu/feature-spec.md)
 - Branch: `feature/bo-analytics-menu` — implemented 2026-07-04; 49 web-backoffice
   tests green (2 new `AnalyticsPage` tests); type-check + Biome clean.
+- 2026-07-04 — Scope addition FR-005/FR-006 (SRS v0.2.0): per-surface site tabs
+  (All / Official website / Web app) + `site` query param on the six data
+  endpoints with GA4 `hostName` `inListFilter` (env-overridable hosts) and
+  per-site cache keys. Both surfaces verified to stream into the shared GA4
+  property. Backend 87.6% coverage, frontend 50 tests, all green.
 
 ### CR-006 | Backoffice GA4 Analytics Dashboard | Approved
 
