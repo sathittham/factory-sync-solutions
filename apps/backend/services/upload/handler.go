@@ -6,14 +6,21 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/time/rate"
 
 	"github.com/sathittham/factory-sync-solutions/apps/backend/middleware"
 	"github.com/sathittham/factory-sync-solutions/apps/backend/pkg"
 )
 
 const multipartMemory = 4 << 20
+
+// avatarUploadRateLimit caps avatar uploads at 10 per minute per user, on top
+// of the global per-IP limiter — the image decode/resize/encode pipeline is
+// the most expensive operation this service exposes.
+var avatarUploadRateLimit = middleware.RateLimitByUID("upload-avatar", rate.Every(6*time.Second), 10)
 
 type Handler struct {
 	service *Service
@@ -24,7 +31,7 @@ func NewHandler(service *Service) *Handler {
 }
 
 func (h *Handler) Routes(r chi.Router) {
-	r.Post("/avatar", h.UploadAvatar)
+	r.With(avatarUploadRateLimit).Post("/avatar", h.UploadAvatar)
 	r.Delete("/avatar", h.DeleteAvatar)
 }
 
