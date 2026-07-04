@@ -1,6 +1,6 @@
 # Cookie Consent & Analytics — Feature Spec
 
-**Status:** 📝 Draft — consent banner, settings modal, storage, and cross-app handoff are built; the GTM + Consent Mode v2 enforcement this spec adds is specified but not baselined as shipped.
+**Status:** 📝 Draft — consent banner, settings modal, storage, and cross-app handoff are built; the GTM + Consent Mode v2 enforcement this spec adds is implemented in code (unit + e2e tests in place) but the acceptance criteria are not yet manually verified and the GTM container is not yet provisioned — see [status.md](./status.md).
 
 ---
 
@@ -30,7 +30,8 @@
 This README is the design index for the Cookie Consent & Analytics feature. The formal
 requirements live in the ISO 29110 SRS — see [feature-spec.md](./feature-spec.md). This
 feature owns the banner, the settings modal, and the `fss-*` localStorage keys; the
-standalone `/cookie-settings` page and the `/cookies` policy document are owned by the
+`/cookies` policy document and the static `/cookie-settings` guidance page (browser-level
+cookie instructions — not an interactive manager) are owned by the
 [legal](../legal/README.md) feature.
 
 ---
@@ -43,7 +44,8 @@ standalone `/cookie-settings` page and the `/cookies` policy document are owned 
 
 Both web surfaces have the consent UI built (banner, settings modal, `fss-*` storage,
 official → app handoff); the Consent Mode v2 / GTM gating specified here was ⚠️/❌ at spec
-time — see [status.md](./status.md) for the honest per-piece breakdown. No backend
+time and has since been implemented — see [status.md](./status.md) for the honest
+per-piece breakdown of what is built vs. verified. No backend
 involvement: consent state is client-side only. Per-app flows live in
 [user-journeys.md](./user-journeys.md).
 
@@ -70,7 +72,7 @@ involvement: consent state is client-side only. Per-app flows live in
 - No analytics/marketing cookie or network call before explicit opt-in (PDPA-aligned).
 - Single source of truth for consent: the three `fss-*` `localStorage` keys.
 - Consent Mode v2 so Google's tag is _present_ but _throttled_ until granted (preserves cookieless pings / modelled conversions where applicable).
-- Identical behaviour and copy across `web-official` and `web-app`.
+- Consistent behaviour across `web-official` and `web-app`; the labels the acceptance criteria reference (**Accept All**, **Confirm My Selection**) are identical, other copy is equivalent per surface.
 - Toggle analytics off per-environment (staging already strips the IDs).
 
 ### Non-Goals
@@ -86,7 +88,8 @@ involvement: consent state is client-side only. Per-app flows live in
 
 See [status.md](./status.md) for the per-component implementation checklist. Headline at
 spec time: UI and storage ✅ built; official-site tag loader and Consent Mode wiring ❌
-missing; app loader ⚠️ ungated.
+missing; app loader ⚠️ ungated. The wiring has since landed (bootstrap, helper, gated
+loader, tests); manual AC verification and the GTM container remain outstanding.
 
 ---
 
@@ -140,7 +143,7 @@ endpoint — consent never leaves the browser.
 | All gated signals default to `denied` before any Google script loads | inline `<head>` script (official) · top of `initAnalytics()` (app) |
 | No analytics/marketing cookie is written before explicit opt-in | Consent Mode v2 advanced mode |
 | Withdrawal actively deletes existing `_ga` / `_ga_*` cookies (Consent Mode alone only stops future writes) | `updateConsentMode()` — see [consent-mode.md](./consent-mode.md) |
-| Withdrawal is as easy as granting | persistent footer "Cookie Settings" entry point |
+| Withdrawal is as easy as granting | footer "Cookie Settings" on both apps: official dispatches `OPEN_SETTINGS_EVENT` to reopen the modal; app opens the settings dialog directly |
 | Staging never loads GTM/GA | IDs stripped from staging builds (`deploy-staging.yml`) |
 | No GTM/GA ID committed to source | env vars only (`PUBLIC_GTM_ID`, `VITE_GTM_ID`) |
 
@@ -169,7 +172,7 @@ From [feature-spec.md §9](./feature-spec.md#9-testing):
 | Layer | Target | Notes |
 |-------|--------|-------|
 | Manual | DevTools cookies/localStorage · GTM Preview · GA4 DebugView | Walk each acceptance row in TH and EN |
-| E2E (Playwright, `web-app` only) | banner visible → dataLayer `consent default` denied → Accept All → `consent update` granted → `fss-*` persist → no banner on reload → handoff params seeded and stripped | `web-official` has no Playwright setup (Vitest only) — optional follow-up |
+| E2E (Playwright, `web-app`) | banner visible → dataLayer `consent default` denied → Accept All → `consent update` granted → `fss-*` persist → no banner on reload → handoff params seeded and stripped | `web-official` has Playwright (smoke/landing/navigation run against staging in CI) but no cookie-consent spec yet — optional follow-up |
 | Unit (Vitest, both apps) | `updateConsentMode()` | Correct shape on mocked `gtag`; deletes `_ga*` cookies even when `gtag` is absent; revocation hits the deletion path |
 
 ---
@@ -184,7 +187,7 @@ From [feature-spec.md §11](./feature-spec.md#11-future-work):
 | 2 | Consent record | Timestamp + policy version persisted server-side for auditability |
 | 3 | Re-prompt | Store a `consentVersion` alongside the `fss-*` keys; re-open the banner when it increments |
 | 4 | More vendors | Meta Pixel / LinkedIn Insight under Marketing — need GTM additional consent checks + a consent-grant `dataLayer` trigger |
-| 5 | web-official e2e | Playwright setup so the banner flow is exercised on the marketing site directly |
+| 5 | web-official e2e | Cookie-consent Playwright spec for the marketing site (the Playwright setup itself exists — smoke/landing/navigation already run against staging in CI) |
 
 ---
 
@@ -208,7 +211,7 @@ From [feature-spec.md §11](./feature-spec.md#11-future-work):
 
 ### Cross-references
 
-- [Legal](../legal/README.md) — `/cookies` policy page + `/cookie-settings` standalone manager; keep GA4 cookie names/retention in the policy in sync with what GTM loads
+- [Legal](../legal/README.md) — `/cookies` policy page + static `/cookie-settings` guidance page; keep GA4 cookie names/retention in the policy in sync with what GTM loads
 - Existing UI: `apps/web-official/src/components/CookieConsent.tsx` · handoff: `apps/web-official/src/components/AppHandoff.tsx` · app loader: `apps/web-app/src/lib/analytics.ts`
 
 ### External standards
@@ -218,5 +221,5 @@ From [feature-spec.md §11](./feature-spec.md#11-future-work):
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.0.2*
+*Last updated: 4 July 2026*

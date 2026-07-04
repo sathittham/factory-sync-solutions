@@ -26,11 +26,14 @@ export from the app's `analytics.ts`) called from the existing `CookieConsent.ts
 ```
 
 - Official site: an `is:inline` script at the top of `<head>` in `Layout.astro`, before the
-  theme script, plus a `<noscript>` GTM iframe fallback right after `<body>`. Rendered only
-  when `PUBLIC_GTM_ID` is set — staging builds omit it, so no tag loads.
-- App: the same three steps as the first actions of `initAnalytics()`. The `index.html`
-  boot script that seeds `localStorage` from the handoff query params already runs earlier
-  (in `main.tsx`), so seeded consent is replayed correctly.
+  theme script, plus a `<noscript>` GTM iframe fallback right after `<body>`. The script
+  always renders — the consent defaults and stored-choice replay run in every environment —
+  but the GTM injection (step 3) is skipped when `PUBLIC_GTM_ID` is unset, so staging
+  builds load no tag. The `<noscript>` fallback renders only when the ID is set.
+- App: the same three steps as the first actions of `initAnalytics()`. The inline boot
+  script in `index.html` that seeds `localStorage` from the handoff query params runs
+  before the app bundle, so it precedes the `initAnalytics()` call in `main.tsx` and
+  seeded consent is replayed correctly.
 - `wait_for_update: 500` only matters for the replay path; on a true first visit, hits
   after 500 ms go out as denied cookieless pings — expected advanced-mode behaviour.
 
@@ -59,7 +62,7 @@ eTLD+1). The deletion path must run even when `gtag` is absent.
 |---------|-----|-------------|
 | `PUBLIC_GTM_ID` | web-official | GTM container ID (`GTM-XXXXXXX`); production only — staging omits it |
 | `VITE_GTM_ID` | web-app | Already referenced by `analytics.ts` |
-| `VITE_GA_MEASUREMENT_ID` | web-app | Legacy GA4-direct fallback — kept in code but not provisioned |
+| `VITE_GA_MEASUREMENT_ID` | web-app | Legacy GA4-direct fallback — `deploy-production.yml` injects it from repo vars if set; leave the var empty so GTM is the only loader |
 
 Never commit real IDs.
 
@@ -86,16 +89,16 @@ withdraw:        saveConsent(false, false);            updateConsentMode(false, 
 
 ## Status
 
-- [ ] Head bootstrap + `<noscript>` fallback — `apps/web-official/src/layouts/Layout.astro`
-- [ ] `updateConsentMode()` helper — `apps/web-official/src/lib/consent.ts`
-- [ ] `initAnalytics()` gating fix + exported helper — `apps/web-app/src/lib/analytics.ts`
-- [ ] Handler wiring in both `CookieConsent.tsx` files
-- [ ] Vitest suites (both apps) — helper shape, `gtag`-absent path, revocation deletion
+- [x] Head bootstrap + `<noscript>` fallback — `apps/web-official/src/layouts/Layout.astro`
+- [x] `updateConsentMode()` helper — `apps/web-official/src/lib/consent.ts`
+- [x] `initAnalytics()` gating fix + exported helper — `apps/web-app/src/lib/analytics.ts`
+- [x] Handler wiring in both `CookieConsent.tsx` files
+- [x] Vitest suites (both apps) — helper shape, `gtag`-absent path, revocation deletion
 
-See the note in [status.md](./status.md): the code appears to have landed post-spec but is
-unverified against the acceptance criteria.
+See the note in [status.md](./status.md): the code has landed and unit tests pass, but the
+acceptance criteria are not yet manually verified (GTM Preview / GA4 DebugView).
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.0.1*
+*Last updated: 4 July 2026*

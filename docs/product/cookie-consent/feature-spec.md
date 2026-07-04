@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-07-03
+version: 1.1.2
+lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 status: Draft
 ---
@@ -32,7 +32,7 @@ This feature closes that gap:
 
 **Out of scope:** server-side tagging, a consent-record audit trail in
 Firestore, IP anonymisation config beyond GA4 defaults, and any non-Google
-vendor (Meta Pixel, LinkedIn, etc.) — those are noted in [§10](#10-future-work).
+vendor (Meta Pixel, LinkedIn, etc.) — those are noted in [§11](#11-future-work).
 
 ---
 
@@ -44,7 +44,9 @@ vendor (Meta Pixel, LinkedIn, etc.) — those are noted in [§10](#10-future-wor
 - Single source of truth for consent: the three `fss-*` `localStorage` keys.
 - Consent Mode v2 so Google's tag is _present_ but _throttled_ until granted
   (preserves cookieless pings / modelled conversions where applicable).
-- Identical behaviour and copy across `web-official` and `web-app`.
+- Consistent behaviour across `web-official` and `web-app`; the labels the
+  acceptance criteria reference (**Accept All**, **Confirm My Selection**) are
+  identical, other copy is equivalent per surface.
 - Toggle analytics off per-environment (staging already strips the IDs).
 
 ### Non-Goals
@@ -56,6 +58,12 @@ vendor (Meta Pixel, LinkedIn, etc.) — those are noted in [§10](#10-future-wor
 ---
 
 ## 3. Current State (as built)
+
+> Snapshot at spec time (2026-06-10). The ⚠️/❌ gaps below have since been implemented —
+> see [status.md](./status.md) for what is built vs. verified. One correction: the
+> "Re-open settings from footer" row was listed ✅ but `OPEN_SETTINGS_EVENT` had no
+> dispatcher on `web-official` (the footer linked only to the static `/cookie-settings`
+> guidance page) — fixed 2026-07-04 by dispatching the event from the footer link.
 
 | Piece | Location | Status |
 |-------|----------|--------|
@@ -173,49 +181,52 @@ existing theme script, reading the new `PUBLIC_GTM_ID`:
 ---
 const gtmId = import.meta.env.PUBLIC_GTM_ID ?? "";
 ---
-{gtmId && (
-  <script is:inline define:vars={{ gtmId }}>
-    (function () {
-      window.dataLayer = window.dataLayer || [];
-      function gtag() { dataLayer.push(arguments); }
-      window.gtag = gtag;
+<script is:inline define:vars={{ gtmId }}>
+  (function () {
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    window.gtag = gtag;
 
-      // 1. Defaults — DENY everything gated, before the tag loads.
-      gtag('consent', 'default', {
-        ad_storage: 'denied',
-        ad_user_data: 'denied',
-        ad_personalization: 'denied',
-        analytics_storage: 'denied',
-        functionality_storage: 'granted',
-        security_storage: 'granted',
-        wait_for_update: 500,
-      });
+    // 1. Defaults — DENY everything gated, before the tag loads.
+    gtag('consent', 'default', {
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      analytics_storage: 'denied',
+      functionality_storage: 'granted',
+      security_storage: 'granted',
+      wait_for_update: 500,
+    });
 
-      // 2. Re-apply a prior choice immediately (avoids a denied first hit).
-      try {
-        var a = localStorage.getItem('fss-analytics-consent') === 'true';
-        var m = localStorage.getItem('fss-marketing-consent') === 'true';
-        if (localStorage.getItem('fss-cookie-consent')) {
-          gtag('consent', 'update', {
-            analytics_storage: a ? 'granted' : 'denied',
-            ad_storage: m ? 'granted' : 'denied',
-            ad_user_data: m ? 'granted' : 'denied',
-            ad_personalization: m ? 'granted' : 'denied',
-          });
-        }
-      } catch (e) {}
+    // 2. Re-apply a prior choice immediately (avoids a denied first hit).
+    try {
+      var a = localStorage.getItem('fss-analytics-consent') === 'true';
+      var m = localStorage.getItem('fss-marketing-consent') === 'true';
+      if (localStorage.getItem('fss-cookie-consent')) {
+        gtag('consent', 'update', {
+          analytics_storage: a ? 'granted' : 'denied',
+          ad_storage: m ? 'granted' : 'denied',
+          ad_user_data: m ? 'granted' : 'denied',
+          ad_personalization: m ? 'granted' : 'denied',
+        });
+      }
+    } catch (e) {}
 
-      // 3. Load the GTM container.
-      (function (w, d, s, l, i) {
-        w[l] = w[l] || []; w[l].push({ 'gtm.start': +new Date(), event: 'gtm.js' });
-        var f = d.getElementsByTagName(s)[0], j = d.createElement(s);
-        j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(i);
-        f.parentNode.insertBefore(j, f);
-      })(window, document, 'script', 'dataLayer', gtmId);
-    })();
-  </script>
-)}
+    // 3. Load the GTM container — skipped when no ID is set (e.g. staging),
+    //    so consent state stays consistent in every environment.
+    if (!gtmId) return;
+    (function (w, d, s, l, i) {
+      w[l] = w[l] || []; w[l].push({ 'gtm.start': +new Date(), event: 'gtm.js' });
+      var f = d.getElementsByTagName(s)[0], j = d.createElement(s);
+      j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(i);
+      f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', gtmId);
+  })();
+</script>
 ```
+
+The script renders unconditionally so the consent defaults and replay run even when no
+container is configured; only the GTM injection is gated on `PUBLIC_GTM_ID`.
 
 > `Date.now()`/`+new Date()` run in the browser here — fine. The project's
 > server-side date rule does not apply to inline client scripts.
@@ -278,7 +289,8 @@ then inject the GTM/GA script (existing code). Add an exported
 `_ga*` cookie deletion on revocation** — and call it from the app's
 `CookieConsent.tsx` handlers (which already call `trackEvent`). Keep the boot
 script in `index.html` that seeds `localStorage` from the handoff query params —
-it must run before `initAnalytics()` (it already does, in `main.tsx`).
+it must run before `initAnalytics()` (it does: the inline script executes before
+the app bundle, and `initAnalytics()` is called from `main.tsx`).
 
 ### 6.3 Environment variables
 
@@ -286,7 +298,7 @@ it must run before `initAnalytics()` (it already does, in `main.tsx`).
 |-----|-----|-------|
 | `PUBLIC_GTM_ID` | `web-official` (Astro `PUBLIC_` prefix) | e.g. `GTM-XXXXXXX` |
 | `VITE_GTM_ID` | `web-app` | already referenced |
-| `VITE_GA_MEASUREMENT_ID` | `web-app` | legacy GA4-direct fallback in `analytics.ts` — kept but not provisioned (see §4) |
+| `VITE_GA_MEASUREMENT_ID` | `web-app` | legacy GA4-direct fallback in `analytics.ts` — `deploy-production.yml` injects it from repo vars if set; leave the var empty so GTM is the only loader (see §4) |
 
 Add `PUBLIC_GTM_ID` to `apps/web-official/.env.example`. **Production only** —
 staging builds already omit the IDs (commit `573cebe`), which means no tag loads
@@ -347,14 +359,15 @@ on staging. Never commit real IDs.
 
 - **Manual:** Chrome DevTools → Application → Cookies / Local Storage; GTM Preview;
   GA4 DebugView. Walk each acceptance row in both TH and EN locales.
-- **E2E (Playwright — `web-app` only; the official site has no Playwright
-  setup, Vitest only):** the app shares the same banner, storage keys, and
-  consent flow, so cover the behaviour there: assert (1) banner visible on first
-  load, (2) `window.dataLayer` contains a `consent default` entry with
-  `analytics_storage: 'denied'`, (3) after **Accept All**, a `consent update`
-  with `granted`, (4) the `fss-*` keys persist, (5) no banner on reload,
-  (6) handoff query params seed consent and are stripped from the URL.
-  (Adding Playwright to `web-official` is optional follow-up tooling, §11.)
+- **E2E (Playwright — `web-app`):** the app shares the same banner, storage
+  keys, and consent flow, so cover the behaviour there: assert (1) banner
+  visible on first load, (2) `window.dataLayer` contains a `consent default`
+  entry with `analytics_storage: 'denied'`, (3) after **Accept All**, a
+  `consent update` with `granted`, (4) the `fss-*` keys persist, (5) no banner
+  on reload, (6) handoff query params seed consent and are stripped from the
+  URL. (`web-official` has Playwright too — smoke/landing/navigation run
+  against staging in CI — but no cookie-consent spec yet; adding one is
+  optional follow-up, §11.)
 - **Unit (Vitest, both apps):** `updateConsentMode()` pushes the correct shape
   onto a mocked `window.gtag`, still deletes `_ga*` cookies when `gtag` is
   absent, and revocation calls the cookie-deletion path.
@@ -369,7 +382,10 @@ on staging. Never commit real IDs.
   the GA4 cookie names (`_ga`, `_ga_*`) and retention listed there in sync with
   what GTM actually loads.
 - Withdrawal must be as easy as granting — satisfied by the persistent footer
-  **Cookie Settings** entry point.
+  **Cookie Settings** entry point on both apps (official: dispatches
+  `OPEN_SETTINGS_EVENT` to reopen the modal; app: opens the settings dialog
+  directly). The static `/cookie-settings` page is guidance only and is not a
+  withdrawal mechanism.
 - **Residual cookies on withdrawal:** a Consent Mode `update` to `denied` only
   stops *future* cookie writes — existing `_ga` / `_ga_*` cookies would persist
   until expiry (~13 months). That's why `updateConsentMode()` actively deletes
@@ -391,7 +407,8 @@ on staging. Never commit real IDs.
 - Additional vendors (Meta Pixel, LinkedIn Insight) gated under Marketing —
   these need GTM additional consent checks + a consent-grant `dataLayer` event
   trigger (§7 step 5).
-- Playwright e2e setup for `web-official` (currently Vitest-only) so the
+- Cookie-consent Playwright spec for `web-official` (the Playwright setup
+  exists — smoke/landing/navigation already run against staging in CI) so the
   banner flow is exercised on the marketing site directly, not just in the app.
 
 ---
@@ -406,5 +423,5 @@ on staging. Never commit real IDs.
 
 ---
 
-*Version: 1.1.0*
-*Last updated: 3 July 2026*
+*Version: 1.1.2*
+*Last updated: 4 July 2026*

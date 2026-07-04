@@ -1,9 +1,10 @@
 # web-official · Cookie Consent — ASCII Mockups
 
 Surface: `web-official` (public Astro marketing site); the `web-app` banner and modal are
-**identical in behaviour and copy** (shared `fss-*` keys), so no separate app mockup is
-kept. The UI below is already built and is **not changed** by this spec — the Consent Mode
-wiring happens behind these screens. The standalone `/cookie-settings` page belongs to the
+**equivalent in behaviour** with identical AC-referenced labels (shared `fss-*` keys), so
+no separate app mockup is kept. The UI below is already built and is **not changed** by
+this spec — the Consent Mode wiring happens behind these screens. The static
+`/cookie-settings` guidance page belongs to the
 [legal](../../legal/mockups/official.md) feature.
 
 ---
@@ -41,44 +42,50 @@ Opened from the banner, or re-opened any time from the footer "Cookie Settings" 
 
 ```
 ┌───────────────────────────────────────────────────┐
-│  Cookie Settings                               ✕  │
+│  Privacy Settings                  [ Accept All ] │
 │                                                   │
 │  ┌───────────────────────────────────────────────┐│
-│  │ Essential cookies              [always on]    ││
+│  │ Essential cookies              Always Active  ││
 │  │ Required for the site to work                 ││
+│  │ <Cookie Policy>                               ││
 │  ├───────────────────────────────────────────────┤│
 │  │ Analytics cookies              ( ●──) on      ││
 │  │ Help us understand site usage                 ││
+│  │ <Cookie Policy>                               ││
 │  ├───────────────────────────────────────────────┤│
 │  │ Marketing cookies              (──● ) off     ││
 │  │ Personalised offers and ads                   ││
+│  │ <Cookie Policy>                               ││
 │  └───────────────────────────────────────────────┘│
-│                                                   │
-│        [ Accept All ]   [ Confirm My Selection ]  │
+│  ─────────────────────────────────────────────────│
+│  [            Confirm My Selection              ] │
 └───────────────────────────────────────────────────┘
+
+No ✕ button — the modal closes via Escape or clicking the backdrop
+(web-app: shadcn Dialog, which does render its own ✕).
 
 Confirm My Selection → saves toggles:
   fss-cookie-consent    = all / partial / essential
   fss-analytics-consent = "true" / "false"
   fss-marketing-consent = "true" / "false"
-(roadmap: also pushes consent('update'); turning analytics off
-deletes _ga / _ga_* cookies — see consent-mode.md)
+then pushes consent('update'); turning analytics off deletes
+_ga / _ga_* cookies — see consent-mode.md.
 ```
 
 ### 2b. State: withdrawal (both toggles off)
 
 ```
 ┌───────────────────────────────────────────────────┐
-│  Cookie Settings                               ✕  │
+│  Privacy Settings                  [ Accept All ] │
 │                                                   │
-│  │ Essential cookies              [always on]    ││
+│  │ Essential cookies              Always Active  ││
 │  │ Analytics cookies              (──● ) off     ││
 │  │ Marketing cookies              (──● ) off     ││
-│                                                   │
-│        [ Accept All ]   [ Confirm My Selection ]  │
+│  ─────────────────────────────────────────────────│
+│  [            Confirm My Selection              ] │
 └───────────────────────────────────────────────────┘
 
-Confirm → fss-cookie-consent = "essential"; roadmap: consent('update')
+Confirm → fss-cookie-consent = "essential"; pushes consent('update')
 back to denied + _ga* cookie deletion.
 ```
 
@@ -95,5 +102,5 @@ back to denied + _ga* cookie deletion.
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.0.2*
+*Last updated: 4 July 2026*

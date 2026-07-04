@@ -3,9 +3,10 @@
 How visitors move through consent on both web surfaces. See [README.md](./README.md) for
 the design spec and [feature-spec.md](./feature-spec.md) for the formal requirements.
 
-> Reflects what is **built today** — the banner, modal, `fss-*` storage, and official → app
-> handoff are shipped. The Consent Mode `default`/`update` signalling this spec adds is not
-> yet baselined as shipped (spec status: Draft) and is shown dashed.
+> Reflects what is **built today** — the banner, modal, `fss-*` storage, official → app
+> handoff, and the Consent Mode `default`/`update` signalling are all implemented in code.
+> The consent-mode steps await manual acceptance-criteria verification and GTM container
+> provisioning (spec status: Draft) — see [status.md](./status.md).
 
 ---
 
@@ -25,13 +26,13 @@ A first-time visitor on either surface sees the banner; their choice lands in th
 
 ```mermaid
 flowchart TD
-    A["First page load"] -.->|roadmap| B["consent 'default' = denied before GTM loads"]
+    A["First page load"] --> B["consent 'default' = denied before GTM loads"]
     A --> C["Consent banner shown"]
     C --> D{"Choice"}
     D -->|"Accept All"| E["save analytics=true, marketing=true"]
     D -->|"Cookie Settings → Confirm My Selection"| F["save chosen toggles"]
     E & F --> G["fss-cookie-consent = all / partial / essential<br/>fss-analytics-consent · fss-marketing-consent"]
-    G -.->|roadmap| H["consent 'update' — GA4 fires granted hit on the same page"]
+    G --> H["consent 'update' — GA4 fires granted hit on the same page"]
 ```
 
 **Guard(s):** none — public, client-side only; essential cookies are always active and
@@ -48,7 +49,7 @@ first analytics hit.
 flowchart LR
     A["Page load"] --> B{"fss-cookie-consent present?"}
     B -->|Yes| C["No banner shown"]
-    C -.->|roadmap| D["consent 'update' from stored values — before GA4's first call"]
+    C --> D["consent 'update' from stored values — before GA4's first call"]
     B -->|No| E["First-visit journey above"]
 ```
 
@@ -60,15 +61,17 @@ denied first hit — see [consent-mode.md](./consent-mode.md).
 ## Any user — withdrawing consent
 
 Withdrawal must be as easy as granting: the footer "Cookie Settings" entry point is always
-available (plus the standalone `/cookie-settings` page owned by
-[legal](../legal/README.md)).
+available on both apps — on `web-official` it dispatches `OPEN_SETTINGS_EVENT` to reopen
+the modal in place; on `web-app` it opens the settings dialog directly. The static
+`/cookie-settings` page owned by [legal](../legal/README.md) is browser-level guidance
+only — it does not open the modal.
 
 ```mermaid
 flowchart TD
-    A["Footer 'Cookie Settings' (OPEN_SETTINGS_EVENT)"] --> B["Settings modal — toggles off"]
-    C["/cookie-settings page (legal feature)"] --> B
+    A["Footer 'Cookie Settings' — official: dispatch OPEN_SETTINGS_EVENT · app: open dialog"] --> B["Settings modal — toggles off"]
     B --> D["fss-* keys saved as false / essential"]
-    D -.->|roadmap| E["consent 'update' = denied + existing _ga / _ga_* cookies deleted"]
+    D --> E["consent 'update' = denied + existing _ga / _ga_* cookies deleted"]
+    C["/cookie-settings page (legal feature)"] -.-> F["Static guidance — manage cookies via browser settings"]
 ```
 
 **Guard(s):** none. Withdrawal does not retract data already sent to GA4 while consent was
@@ -86,7 +89,7 @@ flowchart LR
     A["web-official — consent chosen"] --> B["AppHandoff.tsx appends consent query params to the app link"]
     B --> C["web-app index.html boot script seeds localStorage, strips params"]
     C --> D["App: no banner"]
-    D -.->|roadmap| E["initAnalytics(): denied defaults → replay seeded consent → inject GTM"]
+    D --> E["initAnalytics(): denied defaults → replay seeded consent → inject GTM"]
 ```
 
 **Guard(s):** none. The boot script must run before `initAnalytics()` (it does, in
@@ -98,5 +101,5 @@ flowchart LR
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.0.2*
+*Last updated: 4 July 2026*

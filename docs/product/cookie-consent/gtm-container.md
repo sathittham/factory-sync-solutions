@@ -58,4 +58,4 @@ Additional checks are reserved for third-party tags only.
 ---
 
 *Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Last updated: 4 July 2026*

@@ -340,7 +340,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		"cookie.settings.analytics.description": "ช่วยให้เราเข้าใจวิธีการใช้งานเว็บไซต์",
 		"cookie.settings.marketing.title": "คุกกี้การตลาด",
 		"cookie.settings.marketing.description": "ใช้สำหรับนำเสนอโฆษณาที่เกี่ยวข้องกับคุณ",
-		"cookie.settings.confirm": "บันทึกการตั้งค่า",
+		"cookie.settings.confirm": "ยืนยันตัวเลือกของฉัน",
 		"cookie.settings.always": "เปิดเสมอ",
 		"cookie.link": "นโยบายคุกกี้",
 
@@ -800,7 +800,7 @@ const translations: Record<Locale, Record<string, string>> = {
 		"cookie.settings.analytics.description": "Help us understand how the website is used.",
 		"cookie.settings.marketing.title": "Marketing Cookies",
 		"cookie.settings.marketing.description": "Used to show ads relevant to you.",
-		"cookie.settings.confirm": "Save Settings",
+		"cookie.settings.confirm": "Confirm My Selection",
 		"cookie.settings.always": "Always On",
 		"cookie.link": "Cookie Policy",
 
