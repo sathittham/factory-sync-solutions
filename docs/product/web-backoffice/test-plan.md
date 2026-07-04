@@ -1,6 +1,6 @@
 ---
 isoOutput: SI.O4 / SI.O5
-version: 1.0.0
+version: 1.1.0
 lastUpdated: 2026-07-05
 ---
 
@@ -35,16 +35,16 @@ lastUpdated: 2026-07-05
   - Hooks: `useAuth`, `use-mobile`
   - Pages: `SignInPage`, `DashboardPage`, `AnalyticsPage`, `ProfilePage`, `ProjectsPage`, `ProjectDetailPage`, `UsersPage`, `ResultsPage`, `StaffPage`, `AuditPage`, `ApiDocsPage`, `UploadUtilityPage`, `UnauthorizedPage`, `NotFoundPage`
   - Feature components: `Layout`, `Sidebar`, `AuditActivityDialog`, `AppDebugPanel`, plus the pre-existing `components/analytics/**` suite
-- **End-to-end tests** (Playwright): `apps/web-backoffice/e2e/*.spec.ts` (3 files — new; this app had zero e2e infrastructure before)
+- **End-to-end tests** (Playwright): `apps/web-backoffice/e2e/*.spec.ts` (4 files — this app had zero e2e infrastructure before this test plan)
   - Smoke: sign-in form, login → dashboard chrome, one guarded-route redirect, 404
-  - Regression: login (happy path + invalid credentials), navigation (guard redirects, 404, `/unauthorized` reachability, authenticated chrome)
+  - Regression: login (happy path + invalid credentials), navigation (guard redirects, 404, `/unauthorized` reachability, authenticated chrome), superadmin-only route reachability (`/staff`, `/audit`, `/help/api-docs`)
 
 ### 1.2 Out of Scope
 - Backend API, Firestore, Firebase Admin — validated in `apps/backend`.
 - Third-party SDK internals (Firebase client SDK) — mocked at the boundary.
 - shadcn/ui primitives under `src/components/ui/**` — excluded from the coverage gate (thin Radix wrappers).
 - Thin composition/wiring files — `App.tsx`, `router.tsx` — excluded from the coverage gate as declarative wiring, not logic.
-- Superadmin-only route access (`/staff`, `/audit`, `/help/api-docs`) end-to-end — the test account holds superadmin claims, but no spec yet targets these routes specifically (see §6).
+- Superadmin-only route access (`/staff`, `/audit`, `/help/api-docs`) for a *non-superadmin* staff account being redirected to `/unauthorized` — no staff-only test account exists yet, only the superadmin one (see §6). The positive path (superadmin reaching these routes) is now covered by `superadmin.spec.ts`.
 - Full CRUD e2e coverage on projects/users (create/edit/deactivate/delete flows) and CSV export — covered at the unit level (page tests mock the API layer and assert these flows), not yet driven through a real browser end-to-end.
 
 ### 1.3 Test Environment
@@ -100,10 +100,13 @@ Representative cases per area (see each `*.test.{ts,tsx}` file for the full asse
 | E2E-109 | Unknown route 404 | `navigation.spec.ts` | `goto /not-a-page` | 404 content visible | ✅ |
 | E2E-110 | `/unauthorized` reachable without auth | `navigation.spec.ts` | `goto /unauthorized` (no session) | Card content renders (no redirect loop) | ✅ |
 | E2E-111 | Authenticated chrome (sidebar trigger + header) | `navigation.spec.ts` | Login, load `/dashboard` | `[data-sidebar="trigger"]` + header visible | ✅ |
+| E2E-112 | Superadmin can reach `/staff` | `superadmin.spec.ts` | Login (superadmin), `goto /staff` | 200; "Staff" heading + "Add Staff" button visible | ✅ |
+| E2E-113 | Superadmin can reach `/audit` | `superadmin.spec.ts` | Login (superadmin), `goto /audit` | 200; "Audit Log" heading + "Search" filter button visible | ✅ |
+| E2E-114 | Superadmin can reach `/help/api-docs` | `superadmin.spec.ts` | Login (superadmin), `goto /help/api-docs` | 200; "API Docs" heading + "Swagger UI" viewer card visible | ✅ |
 
-**Tagging:** all `smoke.spec.ts` tests carry `{ tag: '@smoke' }`; `login.spec.ts`/`navigation.spec.ts` carry `{ tag: '@regression' }`. No test is currently tagged `@flaky` (see `e2e/README.md` for the quarantine convention).
+**Tagging:** all `smoke.spec.ts` tests carry `{ tag: '@smoke' }`; `login.spec.ts`/`navigation.spec.ts`/`superadmin.spec.ts` carry `{ tag: '@regression' }`. No test is currently tagged `@flaky` (see `e2e/README.md` for the quarantine convention).
 
-**Deliberately not automated** (documented gaps, §6): superadmin-only route access, project/user/staff CRUD flows end-to-end, CSV export end-to-end, audit-log filtering end-to-end.
+**Deliberately not automated** (documented gaps, §6): non-superadmin redirect off superadmin-only routes (no staff-only test account), project/user/staff CRUD flows end-to-end, CSV export end-to-end, audit-log filtering end-to-end.
 
 ---
 
@@ -128,8 +131,11 @@ Run: `pnpm --filter @repo/web-backoffice test:coverage` — thresholds are hard-
 | 2026-07-04 | Local | 53 passed / 11 files | Not measured — no coverage config existed | — | Baseline |
 | 2026-07-05 | Local | **274 passed / 41 files** | **88.97% / 78.11% / 85.49% / 91.72%** | 11 unique tests / 3 specs (4 smoke + 7 regression) | ✅ Pass |
 | 2026-07-05 | Staging¹ | — | — | 11/11 passed (chromium) — 4 smoke + 7 regression, executed for real against `https://backoffice-staging.factorysyncsolutions.com` | ✅ Pass |
+| 2026-07-05 | Staging² | — | — | 14/14 passed (chromium + mobile-chrome, 28 total) — adds 3 superadmin-route regression cases, executed for real against `https://backoffice-staging.factorysyncsolutions.com` | ✅ Pass |
 
 ¹ First real (non-`--list`) e2e run, using a staff/superadmin test account (`dev@factorysyncsolutions.com`, promoted via `cmd/set-superadmin` on the staging Firebase project). Found and fixed one test bug: `navigation.spec.ts`'s `/unauthorized` case used a regex matching both the heading and body text (`getByText` strict-mode violation) — narrowed to `getByRole('heading', ...)`. No application bugs found.
+
+² Adds `superadmin.spec.ts` (E2E-112–114), closing the positive-path half of the §6 superadmin-coverage gap. Passed on the first run — no fixes needed. `firefox`/`webkit` were not exercised locally (browsers not installed in this environment); this matches the chromium-only precedent of the prior staging run above.
 
 ---
 
@@ -137,7 +143,7 @@ Run: `pnpm --filter @repo/web-backoffice test:coverage` — thresholds are hard-
 
 | Gap | Priority | Note |
 |---|---|---|
-| Superadmin-only e2e coverage (`/staff`, `/audit`, `/help/api-docs`) | Medium | The current test account holds `backofficeRole=superadmin`, but no test yet exercises those superadmin-only routes specifically — coverage is staff-level flows only. A follow-up pass should add dedicated superadmin-route specs. |
+| Non-superadmin redirect off superadmin-only routes (`/staff`, `/audit`, `/help/api-docs`) | Medium | `superadmin.spec.ts` (E2E-112–114) now verifies a superadmin can reach these routes, but no test yet verifies a *non-superadmin staff* account is redirected to `/unauthorized` when hitting them — no staff-only test account exists yet (only the superadmin one in `e2e/.env.e2e.local`). Provision a second staff-role account (via `cmd/set-superadmin`'s staff-role counterpart, or manually) and add the negative-case spec. |
 | Project/user/staff CRUD and CSV export not driven end-to-end | Low | Covered at the unit level (mocked API layer); a real browser-driven flow against a seeded staging project would close this gap. |
 | `ApiDocsPage.tsx` / `StaffPage.tsx` / `UsersPage.tsx` branch coverage below file average (56-64%) | Low | Global gate passes without further work; room for deeper edge-case tests in a future pass. |
 | Accessibility (axe) + visual regression | Low | Not yet adopted repo-wide (same gap noted in `web-official`'s and `web-app`'s test plans). |
@@ -149,8 +155,9 @@ Run: `pnpm --filter @repo/web-backoffice test:coverage` — thresholds are hard-
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-07-05 | Sathittham (Phoo) | Initial test plan — documents web-backoffice's from-scratch test infrastructure (Vitest coverage gate, Playwright e2e suite), raised unit coverage (guards/store/lib/hooks/pages/components/API client), and smoke/regression/flaky e2e tagging convention |
+| 1.1.0 | 2026-07-05 | Sathittham (Phoo) | Adds `superadmin.spec.ts` (E2E-112–114) covering superadmin reachability of `/staff`, `/audit`, `/help/api-docs`; narrows the §6 gap to the remaining non-superadmin redirect case, which needs a staff-only test account |
 
 ---
 
-*Version: 1.0.0*
+*Version: 1.1.0*
 *Last updated: 5 July 2026*
