@@ -1,7 +1,7 @@
 ---
 isoOutput: PM.O1 (Risk Register)
-version: 1.1.0
-lastUpdated: 2026-07-02
+version: 1.2.0
+lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 ---
 
@@ -30,6 +30,7 @@ Review at every progress meeting. Add new risks immediately when identified. Clo
 | R-007 | ISO 29110 artifact maintenance becomes overhead | M | M | Monitor | Templates pre-filled; artifacts map to existing docs where possible; `dev-process.md` enforces habit | Sathittham | Open |
 | R-008 | Backoffice claim (`backofficeRole`) misconfigured in Firebase | L | H | Monitor | Claims set by backend superadmin staff endpoints only; BackofficeGuard + SuperAdminGuard on all routes | Sathittham | Open |
 | R-009 | `web-app` server-state migration (TanStack Query, CR-003) regresses data freshness or an auth-gated data flow | L | M | Monitor | Vitest 80/80 + tsc gate before each promotion; staging smoke test before prod; `staleTime` 30s / `retry` 1 conservative defaults; Phase 2 (profile reads) deferred until auth flows can be e2e-verified with live Firebase | Sathittham | Open |
+| R-010 | GA4 Data API dependency for backoffice analytics — quota exhaustion, upstream outage, or SA key/permission drift breaks the dashboard | L | M | Monitor | 15m TTL cache + stale-while-error keeps last data on outage (cold cache degrades to 503, rest of backoffice unaffected); per-env SA keys in Secret Manager; dashboard read-only aggregate data | Sathittham | Open |
 
 ---
 
@@ -59,3 +60,4 @@ Assign the next sequential ID (check closed risks too). Update the `lastUpdated`
 | Date | Reviewer | Notes |
 |---|---|---|
 | 2026-07-02 | Sathittham Sangthong | v0.13.0 release review. All 8 prior risks re-confirmed Open with mitigations current; no scores changed. Added R-009 (server-state migration regression, L×M → Monitor). No High/Critical open risks require escalation beyond R-005 (bus-factor, already Mitigate). |
+| 2026-07-04 | Sathittham Sangthong | v0.14.0 release review. All 9 prior risks re-confirmed Open, mitigations current; no scores changed. Added R-010 (GA4 Data API dependency, L×M → Monitor) — mitigated by TTL cache + stale-while-error + graceful 503. GA4 credentials handled per-env via Secret Manager (never in git or workflow strings). |
