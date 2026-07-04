@@ -66,3 +66,40 @@ func TestDeleteAvatar_Disabled(t *testing.T) {
 		t.Fatalf("status = %d, want 503", rr.Code)
 	}
 }
+
+func TestUploadFile_MissingFile(t *testing.T) {
+	handler := NewHandler(&Service{disabledErr: ErrUploadDisabled})
+	req := authenticatedRequest(http.MethodPost, "/backoffice/upload/file", bytes.NewBufferString(""), "multipart/form-data")
+	rr := httptest.NewRecorder()
+
+	handler.UploadFile(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400", rr.Code)
+	}
+}
+
+func TestUploadFileHandler_Disabled(t *testing.T) {
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	part, err := writer.CreateFormFile("file", "report.pdf")
+	if err != nil {
+		t.Fatalf("create form file: %v", err)
+	}
+	if _, err := part.Write([]byte("%PDF-1.4 not a real pdf")); err != nil {
+		t.Fatalf("write form file: %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("close writer: %v", err)
+	}
+
+	handler := NewHandler(&Service{disabledErr: ErrUploadDisabled})
+	req := authenticatedRequest(http.MethodPost, "/backoffice/upload/file", &body, writer.FormDataContentType())
+	rr := httptest.NewRecorder()
+
+	handler.UploadFile(rr, req)
+
+	if rr.Code != http.StatusServiceUnavailable {
+		t.Fatalf("status = %d, want 503", rr.Code)
+	}
+}

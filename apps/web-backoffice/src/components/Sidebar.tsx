@@ -45,6 +45,7 @@ import {
   Newspaper,
   ScrollText,
   ShieldCheck,
+  Upload,
   User,
   Users,
 } from 'lucide-react';
@@ -131,6 +132,10 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     { to: '/help/api-docs', icon: CircleHelp, labelKey: 'nav.apiDocs' },
   ];
 
+  const utilityNavItems: NavItem[] = [
+    { to: '/utilities/upload', icon: Upload, labelKey: 'nav.uploadTool' },
+  ];
+
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader>
@@ -174,6 +179,28 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                     tooltip={t(item.labelKey)}
                   >
                     {renderNavInner(item)}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>{t('nav.utilities')}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {utilityNavItems.map((item) => (
+                <SidebarMenuItem key={item.to}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.to || pathname.startsWith(`${item.to}/`)}
+                    tooltip={t(item.labelKey)}
+                  >
+                    <Link to={item.to ?? '#'} onClick={onNavigate}>
+                      <item.icon />
+                      <span>{t(item.labelKey)}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

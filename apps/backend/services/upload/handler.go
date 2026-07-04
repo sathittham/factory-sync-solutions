@@ -22,6 +22,10 @@ const multipartMemory = 4 << 20
 // the most expensive operation this service exposes.
 var avatarUploadRateLimit = middleware.RateLimitByUID("upload-avatar", rate.Every(6*time.Second), 10)
 
+// fileUploadRateLimit caps the backoffice general-upload utility at 20 per
+// minute per user, on top of the global per-IP limiter.
+var fileUploadRateLimit = middleware.RateLimitByUID("upload-file", rate.Every(3*time.Second), 20)
+
 type Handler struct {
 	service *Service
 }
@@ -33,6 +37,13 @@ func NewHandler(service *Service) *Handler {
 func (h *Handler) Routes(r chi.Router) {
 	r.With(avatarUploadRateLimit).Post("/avatar", h.UploadAvatar)
 	r.Delete("/avatar", h.DeleteAvatar)
+}
+
+// BackofficeRoutes registers the general-purpose upload utility, mounted
+// under /backoffice/upload and gated to backoffice staff/superadmin by the
+// RequireBackofficeRole middleware in main.go.
+func (h *Handler) BackofficeRoutes(r chi.Router) {
+	r.With(fileUploadRateLimit).Post("/file", h.UploadFile)
 }
 
 // UploadAvatar godoc
@@ -102,6 +113,54 @@ func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// UploadFile godoc
+// @Summary      Upload a general file (backoffice utility)
+// @Description  Uploads an image, PDF, or spreadsheet as-is to R2 and returns its CDN URL. Backoffice staff/superadmin only.
+// @Tags         Upload
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        Authorization  header    string  true  "Bearer {firebase-id-token}"
+// @Param        file           formData  file    true  "File to upload"
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      400  {object}  pkg.ErrorResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      403  {object}  pkg.ErrorResponse
+// @Failure      503  {object}  pkg.ErrorResponse
+// @Security     BearerAuth
+// @Router       /backoffice/upload/file [post]
+func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, GeneralFileMaxBytes+multipartMemory)
+
+	if err := r.ParseMultipartForm(multipartMemory); err != nil {
+		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", "invalid multipart form")
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", "file is required")
+		return
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(io.LimitReader(file, GeneralFileMaxBytes+1))
+	if err != nil {
+		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", "could not read file")
+		return
+	}
+	if len(data) > GeneralFileMaxBytes {
+		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", fmt.Sprintf("file must be %d bytes or less", GeneralFileMaxBytes))
+		return
+	}
+
+	resp, err := h.service.UploadFile(r.Context(), header.Filename, data)
+	if err != nil {
+		handleUploadError(w, r, err)
+		return
+	}
+	pkg.RespondJSON(w, http.StatusOK, resp)
 }
 
 func handleUploadError(w http.ResponseWriter, r *http.Request, err error) {

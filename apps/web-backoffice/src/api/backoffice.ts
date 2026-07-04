@@ -21,12 +21,17 @@ import type {
   OwnerInvitation,
   Project,
   StaffMember,
+  UploadedFile,
   UserProfile,
 } from './types';
 
 export const backofficeApi = {
   // Stats
   getStats: () => api.get<BackofficeStats>('/backoffice/stats'),
+
+  // Utilities
+  uploadFile: (formData: FormData) =>
+    api.postForm<UploadedFile>('/backoffice/upload/file', formData),
 
   // Projects
   listProjects: (params?: { isActive?: boolean }) => {

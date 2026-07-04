@@ -55,6 +55,53 @@ Copy this block and add to the Active section:
 
 ## Active Change Requests
 
+### CR-008 | Backoffice Upload Utility | Approved
+
+| Field | Value |
+|---|---|
+| **Date Raised** | 2026-07-04 |
+| **Raised By** | Sathittham Sangthong |
+| **Type** | Scope change (new endpoint + UI, additive) |
+| **Priority** | Low |
+
+**Description:**
+Add a `Utilities` section to `web-backoffice` with an `Upload File` page, so
+staff can upload an image/PDF/spreadsheet and get a permanent CDN URL to copy
+(e.g. for CMS content). Backed by a new `POST /api/v1/backoffice/upload/file`
+endpoint. This is a standalone code path in the existing
+`apps/backend/services/upload/` package — direct-through-backend, no presign
+step, no Firestore record — deliberately simpler than, and not a step toward,
+the Phase 2 presign/confirm flow documented in
+`docs/product/upload/feature-spec.md`.
+
+**Impact Analysis:**
+- Schedule: 0 (same iteration)
+- Effort: ~2 hours
+- Risk: low — new endpoint gated by the existing `RequireBackofficeRole`
+  middleware (same class as other `/backoffice/*` routes) plus a new per-user
+  rate limit; no changes to the avatar path or Phase 2/3 plans.
+- Affected components: `apps/backend/services/upload`, `apps/backend/middleware`
+  (new `RateLimitByUID`), `apps/backend/main.go`; `apps/web-backoffice` (router,
+  Sidebar, new `UploadUtilityPage`, `api/{backoffice,types}.ts`, `lib/api.ts`, i18n).
+
+**Decision:**
+- [x] Approved — proceed
+- [ ] Rejected — reason: [reason]
+- [ ] Deferred to version: [vX.Y.Z]
+
+**Decision Date:** 2026-07-04
+**Decision By:** Sathittham Sangthong
+
+**Implementation Notes:**
+- SRS: [docs/product/bo-upload-utility/feature-spec.md](../product/bo-upload-utility/feature-spec.md)
+- Branch: `fix/upload-security-gaps` — implemented 2026-07-04 alongside an
+  unrelated avatar-upload security fix (Firestore rule + per-user rate limit);
+  not yet split into separate branches/PRs.
+- Backend `services/upload` coverage 38.7%, `middleware` 20.3% (both `-race`);
+  `web-backoffice` 53 tests / 11 files green; type-check + Biome clean.
+- Pending: manual click-through against a live R2-configured environment
+  (MT-002 in [test-plan.md](../product/bo-upload-utility/test-plan.md)) before merge.
+
 ### CR-007 | Backoffice Analytics Menu (relocate GA4 UI) | Approved
 
 | Field | Value |

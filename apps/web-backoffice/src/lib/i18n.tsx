@@ -77,9 +77,24 @@ const translations: Record<Locale, Record<string, string>> = {
     'nav.administrator': 'ผู้ดูแลระบบ',
     'nav.superAdmin': 'ผู้ดูแลระบบสูงสุด',
     'nav.staffRole': 'ทีมงาน',
+    'nav.utilities': 'เครื่องมือ',
+    'nav.uploadTool': 'อัปโหลดไฟล์',
 
     'topbar.staffOnly': 'พื้นที่จัดการภายในสำหรับทีมงาน FactorySync',
     'footer.internal': 'ระบบหลังบ้านสำหรับการจัดการ Factory Health Check',
+
+    'uploadUtility.title': 'อัปโหลดไฟล์',
+    'uploadUtility.subtitle': 'อัปโหลดรูปภาพหรือเอกสารเพื่อรับลิงก์ CDN สำหรับใช้งานทั่วไป',
+    'uploadUtility.dropLabel': 'เลือกไฟล์หรือวางไฟล์ที่นี่',
+    'uploadUtility.constraints':
+      'JPEG · PNG · WebP · GIF สูงสุด 10MB · PDF สูงสุด 50MB · Excel สูงสุด 25MB',
+    'uploadUtility.chooseFile': 'เลือกไฟล์',
+    'uploadUtility.uploading': 'กำลังอัปโหลด...',
+    'uploadUtility.copyUrl': 'คัดลอกลิงก์',
+    'uploadUtility.copied': 'คัดลอกแล้ว',
+    'uploadUtility.uploadAnother': 'อัปโหลดไฟล์อื่น',
+    'uploadUtility.errorGeneric': 'อัปโหลดไม่สำเร็จ กรุณาลองอีกครั้ง',
+    'uploadUtility.recentTitle': 'อัปโหลดล่าสุดในเซสชันนี้',
 
     'profile.title': 'โปรไฟล์',
     'profile.subtitle': 'ดูข้อมูลบัญชีและสิทธิ์ Backoffice ของคุณ',
@@ -405,9 +420,24 @@ const translations: Record<Locale, Record<string, string>> = {
     'nav.administrator': 'Administrator',
     'nav.superAdmin': 'Super Admin',
     'nav.staffRole': 'Staff',
+    'nav.utilities': 'Utilities',
+    'nav.uploadTool': 'Upload File',
 
     'topbar.staffOnly': 'Internal management area for FactorySync staff',
     'footer.internal': 'Backoffice system for Factory Health Check operations',
+
+    'uploadUtility.title': 'Upload File',
+    'uploadUtility.subtitle': 'Upload an image or document to get a shareable CDN link.',
+    'uploadUtility.dropLabel': 'Choose a file or drop it here',
+    'uploadUtility.constraints':
+      'JPEG · PNG · WebP · GIF up to 10MB · PDF up to 50MB · Excel up to 25MB',
+    'uploadUtility.chooseFile': 'Choose file',
+    'uploadUtility.uploading': 'Uploading...',
+    'uploadUtility.copyUrl': 'Copy link',
+    'uploadUtility.copied': 'Copied',
+    'uploadUtility.uploadAnother': 'Upload another file',
+    'uploadUtility.errorGeneric': 'Upload failed. Please try again.',
+    'uploadUtility.recentTitle': 'Recent uploads this session',
 
     'profile.title': 'Profile',
     'profile.subtitle': 'View your account details and Backoffice access.',

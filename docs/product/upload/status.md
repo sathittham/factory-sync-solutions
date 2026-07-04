@@ -40,6 +40,13 @@ Testing is partial: `services/upload/handler_test.go` exists, but there is no
 Coverage goal follows [README.md § Testing](./README.md#testing): critical `services/` ≥ 80%.
 Record actual `go test ./... -cover` numbers per package as each suite lands.
 
+**Unrelated addition, 4 July 2026:** `services/upload/handler.go` also has a
+`BackofficeRoutes`/`UploadFile` pair and a `service_test.go` now exists — but
+that test file only covers `UploadFile` (the new
+[backoffice upload utility](../bo-upload-utility/README.md), CR-008). It does
+**not** close the `service_test.go` gap noted above for `UploadAvatar`/`DeleteAvatar`,
+which remains open.
+
 ---
 
 ## Phase 1 — Avatar upload
@@ -110,8 +117,9 @@ None — the spec's six design decisions are resolved
 
 - [README.md](./README.md) · [feature-spec.md](./feature-spec.md) · [avatar-upload.md](./avatar-upload.md) · [presign-flow.md](./presign-flow.md)
 - [docs/iso29110/progress-log.md](../../iso29110/progress-log.md) · [risk-register.md](../../iso29110/risk-register.md)
+- [bo-upload-utility/status.md](../bo-upload-utility/status.md) — standalone backoffice utility (CR-008), not part of this phase roadmap
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.1.0*
+*Last updated: 4 July 2026*
