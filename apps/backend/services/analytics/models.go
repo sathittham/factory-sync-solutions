@@ -18,6 +18,7 @@ type DailyPoint struct {
 // OverviewResponse is the payload for GET /backoffice/analytics/overview.
 type OverviewResponse struct {
 	Range  string         `json:"range"`
+	Site   string         `json:"site"`
 	Stale  bool           `json:"stale"`
 	Totals OverviewTotals `json:"totals"`
 	Series []DailyPoint   `json:"series"`
@@ -33,6 +34,7 @@ type TopPage struct {
 // TopPagesResponse is the payload for GET /backoffice/analytics/top-pages.
 type TopPagesResponse struct {
 	Range string    `json:"range"`
+	Site  string    `json:"site"`
 	Stale bool      `json:"stale"`
 	Pages []TopPage `json:"pages"`
 }
@@ -47,6 +49,7 @@ type Channel struct {
 // ChannelsResponse is the payload for GET /backoffice/analytics/channels.
 type ChannelsResponse struct {
 	Range    string    `json:"range"`
+	Site     string    `json:"site"`
 	Stale    bool      `json:"stale"`
 	Channels []Channel `json:"channels"`
 }
@@ -66,6 +69,7 @@ type DeviceSessions struct {
 // AudienceResponse is the payload for GET /backoffice/analytics/audience.
 type AudienceResponse struct {
 	Range     string            `json:"range"`
+	Site      string            `json:"site"`
 	Stale     bool              `json:"stale"`
 	Countries []CountrySessions `json:"countries"`
 	Devices   []DeviceSessions  `json:"devices"`
@@ -92,6 +96,7 @@ type EngagementCurrent struct {
 // EngagementResponse is the payload for GET /backoffice/analytics/engagement.
 type EngagementResponse struct {
 	Range   string            `json:"range"`
+	Site    string            `json:"site"`
 	Stale   bool              `json:"stale"`
 	Current EngagementCurrent `json:"current"`
 	Series  []EngagementPoint `json:"series"`
@@ -107,6 +112,7 @@ type Source struct {
 // SourcesResponse is the payload for GET /backoffice/analytics/sources.
 type SourcesResponse struct {
 	Range   string   `json:"range"`
+	Site    string   `json:"site"`
 	Stale   bool     `json:"stale"`
 	Sources []Source `json:"sources"`
 }

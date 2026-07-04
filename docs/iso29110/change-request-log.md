@@ -1,7 +1,7 @@
 ---
 isoOutput: PM.O1 (Change Control)
-version: 1.1.0
-lastUpdated: 2026-07-02
+version: 1.2.0
+lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 ---
 
@@ -54,6 +54,47 @@ Copy this block and add to the Active section:
 ---
 
 ## Active Change Requests
+
+### CR-007 | Backoffice Analytics Menu (relocate GA4 UI) | Approved
+
+| Field | Value |
+|---|---|
+| **Date Raised** | 2026-07-04 |
+| **Raised By** | Sathittham Sangthong |
+| **Type** | Scope change (UI relocation — frontend only) |
+| **Priority** | Low |
+
+**Description:**
+Move the CR-006 GA4 web-analytics UI from a section at the bottom of the
+backoffice `/dashboard` to a dedicated `/analytics` page with its own "Analytics"
+sidebar menu item. `WebAnalyticsSection`, its panels, and the backend
+`/api/v1/backoffice/analytics/*` API are reused untouched.
+
+**Impact Analysis:**
+- Schedule: 0 (same iteration)
+- Effort: ~1 hour
+- Risk: none — additive route + section removal; access scope unchanged
+  (frontend `BackofficeGuard`, backend `RequireBackofficeRole("superadmin","staff")`).
+- Affected components: `apps/web-backoffice` (router, Sidebar, DashboardPage,
+  new AnalyticsPage, i18n).
+
+**Decision:**
+- [x] Approved — proceed
+- [ ] Rejected — reason: [reason]
+- [ ] Deferred to version: [vX.Y.Z]
+
+**Decision Date:** 2026-07-04
+**Decision By:** Sathittham Sangthong
+
+**Implementation Notes:**
+- SRS: [docs/product/bo-analytics-menu/feature-spec.md](../product/bo-analytics-menu/feature-spec.md)
+- Branch: `feature/bo-analytics-menu` — implemented 2026-07-04; 49 web-backoffice
+  tests green (2 new `AnalyticsPage` tests); type-check + Biome clean.
+- 2026-07-04 — Scope addition FR-005/FR-006 (SRS v0.2.0): per-surface site tabs
+  (All / Official website / Web app) + `site` query param on the six data
+  endpoints with GA4 `hostName` `inListFilter` (env-overridable hosts) and
+  per-site cache keys. Both surfaces verified to stream into the shared GA4
+  property. Backend 87.6% coverage, frontend 50 tests, all green.
 
 ### CR-006 | Backoffice GA4 Analytics Dashboard | Approved
 

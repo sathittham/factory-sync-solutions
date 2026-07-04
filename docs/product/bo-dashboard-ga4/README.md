@@ -4,8 +4,9 @@
 [feature-spec.md](./feature-spec.md) · CR-006 in
 [change-request-log.md](../../iso29110/change-request-log.md)
 
-Authenticated backoffice dashboard enhancement that adds a GA4 Analytics section on
-`/dashboard` for staff and super-admin users. Data is served by
+Authenticated backoffice enhancement that adds a GA4 Analytics page on
+`/analytics` (dedicated sidebar menu item; originally shipped as a `/dashboard`
+section) for staff and super-admin users. Data is served by
 `/api/v1/backoffice/analytics/*` endpoints (GA4 Data API proxy with TTL cache and
 stale-while-error fallback) and rendered through a dedicated `WebAnalyticsSection`
 in `web-backoffice` using TH/EN i18n.
@@ -35,7 +36,7 @@ in `web-backoffice` using TH/EN i18n.
 | Component | Description | Status |
 |-----------|-------------|--------|
 | **Analytics API** | `services/analytics` — seven GA4 proxy endpoints, `RequireBackofficeRole` guard, range validation, 15m TTL cache with stale-while-error | ✅ P1 |
-| **Dashboard section** | `WebAnalyticsSection` with range selector (`7d/28d/90d`), `TrafficOverview` cards + series, localized labels, per-panel loading/stale/error/empty states | ✅ P1 |
+| **Analytics page** | `AnalyticsPage` (`/analytics`, sidebar "Analytics" menu) hosting `WebAnalyticsSection` — range selector (`7d/28d/90d`), `TrafficOverview` cards + series, localized labels, per-panel loading/stale/error/empty states | ✅ P1 |
 | **Supporting panels** | `TopPagesTable`, `ChannelsChart`, `AudiencePanel` | ✅ P1 |
 | **Engagement (FR-008)** | `/analytics/engagement` + `EngagementPanel` — DAU/WAU/MAU tiles, stickiness (DAU÷MAU), daily series | ✅ added 4 Jul |
 | **Sources + GA link (FR-009/010)** | `/analytics/sources` + `SourcesTable` (top 10 source/medium with share); `/analytics/meta` + "Open in Google Analytics" header deep link | ✅ added 4 Jul |
@@ -75,7 +76,7 @@ progress is tracked in [status.md](./status.md).
 
 ```mermaid
 flowchart LR
-  U[web-backoffice /dashboard] -->|Bearer + backoffice role| R[Backend route: /api/v1/backoffice/analytics/*]
+  U[web-backoffice /analytics] -->|Bearer + backoffice role| R[Backend route: /api/v1/backoffice/analytics/*]
   R --> S[apps/backend/services/analytics]
   S --> C[(TTL cache 15m: per endpoint × range)]
   C --> G[GA4 Data API v1beta]
@@ -84,6 +85,9 @@ flowchart LR
 
 All routes require `Authorization: Bearer {firebase-id-token}` and
 `backofficeRole ∈ {superadmin, staff}`. `range` ∈ `{7d, 28d, 90d}` (default `28d`).
+The six data endpoints also accept `site` ∈ `{all, official, app}` (default
+`all`) — `official`/`app` filter every report by GA4 `hostName` (see
+[bo-analytics-menu](../bo-analytics-menu/README.md), FR-006).
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
@@ -108,7 +112,7 @@ payload was served because the GA4 upstream failed; a cold-cache failure returns
 | 1 | Analytics request/response models and service (GA4 client, cache, report definitions) | `apps/backend/services/analytics/models.go`, `service.go` | ✅ |
 | 2 | Backoffice analytics handlers + route group with role checks | `apps/backend/services/analytics/handler.go`, `main.go` | ✅ |
 | 3 | Unit + handler tests | `apps/backend/services/analytics/service_test.go`, `handler_test.go` | ✅ |
-| 4 | Front-end section container + range handling + loading/error states | `apps/web-backoffice/src/pages/DashboardPage.tsx`, `components/analytics/WebAnalyticsSection.tsx` | ✅ |
+| 4 | Front-end section container + range handling + loading/error states | `apps/web-backoffice/src/pages/AnalyticsPage.tsx`, `components/analytics/WebAnalyticsSection.tsx` | ✅ |
 | 5 | Traffic/top-pages/channels/audience panels and i18n copy | `components/analytics/{TrafficOverview,TopPagesTable,ChannelsChart,AudiencePanel}.tsx` | ✅ |
 | 6 | Component/unit coverage for critical flows | `apps/web-backoffice/src/**/*.test.tsx` | ✅ |
 | 7 | Scope additions: engagement, sources, GA deep link (FR-008/009/010) | `handler.go` + `components/analytics/{EngagementPanel,SourcesTable}.tsx` | ✅ |
@@ -169,8 +173,8 @@ staff + superadmin; cache policy = 15m TTL + stale-while-error, cold-cache → 5
 - [user-journeys.md](./user-journeys.md)
 - [mockups/app.md](./mockups/app.md)
 - CR-006 in [change-request-log.md](../../iso29110/change-request-log.md)
-- [Dashboard page](../../../apps/web-backoffice/src/pages/DashboardPage.tsx)
+- [Analytics page](../../../apps/web-backoffice/src/pages/AnalyticsPage.tsx)
 - [GA4 docs](https://developers.google.com/analytics/devguides/reporting/data/v1)
 
-*Version: 0.2.0*
+*Version: 0.4.0*
 *Last updated: 4 July 2026*

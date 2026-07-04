@@ -156,6 +156,9 @@ export interface OpenApiSpec {
 
 export type AnalyticsRange = '7d' | '28d' | '90d';
 
+/** Site tab filter: "all" (default), the marketing site, or the app. */
+export type AnalyticsSite = 'all' | 'official' | 'app';
+
 export interface AnalyticsOverviewTotals {
   activeUsers: number;
   sessions: number;

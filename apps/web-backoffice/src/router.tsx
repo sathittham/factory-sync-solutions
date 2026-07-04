@@ -2,6 +2,7 @@ import { Layout } from '@/components/Layout';
 import { AuthGuard } from '@/components/guards/AuthGuard';
 import { BackofficeGuard } from '@/components/guards/BackofficeGuard';
 import { SuperAdminGuard } from '@/components/guards/SuperAdminGuard';
+import { AnalyticsPage } from '@/pages/AnalyticsPage';
 import { ApiDocsPage } from '@/pages/ApiDocsPage';
 import { AuditPage } from '@/pages/AuditPage';
 import { DashboardPage } from '@/pages/DashboardPage';
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
             element: <Layout />,
             children: [
               { path: 'dashboard', element: <DashboardPage /> },
+              { path: 'analytics', element: <AnalyticsPage /> },
               { path: 'profile', element: <ProfilePage /> },
               { path: 'projects', element: <ProjectsPage /> },
               { path: 'projects/:projectID', element: <ProjectDetailPage /> },
