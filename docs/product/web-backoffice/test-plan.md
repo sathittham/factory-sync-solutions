@@ -44,7 +44,7 @@ lastUpdated: 2026-07-05
 - Third-party SDK internals (Firebase client SDK) — mocked at the boundary.
 - shadcn/ui primitives under `src/components/ui/**` — excluded from the coverage gate (thin Radix wrappers).
 - Thin composition/wiring files — `App.tsx`, `router.tsx` — excluded from the coverage gate as declarative wiring, not logic.
-- Superadmin-only route access (`/staff`, `/audit`, `/help/api-docs`) end-to-end — needs a superadmin-specific test account distinct from the staff account used for the current suite (see §6).
+- Superadmin-only route access (`/staff`, `/audit`, `/help/api-docs`) end-to-end — the test account holds superadmin claims, but no spec yet targets these routes specifically (see §6).
 - Full CRUD e2e coverage on projects/users (create/edit/deactivate/delete flows) and CSV export — covered at the unit level (page tests mock the API layer and assert these flows), not yet driven through a real browser end-to-end.
 
 ### 1.3 Test Environment
@@ -127,6 +127,9 @@ Run: `pnpm --filter @repo/web-backoffice test:coverage` — thresholds are hard-
 |---|---|---|---|---|---|
 | 2026-07-04 | Local | 53 passed / 11 files | Not measured — no coverage config existed | — | Baseline |
 | 2026-07-05 | Local | **274 passed / 41 files** | **88.97% / 78.11% / 85.49% / 91.72%** | 11 unique tests / 3 specs (4 smoke + 7 regression) | ✅ Pass |
+| 2026-07-05 | Staging¹ | — | — | 11/11 passed (chromium) — 4 smoke + 7 regression, executed for real against `https://backoffice-staging.factorysyncsolutions.com` | ✅ Pass |
+
+¹ First real (non-`--list`) e2e run, using a staff/superadmin test account (`dev@factorysyncsolutions.com`, promoted via `cmd/set-superadmin` on the staging Firebase project). Found and fixed one test bug: `navigation.spec.ts`'s `/unauthorized` case used a regex matching both the heading and body text (`getByText` strict-mode violation) — narrowed to `getByRole('heading', ...)`. No application bugs found.
 
 ---
 
@@ -134,8 +137,7 @@ Run: `pnpm --filter @repo/web-backoffice test:coverage` — thresholds are hard-
 
 | Gap | Priority | Note |
 |---|---|---|
-| `lib/api.ts` `request`/`requestForm` lack a 204-No-Content short-circuit | Medium | Unlike `web-app`'s equivalent, a 204 response would throw `TypeError: Cannot read properties of undefined (reading 'data')` instead of resolving. Not currently triggered by any known endpoint, but any future 204-returning route (e.g. a DELETE) would break. Needs a `backend-dev`/`frontend-dev` follow-up to port `web-app`'s guard. |
-| Superadmin-only e2e coverage (`/staff`, `/audit`, `/help/api-docs`) | Medium | Needs a second test account (superadmin) distinct from the staff account already configured; current suite only exercises staff-level access. |
+| Superadmin-only e2e coverage (`/staff`, `/audit`, `/help/api-docs`) | Medium | The current test account holds `backofficeRole=superadmin`, but no test yet exercises those superadmin-only routes specifically — coverage is staff-level flows only. A follow-up pass should add dedicated superadmin-route specs. |
 | Project/user/staff CRUD and CSV export not driven end-to-end | Low | Covered at the unit level (mocked API layer); a real browser-driven flow against a seeded staging project would close this gap. |
 | `ApiDocsPage.tsx` / `StaffPage.tsx` / `UsersPage.tsx` branch coverage below file average (56-64%) | Low | Global gate passes without further work; room for deeper edge-case tests in a future pass. |
 | Accessibility (axe) + visual regression | Low | Not yet adopted repo-wide (same gap noted in `web-official`'s and `web-app`'s test plans). |
