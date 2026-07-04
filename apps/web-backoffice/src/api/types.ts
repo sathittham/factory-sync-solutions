@@ -71,6 +71,13 @@ export interface Assessment {
   projectID: string;
 }
 
+export interface UploadedFile {
+  fileURL: string;
+  originalFilename: string;
+  contentType: string;
+  fileSizeBytes: number;
+}
+
 export interface StaffMember {
   uid: string;
   email: string;

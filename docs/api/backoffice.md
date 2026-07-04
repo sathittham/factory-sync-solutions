@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-06-14
+version: 1.2.0
+lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 ---
 
@@ -685,6 +685,51 @@ Activity" in user/staff detail views.
 
 ---
 
+## 7. Uploads
+
+### `POST /backoffice/upload/file`
+
+Upload a general file (image, PDF, or spreadsheet) and receive a permanent CDN
+URL. Powers the `web-backoffice` "Utilities > Upload File" page. This is a
+standalone endpoint — no Firestore record is written, and it is **not** part
+of the [Upload Service](../product/upload/README.md)'s Phase 2 presign/confirm
+roadmap; see [product/bo-upload-utility/README.md](../product/bo-upload-utility/README.md).
+
+**Role**: staff+
+
+**Request**: `multipart/form-data`
+
+| Field | Type | Constraint |
+|-------|------|-----------|
+| `file` | binary | JPEG/PNG/WebP/GIF ≤10MB, PDF ≤50MB, or Excel (`.xls`/`.xlsx`) ≤25MB |
+
+**Response 200**
+```json
+{
+  "success": true,
+  "data": {
+    "fileURL": "https://uploads.factorysyncsolutions.com/uploads/f7d33e62-.../f7d33e62-....pdf",
+    "originalFilename": "report.pdf",
+    "contentType": "application/pdf",
+    "fileSizeBytes": 512000
+  }
+}
+```
+
+**Error 400**
+```json
+{ "success": false, "error": { "code": "VALIDATION_ERROR", "message": "unsupported file type" } }
+```
+
+**Error 503** — upload service not configured (missing R2 environment variables)
+```json
+{ "success": false, "error": { "code": "UPLOAD_DISABLED", "message": "upload service is not configured" } }
+```
+
+**Rate limit**: 20 requests/min per user, on top of the global per-IP limiter.
+
+---
+
 ## Error Reference
 
 | HTTP | Code | Meaning |
@@ -713,5 +758,6 @@ See [api/conventions.md](conventions.md) for full response format.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.2.0 | 2026-07-04 | Add general upload utility endpoint (`POST /backoffice/upload/file`) |
 | 1.1.0 | 2026-06-14 | Add audit query endpoints and audit side effects |
 | 1.0.0 | 2026-06-11 | Initial version — all backoffice endpoints |

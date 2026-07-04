@@ -257,6 +257,7 @@ func main() {
 				r.Use(appMiddleware.RequireBackofficeRole(authClient, "superadmin", "staff"))
 				backofficeHandler.Routes(r)
 				r.Route("/analytics", analyticsHandler.Routes)
+				r.Route("/upload", uploadHandler.BackofficeRoutes)
 			})
 		})
 	})

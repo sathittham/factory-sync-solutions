@@ -14,6 +14,7 @@ import { ResultsPage } from '@/pages/ResultsPage';
 import { SignInPage } from '@/pages/SignInPage';
 import { StaffPage } from '@/pages/StaffPage';
 import { UnauthorizedPage } from '@/pages/UnauthorizedPage';
+import { UploadUtilityPage } from '@/pages/UploadUtilityPage';
 import { UsersPage } from '@/pages/UsersPage';
 import { Navigate, createBrowserRouter } from 'react-router';
 
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
               { path: 'projects/:projectID', element: <ProjectDetailPage /> },
               { path: 'users', element: <UsersPage /> },
               { path: 'results', element: <ResultsPage /> },
+              { path: 'utilities/upload', element: <UploadUtilityPage /> },
               {
                 element: <SuperAdminGuard />,
                 children: [

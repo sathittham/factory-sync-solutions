@@ -54,6 +54,7 @@ Phase 2–3 frontend flows are planned only. Per-app flows live in
 | **R2 client** (`r2.go`) | S3-compatible client (aws-sdk-go-v2) against `https://{accountID}.r2.cloudflarestorage.com` | Phase 1 — ✅ shipped |
 | **Presign flow** | `POST /upload/presign` → direct client PUT to a tmp bucket → `POST /upload/confirm`; public files get permanent CDN URLs; `DELETE /upload/file` by `recordID` — see [presign-flow.md](./presign-flow.md) | Phase 2 — 📋 planned |
 | **Private files** | Project-scoped storage; `POST /upload/read-url` issues 1-hour presigned GET URLs after project/resource authorization — see [presign-flow.md](./presign-flow.md) | Phase 3 — 📋 planned |
+| **Backoffice upload utility** | `POST /api/v1/backoffice/upload/file` — direct-through-backend upload (no presign, no Firestore record), staff/superadmin only, powers a `web-backoffice` "Utilities" page — see [bo-upload-utility](../bo-upload-utility/README.md) | Standalone utility — ✅ shipped, **not** a Phase 2/3 step |
 
 ---
 
@@ -83,6 +84,12 @@ Phase 2–3 frontend flows are planned only. Per-app flows live in
 See [status.md](./status.md) for the per-phase implementation checklist. As of 14 June 2026:
 Phase 1 (avatar upload) is shipped; Phases 2–3 (presign, confirm, read-url, general file
 delete) remain planned.
+
+As of 4 July 2026, `services/upload/handler.go` also has a `BackofficeRoutes` /
+`UploadFile` pair — this is the [backoffice upload utility](../bo-upload-utility/README.md)
+(CR-008), a standalone direct-through-backend endpoint for staff. Do not read
+its presence as Phase 2 progress: it has no presign step, no tmp bucket, and
+writes no Firestore record, unlike the `Presign`/`Confirm` design below.
 
 ---
 
@@ -217,6 +224,7 @@ None — the spec's six design decisions are resolved; see
 | [avatar-upload.md](./avatar-upload.md) | Phase 1 avatar endpoints + image pipeline (shipped) |
 | [presign-flow.md](./presign-flow.md) | Phases 2–3 presign / confirm / read-url / delete pipeline (planned) |
 | [mockups/app.md](./mockups/app.md) | ASCII wireframes — profile avatar section (web-app) |
+| [../bo-upload-utility/README.md](../bo-upload-utility/README.md) | Backoffice-only direct-upload utility (CR-008) — standalone, not a Phase 2/3 step |
 
 ### ISO 29110 artifacts
 
@@ -236,5 +244,5 @@ None — the spec's six design decisions are resolved; see
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.1.0*
+*Last updated: 4 July 2026*
