@@ -14,7 +14,8 @@ sidebar menu item; analytics section removed from `/dashboard`. Site tabs
 (All / Official website / Web app) added the same day: new `site` query param
 on the six data endpoints with GA4 `hostName` filtering and per-site caching.
 Frontend 50 tests / backend `services/analytics` 87.6% coverage, all green;
-type-check and Biome clean. Not yet merged to `develop`.
+type-check and Biome clean. Merged to `develop` via PR #34 (squash `6927aa7`,
+2026-07-04); released with v0.14.0.
 
 ## Checklist
 
@@ -27,7 +28,7 @@ type-check and Biome clean. Not yet merged to `develop`.
   live GA4 hostname split verified (apex/`www.` vs `app.`) on 2026-07-04.
 - [x] Backend UT-012…014 + IT-012; frontend UT-F11.
 - [x] Docs: this folder + [bo-dashboard-ga4](../bo-dashboard-ga4/status.md) synced.
-- [ ] Merge to `develop`; ships with the pending GA4 staging release.
+- [x] Merged to `develop` (PR #34); shipped in v0.14.0.
 
 ## Related Documents
 
