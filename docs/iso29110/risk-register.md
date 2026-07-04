@@ -40,6 +40,7 @@ Review at every progress meeting. Add new risks immediately when identified. Clo
 |---|---|---|---|
 | R-C001 | Resend API key exposed in frontend bundle | 2026-03-08 | API key moved to backend only; `.env*` git-ignored |
 | R-C002 | In-memory rate limiter ineffective across Cloud Run instances | 2026-03-15 | Cloudflare WAF set as primary; per-instance limiter kept as defense-in-depth |
+| R-C003 | Backoffice API docs feature returned 503 in production/staging — `R2_ACCESS_KEY_ID`/`API_DOCS_R2_*` credentials were never provisioned as GitHub environment secrets; once fixed, endpoints returned 404 because `scripts/publish-api-docs-r2.sh` called `wrangler r2 object put/get` without `--remote`, so CI's publish *and* its own verification step silently targeted wrangler's local simulator instead of the real bucket while reporting success | 2026-07-04 | Generated scoped R2 API tokens, wired as environment-level secrets (staging/production) since tokens are bucket-scoped; added `--remote` to the wrangler calls (PR #38); manually republished current swagger docs to both buckets to restore service immediately ahead of the next scheduled deploy |
 
 ---
 
