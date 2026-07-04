@@ -245,6 +245,9 @@ importers:
       react-router:
         specifier: ^7.15.0
         version: 7.18.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      recharts:
+        specifier: ^2.15.4
+        version: 2.15.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       swagger-ui-react:
         specifier: ^5.32.6
         version: 5.32.8(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)

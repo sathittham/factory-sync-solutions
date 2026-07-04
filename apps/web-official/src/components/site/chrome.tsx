@@ -1,5 +1,6 @@
 "use client";
 
+import { OPEN_SETTINGS_EVENT } from "@/components/CookieConsent";
 import { useLocale } from "@/lib/i18n";
 import type { ResolvedTheme, Theme } from "@/lib/theme";
 import fsDarkLogo from "@shared/brand/fs-dark.png";
@@ -43,12 +44,24 @@ export function SiteFooter({
 	const { t } = useLocale();
 	const year = new Date().getFullYear();
 
-	const legalLinks = [
+	// "Cookie Settings" reopens the consent modal in place — the CookieConsent
+	// island (mounted on every page) listens for OPEN_SETTINGS_EVENT. The href
+	// stays as a no-JS fallback to the static guidance page.
+	const openCookieSettings = (e: React.MouseEvent<HTMLAnchorElement>) => {
+		e.preventDefault();
+		globalThis.dispatchEvent(new CustomEvent(OPEN_SETTINGS_EVENT));
+	};
+
+	const legalLinks: {
+		href: string;
+		label: string;
+		onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+	}[] = [
 		{ href: "/privacy", label: t("footer.privacy") },
 		{ href: "/terms", label: t("footer.terms") },
 		{ href: "/cookies", label: t("footer.cookiePolicy") },
 		{ href: "/marketing", label: t("footer.marketing") },
-		{ href: "/cookie-settings", label: t("footer.cookies") },
+		{ href: "/cookie-settings", label: t("footer.cookies"), onClick: openCookieSettings },
 	];
 
 	return (
@@ -70,6 +83,7 @@ export function SiteFooter({
 							<Fragment key={link.href}>
 								<a
 									href={link.href}
+									onClick={link.onClick}
 									className="transition-colors hover:text-blue-700 dark:hover:text-cyan-300"
 								>
 									{link.label}

@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-lastUpdated: 2026-06-10
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Done
 ---
@@ -235,6 +235,11 @@ detail view — no API call needed since all assessments are already loaded.
 
 ## 9. Redux State (`resultSlice`)
 
+> **Superseded (July 2026):** `resultSlice` was retired in the TanStack Query rollout —
+> result server-state now lives in query hooks in
+> [queries.ts](../../../apps/web-app/src/lib/queries.ts). This section describes the
+> original Redux design for historical reference.
+
 ```ts
 interface ResultState {
   assessment:  Assessment | null   // currently displayed assessment
@@ -409,10 +414,15 @@ navigation — not repeated here.
 ## 17. References
 
 - Result page: [ResultPage.tsx](../../../apps/web-app/src/pages/ResultPage.tsx)
-- Result slice: [resultSlice.ts](../../../apps/web-app/src/store/resultSlice.ts)
+- Result server-state (TanStack Query, formerly `resultSlice`): [queries.ts](../../../apps/web-app/src/lib/queries.ts)
 - Backend handler: [handler.go](../../../apps/backend/services/result/handler.go)
 - Backend service: [service.go](../../../apps/backend/services/result/service.go)
 - Result models: [models.go](../../../apps/backend/services/result/models.go)
 - Quiz feature: [quiz/feature-spec.md](../quiz/feature-spec.md)
 - User flow: [user-flow.md](../user-flow.md)
 - Backoffice results view (all-platform results for FactorySync staff): [backoffice/feature-spec.md §4](../backoffice/feature-spec.md)
+
+---
+
+*Version: 1.0.0*
+*Last updated: 3 July 2026*

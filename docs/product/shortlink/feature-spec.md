@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-lastUpdated: 2026-06-15
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Planning
 ---
@@ -863,3 +863,8 @@ interface ShortlinksState {
 - Firestore schema: [architecture/database.md](../../architecture/database.md)
 - Testing guide: [development/testing-guide.md](../../development/testing-guide.md)
 - Swagger setup: [api/swagger.md](../../api/swagger.md)
+
+---
+
+*Version: 1.0.0*
+*Last updated: 3 July 2026*

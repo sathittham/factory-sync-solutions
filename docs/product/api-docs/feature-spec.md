@@ -1,6 +1,6 @@
 ---
 version: 0.2.1
-lastUpdated: 2026-06-14
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Implemented
 ---
@@ -476,3 +476,8 @@ Use dedicated API docs R2 credentials instead of the upload service `R2_*` crede
 | 0.2.1 | 2026-06-14 | Sathittham Sangthong | Clarify v1 publishes Swagger/OpenAPI 2.0 artifacts |
 | 0.2.0 | 2026-06-14 | Sathittham Sangthong | Restrict access to superadmins and add API versioning |
 | 0.1.0 | 2026-06-14 | Sathittham Sangthong | Initial draft |
+
+---
+
+*Version: 0.2.1*
+*Last updated: 3 July 2026*

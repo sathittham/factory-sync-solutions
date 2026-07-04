@@ -1,6 +1,6 @@
 ---
 version: 1.2.0
-lastUpdated: 2026-06-11
+lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 ---
 
@@ -408,3 +408,8 @@ author: Sathittham Sangthong
 |---------|------|-------------|
 | 1.0.0 | 2026-03-06 | Initial version |
 | 1.1.0 | 2026-03-07 | Fixed /result → /results route, added notes about missing wireframes (ProfilePage, nav, email button) |
+
+---
+
+*Version: 1.2.0*
+*Last updated: 4 July 2026*

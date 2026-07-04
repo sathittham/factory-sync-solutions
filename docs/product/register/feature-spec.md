@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-lastUpdated: 2026-06-10
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Done
 ---
@@ -394,3 +394,8 @@ on mobile (`md:grid-cols-2` only activates at ≥ md breakpoint).
 - Legal modal: [LegalModal.tsx](../../../apps/web-app/src/components/LegalModal.tsx)
 - Turnstile: [Turnstile.tsx](../../../apps/web-app/src/components/Turnstile.tsx)
 - User flow: [user-flow.md](../user-flow.md)
+
+---
+
+*Version: 1.0.0*
+*Last updated: 3 July 2026*

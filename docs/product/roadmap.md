@@ -1,6 +1,6 @@
 ---
 version: 1.4.0
-lastUpdated: 2026-06-13
+lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 ---
 
@@ -512,3 +512,8 @@ Add TOTP-based 2FA (Google Authenticator / Authy) as an optional security layer.
 | 1.2.0 | 2026-06-11 | Add ISO 29110 Basic Profile quiz variant (Phase 10) |
 | 1.3.0 | 2026-06-11 | Add Phase 11 (backoffice web app); fix stale `apps/web/` → `apps/web-app/` paths throughout; update current-state table |
 | 1.4.0 | 2026-06-13 | Add Security Backlog section (SB-1 new-device login alert, SB-2 2FA) |
+
+---
+
+*Version: 1.4.0*
+*Last updated: 4 July 2026*

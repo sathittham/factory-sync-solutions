@@ -1,5 +1,13 @@
 import { api, apiUrl } from '@/lib/api';
 import type {
+  AnalyticsAudience,
+  AnalyticsChannels,
+  AnalyticsEngagement,
+  AnalyticsMeta,
+  AnalyticsOverview,
+  AnalyticsRange,
+  AnalyticsSources,
+  AnalyticsTopPages,
   ApiDocsMetadata,
   ApiDocsVersionsResponse,
   Assessment,
@@ -90,6 +98,21 @@ export const backofficeApi = {
     api.get<{ spec: OpenApiSpec }>(`/backoffice/api-docs/${apiVersion}/openapi.json`),
   getApiDocsYaml: (apiVersion: string) =>
     api.get<{ yaml: string }>(`/backoffice/api-docs/${apiVersion}/openapi.yaml`),
+
+  // Analytics (GA4)
+  getAnalyticsOverview: (range: AnalyticsRange) =>
+    api.get<AnalyticsOverview>(`/backoffice/analytics/overview?range=${range}`),
+  getAnalyticsTopPages: (range: AnalyticsRange) =>
+    api.get<AnalyticsTopPages>(`/backoffice/analytics/top-pages?range=${range}`),
+  getAnalyticsChannels: (range: AnalyticsRange) =>
+    api.get<AnalyticsChannels>(`/backoffice/analytics/channels?range=${range}`),
+  getAnalyticsAudience: (range: AnalyticsRange) =>
+    api.get<AnalyticsAudience>(`/backoffice/analytics/audience?range=${range}`),
+  getAnalyticsEngagement: (range: AnalyticsRange) =>
+    api.get<AnalyticsEngagement>(`/backoffice/analytics/engagement?range=${range}`),
+  getAnalyticsSources: (range: AnalyticsRange) =>
+    api.get<AnalyticsSources>(`/backoffice/analytics/sources?range=${range}`),
+  getAnalyticsMeta: () => api.get<AnalyticsMeta>('/backoffice/analytics/meta'),
 };
 
 function auditQuery(params?: AuditFilters): string {

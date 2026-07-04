@@ -1,5 +1,5 @@
-import { DebugPanel } from '@shared/ui/DebugPanel';
 import { useAppSelector } from '@/store';
+import { DebugPanel } from '@shared/ui/DebugPanel';
 
 /**
  * web-backoffice's wiring of the shared {@link DebugPanel}. Feeds it real env,

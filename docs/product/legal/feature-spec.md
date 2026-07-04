@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-lastUpdated: 2026-06-10
+version: 1.1.0
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Done
 ---
@@ -409,3 +409,9 @@ When a policy is updated, this string must be changed in **both** surfaces
 - Profile model (consentVersion): [models.go](../../../apps/backend/services/profile/models.go)
 - Cookie consent feature: [cookie-consent/feature-spec.md](../cookie-consent/feature-spec.md)
 - Register feature: [register/feature-spec.md](../register/feature-spec.md)
+- Design index: [README.md](./README.md) · status: [status.md](./status.md) · journeys: [user-journeys.md](./user-journeys.md)
+
+---
+
+*Version: 1.1.0*
+*Last updated: 3 July 2026*

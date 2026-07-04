@@ -1,6 +1,6 @@
 ---
 version: 1.2.0
-lastUpdated: 2026-06-14
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: In Progress - scaffold + pages built; audit UI/API planned
 ---
@@ -471,3 +471,8 @@ follow the same `namespace.key` pattern as `web-app`.
 - Existing admin spec: [admin/feature-spec.md](../admin/feature-spec.md)
 - Project & RBAC spec: [project/feature-spec.md](../project/feature-spec.md)
 - Audit logging spec: [audit/feature-spec.md](../audit/feature-spec.md)
+
+---
+
+*Version: 1.2.0*
+*Last updated: 3 July 2026*

@@ -10,9 +10,7 @@ test.describe('Auth Action Page (/auth/action)', () => {
   test('shows password form with valid mode and oobCode', async ({ page }) => {
     await page.goto('/auth/action?mode=resetPassword&oobCode=fake-code-for-test');
     // Form renders on the client — Firebase confirmPasswordReset is only called on submit
-    await expect(
-      page.getByRole('button', { name: /บันทึกรหัสผ่าน|Save password/i }),
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: /บันทึกรหัสผ่าน|Save password/i })).toBeVisible();
   });
 
   test('unauthenticated access is allowed (no redirect)', async ({ page }) => {

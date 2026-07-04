@@ -1,6 +1,6 @@
 ---
 version: 0.1.0
-lastUpdated: 2026-06-30
+lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 status: Draft
 ---
@@ -340,3 +340,8 @@ Full route map in [sitemap.md §3](./sitemap.md#3-public-route-map-web-official)
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 0.1.0 | 2026-06-30 | Sathittham Sangthong | Initial restructure SRS (supersedes the current-site spec, now baseline §2.5) |
+
+---
+
+*Version: 0.1.0*
+*Last updated: 4 July 2026*

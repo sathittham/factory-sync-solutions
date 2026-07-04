@@ -1,6 +1,6 @@
 ---
 version: 1.2.1
-lastUpdated: 2026-06-14
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Done
 ---
@@ -488,3 +488,8 @@ admin team) could be added via `email.SendRegistration` if needed.
 - Profile handler (registration trigger): [profile/handler.go](../../../apps/backend/services/profile/handler.go)
 - Quiz handler (quiz result trigger): [quiz/handler.go](../../../apps/backend/services/quiz/handler.go)
 - Admin API: [api/admin.md](../../api/admin.md)
+
+---
+
+*Version: 1.2.1*
+*Last updated: 3 July 2026*
