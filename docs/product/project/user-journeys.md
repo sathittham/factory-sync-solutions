@@ -3,8 +3,10 @@
 How each app's users will move through projects. See [README.md](./README.md) for the
 design spec and [feature-spec.md](./feature-spec.md) for the formal requirements.
 
-> **Nothing below is built today** — the entire feature is planned (📋), so every flow
-> is roadmap and shown dashed.
+> **Most flows below are roadmap** and shown dashed. Exception: the server side of the
+> first journey is largely implemented — registration already creates the project +
+> Owner member + `projectRoles` map — but the `409` duplicate guard, `activeProjectID`,
+> and every UI surface (switcher, `JoinPage`, settings pages) are still planned.
 
 ---
 
@@ -25,14 +27,15 @@ Every user's first step — there is no user without a project.
 ```mermaid
 flowchart TD
     A["Sign in with Google — no profile"] -.-> B["/register — form + DBD lookup"]
-    B -.-> C["POST /api/v1/register"]
+    B -.-> C["POST /api/v1/profile"]
     C -.->|"companyRegId free"| D["Project created — user is Owner<br/>activeProjectID set · projectRoles = { regId: owner }"]
     D -.-> E["Redirected to /quiz"]
     C -.->|"companyRegId taken"| F["409 PROJECT_ALREADY_EXISTS —<br/>'Ask your project Owner or Admin to invite you'"]
 ```
 
 **Guard(s):** Firebase session required; project uniqueness enforced server-side on
-`companyRegId`. Detail in [feature-spec.md § 5.1](./feature-spec.md#5-registration--join-flow).
+`companyRegId` (planned — today a duplicate registration silently joins the existing
+project). Detail in [feature-spec.md § 5.1](./feature-spec.md#5-registration--join-flow).
 
 ---
 
@@ -122,5 +125,5 @@ in [project-role-middleware.md](./project-role-middleware.md).
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.1.0*
+*Last updated: 4 July 2026*

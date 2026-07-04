@@ -154,5 +154,5 @@ the Members tab.
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.0.1*
+*Last updated: 4 July 2026*

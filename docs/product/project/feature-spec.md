@@ -1,8 +1,8 @@
 ---
-version: 1.2.0
-lastUpdated: 2026-07-03
+version: 1.3.0
+lastUpdated: 2026-07-04
 author: Sathittham Sangthong
-status: Planned
+status: Planned — foundations already implemented (see § 1)
 ---
 
 # Project & RBAC — Feature Spec
@@ -21,14 +21,31 @@ company (identified by `companyRegId`). Users can belong to multiple projects
 simultaneously, each with a distinct role. All API calls operate on the
 user's **active project** unless overridden with an `X-Project-ID` header.
 
-| What changes | Before | After |
+**Already implemented today** (foundations this spec builds on):
+
+- Registration (`POST /api/v1/profile`) transactionally creates `projects/{companyRegId}`,
+  the Owner `members/{uid}` subdoc, and the `users/{uid}.projectRoles` map —
+  `services/profile/repository.go` (`Create`).
+- The backoffice manages projects and members: CRUD, deactivate/reactivate, member list,
+  invite-owner, role change, removal (`/api/v1/backoffice/projects…`,
+  `services/backoffice/handler.go`), updating the member subdoc and `projectRoles` map
+  atomically.
+- One-off backfill exists: `cmd/backfill-projects/main.go` (projects, members,
+  `projectRoles`, `projectID` on assessments).
+
+**Still planned** (the subject of this spec): the end-user `services/project/` API,
+`RequireProjectRole` middleware, `activeProjectID`, token-based `project_invitations`,
+`?scope=project` result scoping, `isProjectMember` Firestore rules, and all web-app
+surfaces (JoinPage, switcher, settings/members pages).
+
+| What changes | Before (current state) | After |
 |--------------|--------|-------|
-| Company data | Stored on each user's profile | Stored on the project; users are members |
-| First user | Registers independently | Registers → creates their own project → becomes Owner |
-| Joining other projects | Not supported | Owner/System Admin invites by specifying `projectID` + `role`; invitee must already have an account |
-| New user receiving an invite | N/A | Must **register their own project first**, then accept the invitation |
-| Role | Single system-level `role` field | Per-project RBAC (Owner / System Admin / Manager / General User) |
-| Multi-project | Not supported | User can be a member of many projects; one is marked active |
+| Company data | On the user profile, mirrored to `projects/{companyRegId}` at registration | Stored on the project; users are members |
+| First user | Registers → project + Owner member created transactionally | Unchanged, plus `activeProjectID` set |
+| Joining other projects | Registering with an existing `companyRegId` silently joins that project; backoffice can invite an Owner | Owner/System Admin/Manager invites by specifying `projectID` + `role`; duplicate self-registration returns `409` |
+| New user receiving an invite | Backoffice-only (`invite-owner`) | Must **register their own project first**, then accept the invitation |
+| Role | System-level `role` field + denormalized `projectRoles` map (written at registration) | Per-project RBAC enforced via `RequireProjectRole` (Owner / System Admin / Manager / General User) |
+| Multi-project | Data model supports it (`projectRoles` map); no user-facing surface | User can be a member of many projects; one is marked active |
 | Project context for API | N/A | Active project derived from `activeProjectID` on user profile |
 | Admin access | Firebase custom claim `role == "admin"` | System admin unchanged; project RBAC is separate |
 
@@ -73,7 +90,7 @@ in different projects.
 | Deactivate project | ✅ | — | — | — |
 | Transfer ownership | ✅ | — | — | — |
 | Update project settings (name, industry, size) | ✅ | ✅ | — | — |
-| Invite members | ✅ | ✅ | — | — |
+| Invite members | ✅ | ✅ | ✅ | — |
 | Remove members | ✅ | ✅ | — | — |
 | Change member role (up to own level) | ✅ | ✅ | — | — |
 | View all project assessments | ✅ | ✅ | ✅ | — |
@@ -129,7 +146,7 @@ Source of truth for roles and join history. One document per user-project pair.
 ```
 
 `joinMethod` values:
-- `"self_registered"` — this user created the project via `POST /register`; `invitedBy` and `invitationToken` are `null`
+- `"self_registered"` — this user created the project via `POST /api/v1/profile`; `invitedBy` and `invitationToken` are `null`
 - `"invited"` — this user accepted an invitation; `invitedBy` holds the inviter's UID and `invitationToken` holds the consumed token
 
 ### 4.3 Firestore Collection: `project_invitations/{token}`
@@ -191,26 +208,32 @@ source; the map is always written in the same transaction.
 
 ### 5.1 All users must register their own project first
 
-Every user must complete a standard registration (`POST /api/v1/register`) with
+Every user must complete a standard registration (`POST /api/v1/profile`) with
 their own `companyRegId` before they can do anything else — including accepting
 an invitation. There is no path that creates a user profile from an invitation.
 
 ```
-POST /api/v1/register  (unchanged request body)
+POST /api/v1/profile  (existing registration endpoint — body unchanged)
   → backend checks: does projects/{regId} exist?
-      No  → create projects/{regId} (owner = this UID)
-           → create projects/{regId}/members/{uid} (role: "owner")
-           → set users/{uid}.projectRoles = { regId: "owner" }
-           → set users/{uid}.activeProjectID = regId
+      No  → create projects/{regId} (owner = this UID)          ← implemented today
+           → create projects/{regId}/members/{uid} (role: "owner")  ← implemented today
+           → set users/{uid}.projectRoles = { regId: "owner" }      ← implemented today
+           → set users/{uid}.activeProjectID = regId                ← planned
            → 201 ProfileResponse
-      Yes → 409 PROJECT_ALREADY_EXISTS
+      Yes → 409 PROJECT_ALREADY_EXISTS                              ← planned
 ```
+
+> **Behavior change:** today a registration with an existing `companyRegId`
+> silently joins that project as a member (`services/profile/repository.go`).
+> This spec replaces that with `409 PROJECT_ALREADY_EXISTS` — joining an
+> existing project becomes invitation-only.
 
 ### 5.2 Inviting an existing user
 
-An Owner / System Admin creates an invitation by specifying the
-**target project** (`projectID`) and the **role** to grant. The invitation is
-sent to an email address so the right person receives the link.
+Any member with **Manager role or higher** in the target project creates an
+invitation by specifying the **target project** (`projectID`) and the **role**
+to grant (capped at their own level). The invitation is sent to an email
+address so the right person receives the link.
 
 ```
 POST /api/v1/project/invitations
@@ -238,7 +261,7 @@ Backend:
   3. Token check: exists → not used → not expired
   4. Duplicate check: not already a member of projectID
   In a single Firestore transaction:
-  5. Mark token isUsed = true, usedAt = now
+  5. Mark token status = "accepted", acceptedAt = now, acceptedByUID = uid
   6. Create projects/{projectID}/members/{uid} (role from token)
   7. Update users/{uid}.projectRoles[projectID] = role
   → 200 ProfileResponse (updated, activeProjectID unchanged)
@@ -280,7 +303,7 @@ gets `409 PROJECT_ALREADY_EXISTS`:
 Sign in with Google
   → No profile → RegisterPage
   → Fill form + DBD lookup
-  → Submit → POST /api/v1/register
+  → Submit → POST /api/v1/profile
   → Own project created; user is Owner
   → activeProjectID set; projectRoles = { regId: "owner" }
   → Redirected to /quiz
@@ -403,8 +426,8 @@ Already-used token → "This invitation has already been accepted."
 
 ### 7.3 Project Settings Page (`/project/settings`) — new
 
-Scoped to the **active project**. Accessible to Owner and System Admin only.
-Two tabs:
+Scoped to the **active project**. General tab: Owner / System Admin only;
+Members tab: Manager and above (see [§ 13](#13-route-changes)). Two tabs:
 
 **Tab 1 — General**
 
@@ -456,10 +479,12 @@ Two tabs:
 
 ### 8.1 Registration — updated
 
-**`POST /api/v1/register`** (existing endpoint, body unchanged)
+**`POST /api/v1/profile`** (existing registration endpoint, body unchanged)
 
-If `companyRegId` has no existing project → create project + owner member doc.
-If a project already exists → `409 PROJECT_ALREADY_EXISTS`.
+If `companyRegId` has no existing project → create project + owner member doc
+(already implemented today). If a project already exists →
+`409 PROJECT_ALREADY_EXISTS` (**planned change** — today the registrant
+silently joins the existing project).
 
 ---
 
@@ -515,7 +540,7 @@ No role restriction — any authenticated user can call this.
       "isActive":    false
     }
   ],
-  "total": 2
+  "count": 2
 }
 ```
 
@@ -570,7 +595,7 @@ Requires `manager` role or higher.
       "isActive":    true
     }
   ],
-  "total": 4
+  "count": 4
 }
 ```
 
@@ -730,7 +755,7 @@ of the requested project.
 | `ErrMemberNotFound` | `project` | UID not in `members` subcollection |
 | `ErrAlreadyMember` | `project` | User is already an active member of this project |
 | `ErrInvitationNotFound` | `project` | Token does not exist |
-| `ErrInvitationAlreadyUsed` | `project` | Token `isUsed == true` — checked **before** expiry |
+| `ErrInvitationAlreadyUsed` | `project` | Token `status == "accepted"` — checked **before** expiry |
 | `ErrInvitationExpired` | `project` | Token past its `expiresAt` — checked after used flag |
 | `ErrInsufficientRole` | `project` | Caller's role too low for the action |
 | `ErrCannotRemoveOwner` | `project` | Attempt to remove or demote the Owner |
@@ -740,9 +765,9 @@ of the requested project.
 **Validation order for invitation tokens** (enforced by `service.ValidateInvitationToken`):
 
 ```
-1. Get invitation doc            → ErrInvitationNotFound  if missing
-2. invitation.IsUsed == false    → ErrInvitationAlreadyUsed if true
-3. now.Before(invitation.ExpiresAt) → ErrInvitationExpired if past TTL
+1. Get invitation doc               → ErrInvitationNotFound     if missing
+2. invitation.Status == "accepted"  → ErrInvitationAlreadyUsed  if so
+3. now.Before(invitation.ExpiresAt) → ErrInvitationExpired      if past TTL
 ```
 
 Used-before-expired ordering is intentional: if a token was both used and
@@ -799,7 +824,8 @@ by `projectID == activeProjectID`.
 
 ## 12. Migration Path (Existing Users)
 
-One-off migration script `cmd/migrate-projects/main.go`:
+One-off migration script — **already implemented** as
+`apps/backend/cmd/backfill-projects/main.go`:
 
 1. Iterate all `users/{uid}` documents.
 2. Group by `companyRegId`. The user with the earliest `createdAt` per group becomes `owner`; all others become `general_user`.
@@ -891,7 +917,7 @@ each project switch.
 
 | Event | Trigger | Properties |
 |-------|---------|------------|
-| `project_created` | `POST /register` creates project | `{ projectID, industryType, companySize }` |
+| `project_created` | `POST /profile` creates project | `{ projectID, industryType, companySize }` |
 | `project_switched` | `PUT /project/active` | `{ fromProjectID, toProjectID }` |
 | `member_invited` | `POST /project/invitations` | `{ role }` |
 | `member_joined` | `POST /project/join` | `{ role, isNewUser: bool }` |
@@ -906,6 +932,9 @@ each project switch.
 ### 17.1 Project deactivation
 Owner can deactivate a project, blocking all member access without deleting
 data. Deactivated projects are hidden from the project switcher.
+Backoffice-side deactivate/reactivate already exists
+(`POST /api/v1/backoffice/projects/{id}/deactivate` / `…/reactivate`) — this
+item is the Owner-facing control.
 
 ### 17.2 Bulk invite (CSV upload)
 Upload a CSV of emails + roles to send batch invitations in one action.
@@ -950,15 +979,15 @@ being a member. Currently scoped to their own memberships only.
 
 | # | Task | Depends On |
 |---|------|-----------|
-| 1 | `services/project/models.go` — Project, Member, Invitation structs | — |
-| 2 | `services/project/repository.go` — CRUD for projects + members + invitations | 1 |
+| 1 | `services/project/models.go` — Project, Member, Invitation structs (⚠️ project/member structs already exist in `services/profile` + `services/backoffice`; consolidate) | — |
+| 2 | `services/project/repository.go` — CRUD for projects + members + invitations (⚠️ registration transaction + backoffice CRUD already exist; invitations repo is new) | 1 |
 | 3 | `services/project/service.go` — business logic + sentinel errors | 2 |
 | 4 | `services/project/handler.go` — all REST endpoints | 3 |
 | 5 | `middleware/project_role.go` — `RequireProjectRole` (reads `projectRoles` map) | 3 |
-| 6 | Update `services/profile/service.go` — create project on first register | 2 |
+| 6 | ~~Update `services/profile/service.go` — create project on first register~~ ✅ done (`services/profile/repository.go` `Create`); remaining: the `409` duplicate guard + `activeProjectID` | 2 |
 | 7 | Update `services/result/handler.go` — add `?scope=project` + `projectID` filter | 5 |
 | 8 | Update `firestore.rules` — `isProjectMember` via `projectRoles` map | 2 |
-| 9 | Migration script `cmd/migrate-projects/main.go` | 2 |
+| 9 | ~~Migration script~~ ✅ done — `cmd/backfill-projects/main.go` | 2 |
 | 10 | Frontend: `authSlice` — add `activeProjectID`, `projectRoles`, `projectMemberships` | — |
 | 11 | Frontend: `selectActiveProjectRole` selector | 10 |
 | 12 | Frontend: `ProjectRoleGuard` | 11 |
@@ -981,5 +1010,5 @@ being a member. Currently scoped to their own memberships only.
 
 ---
 
-*Version: 1.2.0*
-*Last updated: 3 July 2026*
+*Version: 1.3.0*
+*Last updated: 4 July 2026*

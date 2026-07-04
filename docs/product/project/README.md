@@ -1,6 +1,6 @@
 # Project & RBAC — Feature Spec
 
-**Status:** 📋 Planned — nothing implemented yet; `services/project/` does not exist. This folder is the approved design.
+**Status:** ⚠️ Partially implemented — the end-user surface is still planned (`services/project/` does not exist), but the foundations are live: registration already creates `projects/{companyRegId}` + the Owner member subdoc + the `users/{uid}.projectRoles` map (`services/profile/repository.go`), the backoffice manages projects/members (`/api/v1/backoffice/projects…`), and the backfill exists (`cmd/backfill-projects/main.go`). This folder is the approved design for the rest.
 
 ---
 
@@ -38,12 +38,13 @@ component is documented in a dedicated sub-document; see [References](#reference
 
 | web-app | backend |
 |:-------:|:-------:|
-| 📋 | 📋 |
+| 📋 | ⚠️ |
 
-Planned: `web-app` gains a project switcher in the nav, a public `JoinPage` at `/join`,
-and `/project/settings` (General + Members tabs); the backend gains `services/project/`
-plus a `RequireProjectRole` middleware. No `web-official` surface. Planned per-app flows
-live in [user-journeys.md](./user-journeys.md).
+Backend foundations exist (projects/members created at registration; backoffice
+administration). Planned: `web-app` gains a project switcher in the nav, a public
+`JoinPage` at `/join`, and `/project/settings` (General + Members tabs); the backend
+gains `services/project/` plus a `RequireProjectRole` middleware. No `web-official`
+surface. Planned per-app flows live in [user-journeys.md](./user-journeys.md).
 
 ---
 
@@ -57,7 +58,7 @@ live in [user-journeys.md](./user-journeys.md).
 | **Project switcher** (web-app) | Nav dropdown listing all memberships with roles; switches `activeProjectID` |
 | **`JoinPage`** (web-app) | Public `/join?token=…` — preview, sign-in, register-first, and accept states |
 | **Project settings + members pages** (web-app) | `/project/settings` General tab (Owner/System Admin) + Members tab with invite modal, role changes, removal |
-| **Migration** (ops) | One-off `cmd/migrate-projects/main.go` — group existing users by `companyRegId`, earliest registrant becomes Owner, backfill `projectID` onto assessments |
+| **Migration** (ops) | ✅ Implemented as `cmd/backfill-projects/main.go` — group existing users by `companyRegId`, earliest registrant becomes Owner, backfill `projectID` onto assessments |
 
 **Roles (per project):** Owner · System Admin · Manager · General User. A member can
 only assign roles up to their own level; full permission matrix in
@@ -89,8 +90,9 @@ only assign roles up to their own level; full permission matrix in
 
 ## Current State
 
-See [status.md](./status.md) — every item is ❌ not started. [Build
-Sequence](#build-sequence) below has the file-level task breakdown.
+See [status.md](./status.md) — registration-side foundations and the backfill are
+done; the end-user API, middleware, and all web-app surfaces are ❌ not started.
+[Build Sequence](#build-sequence) below has the file-level task breakdown.
 
 ---
 
@@ -113,8 +115,9 @@ flowchart LR
   S -.->|invitation email| NF[notification service]
 ```
 
-Registration (`POST /api/v1/register`, body unchanged) creates the project + owner
-member doc, or returns `409 PROJECT_ALREADY_EXISTS` if the `companyRegId` is taken.
+Registration (`POST /api/v1/profile`, body unchanged) already creates the project +
+owner member doc today; the `409 PROJECT_ALREADY_EXISTS` on a taken `companyRegId` is a
+**planned change** (today the registrant silently joins the existing project).
 Membership writes always update the `members` subdoc (source of truth) and the
 denormalized `users/{uid}.projectRoles` map in the same Firestore transaction — the map
 avoids a second read on every project-scoped call. Full flows in
@@ -133,7 +136,7 @@ avoids a second read on every project-scoped call. Full flows in
 
 | Method | Path | Auth / Role | Purpose |
 |--------|------|-------------|---------|
-| `POST` | `/api/v1/register` | Bearer | (updated) Creates project + Owner membership, or `409 PROJECT_ALREADY_EXISTS` |
+| `POST` | `/api/v1/profile` | Bearer | (existing — creates project + Owner membership today; planned: `409 PROJECT_ALREADY_EXISTS` on duplicate) |
 | `GET` | `/api/v1/project` | Bearer | Active project details incl. caller's `myRole` |
 | `GET` | `/api/v1/project/memberships` | Bearer | All projects the caller belongs to |
 | `PUT` | `/api/v1/project/active` | Bearer · member | Switch active project (validates membership) |
@@ -169,15 +172,15 @@ Mirrors [feature-spec.md § 19](./feature-spec.md#19-build-order); tracked in
 
 | # | Task | File(s) | Depends on |
 |---|------|---------|-----------|
-| 1 | Project, Member, Invitation structs | `apps/backend/services/project/models.go` | — |
-| 2 | CRUD for projects + members + invitations | `apps/backend/services/project/repository.go` | 1 |
+| 1 | Project, Member, Invitation structs (⚠️ project/member structs exist in `profile` + `backoffice`; consolidate) | `apps/backend/services/project/models.go` | — |
+| 2 | CRUD for projects + members + invitations (⚠️ registration txn + backoffice CRUD exist; invitations new) | `apps/backend/services/project/repository.go` | 1 |
 | 3 | Business logic + sentinel errors | `apps/backend/services/project/service.go` | 2 |
 | 4 | All REST endpoints | `apps/backend/services/project/handler.go` | 3 |
 | 5 | `RequireProjectRole` middleware | `apps/backend/middleware/project_role.go` | 3 |
-| 6 | Create project on first register | `apps/backend/services/profile/service.go` | 2 |
+| 6 | ✅ Create project on first register (remaining: `409` guard + `activeProjectID`) | `apps/backend/services/profile/repository.go` | 2 |
 | 7 | `?scope=project` + `projectID` filter | `apps/backend/services/result/handler.go` | 5 |
 | 8 | `isProjectMember` via `projectRoles` map | `firestore.rules` | 2 |
-| 9 | Migration script | `apps/backend/cmd/migrate-projects/main.go` | 2 |
+| 9 | ✅ Migration script | `apps/backend/cmd/backfill-projects/main.go` | 2 |
 | 10 | `activeProjectID`, `projectRoles`, `projectMemberships` | `apps/web-app/src/store/authSlice.ts` | — |
 | 11 | `selectActiveProjectRole` selector | `apps/web-app/src/store/authSlice.ts` | 10 |
 | 12 | `ProjectRoleGuard` | `apps/web-app/src/components/` | 11 |
@@ -207,7 +210,7 @@ Mirrors [feature-spec.md § 19](./feature-spec.md#19-build-order); tracked in
 ## Acceptance Criteria
 
 Mirrors [feature-spec.md § 18](./feature-spec.md#18-acceptance-criteria) — all open
-(nothing built):
+(foundations exist but none of the criteria are test-verified yet):
 
 **Registration & join** — see [invitation-lifecycle.md](./invitation-lifecycle.md)
 - [ ] Registering with a new `companyRegId` creates a project; user becomes Owner.
@@ -234,8 +237,7 @@ Mirrors [feature-spec.md § 18](./feature-spec.md#18-acceptance-criteria) — al
 
 ## Testing
 
-The spec defines no test plan yet — per ISO 29110 (SI.4-5), copy
-`docs/iso29110/test-plan-template.md` → `test-plan.md` in this folder and write tests
+The test plan lives in [test-plan.md](./test-plan.md) (ISO 29110 SI.4-5) — write tests
 TDD-first before implementation. Expected suites follow the build sequence:
 
 | Package | Target | Notes |
@@ -254,7 +256,7 @@ From [feature-spec.md § 17](./feature-spec.md#17-open-tasks):
 
 | # | Area | Description |
 |---|------|-------------|
-| 1 | Project deactivation | Owner can deactivate (not delete) a project; hidden from the switcher |
+| 1 | Project deactivation | Owner can deactivate (not delete) a project; hidden from the switcher. Backoffice-side deactivate/reactivate already exists — this is the Owner-facing control |
 | 2 | Bulk invite | CSV upload of emails + roles for batch invitations |
 | 3 | Email preferences per role | Managers get an email summary of new assessments, configurable per member |
 | 4 | Cross-project admin view | System admin (`role == "admin"`) inspects any project without membership |
@@ -263,7 +265,7 @@ From [feature-spec.md § 17](./feature-spec.md#17-open-tasks):
 
 | # | Area | Description |
 |---|------|-------------|
-| 1 | Migration | Existing users must be grouped into projects (`cmd/migrate-projects/main.go`) and `projectID` backfilled onto every assessment before result scoping ships |
+| 1 | Migration | ✅ Done — `cmd/backfill-projects/main.go` groups existing users into projects and backfills `projectID` onto assessments; result scoping is unblocked |
 
 ### Open decisions
 
@@ -278,7 +280,8 @@ None recorded in the spec — implementation starts at Build Sequence step 1.
 | Doc | Covers |
 |-----|--------|
 | [feature-spec.md](./feature-spec.md) | ISO 29110 SRS — formal requirements, permission matrix, full API + data model |
-| [status.md](./status.md) | Current implementation status per component (all not started) |
+| [status.md](./status.md) | Current implementation status per component |
+| [test-plan.md](./test-plan.md) | ISO 29110 test plan — unit / integration / e2e cases (SI.4-5) |
 | [user-journeys.md](./user-journeys.md) | Planned per-app user flows (all roadmap) |
 | [invitation-lifecycle.md](./invitation-lifecycle.md) | Invitation token states, TTL, validation order (backend) |
 | [project-role-middleware.md](./project-role-middleware.md) | `RequireProjectRole` middleware + `projectRoles` map (backend) |
@@ -286,7 +289,7 @@ None recorded in the spec — implementation starts at Build Sequence step 1.
 
 ### ISO 29110 artifacts
 
-- Test plan: copy `docs/iso29110/test-plan-template.md` → `test-plan.md` before implementation
+- Test plan: [test-plan.md](./test-plan.md)
 - Scope changes → [docs/iso29110/change-request-log.md](../../iso29110/change-request-log.md)
 - New risks → [docs/iso29110/risk-register.md](../../iso29110/risk-register.md)
 
@@ -301,5 +304,5 @@ None recorded in the spec — implementation starts at Build Sequence step 1.
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.1.0*
+*Last updated: 4 July 2026*

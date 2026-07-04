@@ -5,7 +5,15 @@
 Token-based project invitations stored in `project_invitations/{token}`; to be
 implemented in `apps/backend/services/project/` (service + repository). An Owner /
 System Admin (Manager+ for creation) invites an email address into a project with a
-role; the invitee accepts via `POST /project/join`. Nothing is built yet.
+role; the invitee accepts via `POST /project/join`. The token lifecycle below is not
+built yet.
+
+> **Relation to existing invite flows:** two admin-side invitation mechanisms already
+> exist today — the `invitations` collection in `services/admin/` (creates the invited
+> user via `profile.CreateInvitedProfile`) and the backoffice
+> `POST /backoffice/projects/{id}/invite-owner`. Both are staff-initiated and
+> profile-creating. This feature is the member-facing replacement for project-member
+> invites: register-first, token-based, single-use — it does not create profiles.
 
 ## Implementation
 
@@ -90,5 +98,5 @@ tx {
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.1.0*
+*Last updated: 4 July 2026*

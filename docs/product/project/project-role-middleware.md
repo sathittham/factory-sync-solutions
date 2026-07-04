@@ -5,7 +5,9 @@
 Per-project RBAC guard for Chi routes, to be implemented at
 `apps/backend/middleware/project_role.go`. Resolves the caller's role in the project in
 scope from the denormalized `users/{uid}.projectRoles` map and rejects insufficient
-roles with `403 FORBIDDEN`. Nothing is built yet.
+roles with `403 FORBIDDEN`. The middleware is not built yet; the `projectRoles` map it
+reads already exists on the user doc — written at registration
+(`services/profile/repository.go`) and maintained by the backoffice member endpoints.
 
 ## Implementation
 
@@ -65,11 +67,11 @@ The frontend mirror is `ProjectRoleGuard`, which reads
 ## Status
 
 - [ ] `middleware/project_role.go` — `RequireProjectRole` factory
-- [ ] `projectRoles` map maintained transactionally with member writes — `services/project/service.go`
+- [ ] `projectRoles` map maintained transactionally with member writes — `services/project/service.go` (⚠️ already done for registration + backoffice writes; extend to `services/project/`)
 - [ ] Wired into project + result routes
 - [ ] Deny-path tests in `services/project/handler_test.go` (403 insufficient / non-member)
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.1.0*
+*Last updated: 4 July 2026*
