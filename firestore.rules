@@ -13,10 +13,13 @@ service cloud.firestore {
                     && request.auth.uid == uid
                     && request.resource.data.role == 'user';
 
-      // Users can update their own profile (except role)
+      // Users can update their own profile (except role and avatarURL, which
+      // are backend-only — avatarURL is written exclusively by the upload
+      // service via the Admin SDK after image validation/processing)
       allow update: if request.auth != null
                     && request.auth.uid == uid
-                    && request.resource.data.role == resource.data.role;
+                    && request.resource.data.role == resource.data.role
+                    && request.resource.data.avatarURL == resource.data.avatarURL;
 
       // Admin can read any profile
       allow read: if request.auth != null
