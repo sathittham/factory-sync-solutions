@@ -1,6 +1,6 @@
 ---
 isoOutput: PM.O1 (Risk Register)
-version: 1.2.0
+version: 1.3.0
 lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 ---
@@ -31,6 +31,7 @@ Review at every progress meeting. Add new risks immediately when identified. Clo
 | R-008 | Backoffice claim (`backofficeRole`) misconfigured in Firebase | L | H | Monitor | Claims set by backend superadmin staff endpoints only; BackofficeGuard + SuperAdminGuard on all routes | Sathittham | Open |
 | R-009 | `web-app` server-state migration (TanStack Query, CR-003) regresses data freshness or an auth-gated data flow | L | M | Monitor | Vitest 80/80 + tsc gate before each promotion; staging smoke test before prod; `staleTime` 30s / `retry` 1 conservative defaults; Phase 2 (profile reads) deferred until auth flows can be e2e-verified with live Firebase | Sathittham | Open |
 | R-010 | GA4 Data API dependency for backoffice analytics — quota exhaustion, upstream outage, or SA key/permission drift breaks the dashboard | L | M | Monitor | 15m TTL cache + stale-while-error keeps last data on outage (cold cache degrades to 503, rest of backoffice unaffected); per-env SA keys in Secret Manager; dashboard read-only aggregate data | Sathittham | Open |
+| R-011 | Same root cause as R-C003, different credentials: `R2_ACCOUNT_ID`/`R2_ACCESS_KEY_ID`/`R2_ACCESS_KEY_SECRET` (referenced by both `deploy-staging.yml` and `deploy-production.yml` for the main upload service) were never configured as GitHub Actions secrets/variables — since `gcloud run deploy --set-env-vars` replaces the whole env var set on every deploy, this has likely disabled all upload endpoints (avatar upload + the new backoffice utility, `503 UPLOAD_DISABLED`) on deployed staging/production since Phase 1 shipped | H | H | Mitigate now | Found 2026-07-04 while verifying `bo-upload-utility` MT-002. Valid R2 API token issued; `R2_ACCOUNT_ID`/`R2_ACCESS_KEY_ID`/`R2_ACCESS_KEY_SECRET` added to GitHub Actions and local `.env.development`; re-verified `Service.UploadFile` against the real staging bucket (upload + CDN serve confirmed, test object cleaned up). Still needs a staging/production redeploy to take effect on the live services — track alongside R-C003 as a candidate for a standing pre-deploy check that all `${{ secrets.* }}`/`${{ vars.* }}` referenced in deploy workflows actually exist in the repo | Sathittham | Open |
 
 ---
 
@@ -62,3 +63,4 @@ Assign the next sequential ID (check closed risks too). Update the `lastUpdated`
 |---|---|---|
 | 2026-07-02 | Sathittham Sangthong | v0.13.0 release review. All 8 prior risks re-confirmed Open with mitigations current; no scores changed. Added R-009 (server-state migration regression, L×M → Monitor). No High/Critical open risks require escalation beyond R-005 (bus-factor, already Mitigate). |
 | 2026-07-04 | Sathittham Sangthong | v0.14.0 release review. All 9 prior risks re-confirmed Open, mitigations current; no scores changed. Added R-010 (GA4 Data API dependency, L×M → Monitor) — mitigated by TTL cache + stale-while-error + graceful 503. GA4 credentials handled per-env via Secret Manager (never in git or workflow strings). |
+| 2026-07-04 | Sathittham Sangthong | Added R-011 (H×H → Mitigate now) while verifying the `bo-upload-utility` feature: `R2_ACCOUNT_ID`/`R2_ACCESS_KEY_ID`/`R2_ACCESS_KEY_SECRET` were missing from GitHub Actions, disabling all upload endpoints on deployed staging/production since Phase 1. Credentials fixed same day; redeploy still pending to take effect live. Same root-cause class as R-C003 — worth a follow-up: a CI check that every `${{ secrets.* }}`/`${{ vars.* }}` referenced in deploy workflows actually exists in the repo, so this class of gap surfaces at PR time instead of silently at runtime. |

@@ -1,6 +1,6 @@
 ---
 isoOutput: SI.O4 / SI.O5
-version: 1.0.0
+version: 1.1.0
 lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 status: Active
@@ -83,14 +83,32 @@ status: Active
 | ID | Case | Status |
 |----|------|:------:|
 | MT-001 | `/api/v1/backoffice/upload/file` returns `403` for a non-backoffice caller and `200` + CDN URL for staff/superadmin | ✅ 4 Jul 2026 (code review of `RequireBackofficeRole` wiring — see NOTE) |
-| MT-002 | Sidebar shows a "Utilities" section with "Upload File" for both staff and superadmin; page uploads a real image in dev and the CDN link opens the image | ⬜ pending — needs a live R2-configured environment to click through |
+| MT-002 | `Service.UploadFile` uploads a real file to the actual staging R2 bucket and the returned CDN URL serves it | ✅ 4 Jul 2026 — see NOTE (R2 credential gap found + fixed) |
+| MT-003 | Sidebar shows a "Utilities" section with "Upload File" for both staff and superadmin; full browser click-through as a signed-in staff/superadmin user | ⬜ pending — needs a live staff login, not yet done |
 
 **NOTE (MT-001):** verified by inspection of the route registration
 (`r.Route("/backoffice", func(r chi.Router) { r.Use(RequireBackofficeRole(...)); ...; r.Route("/upload", uploadHandler.BackofficeRoutes) })`)
 matching the same middleware already protecting `backofficeHandler.Routes` and
 `/backoffice/analytics` — not exercised against a live Firebase custom-claims
-token. Flag for a manual click-through before the next release (see
-[status.md](./status.md) Open Items).
+token.
+
+**NOTE (MT-002):** the first attempt failed with R2 `403 SignatureDoesNotMatch`.
+Root cause: `R2_ACCESS_KEY_ID`/`R2_ACCESS_KEY_SECRET` (secrets) and
+`R2_ACCOUNT_ID` (variable) — referenced by both `deploy-staging.yml` and
+`deploy-production.yml` — were **never configured** in the GitHub repo's
+Actions secrets/variables. Since `gcloud run deploy --set-env-vars` replaces
+the whole env var set on every deploy, this means the deployed staging and
+production Cloud Run services have likely been running with the upload
+service fully disabled (`503 UPLOAD_DISABLED`) since Phase 1 (avatar upload)
+shipped — a pre-existing gap unrelated to this feature. Fixed 4 July 2026: a
+valid R2 API token was issued, `R2_ACCOUNT_ID`/`R2_ACCESS_KEY_ID`/`R2_ACCESS_KEY_SECRET`
+added to GitHub Actions, and local `.env.development` updated. Re-ran the
+verification against the real `uploads-factorysyncsolutions-com-staging`
+bucket: upload succeeded, the CDN URL served the file (`200 image/png`), and
+the test object was deleted afterward via `wrangler r2 object delete --remote`.
+**Still needed:** the live Cloud Run staging/production services won't pick up
+the new secrets until their next deploy — see
+[risk register](../../iso29110/risk-register.md).
 
 ## 4. Regression Gate
 
@@ -103,5 +121,5 @@ token. Flag for a manual click-through before the next release (see
 - `pnpm --filter @repo/web-backoffice type-check` and Biome clean on all
   changed/added files; `go build ./...`, `go vet ./...` clean.
 
-*Version: 1.0.0*
+*Version: 1.1.0*
 *Last updated: 4 July 2026*
