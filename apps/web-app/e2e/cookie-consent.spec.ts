@@ -8,7 +8,7 @@ test.describe('Cookie Consent', () => {
     await page.reload();
   });
 
-  test('shows cookie banner on first visit', async ({ page }) => {
+  test('shows cookie banner on first visit', { tag: '@regression' }, async ({ page }) => {
     const acceptBtn = page.getByTestId('cookie-accept-all-btn');
     await expect(acceptBtn).toBeVisible();
 
@@ -16,7 +16,7 @@ test.describe('Cookie Consent', () => {
     await expect(settingsBtn).toBeVisible();
   });
 
-  test('accept all hides the banner', async ({ page }) => {
+  test('accept all hides the banner', { tag: '@regression' }, async ({ page }) => {
     const acceptBtn = page.getByTestId('cookie-accept-all-btn');
     await acceptBtn.click();
 
@@ -28,7 +28,7 @@ test.describe('Cookie Consent', () => {
     expect(consent).toBe('all');
   });
 
-  test('opens cookie settings dialog', async ({ page }) => {
+  test('opens cookie settings dialog', { tag: '@regression' }, async ({ page }) => {
     const settingsBtn = page.getByTestId('cookie-settings-btn');
     await settingsBtn.click();
 
@@ -37,22 +37,26 @@ test.describe('Cookie Consent', () => {
     await expect(confirmBtn).toBeVisible();
   });
 
-  test('confirm selection with defaults saves essential only', async ({ page }) => {
-    const settingsBtn = page.getByTestId('cookie-settings-btn');
-    await settingsBtn.click();
+  test(
+    'confirm selection with defaults saves essential only',
+    { tag: '@regression' },
+    async ({ page }) => {
+      const settingsBtn = page.getByTestId('cookie-settings-btn');
+      await settingsBtn.click();
 
-    const confirmBtn = page.getByTestId('cookie-confirm-btn');
-    await confirmBtn.click();
+      const confirmBtn = page.getByTestId('cookie-confirm-btn');
+      await confirmBtn.click();
 
-    // Dialog should close
-    await expect(confirmBtn).not.toBeVisible();
+      // Dialog should close
+      await expect(confirmBtn).not.toBeVisible();
 
-    // Consent should be stored as essential
-    const consent = await page.evaluate(() => localStorage.getItem('fss-cookie-consent'));
-    expect(consent).toBe('essential');
-  });
+      // Consent should be stored as essential
+      const consent = await page.evaluate(() => localStorage.getItem('fss-cookie-consent'));
+      expect(consent).toBe('essential');
+    },
+  );
 
-  test('does not show banner after consent is given', async ({ page }) => {
+  test('does not show banner after consent is given', { tag: '@regression' }, async ({ page }) => {
     // Accept all first
     await page.getByTestId('cookie-accept-all-btn').click();
 
@@ -78,70 +82,90 @@ test.describe('Consent Mode v2', () => {
     await page.reload();
   });
 
-  test('defaults all gated signals to denied before any choice', async ({ page }) => {
-    const calls = await page.evaluate(readConsentCalls);
-    const def = calls.find((c) => c[1] === 'default');
-    expect(def?.[2]).toMatchObject({
-      analytics_storage: 'denied',
-      ad_storage: 'denied',
-      ad_user_data: 'denied',
-      ad_personalization: 'denied',
-    });
-    expect(calls.filter((c) => c[1] === 'update')).toHaveLength(0);
-  });
+  test(
+    'defaults all gated signals to denied before any choice',
+    { tag: '@regression' },
+    async ({ page }) => {
+      const calls = await page.evaluate(readConsentCalls);
+      const def = calls.find((c) => c[1] === 'default');
+      expect(def?.[2]).toMatchObject({
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+      });
+      expect(calls.filter((c) => c[1] === 'update')).toHaveLength(0);
+    },
+  );
 
-  test('accept all pushes a granted consent update on the same page', async ({ page }) => {
-    await page.getByTestId('cookie-accept-all-btn').click();
+  test(
+    'accept all pushes a granted consent update on the same page',
+    { tag: '@regression' },
+    async ({ page }) => {
+      await page.getByTestId('cookie-accept-all-btn').click();
 
-    const calls = await page.evaluate(readConsentCalls);
-    const update = calls.findLast((c) => c[1] === 'update');
-    expect(update?.[2]).toMatchObject({
-      analytics_storage: 'granted',
-      ad_storage: 'granted',
-      ad_user_data: 'granted',
-      ad_personalization: 'granted',
-    });
-  });
+      const calls = await page.evaluate(readConsentCalls);
+      const update = calls.findLast((c) => c[1] === 'update');
+      expect(update?.[2]).toMatchObject({
+        analytics_storage: 'granted',
+        ad_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted',
+      });
+    },
+  );
 
-  test('confirming analytics-only grants analytics and denies marketing', async ({ page }) => {
-    await page.getByTestId('cookie-settings-btn').click();
-    // Settings panel order: analytics switch first, marketing second
-    await page.getByRole('switch').first().click();
-    await page.getByTestId('cookie-confirm-btn').click();
+  test(
+    'confirming analytics-only grants analytics and denies marketing',
+    { tag: '@regression' },
+    async ({ page }) => {
+      await page.getByTestId('cookie-settings-btn').click();
+      // Settings panel order: analytics switch first, marketing second
+      await page.getByRole('switch').first().click();
+      await page.getByTestId('cookie-confirm-btn').click();
 
-    const calls = await page.evaluate(readConsentCalls);
-    const update = calls.findLast((c) => c[1] === 'update');
-    expect(update?.[2]).toMatchObject({
-      analytics_storage: 'granted',
-      ad_storage: 'denied',
-    });
-  });
+      const calls = await page.evaluate(readConsentCalls);
+      const update = calls.findLast((c) => c[1] === 'update');
+      expect(update?.[2]).toMatchObject({
+        analytics_storage: 'granted',
+        ad_storage: 'denied',
+      });
+    },
+  );
 
-  test('a stored choice is replayed as an update on the next visit', async ({ page }) => {
-    await page.getByTestId('cookie-accept-all-btn').click();
-    await page.reload();
+  test(
+    'a stored choice is replayed as an update on the next visit',
+    { tag: '@regression' },
+    async ({ page }) => {
+      await page.getByTestId('cookie-accept-all-btn').click();
+      await page.reload();
 
-    const calls = await page.evaluate(readConsentCalls);
-    const update = calls.findLast((c) => c[1] === 'update');
-    expect(update?.[2]).toMatchObject({ analytics_storage: 'granted' });
-  });
+      const calls = await page.evaluate(readConsentCalls);
+      const update = calls.findLast((c) => c[1] === 'update');
+      expect(update?.[2]).toMatchObject({ analytics_storage: 'granted' });
+    },
+  );
 
-  test('handoff query params seed consent and are stripped from the URL', async ({ page }) => {
-    await page.goto('/?consent=all&analytics=true&marketing=true&lang=th');
+  test(
+    'handoff query params seed consent and are stripped from the URL',
+    { tag: '@regression' },
+    async ({ page }) => {
+      await page.goto('/?consent=all&analytics=true&marketing=true&lang=th');
 
-    // Boot script strips handoff params via history.replaceState
-    await page.waitForFunction(() => globalThis.location.search === '');
-    const seeded = await page.evaluate(() => ({
-      consent: localStorage.getItem('fss-cookie-consent'),
-      analytics: localStorage.getItem('fss-analytics-consent'),
-    }));
-    expect(seeded.consent).toBe('all');
-    expect(seeded.analytics).toBe('true');
+      // Boot script strips handoff params via history.replaceState
+      await page.waitForFunction(() => globalThis.location.search === '');
+      const seeded = await page.evaluate(() => ({
+        consent: localStorage.getItem('fss-cookie-consent'),
+        analytics: localStorage.getItem('fss-analytics-consent'),
+      }));
+      expect(seeded.consent).toBe('all');
+      expect(seeded.analytics).toBe('true');
 
-    // Seeded consent suppresses the banner and is replayed into Consent Mode
-    await expect(page.getByTestId('cookie-accept-all-btn')).not.toBeVisible();
-    const calls = await page.evaluate(readConsentCalls);
-    const update = calls.findLast((c) => c[1] === 'update');
-    expect(update?.[2]).toMatchObject({ analytics_storage: 'granted' });
-  });
+      // Seeded consent suppresses the banner and is replayed into Consent Mode
+      await expect(page.getByTestId('cookie-accept-all-btn')).not.toBeVisible();
+      const calls = await page.evaluate(readConsentCalls);
+      const update = calls.findLast((c) => c[1] === 'update');
+      expect(update?.[2]).toMatchObject({ analytics_storage: 'granted' });
+    },
+  );
 });

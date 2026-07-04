@@ -30,6 +30,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new ApiError(res.status, typeof errMsg === 'string' ? errMsg : res.statusText);
   }
 
+  if (res.status === 204) return undefined as T;
+
   const json = await res.json();
   return json.data !== undefined ? json.data : json;
 }
@@ -49,6 +51,8 @@ async function requestForm<T>(path: string, body: FormData): Promise<T> {
     const errMsg = errorBody.error?.message || errorBody.error || res.statusText;
     throw new ApiError(res.status, typeof errMsg === 'string' ? errMsg : res.statusText);
   }
+
+  if (res.status === 204) return undefined as T;
 
   const json = await res.json();
   return json.data !== undefined ? json.data : json;

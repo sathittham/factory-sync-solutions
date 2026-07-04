@@ -22,8 +22,12 @@ vi.mock('firebase/auth', () => ({
 
 vi.mock('@/lib/firebase', () => ({ auth: {} }));
 
+const { mockUseTheme } = vi.hoisted(() => ({
+  mockUseTheme: vi.fn(() => ({ resolvedTheme: 'light' })),
+}));
+
 vi.mock('@/lib/theme', () => ({
-  useTheme: () => ({ resolvedTheme: 'light' }),
+  useTheme: mockUseTheme,
 }));
 
 vi.mock('@/lib/api', () => ({
@@ -89,6 +93,7 @@ function renderPage(initialEntry: string) {
 describe('AuthActionPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseTheme.mockReturnValue({ resolvedTheme: 'light' });
   });
 
   it('shows error card when oobCode is missing', async () => {
@@ -168,5 +173,131 @@ describe('AuthActionPage', () => {
       contactPhone: '0812345678',
     });
     expect(mockSignOut).toHaveBeenCalledOnce();
+  });
+
+  it('renders the dark-mode logo when resolvedTheme is dark', async () => {
+    mockUseTheme.mockReturnValue({ resolvedTheme: 'dark' });
+
+    const darkRender = renderPage('/auth/action?mode=resetPassword&oobCode=test123');
+    await screen.findByLabelText(/ชื่อผู้ติดต่อ/i);
+    const darkSrc = darkRender.container.querySelector('img')?.getAttribute('src');
+    darkRender.unmount();
+
+    mockUseTheme.mockReturnValue({ resolvedTheme: 'light' });
+    const lightRender = renderPage('/auth/action?mode=resetPassword&oobCode=test123');
+    await screen.findByLabelText(/ชื่อผู้ติดต่อ/i);
+    const lightSrc = lightRender.container.querySelector('img')?.getAttribute('src');
+
+    expect(darkSrc).toBeTruthy();
+    expect(darkSrc).not.toBe(lightSrc);
+  });
+
+  it('shows field errors when contact name and phone are too short', async () => {
+    renderPage('/auth/action?mode=resetPassword&oobCode=test123');
+
+    const nameInput = await screen.findByLabelText(/ชื่อผู้ติดต่อ/i);
+    const phoneInput = screen.getByLabelText(/เบอร์โทรศัพท์/i);
+
+    await userEvent.type(nameInput, 'A');
+    fireEvent.blur(nameInput);
+
+    await userEvent.type(phoneInput, '08');
+    fireEvent.blur(phoneInput);
+
+    await waitFor(() => {
+      expect(screen.getByText('กรุณากรอกชื่อผู้ติดต่อ')).toBeInTheDocument();
+    });
+    expect(screen.getByText('กรุณากรอกเบอร์โทรศัพท์')).toBeInTheDocument();
+  });
+
+  it('shows a mismatch error when confirm password differs, and toggles visibility', async () => {
+    renderPage('/auth/action?mode=resetPassword&oobCode=test123');
+
+    const passwordInput = await screen.findByLabelText(/รหัสผ่านใหม่/i);
+    const confirmInput = screen.getByLabelText(/ยืนยันรหัสผ่าน/i);
+
+    await userEvent.type(passwordInput, 'NewPass123!');
+    fireEvent.blur(passwordInput);
+
+    await userEvent.type(confirmInput, 'Different123!');
+    fireEvent.blur(confirmInput);
+
+    await waitFor(() => {
+      expect(screen.getByText('รหัสผ่านไม่ตรงกัน')).toBeInTheDocument();
+    });
+
+    expect(passwordInput).toHaveAttribute('type', 'password');
+    const toggleButton = screen.getByLabelText('แสดงรหัสผ่าน');
+    await userEvent.click(toggleButton);
+
+    expect(passwordInput).toHaveAttribute('type', 'text');
+    expect(confirmInput).toHaveAttribute('type', 'text');
+    expect(screen.getByLabelText('ซ่อนรหัสผ่าน')).toBeInTheDocument();
+  });
+
+  it('shows the expired-link message when the reset code has expired', async () => {
+    mockVerifyPasswordResetCode.mockRejectedValue({ code: 'auth/expired-action-code' });
+
+    renderPage('/auth/action?mode=resetPassword&oobCode=test123');
+
+    const nameInput = await screen.findByLabelText(/ชื่อผู้ติดต่อ/i);
+    const phoneInput = screen.getByLabelText(/เบอร์โทรศัพท์/i);
+    const passwordInput = screen.getByLabelText(/รหัสผ่านใหม่/i);
+    const confirmInput = screen.getByLabelText(/ยืนยันรหัสผ่าน/i);
+
+    await userEvent.type(nameInput, 'Invited User');
+    await userEvent.type(phoneInput, '0812345678');
+    await userEvent.type(passwordInput, 'NewPass123!');
+    await userEvent.type(confirmInput, 'NewPass123!');
+
+    await userEvent.click(screen.getByRole('button', { name: /บันทึกรหัสผ่าน/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('ลิงก์หมดอายุแล้ว กรุณาขอคำเชิญใหม่');
+    });
+  });
+
+  it('shows the invalid-link message when the reset code is invalid', async () => {
+    mockVerifyPasswordResetCode.mockRejectedValue({ code: 'auth/invalid-action-code' });
+
+    renderPage('/auth/action?mode=resetPassword&oobCode=test123');
+
+    const nameInput = await screen.findByLabelText(/ชื่อผู้ติดต่อ/i);
+    const phoneInput = screen.getByLabelText(/เบอร์โทรศัพท์/i);
+    const passwordInput = screen.getByLabelText(/รหัสผ่านใหม่/i);
+    const confirmInput = screen.getByLabelText(/ยืนยันรหัสผ่าน/i);
+
+    await userEvent.type(nameInput, 'Invited User');
+    await userEvent.type(phoneInput, '0812345678');
+    await userEvent.type(passwordInput, 'NewPass123!');
+    await userEvent.type(confirmInput, 'NewPass123!');
+
+    await userEvent.click(screen.getByRole('button', { name: /บันทึกรหัสผ่าน/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('ลิงก์ไม่ถูกต้อง กรุณาตรวจสอบอีเมลอีกครั้ง');
+    });
+  });
+
+  it('shows a generic error message when the failure carries no error code', async () => {
+    mockVerifyPasswordResetCode.mockRejectedValue(new Error('network failure'));
+
+    renderPage('/auth/action?mode=resetPassword&oobCode=test123');
+
+    const nameInput = await screen.findByLabelText(/ชื่อผู้ติดต่อ/i);
+    const phoneInput = screen.getByLabelText(/เบอร์โทรศัพท์/i);
+    const passwordInput = screen.getByLabelText(/รหัสผ่านใหม่/i);
+    const confirmInput = screen.getByLabelText(/ยืนยันรหัสผ่าน/i);
+
+    await userEvent.type(nameInput, 'Invited User');
+    await userEvent.type(phoneInput, '0812345678');
+    await userEvent.type(passwordInput, 'NewPass123!');
+    await userEvent.type(confirmInput, 'NewPass123!');
+
+    await userEvent.click(screen.getByRole('button', { name: /บันทึกรหัสผ่าน/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('เกิดข้อผิดพลาด กรุณาลองอีกครั้ง');
+    });
   });
 });
