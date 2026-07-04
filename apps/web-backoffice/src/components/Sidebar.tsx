@@ -35,6 +35,7 @@ import { signOut } from 'firebase/auth';
 import {
   BarChart3,
   Building2,
+  ChartLine,
   ChevronsUpDown,
   CircleHelp,
   ExternalLink,
@@ -117,6 +118,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
   const navItems: NavItem[] = [
     { to: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
+    { to: '/analytics', icon: ChartLine, labelKey: 'nav.analytics' },
     { to: '/projects', icon: Building2, labelKey: 'nav.projects' },
     { to: '/users', icon: Users, labelKey: 'nav.users' },
     { to: '/results', icon: BarChart3, labelKey: 'nav.results' },

@@ -64,6 +64,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'nav.brandUnit': 'Backoffice',
     'nav.profile': 'โปรไฟล์',
     'nav.dashboard': 'แดชบอร์ด',
+    'nav.analytics': 'สถิติเว็บไซต์',
     'nav.projects': 'โปรเจกต์',
     'nav.users': 'ผู้ใช้',
     'nav.results': 'ผลการประเมิน',
@@ -341,6 +342,8 @@ const translations: Record<Locale, Record<string, string>> = {
     'locale.th': 'ไทย',
     'locale.en': 'อังกฤษ',
 
+    'analytics.pageTitle': 'สถิติเว็บไซต์',
+    'analytics.pageSubtitle': 'ข้อมูลการเข้าชมเว็บไซต์และแอปจาก Google Analytics',
     'analytics.sectionTitle': 'สถิติการเข้าชมเว็บไซต์',
     'analytics.range.7d': '7 วันล่าสุด',
     'analytics.range.28d': '28 วันล่าสุด',
@@ -386,6 +389,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'nav.brandUnit': 'Backoffice',
     'nav.profile': 'Profile',
     'nav.dashboard': 'Dashboard',
+    'nav.analytics': 'Analytics',
     'nav.projects': 'Projects',
     'nav.users': 'Users',
     'nav.results': 'Results',
@@ -666,6 +670,8 @@ const translations: Record<Locale, Record<string, string>> = {
     'locale.th': 'Thai',
     'locale.en': 'English',
 
+    'analytics.pageTitle': 'Analytics',
+    'analytics.pageSubtitle': 'Website and app traffic insights from Google Analytics',
     'analytics.sectionTitle': 'Web Analytics',
     'analytics.range.7d': 'Last 7 days',
     'analytics.range.28d': 'Last 28 days',
