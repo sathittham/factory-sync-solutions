@@ -34,9 +34,9 @@ lastUpdated: 2026-07-05
   - Hooks: `useAuth`, `use-mobile`
   - Pages: `SignInPage`, `RegisterPage`, `DashboardPage`, `QuizPage`, `ResultPage`, `ProfilePage`, `CompanySettingsPage`, `AdminPage`, `AuthActionPage`, `NotFoundPage`
   - Feature components: `Layout`, `PageLayout`, `AuthPanel`, `LegalModal`, `ProfileDialog`, `Turnstile`, `login-form`, `CookieConsent`, `motion`, `form/select-field`
-- **End-to-end tests** (Playwright): `apps/web-app/e2e/*.spec.ts` (8 files)
+- **End-to-end tests** (Playwright): `apps/web-app/e2e/*.spec.ts` (7 files)
   - Smoke: sign-in form, login → dashboard, one guarded-route redirect, 404
-  - Regression: landing, login, navigation/guards, theme persistence, cookie consent + Consent Mode v2, auth-action (`/auth/action` oobCode flows), accessibility (a11y)
+  - Regression: login, navigation/guards, theme persistence, cookie consent + Consent Mode v2, auth-action (`/auth/action` oobCode flows), accessibility (a11y)
 
 ### 1.2 Out of Scope
 - Backend API, Firestore, Firebase Admin — validated in `apps/backend`.
@@ -95,10 +95,9 @@ Representative cases per area (see each `*.test.{ts,tsx}` file for the full asse
 | E2E-004 | Unknown route renders 404 | `smoke.spec.ts` | `goto /not-a-page` | 404 content visible | ✅ |
 | E2E-005 | Email/password login → dashboard | `login.spec.ts` | Fill credentials, submit | Redirect to `/dashboard` | ✅ |
 | E2E-006 | Admin-role account can reach `/admin` | `login.spec.ts` | Login as admin test account | `/admin` renders instead of redirecting | ✅ |
-| E2E-007 | Landing hero/CTA/footer render | `landing.spec.ts` | Load `/` | Hero, bottom CTA, sign-in dialog, LINE button, footer visible | ✅ |
 | E2E-008 | Unauth guards on `/quiz`, `/admin`, `/results` | `navigation.spec.ts` | `goto` each, no session | Redirect away from each | ✅ |
-| E2E-009 | 404 page + header/footer visibility | `navigation.spec.ts` | `goto /not-a-page` | 404 content; chrome present on valid routes | ✅ |
-| E2E-010 | Theme defaults to system + persists | `theme.spec.ts` | Clear storage, load; toggle theme | Correct `<html>` class; persists across reload via `localStorage` | ✅ |
+| E2E-009 | 404 page + sign-in form visible on `/` | `navigation.spec.ts` | `goto /not-a-page`; `goto /` | 404 content; `signin-google-btn` visible on the root route | ✅ |
+| E2E-010 | Theme defaults to system + persists | `theme.spec.ts` | Clear storage, load; toggle theme | `dark` class present/absent correctly (Tailwind class-strategy dark mode — light is the *absence* of `dark`, not a `"light"` class); persists across reload via `localStorage` | ✅ |
 | E2E-011 | Cookie banner + Consent Mode v2 signals | `cookie-consent.spec.ts` | Load, accept/open settings | Banner behavior; consent signal gating/replay/handoff params correct | ✅ |
 | E2E-012 | `/auth/action` error and valid oobCode states | `auth-action.spec.ts` | `goto` with various `oobCode`/`mode` params | Correct error/success UI per state; page accessible unauthenticated | ✅ |
 | E2E-013 | Base accessibility checks | `a11y.spec.ts` | Load key pages | Document title set, images have alt text, keyboard-navigable, cookie toggle has correct ARIA role, base font ≥17px | ✅ |
@@ -128,9 +127,11 @@ Run: `pnpm --filter @repo/web-app test:coverage` — thresholds are hard-enforce
 | Run Date | Environment | Unit (Vitest) | Coverage (stmt/branch/func/line) | E2E (Playwright, listed) | Result |
 |---|---|---|---|---|---|
 | 2026-07-04 | Local | 283 passed / 37 files | 78.18% / 68.59% / 77.95% / 80.41% | — | Below branch gate |
-| 2026-07-05 | Local | **307 passed / 39 files** | **82.02% / 71.01% / 81.55% / 84.44%**¹ | 40 unique tests / 8 specs (4 smoke + 36 regression) | ✅ Pass |
+| 2026-07-05 | Local | **307 passed / 39 files** | **82.02% / 71.01% / 81.55% / 84.44%**¹ | 34 unique tests / 7 specs (4 smoke + 30 regression), executed for real against a local dev server with real test credentials — all passing² | ✅ Pass |
 
 ¹ After excluding generated/wiring files (`App.tsx`, `router.tsx`, `routeTree.gen.ts`, `src/routes/**`) from the coverage denominator and adding targeted branch coverage to `api.ts`, `AuthActionPage.tsx`, `motion.tsx`, `AppDebugPanel.tsx`. All four metrics ≥ 70%.
+
+² The first real run surfaced 10 failures, all pre-existing test debt unrelated to this pass's changes: `theme.spec.ts` asserted a literal `"light"` class that `lib/theme.tsx` never sets (it only toggles `dark`, Tailwind class-strategy dark mode) — fixed by asserting `dark`-class presence/absence instead; and `landing.spec.ts` (5 tests) plus 2 tests in `navigation.spec.ts` asserted a hero/header/footer/LINE-button on `/` that no longer exists (`SignInPage.tsx` is a bare sign-in form) — `landing.spec.ts` was deleted and the 2 stale `navigation.spec.ts` checks replaced with one assertion matching the current design.
 
 ---
 
