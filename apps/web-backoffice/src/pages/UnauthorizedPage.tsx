@@ -26,12 +26,13 @@ export function UnauthorizedPage() {
     navigate('/sign-in', { replace: true });
   };
 
-  const initials = user?.displayName
-    ?.split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) ?? '?';
+  const initials =
+    user?.displayName
+      ?.split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) ?? '?';
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">

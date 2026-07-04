@@ -22,12 +22,12 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { openCmsBlog } from '@/lib/cmsSso';
 import { auth } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { logout } from '@/store/authSlice';
-import { openCmsBlog } from '@/lib/cmsSso';
 import fsDarkLogo from '@shared/brand/fs-dark.png';
 import fsLightLogo from '@shared/brand/fs-light.png';
 import { getCmsSsoUrl } from '@shared/lib/cmsSite';
