@@ -214,6 +214,7 @@ export function DashboardPage() {
               <div className="bg-primary/5 border border-primary/20 rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <svg
+                    aria-hidden="true"
                     width="22"
                     height="22"
                     viewBox="0 0 24 24"
@@ -268,6 +269,7 @@ export function DashboardPage() {
                       >
                         <div className="h-10 w-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center mb-4 group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/30 transition-colors">
                           <svg
+                            aria-hidden="true"
                             width="20"
                             height="20"
                             viewBox="0 0 24 24"
@@ -292,6 +294,7 @@ export function DashboardPage() {
                         <div className="flex items-center gap-1 mt-4 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                           {t('quiz.start')}
                           <svg
+                            aria-hidden="true"
                             width="14"
                             height="14"
                             viewBox="0 0 16 16"
@@ -412,6 +415,7 @@ export function DashboardPage() {
                       <div className="flex items-center gap-3 mb-3">
                         <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
                           <svg
+                            aria-hidden="true"
                             width="18"
                             height="18"
                             viewBox="0 0 24 24"
@@ -445,6 +449,7 @@ export function DashboardPage() {
                       <div className="flex items-center gap-1 text-sm font-medium text-primary">
                         {t('quiz.viewResultsAction')}
                         <svg
+                          aria-hidden="true"
                           width="14"
                           height="14"
                           viewBox="0 0 16 16"
@@ -470,6 +475,7 @@ export function DashboardPage() {
                       <div className="flex items-center gap-3 mb-3">
                         <div className="h-9 w-9 rounded-lg bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center group-hover:bg-amber-100/70 dark:group-hover:bg-amber-900/30 transition-colors">
                           <svg
+                            aria-hidden="true"
                             width="18"
                             height="18"
                             viewBox="0 0 24 24"
@@ -502,6 +508,7 @@ export function DashboardPage() {
                       <div className="flex items-center gap-1 text-sm font-medium text-amber-600 dark:text-amber-400">
                         {t('quiz.retakeAction')}
                         <svg
+                          aria-hidden="true"
                           width="14"
                           height="14"
                           viewBox="0 0 16 16"
@@ -539,6 +546,7 @@ export function DashboardPage() {
                         <div className="flex items-center gap-4">
                           <div className="h-10 w-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center shrink-0">
                             <svg
+                              aria-hidden="true"
                               width="18"
                               height="18"
                               viewBox="0 0 24 24"
@@ -565,6 +573,7 @@ export function DashboardPage() {
                           <span className="flex items-center gap-1 text-sm font-medium text-emerald-600 dark:text-emerald-400 shrink-0">
                             {t('quiz.start')}
                             <svg
+                              aria-hidden="true"
                               width="14"
                               height="14"
                               viewBox="0 0 16 16"
