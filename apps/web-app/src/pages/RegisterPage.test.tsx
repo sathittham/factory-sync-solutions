@@ -1,3 +1,4 @@
+import { CONSENT_VERSION } from '@/components/LegalModal';
 import { LocaleProvider } from '@/lib/i18n';
 import authReducer, { setLoading, setProfile, setUser } from '@/store/authSlice';
 import quizReducer from '@/store/quizSlice';
@@ -88,6 +89,11 @@ async function fillStep1() {
   await selectOption('industryType', 'การผลิต');
   await selectOption('companySize', 'เล็ก (< 50 คน)');
   await userEvent.click(screen.getByRole('button', { name: /ถัดไป/ }));
+}
+
+/** Check the required Terms + Privacy consent checkbox on step 2. */
+async function acceptTerms() {
+  await userEvent.click(screen.getByRole('checkbox', { name: /ฉันยอมรับ/ }));
 }
 
 // jsdom does not implement the Pointer Events APIs Radix Select relies on for
@@ -233,12 +239,17 @@ describe('RegisterPage — step 2: contact info and submission', () => {
     await userEvent.clear(nameInput);
     await userEvent.type(nameInput, 'Contact Person');
     await userEvent.type(screen.getByLabelText('เบอร์โทรศัพท์'), '0812345678');
+    await acceptTerms();
     await userEvent.click(screen.getByTestId('registration-submit-btn'));
 
     expect(await screen.findByText('ลงทะเบียนสำเร็จ!')).toBeInTheDocument();
     expect(mockApiPost).toHaveBeenCalledWith(
       '/profile',
-      expect.objectContaining({ contactName: 'Contact Person', contactPhone: '0812345678' }),
+      expect.objectContaining({
+        contactName: 'Contact Person',
+        contactPhone: '0812345678',
+        consentVersion: CONSENT_VERSION,
+      }),
     );
 
     await userEvent.click(screen.getByTestId('registration-success-dashboard-btn'));
@@ -252,11 +263,70 @@ describe('RegisterPage — step 2: contact info and submission', () => {
 
     await userEvent.type(screen.getByLabelText('ชื่อผู้ติดต่อ'), 'Contact Person');
     await userEvent.type(screen.getByLabelText('เบอร์โทรศัพท์'), '0812345678');
+    await acceptTerms();
     await userEvent.click(screen.getByTestId('registration-submit-btn'));
 
     await waitFor(() => {
       expect(screen.getByText('เลขทะเบียนไม่ถูกต้อง')).toBeInTheDocument();
     });
     expect(screen.queryByText('ลงทะเบียนสำเร็จ!')).not.toBeInTheDocument();
+  });
+});
+
+describe('RegisterPage consent gating', () => {
+  it('blocks submission until Terms + Privacy is accepted', async () => {
+    renderPage(authedStore());
+    await fillStep1();
+
+    await userEvent.type(screen.getByLabelText('ชื่อผู้ติดต่อ'), 'Contact Person');
+    await userEvent.type(screen.getByLabelText('เบอร์โทรศัพท์'), '0812345678');
+    await userEvent.click(screen.getByTestId('registration-submit-btn'));
+
+    // acceptTerms validates on both change and submit, so the same message
+    // can render more than once — assert at least one is shown.
+    await screen.findAllByText('กรุณายอมรับข้อกำหนดและนโยบายความเป็นส่วนตัว');
+    expect(mockApiPost).not.toHaveBeenCalled();
+  });
+
+  it('submits with consentVersion once terms are accepted; marketing stays opt-in', async () => {
+    mockApiPost.mockResolvedValue({
+      companyName: 'บริษัท ทดสอบ จำกัด',
+      companyRegId: '0105500000000',
+    });
+    renderPage(authedStore());
+    await fillStep1();
+
+    await userEvent.type(screen.getByLabelText('ชื่อผู้ติดต่อ'), 'Contact Person');
+    await userEvent.type(screen.getByLabelText('เบอร์โทรศัพท์'), '0812345678');
+    await acceptTerms();
+    await userEvent.click(screen.getByTestId('registration-submit-btn'));
+
+    await waitFor(() => expect(mockApiPost).toHaveBeenCalledOnce());
+    expect(mockApiPost).toHaveBeenCalledWith(
+      '/profile',
+      expect.objectContaining({
+        consentVersion: CONSENT_VERSION,
+        marketingConsent: false,
+      }),
+    );
+  });
+
+  it('opens the terms LegalModal from the consent label without losing form input', async () => {
+    renderPage(authedStore());
+    await fillStep1();
+
+    const phoneInput = screen.getByLabelText('เบอร์โทรศัพท์');
+    await userEvent.type(phoneInput, '0812345678');
+
+    await userEvent.click(screen.getByRole('button', { name: 'ข้อกำหนดการใช้งาน' }));
+    await screen.findByRole('heading', { name: 'ข้อกำหนดและเงื่อนไขการใช้งาน' });
+
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('heading', { name: 'ข้อกำหนดและเงื่อนไขการใช้งาน' }),
+      ).not.toBeInTheDocument();
+    });
+    expect(screen.getByLabelText('เบอร์โทรศัพท์')).toHaveValue('0812345678');
   });
 });

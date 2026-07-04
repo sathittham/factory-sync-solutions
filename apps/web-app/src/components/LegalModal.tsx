@@ -9,6 +9,9 @@ import { useLocale } from '@/lib/i18n';
 
 export type LegalType = 'terms' | 'privacy' | 'cookies' | 'marketing' | null;
 
+// Bump when any policy text changes — stored on each profile as consentVersion.
+export const CONSENT_VERSION = '1.0';
+
 interface LegalModalProps {
   readonly open: LegalType;
   readonly onClose: () => void;
