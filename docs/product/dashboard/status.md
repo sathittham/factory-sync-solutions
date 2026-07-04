@@ -33,9 +33,14 @@ Both formerly open decisions are resolved in code: the retake action targets the
 **active** quiz (`activeId ?? 'shindan'`, fallback defensive only), and `/dashboard` is
 the post-login landing route.
 
-**What remains:** test coverage ([test-plan.md](./test-plan.md)) and two minor i18n
-cleanups — the inline `locale === 'th' ? 'ครั้ง' : 'times'` ternary and the trailing
-space in `quiz.assessedOn` (worked around with `.trim()`).
+The Vitest unit suite landed 4 July 2026 — `DashboardPage.test.tsx`, 16 tests covering
+UT-001–UT-017, all passing — together with the i18n cleanup (`dashboard.times` key
+replaces the inline ternary; `quiz.assessedOn` trailing space + `.trim()` removed) and
+`aria-hidden="true"` on the page's decorative SVGs (clears its Biome a11y errors).
+
+**What remains:** the dashboard Playwright spec (`e2e/dashboard.spec.ts`) — blocked on
+seeding dedicated test accounts for the empty-state and multi-quiz cases
+([test-plan.md § 3.2](./test-plan.md)).
 
 No backend work — the page reuses `GET /results` and `GET /quiz/quizzes` through
 TanStack Query. The separate `web-backoffice` dashboard is unaffected and live
@@ -56,19 +61,17 @@ Mirrors [feature-spec.md § 3](./feature-spec.md#3-current-state) and
 - [x] Empty-state i18n keys (`quiz.noResults.title`, `quiz.noResults.desc`) — `lib/i18n.tsx`
 - [x] `quiz.yourCompany` / `quiz.startNewAssessment` / `quiz.start` i18n keys — verified present (TH + EN)
 - [x] Retake target derives from the active quiz (`activeId`)
-- [ ] i18n cleanup — `'ครั้ง'/'times'` inline ternary + `quiz.assessedOn` trailing space
+- [x] i18n cleanup — `dashboard.times` key replaces the inline ternary; `quiz.assessedOn` trailing space removed
+- [x] a11y — `aria-hidden="true"` on decorative SVGs (page is Biome-clean)
 
 ### Tests
 
-Planned per [test-plan.md](./test-plan.md) — unit suite not written yet:
+Per [test-plan.md](./test-plan.md):
 
-- [ ] Vitest — `quizGroups` / `uncompletedQuizzes` / `activeId` derivations
-- [ ] Vitest — `getDimBarColor` / `getDimScoreText` thresholds; `DimensionRow` width + name fallback
-- [ ] Vitest — `handleStartQuiz` dispatches `resetQuiz()`, `setQuizId(id)`, navigates `/quiz`
-- [ ] Vitest — loading / empty / filled state selection
+- [x] Vitest — `DashboardPage.test.tsx` (16 tests, UT-001–UT-017): derivations, thresholds, `DimensionRow`, `handleStartQuiz`, state selection, tabs, KPI formatting
 - [x] Playwright — post-login redirect lands on `/dashboard` (`e2e/login.spec.ts`)
-- [ ] Playwright — `dashboard.spec.ts`: empty state · KPI values · tab switching · Start/Retake → `/quiz` · View Results → `/results`
-- [ ] `make lint-web` + `make test-web` green with the new suites
+- [ ] Playwright — `dashboard.spec.ts`: empty state · KPI values · tab switching · Start/Retake → `/quiz` · View Results → `/results` (needs seeded empty-state + multi-quiz test accounts)
+- [x] `make test-web` green (96 tests)
 
 ---
 
@@ -86,5 +89,5 @@ None. Both prior decisions are resolved and recorded in
 
 ---
 
-*Version: 2.0.0*
+*Version: 2.1.0*
 *Last updated: 4 July 2026*

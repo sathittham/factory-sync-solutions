@@ -43,12 +43,14 @@ Body states are mutually exclusive: `isLoading` (`resultLoading && assessments.l
 | Empty state | `ScaleIn`: 4 × `GhostStatCard`, onboarding banner (`quiz.noResults.title` / `.desc`), available-quiz card grid (`StaggerChildren` 0.07 s) |
 | Loading skeleton | 4 × `h-24` KPI skeletons + `h-64` panel/actions skeletons; empty-state grid shows 3 × `h-32` while `quizzesLoading` |
 
-### Known issues (minor)
+### Known issues
 
-- Attempt-count unit uses an inline `locale === 'th' ? 'ครั้ง' : 'times'` ternary
-  (line ~372) instead of a `t()` key.
-- `quiz.assessedOn` i18n values carry a trailing space, worked around with `.trim()`.
-- No Vitest/Playwright coverage yet — see [test-plan.md](./test-plan.md).
+- Dashboard Playwright spec not written yet (unit suite is green) — see
+  [test-plan.md](./test-plan.md); needs seeded empty-state and multi-quiz test accounts.
+
+Resolved 4 July 2026: attempt-count unit now uses `t('dashboard.times')`;
+`quiz.assessedOn` trailing space and the `.trim()` workaround removed; decorative SVGs
+carry `aria-hidden="true"`.
 
 ## Usage
 
@@ -88,10 +90,11 @@ redirects land here from `SignInPage` (authenticated `<Navigate>`) and `Register
 - [x] Route + nav wiring — `routes/_authed/_registered/dashboard.tsx` / `Layout.tsx`
 - [x] Post-login + post-registration redirects to `/dashboard`
 - [x] Empty-state i18n via `quiz.noResults.title` / `quiz.noResults.desc`
-- [ ] Minor i18n cleanup (`'ครั้ง'/'times'` ternary, `quiz.assessedOn` trailing space)
-- [ ] Vitest unit suite + dashboard Playwright spec — [test-plan.md](./test-plan.md)
+- [x] i18n cleanup (`dashboard.times` key; `quiz.assessedOn` trailing space removed)
+- [x] Vitest unit suite — `DashboardPage.test.tsx`, 16 tests passing
+- [ ] Dashboard Playwright spec — [test-plan.md](./test-plan.md)
 
 ---
 
-*Version: 2.0.0*
+*Version: 2.1.0*
 *Last updated: 4 July 2026*

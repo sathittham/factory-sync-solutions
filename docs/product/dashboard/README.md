@@ -1,6 +1,6 @@
 # Dashboard Page — Feature Spec
 
-**Status:** ✅ Live — routed at `/dashboard`, in the nav, and the post-login landing page. Remaining work: test coverage.
+**Status:** ✅ Live — routed at `/dashboard`, in the nav, and the post-login landing page. Unit suite green; remaining work: the dashboard Playwright spec.
 
 ---
 
@@ -80,8 +80,8 @@ authenticated endpoints and adds none of its own. Per-app flows live in
 
 ## Current State
 
-See [status.md](./status.md) for the per-component checklist. Headline: the page is live;
-the only open work is the Vitest/Playwright suite and two minor i18n cleanups
+See [status.md](./status.md) for the per-component checklist. Headline: the page is live
+with a green 16-case Vitest suite; the only open work is the dashboard Playwright spec
 ([feature-spec.md § 10](./feature-spec.md#10-open-tasks)).
 
 ---
@@ -127,18 +127,18 @@ adoption (PR #25, 1 July 2026); the KPI/dimension redesign and TanStack Query wi
 landed in the Query rollout (2 July 2026). Remaining, from
 [feature-spec.md § 10](./feature-spec.md#10-open-tasks):
 
-| # | Task | File(s) |
-|---|------|---------|
-| 1 | Vitest unit suite — derivations, color thresholds, `handleStartQuiz`, state selection | `apps/web-app/src/pages/DashboardPage.test.tsx` (new) |
-| 2 | Dashboard Playwright spec — empty state, KPI values, tabs, Start/Retake/View Results | `apps/web-app/e2e/dashboard.spec.ts` (new) |
-| 3 | i18n cleanup — `'ครั้ง'/'times'` inline ternary; trailing space in `quiz.assessedOn` | `DashboardPage.tsx` + `lib/i18n.tsx` |
+| # | Task | File(s) | Status |
+|---|------|---------|--------|
+| 1 | Vitest unit suite — derivations, color thresholds, `handleStartQuiz`, state selection | `apps/web-app/src/pages/DashboardPage.test.tsx` | ✅ Done — 16 tests passing |
+| 2 | Dashboard Playwright spec — empty state, KPI values, tabs, Start/Retake/View Results | `apps/web-app/e2e/dashboard.spec.ts` (new) | ❌ Open — needs seeded test accounts |
+| 3 | i18n cleanup — `dashboard.times` key; `quiz.assessedOn` trailing space | `DashboardPage.tsx` + `lib/i18n.tsx` | ✅ Done |
 
 ---
 
 ## Acceptance Criteria
 
 Tracked in [feature-spec.md § 13](./feature-spec.md#13-acceptance-criteria) — all
-functional criteria are met; the two test-suite criteria remain open.
+functional and unit-test criteria are met; only the Playwright-spec criterion remains open.
 
 ---
 
@@ -148,9 +148,9 @@ Frontend-only — no Go suite. Cases in [test-plan.md](./test-plan.md):
 
 | Suite | Target | Status |
 |-------|--------|--------|
-| Unit (Vitest) | `quizGroups` / `uncompletedQuizzes` / `activeId` derivations · `getDimBarColor` / `getDimScoreText` thresholds · `handleStartQuiz` dispatch sequence · state selection | ❌ Not written |
+| Unit (Vitest) | `DashboardPage.test.tsx` — derivations · color thresholds · `DimensionRow` · `handleStartQuiz` dispatch sequence · state selection · tabs · KPI formatting | ✅ 16 tests passing |
 | E2E (Playwright) | Post-login redirect to `/dashboard` | ✅ Exists (`e2e/login.spec.ts`) |
-| E2E (Playwright) | Empty state · KPI values · tab switching · Start/Retake → `/quiz` · View Results → `/results` | ❌ Not written |
+| E2E (Playwright) | Empty state · KPI values · tab switching · Start/Retake → `/quiz` · View Results → `/results` | ❌ Not written — needs seeded empty-state + multi-quiz accounts |
 
 ---
 
@@ -158,9 +158,8 @@ Frontend-only — no Go suite. Cases in [test-plan.md](./test-plan.md):
 
 | # | Area | Description |
 |---|------|-------------|
-| 1 | Tests | Vitest + Playwright coverage per [test-plan.md](./test-plan.md) — the only gate left |
-| 2 | i18n polish | Inline `'ครั้ง'/'times'` ternary and `quiz.assessedOn` trailing space ([feature-spec.md § 10.2](./feature-spec.md#102-minor-i18n-cleanup)) |
-| 3 | Future | Score trending / historical charts (explicit non-goal today) |
+| 1 | Tests | Dashboard Playwright spec per [test-plan.md](./test-plan.md) — the only gate left; needs seeded empty-state and multi-quiz test accounts |
+| 2 | Future | Score trending / historical charts (explicit non-goal today) |
 
 Formerly open decisions — both resolved in code: the retake card targets the **active**
 quiz (`activeId`, `'shindan'` only as a defensive fallback), and `/dashboard` **is** the
@@ -190,5 +189,5 @@ post-login landing route.
 
 ---
 
-*Version: 2.0.0*
+*Version: 2.1.0*
 *Last updated: 4 July 2026*

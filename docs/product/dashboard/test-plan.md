@@ -1,6 +1,6 @@
 ---
 isoOutput: SI.O4 / SI.O5
-version: 1.0.0
+version: 1.1.0
 lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 status: Active
@@ -17,7 +17,7 @@ status: Active
 | Field | Value |
 |---|---|
 | **Feature / Module** | Dashboard Page (`web-app`) |
-| **Version** | 1.0.0 |
+| **Version** | 1.1.0 |
 | **Status** | Active |
 | **Author** | Sathittham Sangthong |
 | **Date** | 2026-07-04 |
@@ -54,27 +54,30 @@ status: Active
 
 ## 2. Unit Test Cases (SI.O4)
 
-### 2.1 `apps/web-app/src/pages/DashboardPage.test.tsx` (new)
+### 2.1 `apps/web-app/src/pages/DashboardPage.test.tsx`
+
+All 17 cases implemented and passing (16 test functions — UT-004/005 and UT-001/016
+share a test each; UT-007/008 likewise). Run: `npx vitest run src/pages/DashboardPage.test.tsx`.
 
 | ID | Test Name | Precondition | Input | Expected Result | Status |
 |---|---|---|---|---|---|
-| UT-001 | quizGroups groups by quizId, newest first | hooks mocked | 3 assessments across 2 quizIds | 2 groups; index 0 = latest per group | Not run |
-| UT-002 | quizGroups falls back to 'shindan' | hooks mocked | assessment with empty `quizId` | grouped under `shindan` | Not run |
-| UT-003 | uncompletedQuizzes excludes completed | hooks mocked | 4 available, 2 completed | 2 uncompleted rows | Not run |
-| UT-004 | activeId defaults to first completed quiz | hooks mocked | 2 completed quizzes | first group's KPIs rendered | Not run |
-| UT-005 | Tab click switches active quiz | UT-004 | click second tab | KPI + dimension data swap to quiz 2 | Not run |
-| UT-006 | Tabs hidden for single quiz | hooks mocked | 1 completed quiz | no selector tabs rendered | Not run |
-| UT-007 | getDimBarColor thresholds | none | 4.0 / 3.0 / 2.0 / 1.9 | emerald / blue / amber / red | Not run |
-| UT-008 | getDimScoreText thresholds | none | same boundaries | matching text colors | Not run |
-| UT-009 | DimensionRow bar width capped | none | score 5.5 | width 100% | Not run |
-| UT-010 | DimensionRow locale name fallback | none | TH locale, missing `dimensionNameTh` | falls back to `dimensionName` | Not run |
-| UT-011 | handleStartQuiz dispatch sequence | store spy | click uncompleted "Start" | `resetQuiz()` → `setQuizId(id)` → navigate `/quiz` | Not run |
-| UT-012 | Retake targets active quiz | 2 quizzes, tab 2 active | click Retake | `setQuizId(<quiz2>)` dispatched | Not run |
-| UT-013 | Loading state | `isPending`, no data | render | KPI + panel skeletons, no empty state | Not run |
-| UT-014 | Empty state | resolved, 0 assessments | render | ghost KPI row + banner + quiz grid; copy via `t()` | Not run |
-| UT-015 | Header company fallback | no profile | render | `quiz.yourCompany` text shown | Not run |
-| UT-016 | KPI formatting | 1 assessment | render | score `toFixed(2)` + `/ 5.00`; diagnosis badge; `formatDateTime` date | Not run |
-| UT-017 | Uncompleted section hidden when all done | all quizzes completed | render | "Other Assessments" absent | Not run |
+| UT-001 | quizGroups groups by quizId, newest first | hooks mocked | 2 assessments, same quizId | 1 group; index 0 = latest | Pass |
+| UT-002 | quizGroups falls back to 'shindan' | hooks mocked | assessment with empty `quizId` | grouped under `shindan`; retake dispatches `setQuizId('shindan')` | Pass |
+| UT-003 | uncompletedQuizzes excludes completed | hooks mocked | 3 available, 1 completed | 2 uncompleted rows | Pass |
+| UT-004 | activeId defaults to first completed quiz | hooks mocked | 2 completed quizzes | first group's KPIs rendered | Pass |
+| UT-005 | Tab click switches active quiz | UT-004 | click second tab | KPI + dimension data swap to quiz 2 | Pass |
+| UT-006 | Tabs hidden for single quiz | hooks mocked | 1 completed quiz | no selector tabs rendered | Pass |
+| UT-007 | getDimBarColor thresholds | none | 4 / 3 / 2 / 1.9 | emerald / blue / amber / red | Pass |
+| UT-008 | getDimScoreText thresholds | none | same boundaries | matching text colors | Pass |
+| UT-009 | DimensionRow bar width capped | none | scores 3 and 5.5 | widths 60% and 100% | Pass |
+| UT-010 | DimensionRow locale name fallback | none | TH locale, missing `dimensionNameTh` | falls back to `dimensionName` | Pass |
+| UT-011 | handleStartQuiz dispatch sequence | preset quiz state | click uncompleted "Start" | `resetQuiz()` → `setQuizId(id)` → navigate `/quiz` | Pass |
+| UT-012 | Retake targets active quiz | 2 quizzes, tab 2 active | click Retake | `setQuizId(<quiz2>)` dispatched | Pass |
+| UT-013 | Loading state | `isPending`, no data | render | KPI + panel skeletons, no empty state | Pass |
+| UT-014 | Empty state | resolved, 0 assessments | render | ghost KPI row + banner + quiz grid; copy via `t()` | Pass |
+| UT-015 | Header company fallback | no profile | render | `quiz.yourCompany` text shown | Pass |
+| UT-016 | KPI formatting | 2 assessments | render | score `toFixed(2)` + `/ 5.00`; diagnosis badge; attempt count + `dashboard.times`; Buddhist Era date | Pass |
+| UT-017 | Uncompleted section hidden when all done | all quizzes completed | render | "Other Assessments" absent | Pass |
 
 ## 3. Integration / E2E Test Cases (SI.O5)
 
@@ -84,7 +87,11 @@ status: Active
 |---|---|---|---|---|
 | IT-001 | Post-login redirect | sign in with email/password | URL matches `/dashboard` | Pass |
 
-### 3.2 `apps/web-app/e2e/dashboard.spec.ts` (new)
+### 3.2 `apps/web-app/e2e/dashboard.spec.ts` (to write)
+
+> **Test-data prerequisite:** IT-002 (empty state) and IT-006 (≥2 completed quizzes)
+> need dedicated test accounts seeded in those data states — the single
+> `E2E_USER_EMAIL` account cannot cover both alongside the filled-dashboard cases.
 
 | ID | Test Name | Steps | Expected Result | Status |
 |---|---|---|---|---|
@@ -110,7 +117,7 @@ status: Active
 
 ## 5. Exit Criteria
 
-- All UT cases implemented and passing in `make test-web`.
+- ✅ All UT cases implemented and passing in `make test-web` (4 July 2026).
 - All IT cases implemented and passing against the configured E2E target (`E2E_BASE_URL`, local dev by default).
 - `make lint-web` green.
 - Failures triaged as code defects (fix before ship) or spec drift (update
@@ -118,5 +125,5 @@ status: Active
 
 ---
 
-*Version: 1.0.0*
+*Version: 1.1.0*
 *Last updated: 4 July 2026*

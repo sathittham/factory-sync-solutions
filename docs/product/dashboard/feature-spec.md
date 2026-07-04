@@ -1,5 +1,5 @@
 ---
-version: 2.0.0
+version: 2.1.0
 lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 status: Live (web-app); Live (web-backoffice)
@@ -70,7 +70,7 @@ coverage (§10).
 | Nav link | `apps/web-app/src/components/Layout.tsx` (`getNavItems()`, first item; sidebar logo also links here) | ✅ Live |
 | Post-login redirect | `SignInPage.tsx` (`<Navigate to="/dashboard" />`), `RegisterPage.tsx` (post-registration) | ✅ Live |
 | i18n keys | `apps/web-app/src/lib/i18n.tsx` — all §8 keys present (TH + EN) | ✅ Done |
-| Vitest unit tests | — | ❌ Missing — see [test-plan.md](./test-plan.md) |
+| Vitest unit tests | `apps/web-app/src/pages/DashboardPage.test.tsx` — 16 cases, all passing | ✅ Done |
 | Dashboard Playwright spec | `apps/web-app/e2e/` — only the login redirect assertion exists | ⚠️ Partial |
 
 ---
@@ -273,17 +273,16 @@ All keys exist in `apps/web-app/src/lib/i18n.tsx` (TH + EN).
 | `quiz.noResults.desc` | เริ่มทำแบบประเมินเพื่อตรวจสุขภาพโรงงานของคุณ | Start an assessment to check your factory health |
 | `quiz.viewResults` / `Desc` / `Action` | ดูผลลัพธ์ / … | View Results / … |
 | `quiz.retake` / `Desc` / `Action` | ทำแบบประเมินใหม่ / … | Retake Assessment / … |
+| `dashboard.times` | ครั้ง | times |
 | `quiz.otherAssessments` | แบบประเมินอื่น | Other Assessments |
 | `quiz.startNewAssessment` | เริ่มทำแบบประเมินชุดใหม่ | Start this new assessment |
 | `quiz.start` | เริ่มทำ | Start |
 | `nav.dashboard` | แดชบอร์ด | Dashboard |
 | `diagnosis.Beginning` / `Developing` / `Established` / `Advanced` | เริ่มต้น / กำลังพัฒนา / มั่นคง / ก้าวหน้า | Beginning / Developing / Established / Advanced |
 
-**Known minor gaps** (see §10.2): the attempt-count unit renders via an inline
-`locale === 'th' ? 'ครั้ง' : 'times'` ternary, and `quiz.assessedOn` carries a trailing
-space worked around with `.trim()` at both call sites. Quiz names
-(`q.nameTh` / `q.nameEn`) are API data, not hardcoded strings — locale selection on them
-is expected.
+The attempt-count unit uses `dashboard.times`; `quiz.assessedOn` has no trailing space
+(both cleaned up 4 July 2026 — see §10.2). Quiz names (`q.nameTh` / `q.nameEn`) are API
+data, not hardcoded strings — locale selection on them is expected.
 
 ---
 
@@ -305,15 +304,19 @@ Both require a Firebase Bearer token (route group `_authed`) and a completed pro
 
 ### 10.1 Test coverage — the remaining gap
 
-No Vitest unit tests exist for the page's derivations or helpers, and no dashboard
-Playwright spec exists (only `e2e/login.spec.ts` asserts the post-login redirect lands
-on `/dashboard`). See [test-plan.md](./test-plan.md) for the planned cases.
+The Vitest unit suite is done: `DashboardPage.test.tsx` (16 cases covering UT-001–UT-017,
+all passing). Still open: a dashboard Playwright spec (only `e2e/login.spec.ts` asserts
+the post-login redirect lands on `/dashboard`). IT-002 (empty state) and IT-006
+(≥2 completed quizzes) need dedicated test accounts in those data states — the single
+`E2E_USER_EMAIL` account cannot cover both. See [test-plan.md](./test-plan.md).
 
-### 10.2 Minor i18n cleanup
+### 10.2 Minor i18n cleanup — ✅ done (4 July 2026)
 
-- `DashboardPage.tsx` line ~372: replace the inline `locale === 'th' ? 'ครั้ง' : 'times'`
-  ternary with a `dashboard.times` (or similar) key.
-- Trim the trailing space in the `quiz.assessedOn` values and drop the `.trim()` calls.
+- The attempt-count unit now renders `t('dashboard.times')` (key added TH/EN); the
+  inline `locale === 'th' ? 'ครั้ง' : 'times'` ternary is gone.
+- `quiz.assessedOn` values no longer carry a trailing space; the `.trim()` calls were
+  removed. Decorative SVGs also gained `aria-hidden="true"`, clearing the page's
+  Biome a11y errors.
 
 ### 10.3 Resolved decisions (for the record)
 
@@ -373,9 +376,9 @@ on `/dashboard`). See [test-plan.md](./test-plan.md) for the planned cases.
 - [x] Loading skeletons render while the assessments query is pending with no cached data.
 - [x] Navigating back to `/dashboard` renders from the TanStack Query cache without a
       spinner; submitting a quiz invalidates `['results']`.
-- [ ] Vitest unit suite green (§10.1).
+- [x] Vitest unit suite green (§10.1) — 16/16 in `DashboardPage.test.tsx`.
 - [ ] Dashboard Playwright spec green (§10.1).
-- [x] `make lint-web` passes.
+- [x] `make test-web` passes (96 tests); `DashboardPage.tsx` is Biome-clean (repo has unrelated pre-existing lint debt elsewhere).
 
 ---
 
@@ -383,12 +386,12 @@ on `/dashboard`). See [test-plan.md](./test-plan.md) for the planned cases.
 
 Detailed cases in [test-plan.md](./test-plan.md). Summary:
 
-- **Unit (Vitest):** `quizGroups` / `uncompletedQuizzes` / `activeId` derivations;
-  `getDimBarColor` / `getDimScoreText` thresholds; `DimensionRow` width + fallback name;
-  `handleStartQuiz` dispatch sequence; empty vs filled vs loading state selection.
-- **E2E (Playwright):** post-login redirect (exists — `login.spec.ts`); empty state for a
-  new user; filled dashboard KPI values; tab switching; Start/Retake → `/quiz`;
-  View Results → `/results`.
+- **Unit (Vitest)** ✅ — `DashboardPage.test.tsx`: derivations, color thresholds,
+  `DimensionRow` width/fallback, `handleStartQuiz` dispatch sequence, state selection,
+  tabs, KPI formatting. 16 cases, all passing.
+- **E2E (Playwright)** ⚠️ — post-login redirect exists (`login.spec.ts`); the dashboard
+  spec (empty state, KPI values, tabs, Start/Retake, View Results) is still to write and
+  needs dedicated test accounts for the empty and multi-quiz states.
 
 ---
 
@@ -407,5 +410,5 @@ Detailed cases in [test-plan.md](./test-plan.md). Summary:
 
 ---
 
-*Version: 2.0.0*
+*Version: 2.1.0*
 *Last updated: 4 July 2026*
