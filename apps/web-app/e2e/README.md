@@ -11,11 +11,10 @@ shared chrome the authenticated experience depends on.
 |------|--------|
 | `smoke.spec.ts` | Fast critical-path net — sign-in form renders, login reaches `/dashboard` with chrome visible, one guarded-route redirect, 404 page. |
 | `login.spec.ts` | Email/password login reaches the dashboard welcome state; system-admin access to `/admin`. |
-| `navigation.spec.ts` | Cross-route navigation — landing page 200, 404 page, guarded redirects for `/quiz`, `/admin`, `/results`, header/footer presence. |
+| `navigation.spec.ts` | Cross-route navigation — sign-in page 200, 404 page, guarded redirects for `/quiz`, `/admin`, `/results`, sign-in form visible on `/`. |
 | `auth-action.spec.ts` | `/auth/action` password-reset flow — error card with no `oobCode`, form with a valid `oobCode`, and that the route is allowed unauthenticated (no redirect). |
 | `cookie-consent.spec.ts` | Cookie consent banner + settings dialog, and Consent Mode v2 `gtag` signal wiring (default-denied, accept-all, partial consent, replay on reload, URL handoff params). |
-| `theme.spec.ts` | Theme resolution and persistence (`fss-theme` in `localStorage`) across system/light/dark. |
-| `landing.spec.ts` | Landing page CTAs (hero, bottom, sign-in dialog, LINE contact) and footer. |
+| `theme.spec.ts` | Theme resolution and persistence (`fss-theme` in `localStorage`) across system/light/dark. Note: `lib/theme.tsx` only ever toggles a `dark` class (Tailwind class-strategy dark mode) — light mode is the *absence* of that class, not a literal `"light"` class. |
 | `a11y.spec.ts` | Document title, image `alt` attributes, keyboard focus reachability, cookie-toggle ARIA `role="switch"`, minimum base font size (17px). |
 
 ## Running

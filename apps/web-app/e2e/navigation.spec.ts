@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Navigation', () => {
-  test('landing page loads successfully', { tag: '@regression' }, async ({ page }) => {
+  test('sign-in page loads successfully', { tag: '@regression' }, async ({ page }) => {
     const response = await page.goto('/');
     expect(response?.status()).toBe(200);
   });
@@ -26,13 +26,10 @@ test.describe('Navigation', () => {
     await expect(page).toHaveURL('/');
   });
 
-  test('header is visible on all pages', { tag: '@regression' }, async ({ page }) => {
+  // `/` renders a bare SignInPage (no header/footer chrome) — dashboard/admin
+  // chrome visibility is covered by smoke.spec.ts and login.spec.ts instead.
+  test('sign-in form is visible on the root route', { tag: '@regression' }, async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('header')).toBeVisible();
-  });
-
-  test('footer is visible on landing page', { tag: '@regression' }, async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('footer')).toBeVisible();
+    await expect(page.getByTestId('signin-google-btn')).toBeVisible();
   });
 });
