@@ -15,6 +15,7 @@ jobs:
       api: ${{ steps.filter.outputs.api }}
       web: ${{ steps.filter.outputs.web }}
       official: ${{ steps.filter.outputs.official }}
+      backoffice: ${{ steps.filter.outputs.backoffice }}
       gateway: ${{ steps.filter.outputs.gateway }}
       cms: ${{ steps.filter.outputs.cms }}
     steps:
@@ -35,6 +36,12 @@ jobs:
               - 'turbo.json'
             official:
               - 'apps/web-official/**'
+              - 'packages/shared/**'
+              - 'pnpm-lock.yaml'
+              - 'turbo.json'
+              - '.github/workflows/test.yml'
+            backoffice:
+              - 'apps/web-backoffice/**'
               - 'packages/shared/**'
               - 'pnpm-lock.yaml'
               - 'turbo.json'
@@ -103,6 +110,28 @@ jobs:
 
       - name: Type check, test, and build (web-app)
         run: pnpm turbo run type-check test build --filter=@repo/web-app
+
+  backoffice:
+    name: Backoffice Tests
+    needs: changes
+    if: needs.changes.outputs.backoffice == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check, test, and build (web-backoffice)
+        run: pnpm turbo run type-check test build --filter=@repo/web-backoffice
 
   official:
     name: Official Site Tests
