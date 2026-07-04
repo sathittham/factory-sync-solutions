@@ -42,6 +42,7 @@ const defaultRange = "28d"
 const topPagesLimit = 10
 const topChannelsLimit = 10
 const topCountriesLimit = 10
+const topSourcesLimit = 10
 
 // GA4Client wraps the GA4 Data API's runReport call so tests can mock it
 // without real service-account credentials. The property is bound at
@@ -75,6 +76,10 @@ type Service struct {
 	client      GA4Client
 	cacheTTL    time.Duration
 	disabledErr error
+	// propertyID is the configured GA4 property ID, exposed via GetMeta so the
+	// frontend can deep-link to the Google Analytics console. It is not used
+	// for the runReport calls themselves — those are bound inside ga4Client.
+	propertyID string
 
 	mu    sync.RWMutex
 	cache map[string]cacheEntry
@@ -144,7 +149,9 @@ func NewServiceFromEnv(ctx context.Context) *Service {
 		}
 	}
 
-	return NewService(&ga4Client{svc: svc, propertyID: propertyID}, cacheTTL)
+	service := NewService(&ga4Client{svc: svc, propertyID: propertyID}, cacheTTL)
+	service.propertyID = propertyID
+	return service
 }
 
 // DisabledReason returns a human-readable reason the service is disabled, or
@@ -264,6 +271,33 @@ func (s *Service) GetChannels(ctx context.Context, rangeParam string) (*Channels
 	return &payload, nil
 }
 
+// GetSources returns sessions grouped by session source / medium (top 10).
+func (s *Service) GetSources(ctx context.Context, rangeParam string) (*SourcesResponse, error) {
+	days, ok := validRanges[rangeParam]
+	if !ok {
+		return nil, ErrInvalidRange
+	}
+
+	key := "sources:" + rangeParam
+	payload, stale, err := fetchWithCache(s, ctx, key, func(ctx context.Context) (SourcesResponse, error) {
+		return s.fetchSources(ctx, rangeParam, days)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("get sources: %w", err)
+	}
+	payload.Stale = stale
+	return &payload, nil
+}
+
+// GetMeta returns the configured GA4 property ID for deep-linking to the
+// Google Analytics console. It does not call the GA4 API and is not cached.
+func (s *Service) GetMeta() (*MetaResponse, error) {
+	if s.disabledErr != nil {
+		return nil, s.disabledErr
+	}
+	return &MetaResponse{PropertyID: s.propertyID}, nil
+}
+
 // GetAudience returns sessions by top-10 country and by device category.
 func (s *Service) GetAudience(ctx context.Context, rangeParam string) (*AudienceResponse, error) {
 	days, ok := validRanges[rangeParam]
@@ -277,6 +311,24 @@ func (s *Service) GetAudience(ctx context.Context, rangeParam string) (*Audience
 	})
 	if err != nil {
 		return nil, fmt.Errorf("get audience: %w", err)
+	}
+	payload.Stale = stale
+	return &payload, nil
+}
+
+// GetEngagement returns rolling DAU/WAU/MAU and stickiness for the range.
+func (s *Service) GetEngagement(ctx context.Context, rangeParam string) (*EngagementResponse, error) {
+	days, ok := validRanges[rangeParam]
+	if !ok {
+		return nil, ErrInvalidRange
+	}
+
+	key := "engagement:" + rangeParam
+	payload, stale, err := fetchWithCache(s, ctx, key, func(ctx context.Context) (EngagementResponse, error) {
+		return s.fetchEngagement(ctx, rangeParam, days)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("get engagement: %w", err)
 	}
 	payload.Stale = stale
 	return &payload, nil
@@ -467,6 +519,44 @@ func (s *Service) fetchChannels(ctx context.Context, rangeParam string, days int
 	}, nil
 }
 
+func (s *Service) fetchSources(ctx context.Context, rangeParam string, days int) (SourcesResponse, error) {
+	dr := dateRangeFor(days)
+
+	resp, err := s.runReport(ctx, &analyticsdata.RunReportRequest{
+		DateRanges: []*analyticsdata.DateRange{dr},
+		Dimensions: []*analyticsdata.Dimension{{Name: "sessionSourceMedium"}},
+		Metrics:    []*analyticsdata.Metric{{Name: "sessions"}},
+		OrderBys: []*analyticsdata.OrderBy{
+			{Desc: true, Metric: &analyticsdata.MetricOrderBy{MetricName: "sessions"}},
+		},
+		Limit: topSourcesLimit,
+	})
+	if err != nil {
+		return SourcesResponse{}, fmt.Errorf("sources: %w", err)
+	}
+
+	var totalSessions int64
+	sources := make([]Source, 0, len(resp.Rows))
+	for _, row := range resp.Rows {
+		sessions := rowMetricInt(row, 0)
+		totalSessions += sessions
+		sources = append(sources, Source{
+			Source:   rowDimension(row, 0),
+			Sessions: sessions,
+		})
+	}
+	for i := range sources {
+		if totalSessions > 0 {
+			sources[i].Share = float64(sources[i].Sessions) / float64(totalSessions)
+		}
+	}
+
+	return SourcesResponse{
+		Range:   rangeParam,
+		Sources: sources,
+	}, nil
+}
+
 func (s *Service) fetchAudience(ctx context.Context, rangeParam string, days int) (AudienceResponse, error) {
 	dr := dateRangeFor(days)
 
@@ -516,5 +606,52 @@ func (s *Service) fetchAudience(ctx context.Context, rangeParam string, days int
 		Range:     rangeParam,
 		Countries: countries,
 		Devices:   devices,
+	}, nil
+}
+
+func (s *Service) fetchEngagement(ctx context.Context, rangeParam string, days int) (EngagementResponse, error) {
+	dr := dateRangeFor(days)
+
+	resp, err := s.runReport(ctx, &analyticsdata.RunReportRequest{
+		DateRanges: []*analyticsdata.DateRange{dr},
+		Dimensions: []*analyticsdata.Dimension{{Name: "date"}},
+		Metrics: []*analyticsdata.Metric{
+			{Name: "active1DayUsers"},
+			{Name: "active7DayUsers"},
+			{Name: "active28DayUsers"},
+		},
+		OrderBys: []*analyticsdata.OrderBy{
+			{Dimension: &analyticsdata.DimensionOrderBy{DimensionName: "date"}},
+		},
+	})
+	if err != nil {
+		return EngagementResponse{}, fmt.Errorf("engagement series: %w", err)
+	}
+
+	series := make([]EngagementPoint, 0, len(resp.Rows))
+	for _, row := range resp.Rows {
+		series = append(series, EngagementPoint{
+			Date: formatGA4Date(rowDimension(row, 0)),
+			DAU:  rowMetricInt(row, 0),
+			WAU:  rowMetricInt(row, 1),
+			MAU:  rowMetricInt(row, 2),
+		})
+	}
+
+	var current EngagementCurrent
+	if len(series) > 0 {
+		last := series[len(series)-1]
+		current.DAU = last.DAU
+		current.WAU = last.WAU
+		current.MAU = last.MAU
+		if current.MAU > 0 {
+			current.Stickiness = float64(current.DAU) / float64(current.MAU)
+		}
+	}
+
+	return EngagementResponse{
+		Range:   rangeParam,
+		Current: current,
+		Series:  series,
 	}, nil
 }

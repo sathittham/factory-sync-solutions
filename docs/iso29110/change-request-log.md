@@ -93,6 +93,16 @@ CR-004/005 are raised on the parallel `feature/chatbot-core` branch.
 - Branch: `feature/bo-dashboard-ga4` — Phase 1 (all four endpoints + dashboard section) implemented
   with backend coverage 84.3% and frontend analytics coverage 97.6%; Playwright E2E deferred
   (no Playwright infra in `web-backoffice` yet — tracked in status.md as follow-up).
+- 2026-07-04 — Scope addition FR-008 (SRS v0.2.0): fifth endpoint
+  `/analytics/engagement` (DAU/WAU/MAU rolling actives + stickiness) +
+  `EngagementPanel`; verified same day (backend 86.3%, frontend analytics
+  96.96% stmts). Local dev GA4 provisioned (property + SA Viewer);
+  staging/prod env still pending.
+- 2026-07-04 — Scope addition FR-009 + FR-010 (SRS v0.3.0): `/analytics/sources`
+  (top-10 `sessionSourceMedium` with share) + `SourcesTable`, and
+  `/analytics/meta` (property ID) powering an "Open in Google Analytics" console
+  deep link. Verified same day (backend 87.6%, frontend analytics 97.42% stmts);
+  `sessionSourceMedium` validated against the live Data API.
 
 ### CR-003 | Adopt TanStack Table + Query in web-app | Approved
 

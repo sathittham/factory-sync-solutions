@@ -1,7 +1,7 @@
 ---
 isoOutput: SI.O1
-version: 0.1.0
-lastUpdated: 2026-07-03
+version: 0.3.0
+lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 status: Draft
 ---
@@ -12,7 +12,8 @@ status: Draft
 
 > Add a **Web Analytics** section to the backoffice dashboard (`/dashboard` in
 > `apps/web-backoffice`) that surfaces Google Analytics 4 (GA4) reporting data —
-> traffic, top pages, acquisition channels, and audience — for the public
+> traffic, top pages, acquisition channels, audience, and engagement
+> (DAU/WAU/MAU) — for the public
 > marketing site (`web-official`) and the authenticated app (`web-app`). Data is
 > read server-side via the **GA4 Data API v1beta** and exposed through a new
 > `/api/v1/backoffice/analytics/*` route group, gated by `backofficeRole`.
@@ -24,10 +25,10 @@ status: Draft
 | Field | Value |
 |---|---|
 | **Feature / Module** | Backoffice GA4 Analytics Dashboard (`bo-dashboard-ga4`) |
-| **Version** | 0.1.0 |
+| **Version** | 0.3.0 |
 | **Status** | Draft |
 | **Author** | Sathittham Sangthong |
-| **Date** | 2026-07-03 |
+| **Date** | 2026-07-04 |
 | **Approved By** | N/A — VSE self-approval |
 | **Approval Date** | — |
 
@@ -310,6 +311,71 @@ the GA4 upstream shall never break the rest of the dashboard.
     `ANALYTICS_UNAVAILABLE` and the frontend shows a retry-able inline error for
     the section only.
 
+### 3.6 Engagement (DAU / WAU / MAU)
+
+#### FR-008 — DAU/WAU/MAU engagement panel
+
+| Field | Value |
+|---|---|
+| **Priority** | Nice to Have |
+| **Source** | Backoffice staff (added 2026-07-04) |
+| **Test Case** | TC-008 |
+
+**Description:** The system shall show **DAU**, **WAU**, and **MAU** (GA4 rolling
+`active1DayUsers` / `active7DayUsers` / `active28DayUsers`) as of the most recent
+reported day, a **stickiness** ratio (DAU ÷ MAU), and a daily time series of the
+three metrics over the selected range.
+
+**Acceptance Criteria:**
+- Given data exists, when the panel loads, then DAU, WAU, MAU stat tiles and a
+  stickiness percentage render from the latest day of the series.
+- Given the selected range changes, then the series re-queries GA4 for that range
+  (current values remain "as of latest day").
+- Given MAU is zero, then stickiness renders as 0% (no division error).
+- The panel follows the same loading / stale / error / empty states as FR-001.
+
+### 3.7 Traffic Sources
+
+#### FR-009 — Source / medium breakdown
+
+| Field | Value |
+|---|---|
+| **Priority** | Nice to Have |
+| **Source** | Backoffice staff (added 2026-07-04) |
+| **Test Case** | TC-009 |
+
+**Description:** The system shall show the top 10 traffic sources by sessions
+(GA4 `sessionSourceMedium`, e.g. `google / organic`) with each source's share of
+the returned total, for the selected range.
+
+**Acceptance Criteria:**
+- Given data exists, when the panel loads, then up to 10 source/medium rows
+  render with session counts and share percentages.
+- The panel follows the same loading / stale / error / empty states as FR-001.
+
+### 3.8 External link to Google Analytics
+
+#### FR-010 — "Open in Google Analytics" deep link
+
+| Field | Value |
+|---|---|
+| **Priority** | Nice to Have |
+| **Source** | Backoffice staff (added 2026-07-04) |
+| **Test Case** | TC-010 |
+
+**Description:** The section header shall offer an external link that opens the
+configured GA4 property in the Google Analytics console
+(`https://analytics.google.com/analytics/web/#/p{propertyID}/reports/intelligenthome`).
+The property ID is read from a new `GET /analytics/meta` endpoint (server-side
+config, authenticated staff only) — never hardcoded in the client.
+
+**Acceptance Criteria:**
+- Given the analytics service is configured, when the section loads, then an
+  "Open in Google Analytics" link (new tab, `rel="noopener noreferrer"`) renders
+  with the property deep link.
+- Given `/analytics/meta` fails (service unconfigured), then the link is simply
+  not shown — no error state.
+
 ---
 
 ## 4. Non-Functional Requirements
@@ -360,6 +426,9 @@ All routes require `Authorization: Bearer {firebase-id-token}` and
 | GET | `/api/v1/backoffice/analytics/top-pages` | staff+ | Top 10 page paths by views |
 | GET | `/api/v1/backoffice/analytics/channels` | staff+ | Sessions by default channel group |
 | GET | `/api/v1/backoffice/analytics/audience` | staff+ | Sessions by country (top 10) and device category |
+| GET | `/api/v1/backoffice/analytics/engagement` | staff+ | DAU/WAU/MAU (rolling 1/7/28-day active users) + stickiness + daily series |
+| GET | `/api/v1/backoffice/analytics/sources` | staff+ | Sessions by source / medium (top 10) with share |
+| GET | `/api/v1/backoffice/analytics/meta` | staff+ | Configured GA4 `propertyID` for console deep-linking (no `range` param) |
 
 Response shape follows `pkg.RespondJSON` → `{ "success": true, "data": … }`.
 All analytics responses include `stale` (boolean, always present) in `data`.
@@ -384,6 +453,23 @@ All analytics responses include `stale` (boolean, always present) in `data`.
   }
 }
 ```
+
+**Example — `GET /api/v1/backoffice/analytics/engagement?range=28d`:**
+```json
+{
+  "success": true,
+  "data": {
+    "range": "28d",
+    "stale": false,
+    "current": { "dau": 12, "wau": 45, "mau": 130, "stickiness": 0.092 },
+    "series": [
+      { "date": "2026-06-07", "dau": 10, "wau": 40, "mau": 120 }
+    ]
+  }
+}
+```
+`current` reflects the **last row** of the series (rolling actives as of the most
+recent reported day); `stickiness = dau / mau` (0 when `mau` is 0).
 
 **Error — GA4 unreachable (no cache):**
 ```json
@@ -436,6 +522,9 @@ it does not persist analytics data in Firestore.
 | top-pages | `screenPageViews`, `userEngagementDuration` | `pagePath` | by views desc, limit 10; include computed `avgEngagementTimeSec = userEngagementDuration / screenPageViews` |
 | channels | `sessions` | `sessionDefaultChannelGroup` | by sessions desc, limit 10 |
 | audience | `sessions` | `country`, `deviceCategory` (two reports) | by sessions desc, country top 10 |
+| engagement | `active1DayUsers`, `active7DayUsers`, `active28DayUsers` | `date` | by `date` asc; `current` = last row, `stickiness = dau / mau` |
+| sources | `sessions` | `sessionSourceMedium` | by sessions desc, limit 10; share of returned total |
+| meta | — (no GA4 call) | — | returns configured `propertyID`; 503 when unconfigured |
 
 ---
 
@@ -449,7 +538,7 @@ extend `services/backoffice/` if you prefer to avoid a new service.
 services/analytics/
 ├── handler.go   — HTTP handlers for /api/v1/backoffice/analytics/* (parse range, call service, respond)
 ├── service.go   — GA4 Data API client calls, report definitions, TTL cache
-├── models.go    — OverviewResponse, TopPagesResponse, ChannelsResponse, AudienceResponse
+├── models.go    — OverviewResponse, TopPagesResponse, ChannelsResponse, AudienceResponse, EngagementResponse, SourcesResponse, MetaResponse
 └── service_test.go — table-driven tests with a mocked GA4 client
 ```
 
@@ -466,6 +555,9 @@ r.Route("/api/v1/backoffice", func(r chi.Router) {
         r.Get("/top-pages", analyticsHandler.GetTopPages)
         r.Get("/channels", analyticsHandler.GetChannels)
         r.Get("/audience", analyticsHandler.GetAudience)
+        r.Get("/engagement", analyticsHandler.GetEngagement)
+        r.Get("/sources", analyticsHandler.GetSources)
+        r.Get("/meta", analyticsHandler.GetMeta)
     })
 })
 ```
@@ -488,7 +580,9 @@ web-backoffice/src/
 │   ├── TrafficOverview.tsx      — stat cards + time-series chart
 │   ├── TopPagesTable.tsx
 │   ├── ChannelsChart.tsx
-│   └── AudiencePanel.tsx
+│   ├── AudiencePanel.tsx
+│   ├── EngagementPanel.tsx      — DAU/WAU/MAU tiles + stickiness + series chart
+│   └── SourcesTable.tsx         — top 10 source/medium rows with share
 └── pages/DashboardPage.tsx      — render <WebAnalyticsSection /> below existing content
 ```
 
@@ -586,6 +680,9 @@ web-backoffice/src/
 | FR-005 Channels | §5.1 channels, §6.4 | TC-005 | Verified (unit + component; E2E deferred) |
 | FR-006 Audience | §5.1 audience, §6.4 | TC-006 | Verified (unit + component; E2E deferred) |
 | FR-007 Auth & degradation | §9, §4.4 | TC-007 | Verified (unit + component; E2E deferred) |
+| FR-008 Engagement (DAU/WAU/MAU) | §5.1 engagement, §6.4 | TC-008 | Verified (unit + component; E2E deferred) |
+| FR-009 Traffic sources | §5.1 sources, §6.4 | TC-009 | Verified (unit + component; E2E deferred) |
+| FR-010 GA console deep link | §5.1 meta | TC-010 | Verified (unit + component; E2E deferred) |
 
 *Update status: Not Started / In Progress / Implemented / Verified.*
 
@@ -599,6 +696,8 @@ web-backoffice/src/
 | P2 | `top-pages` + `channels` endpoints and panels. |
 | P3 | `audience` endpoint + panel. |
 | P4 (optional) | CSV export, per-source segmentation, realtime tile. |
+| P5 | `engagement` endpoint + `EngagementPanel` (DAU/WAU/MAU + stickiness) — scope added 2026-07-04. |
+| P6 | `sources` + `meta` endpoints, `SourcesTable`, "Open in Google Analytics" deep link — scope added 2026-07-04. |
 
 ---
 
@@ -607,8 +706,10 @@ web-backoffice/src/
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 0.1.0 | 2026-07-03 | Sathittham Sangthong | Initial draft |
+| 0.2.0 | 2026-07-04 | Sathittham Sangthong | Add FR-008 engagement (DAU/WAU/MAU + stickiness): `/analytics/engagement` endpoint, `EngagementPanel`, TC-008 |
+| 0.3.0 | 2026-07-04 | Sathittham Sangthong | Add FR-009 traffic sources (`/analytics/sources`, `SourcesTable`) and FR-010 GA console deep link (`/analytics/meta`), TC-009/TC-010 |
 
 ---
 
-*Version: 0.1.0*
-*Last updated: 3 July 2026*
+*Version: 0.3.0*
+*Last updated: 4 July 2026*

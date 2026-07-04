@@ -216,3 +216,40 @@ export interface AnalyticsAudience {
   countries: AnalyticsCountry[];
   devices: AnalyticsDevice[];
 }
+
+export interface AnalyticsEngagementCurrent {
+  dau: number;
+  wau: number;
+  mau: number;
+  stickiness: number;
+}
+
+export interface AnalyticsEngagementPoint {
+  date: string;
+  dau: number;
+  wau: number;
+  mau: number;
+}
+
+export interface AnalyticsEngagement {
+  range: AnalyticsRange;
+  stale: boolean;
+  current: AnalyticsEngagementCurrent;
+  series: AnalyticsEngagementPoint[];
+}
+
+export interface AnalyticsSource {
+  source: string;
+  sessions: number;
+  share: number;
+}
+
+export interface AnalyticsSources {
+  range: AnalyticsRange;
+  stale: boolean;
+  sources: AnalyticsSource[];
+}
+
+export interface AnalyticsMeta {
+  propertyID: string;
+}

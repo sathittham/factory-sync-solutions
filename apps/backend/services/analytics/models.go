@@ -70,3 +70,48 @@ type AudienceResponse struct {
 	Countries []CountrySessions `json:"countries"`
 	Devices   []DeviceSessions  `json:"devices"`
 }
+
+// EngagementPoint is one day's worth of rolling active-user counts in the
+// engagement time series.
+type EngagementPoint struct {
+	Date string `json:"date"`
+	DAU  int64  `json:"dau"`
+	WAU  int64  `json:"wau"`
+	MAU  int64  `json:"mau"`
+}
+
+// EngagementCurrent holds the most recent rolling DAU/WAU/MAU and the
+// resulting stickiness ratio (DAU/MAU).
+type EngagementCurrent struct {
+	DAU        int64   `json:"dau"`
+	WAU        int64   `json:"wau"`
+	MAU        int64   `json:"mau"`
+	Stickiness float64 `json:"stickiness"`
+}
+
+// EngagementResponse is the payload for GET /backoffice/analytics/engagement.
+type EngagementResponse struct {
+	Range   string            `json:"range"`
+	Stale   bool              `json:"stale"`
+	Current EngagementCurrent `json:"current"`
+	Series  []EngagementPoint `json:"series"`
+}
+
+// Source is a single traffic-source row with its share of total sessions.
+type Source struct {
+	Source   string  `json:"source"`
+	Sessions int64   `json:"sessions"`
+	Share    float64 `json:"share"`
+}
+
+// SourcesResponse is the payload for GET /backoffice/analytics/sources.
+type SourcesResponse struct {
+	Range   string   `json:"range"`
+	Stale   bool     `json:"stale"`
+	Sources []Source `json:"sources"`
+}
+
+// MetaResponse is the payload for GET /backoffice/analytics/meta.
+type MetaResponse struct {
+	PropertyID string `json:"propertyID"`
+}

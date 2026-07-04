@@ -28,6 +28,9 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Get("/top-pages", h.GetTopPages)
 	r.Get("/channels", h.GetChannels)
 	r.Get("/audience", h.GetAudience)
+	r.Get("/engagement", h.GetEngagement)
+	r.Get("/sources", h.GetSources)
+	r.Get("/meta", h.GetMeta)
 }
 
 // parseRange reads the `range` query param, defaulting to 28d.
@@ -129,6 +132,73 @@ func (h *Handler) GetAudience(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	pkg.RespondJSON(w, http.StatusOK, audience)
+}
+
+// GetEngagement godoc
+// @Summary      GA4 engagement (DAU/WAU/MAU)
+// @Description  Returns rolling 1/7/28-day active user counts (DAU/WAU/MAU) as a daily series, plus the current stickiness (DAU/MAU) for the selected range
+// @Tags         Backoffice Analytics
+// @Produce      json
+// @Param        Authorization  header  string  true   "Bearer {firebase-id-token}"
+// @Param        range          query   string  false  "7d, 28d (default), or 90d"
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      400  {object}  pkg.ErrorResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      403  {object}  pkg.ErrorResponse
+// @Failure      503  {object}  pkg.ErrorResponse
+// @Security     BearerAuth
+// @Router       /backoffice/analytics/engagement [get]
+func (h *Handler) GetEngagement(w http.ResponseWriter, r *http.Request) {
+	engagement, err := h.service.GetEngagement(r.Context(), parseRange(r))
+	if err != nil {
+		handleError(w, r, err)
+		return
+	}
+	pkg.RespondJSON(w, http.StatusOK, engagement)
+}
+
+// GetSources godoc
+// @Summary      GA4 traffic sources
+// @Description  Returns sessions grouped by session source / medium (top 10) for the selected range
+// @Tags         Backoffice Analytics
+// @Produce      json
+// @Param        Authorization  header  string  true   "Bearer {firebase-id-token}"
+// @Param        range          query   string  false  "7d, 28d (default), or 90d"
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      400  {object}  pkg.ErrorResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      403  {object}  pkg.ErrorResponse
+// @Failure      503  {object}  pkg.ErrorResponse
+// @Security     BearerAuth
+// @Router       /backoffice/analytics/sources [get]
+func (h *Handler) GetSources(w http.ResponseWriter, r *http.Request) {
+	sources, err := h.service.GetSources(r.Context(), parseRange(r))
+	if err != nil {
+		handleError(w, r, err)
+		return
+	}
+	pkg.RespondJSON(w, http.StatusOK, sources)
+}
+
+// GetMeta godoc
+// @Summary      GA4 property metadata
+// @Description  Returns the configured GA4 property ID for deep-linking to the Google Analytics console
+// @Tags         Backoffice Analytics
+// @Produce      json
+// @Param        Authorization  header  string  true  "Bearer {firebase-id-token}"
+// @Success      200  {object}  pkg.JSONResponse
+// @Failure      401  {object}  pkg.ErrorResponse
+// @Failure      403  {object}  pkg.ErrorResponse
+// @Failure      503  {object}  pkg.ErrorResponse
+// @Security     BearerAuth
+// @Router       /backoffice/analytics/meta [get]
+func (h *Handler) GetMeta(w http.ResponseWriter, r *http.Request) {
+	meta, err := h.service.GetMeta()
+	if err != nil {
+		handleError(w, r, err)
+		return
+	}
+	pkg.RespondJSON(w, http.StatusOK, meta)
 }
 
 // handleError maps analytics sentinel errors to the standard error envelope.

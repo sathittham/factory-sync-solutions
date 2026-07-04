@@ -12,7 +12,10 @@ import { WebAnalyticsSection } from './WebAnalyticsSection';
 import {
   audienceFixture,
   channelsFixture,
+  engagementFixture,
+  metaFixture,
   overviewFixture,
+  sourcesFixture,
   topPagesFixture,
 } from './analyticsTestFixtures';
 
@@ -22,6 +25,9 @@ vi.mock('@/api/backoffice', () => ({
     getAnalyticsTopPages: vi.fn(),
     getAnalyticsChannels: vi.fn(),
     getAnalyticsAudience: vi.fn(),
+    getAnalyticsEngagement: vi.fn(),
+    getAnalyticsSources: vi.fn(),
+    getAnalyticsMeta: vi.fn(),
   },
 }));
 
@@ -55,6 +61,9 @@ function resolveAllWithFixtures(range: AnalyticsRange = '28d') {
   mockedApi.getAnalyticsTopPages.mockResolvedValue({ ...topPagesFixture, range });
   mockedApi.getAnalyticsChannels.mockResolvedValue({ ...channelsFixture, range });
   mockedApi.getAnalyticsAudience.mockResolvedValue({ ...audienceFixture, range });
+  mockedApi.getAnalyticsEngagement.mockResolvedValue({ ...engagementFixture, range });
+  mockedApi.getAnalyticsSources.mockResolvedValue({ ...sourcesFixture, range });
+  mockedApi.getAnalyticsMeta.mockResolvedValue(metaFixture);
 }
 
 function LocaleToggle() {
@@ -103,6 +112,9 @@ describe('WebAnalyticsSection', () => {
     mockedApi.getAnalyticsTopPages.mockResolvedValue(topPagesFixture);
     mockedApi.getAnalyticsChannels.mockResolvedValue(channelsFixture);
     mockedApi.getAnalyticsAudience.mockResolvedValue(audienceFixture);
+    mockedApi.getAnalyticsEngagement.mockResolvedValue(engagementFixture);
+    mockedApi.getAnalyticsSources.mockResolvedValue(sourcesFixture);
+    mockedApi.getAnalyticsMeta.mockResolvedValue(metaFixture);
 
     const { container } = renderSection();
 
@@ -118,12 +130,16 @@ describe('WebAnalyticsSection', () => {
     expect(screen.getByText('/')).toBeInTheDocument();
     expect(screen.getByText('Organic Search')).toBeInTheDocument();
     expect(screen.getByText('Thailand')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'DAU' })).toBeInTheDocument();
+    expect(screen.getByText('google / organic')).toBeInTheDocument();
     expect(container.querySelectorAll('.animate-pulse')).toHaveLength(0);
 
     expect(mockedApi.getAnalyticsOverview).toHaveBeenCalledWith('28d');
     expect(mockedApi.getAnalyticsTopPages).toHaveBeenCalledWith('28d');
     expect(mockedApi.getAnalyticsChannels).toHaveBeenCalledWith('28d');
     expect(mockedApi.getAnalyticsAudience).toHaveBeenCalledWith('28d');
+    expect(mockedApi.getAnalyticsEngagement).toHaveBeenCalledWith('28d');
+    expect(mockedApi.getAnalyticsSources).toHaveBeenCalledWith('28d');
   });
 
   it('shows a per-panel inline error without blanking the panels that succeeded (UT-F02)', async () => {
@@ -131,6 +147,9 @@ describe('WebAnalyticsSection', () => {
     mockedApi.getAnalyticsTopPages.mockResolvedValue(topPagesFixture);
     mockedApi.getAnalyticsChannels.mockResolvedValue(channelsFixture);
     mockedApi.getAnalyticsAudience.mockResolvedValue(audienceFixture);
+    mockedApi.getAnalyticsEngagement.mockResolvedValue(engagementFixture);
+    mockedApi.getAnalyticsSources.mockResolvedValue(sourcesFixture);
+    mockedApi.getAnalyticsMeta.mockResolvedValue(metaFixture);
 
     renderSection();
 
@@ -138,10 +157,11 @@ describe('WebAnalyticsSection', () => {
       await screen.findByText('Analytics is temporarily unavailable. Please try again.'),
     ).toBeInTheDocument();
 
-    // the other three panels still render their data, unaffected by the overview failure
+    // the other panels still render their data, unaffected by the overview failure
     expect(screen.getByText('/')).toBeInTheDocument();
     expect(screen.getByText('Organic Search')).toBeInTheDocument();
     expect(screen.getByText('Thailand')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'DAU' })).toBeInTheDocument();
 
     // section-level retry surfaces because at least one panel errored
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
@@ -161,6 +181,8 @@ describe('WebAnalyticsSection', () => {
     mockedApi.getAnalyticsTopPages.mockResolvedValue({ ...topPagesFixture, range: '7d' });
     mockedApi.getAnalyticsChannels.mockResolvedValue({ ...channelsFixture, range: '7d' });
     mockedApi.getAnalyticsAudience.mockResolvedValue({ ...audienceFixture, range: '7d' });
+    mockedApi.getAnalyticsEngagement.mockResolvedValue({ ...engagementFixture, range: '7d' });
+    mockedApi.getAnalyticsSources.mockResolvedValue({ ...sourcesFixture, range: '7d' });
 
     const user = userEvent.setup();
     await user.click(screen.getByRole('combobox'));
@@ -180,6 +202,8 @@ describe('WebAnalyticsSection', () => {
     expect(mockedApi.getAnalyticsTopPages).toHaveBeenLastCalledWith('7d');
     expect(mockedApi.getAnalyticsChannels).toHaveBeenLastCalledWith('7d');
     expect(mockedApi.getAnalyticsAudience).toHaveBeenLastCalledWith('7d');
+    expect(mockedApi.getAnalyticsEngagement).toHaveBeenLastCalledWith('7d');
+    expect(mockedApi.getAnalyticsSources).toHaveBeenLastCalledWith('7d');
   });
 
   it('shows a retry-able stale warning while keeping all sections visible (UT-F07)', async () => {
@@ -187,6 +211,9 @@ describe('WebAnalyticsSection', () => {
     mockedApi.getAnalyticsTopPages.mockResolvedValue(topPagesFixture);
     mockedApi.getAnalyticsChannels.mockResolvedValue(channelsFixture);
     mockedApi.getAnalyticsAudience.mockResolvedValue(audienceFixture);
+    mockedApi.getAnalyticsEngagement.mockResolvedValue(engagementFixture);
+    mockedApi.getAnalyticsSources.mockResolvedValue(sourcesFixture);
+    mockedApi.getAnalyticsMeta.mockResolvedValue(metaFixture);
 
     renderSection();
     await waitForInitialLoad();
@@ -225,5 +252,32 @@ describe('WebAnalyticsSection', () => {
     expect(screen.getByRole('heading', { name: 'ผู้ใช้งาน' })).toBeInTheDocument();
     expect(screen.queryByText('Web Analytics')).not.toBeInTheDocument();
     expect(screen.queryByText('Active Users')).not.toBeInTheDocument();
+  });
+
+  it('renders the "Open in Google Analytics" link with the property deep link when meta resolves (UT-F10)', async () => {
+    resolveAllWithFixtures('28d');
+
+    renderSection();
+    await waitForInitialLoad();
+
+    const link = await screen.findByRole('link', { name: 'Open in Google Analytics' });
+    expect(link).toHaveAttribute(
+      'href',
+      'https://analytics.google.com/analytics/web/#/p540943523/reports/intelligenthome',
+    );
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('omits the Google Analytics link when meta fails to load (UT-F10)', async () => {
+    resolveAllWithFixtures('28d');
+    mockedApi.getAnalyticsMeta.mockRejectedValue(new Error('unconfigured'));
+
+    renderSection();
+    await waitForInitialLoad();
+
+    expect(
+      screen.queryByRole('link', { name: 'Open in Google Analytics' }),
+    ).not.toBeInTheDocument();
   });
 });

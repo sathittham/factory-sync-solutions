@@ -1,6 +1,6 @@
 ---
 isoOutput: SI.O4 / SI.O5
-version: 1.0.0
+version: 1.2.0
 lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 status: Active
@@ -63,6 +63,10 @@ status: Active
 | UT-005 | GA4 stale cache path | cache hit available + stale data | downstream times out | cached payload returned with `stale: true` | Pass |
 | UT-006 | Overview aggregation | known fixture payload | API response conversion | numeric totals computed correctly; divide-by-zero guarded | Pass |
 | UT-007 | Audience top-N slicing | fixture with >10 countries/devices | transform response | top 10 and deterministic ordering returned | Pass |
+| UT-008 | Engagement series mapping (TC-008) | known fixture rows | `GetEngagement(28d)` | series maps `active1DayUsers`/`active7DayUsers`/`active28DayUsers` per date; `current` = last row; `stickiness = dau/mau` | Pass |
+| UT-009 | Engagement edge cases (TC-008) | zero-MAU fixture / empty rows / cold cache + failure | `GetEngagement` | stickiness 0 without division error; empty non-nil series; `ErrAnalyticsUnavailable`; stale fallback with `stale:true` | Pass |
+| UT-010 | Sources breakdown (TC-009) | fixture rows | `GetSources(28d)` | top 10 `sessionSourceMedium` rows with share of returned total; cache / stale / cold-cache failure behavior matches channels | Pass |
+| UT-011 | Meta property ID (TC-010) | configured / disabled service | `GetMeta()` | configured → `propertyID` returned; disabled → `ErrAnalyticsUnavailable` | Pass |
 
 ### 2.2 Frontend — `apps/web-backoffice/src/**\/*.test.tsx`
 
@@ -75,6 +79,9 @@ status: Active
 | UT-F05 | Top pages truncation | `TopPagesTable` | long URL path | render row | truncated display plus tooltip detail | Pass |
 | UT-F06 | Locale switching | all analytics screens | locale from `th` to `en` | trigger re-render | all visible labels switch via i18n, no hardcoded text | Pass |
 | UT-F07 | Stale warning UI | backoffice analytics page | stale response present | render warning | retry alert shown and sections stay visible | Pass |
+| UT-F08 | Engagement panel states (TC-008) | `EngagementPanel` | API mock success / loading / error / empty | mount component | DAU/WAU/MAU tiles + stickiness % render; loading skeleton, inline error, and empty states match TrafficOverview behavior | Pass |
+| UT-F09 | Sources table states (TC-009) | `SourcesTable` | API mock success / loading / error / empty | mount component | source/medium rows with sessions + share %; states match TopPagesTable behavior | Pass |
+| UT-F10 | GA console link (TC-010) | `WebAnalyticsSection` header | meta mock success / failure | mount section | link renders with `#/p{propertyID}` deep link, `target="_blank"`, `rel="noopener noreferrer"`; absent when meta fails | Pass |
 
 ## 3. Integration Test Cases (SI.O5)
 
@@ -90,6 +97,9 @@ status: Active
 | IT-006 | `GET /api/v1/backoffice/analytics/audience` | valid token | `range=28d` | 200 | country/device summary, top 10 countries | Pass |
 | IT-007 | `GET /api/v1/backoffice/analytics/channels` | valid token | invalid range | 400 | `VALIDATION_ERROR` | Pass |
 | IT-008 | `GET /api/v1/backoffice/analytics/*` | valid token | backend failure + cache hit | 200 | stale payload + warning metadata | Pass |
+| IT-009 | `GET /api/v1/backoffice/analytics/engagement` | valid token | `range=28d` / invalid range / upstream failure, cold cache | 200 / 400 / 503 | engagement payload (`current` + `series`) / `VALIDATION_ERROR` / `ANALYTICS_UNAVAILABLE` | Pass |
+| IT-010 | `GET /api/v1/backoffice/analytics/sources` | valid token | `range=28d` / invalid range / upstream failure, cold cache | 200 / 400 / 503 | sources payload / `VALIDATION_ERROR` / `ANALYTICS_UNAVAILABLE` | Pass |
+| IT-011 | `GET /api/v1/backoffice/analytics/meta` | valid token | configured / unconfigured service | 200 / 503 | `propertyID` in envelope / `ANALYTICS_UNAVAILABLE` | Pass |
 
 ### 3.2 End-to-End (Playwright)
 
@@ -131,14 +141,18 @@ Run from repository root unless path is specified.
 | Run Date | Environment | Backend Coverage | Frontend Coverage | E2E Result | Notes |
 |---|---|---|---|---|---|
 | 2026-07-04 | Local | 84.3% (`services/analytics`, `go test -race -cover`) | 97.6% stmts / 91.1% branch (`components/analytics`, `vitest --coverage`) | Deferred (no Playwright infra) | Phase 1: 36 frontend tests across 7 files + backend service/handler suites, all green |
+| 2026-07-04 | Local | 86.3% (`services/analytics`, `go test -race -cover`) | 96.96% stmts / 93.87% branch (`components/analytics`, `vitest --coverage`) | Deferred (no Playwright infra) | FR-008 engagement added: 41 frontend tests across 8 files + UT-008/UT-009/IT-009 backend cases, all green; GA4 metric names validated against the live Data API |
+| 2026-07-04 | Local | 87.6% (`services/analytics`, `go test -race -cover`) | 97.42% stmts / 92.85% branch (`components/analytics`, `vitest --coverage`) | Deferred (no Playwright infra) | FR-009 sources + FR-010 GA deep link added: 47 frontend tests across 9 files + UT-010/UT-011/IT-010/IT-011 backend cases, all green; `sessionSourceMedium` validated against the live Data API |
 
 ## 7. Document History
 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-07-03 | Sathittham Sangthong | Initial template-aligned test plan for `bo-dashboard-ga4` including unit, integration, E2E, and >70% coverage gates |
+| 1.1.0 | 2026-07-04 | Sathittham Sangthong | Add TC-008 engagement (DAU/WAU/MAU) cases: UT-008/UT-009, UT-F08, IT-009 |
+| 1.2.0 | 2026-07-04 | Sathittham Sangthong | Add TC-009 sources + TC-010 GA deep link cases: UT-010/UT-011, UT-F09/UT-F10, IT-010/IT-011 |
 
 ---
 
-*Version: 1.0.0*
+*Version: 1.2.0*
 *Last updated: 4 July 2026*

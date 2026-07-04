@@ -2,11 +2,13 @@ import { backofficeApi } from '@/api/backoffice';
 import type {
   AnalyticsAudience,
   AnalyticsChannels,
+  AnalyticsEngagement,
   AnalyticsOverview,
   AnalyticsRange,
+  AnalyticsSources,
   AnalyticsTopPages,
 } from '@/api/types';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
@@ -16,12 +18,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useLocale } from '@/lib/i18n';
-import { RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ExternalLink, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { AudiencePanel } from './AudiencePanel';
 import { ChannelsChart } from './ChannelsChart';
+import { EngagementPanel } from './EngagementPanel';
+import { SourcesTable } from './SourcesTable';
 import { TopPagesTable } from './TopPagesTable';
 import { TrafficOverview } from './TrafficOverview';
+
+function gaPropertyUrl(propertyID: string): string {
+  return `https://analytics.google.com/analytics/web/#/p${propertyID}/reports/intelligenthome`;
+}
 
 const RANGE_OPTIONS: AnalyticsRange[] = ['7d', '28d', '90d'];
 
@@ -32,6 +41,12 @@ interface PanelState<T> {
 
 function initialPanelState<T>(): PanelState<T> {
   return { data: null, error: null };
+}
+
+function toPanelState<T>(result: PromiseSettledResult<T>, errorMessage: string): PanelState<T> {
+  return result.status === 'fulfilled'
+    ? { data: result.value, error: null }
+    : { data: null, error: errorMessage };
 }
 
 export function WebAnalyticsSection() {
@@ -45,6 +60,9 @@ export function WebAnalyticsSection() {
   const [topPages, setTopPages] = useState<PanelState<AnalyticsTopPages>>(initialPanelState);
   const [channels, setChannels] = useState<PanelState<AnalyticsChannels>>(initialPanelState);
   const [audience, setAudience] = useState<PanelState<AnalyticsAudience>>(initialPanelState);
+  const [engagement, setEngagement] = useState<PanelState<AnalyticsEngagement>>(initialPanelState);
+  const [sources, setSources] = useState<PanelState<AnalyticsSources>>(initialPanelState);
+  const [propertyID, setPropertyID] = useState<string | null>(null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reloadToken forces a manual refetch on retry
   useEffect(() => {
@@ -53,36 +71,31 @@ export function WebAnalyticsSection() {
     async function fetchAll() {
       setLoading(true);
 
-      const [overviewResult, topPagesResult, channelsResult, audienceResult] =
-        await Promise.allSettled([
-          backofficeApi.getAnalyticsOverview(range),
-          backofficeApi.getAnalyticsTopPages(range),
-          backofficeApi.getAnalyticsChannels(range),
-          backofficeApi.getAnalyticsAudience(range),
-        ]);
+      const [
+        overviewResult,
+        topPagesResult,
+        channelsResult,
+        audienceResult,
+        engagementResult,
+        sourcesResult,
+      ] = await Promise.allSettled([
+        backofficeApi.getAnalyticsOverview(range),
+        backofficeApi.getAnalyticsTopPages(range),
+        backofficeApi.getAnalyticsChannels(range),
+        backofficeApi.getAnalyticsAudience(range),
+        backofficeApi.getAnalyticsEngagement(range),
+        backofficeApi.getAnalyticsSources(range),
+      ]);
 
       if (cancelled) return;
 
-      setOverview(
-        overviewResult.status === 'fulfilled'
-          ? { data: overviewResult.value, error: null }
-          : { data: null, error: t('analytics.unavailable') },
-      );
-      setTopPages(
-        topPagesResult.status === 'fulfilled'
-          ? { data: topPagesResult.value, error: null }
-          : { data: null, error: t('analytics.unavailable') },
-      );
-      setChannels(
-        channelsResult.status === 'fulfilled'
-          ? { data: channelsResult.value, error: null }
-          : { data: null, error: t('analytics.unavailable') },
-      );
-      setAudience(
-        audienceResult.status === 'fulfilled'
-          ? { data: audienceResult.value, error: null }
-          : { data: null, error: t('analytics.unavailable') },
-      );
+      const unavailable = t('analytics.unavailable');
+      setOverview(toPanelState(overviewResult, unavailable));
+      setTopPages(toPanelState(topPagesResult, unavailable));
+      setChannels(toPanelState(channelsResult, unavailable));
+      setAudience(toPanelState(audienceResult, unavailable));
+      setEngagement(toPanelState(engagementResult, unavailable));
+      setSources(toPanelState(sourcesResult, unavailable));
       setLoading(false);
     }
 
@@ -91,6 +104,23 @@ export function WebAnalyticsSection() {
       cancelled = true;
     };
   }, [range, reloadToken, t]);
+
+  // The GA console deep link needs the server-side property ID. Fetch it once on
+  // mount; on failure (service unconfigured) the link is simply not shown.
+  useEffect(() => {
+    let cancelled = false;
+    backofficeApi
+      .getAnalyticsMeta()
+      .then((meta) => {
+        if (!cancelled) setPropertyID(meta.propertyID);
+      })
+      .catch(() => {
+        if (!cancelled) setPropertyID(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleRangeChange = useCallback((value: string) => {
     setRange(value as AnalyticsRange);
@@ -101,9 +131,21 @@ export function WebAnalyticsSection() {
   }, []);
 
   const isStale = Boolean(
-    overview.data?.stale || topPages.data?.stale || channels.data?.stale || audience.data?.stale,
+    overview.data?.stale ||
+      topPages.data?.stale ||
+      channels.data?.stale ||
+      audience.data?.stale ||
+      engagement.data?.stale ||
+      sources.data?.stale,
   );
-  const hasAnyError = Boolean(overview.error || topPages.error || channels.error || audience.error);
+  const hasAnyError = Boolean(
+    overview.error ||
+      topPages.error ||
+      channels.error ||
+      audience.error ||
+      engagement.error ||
+      sources.error,
+  );
   const showRetry = (isStale || hasAnyError) && !loading;
 
   return (
@@ -116,6 +158,17 @@ export function WebAnalyticsSection() {
               <RefreshCw className="mr-1 size-3.5" />
               {t('analytics.retry')}
             </Button>
+          )}
+          {propertyID && (
+            <a
+              href={gaPropertyUrl(propertyID)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+            >
+              <ExternalLink className="mr-1 size-3.5" />
+              {t('analytics.openInGA')}
+            </a>
           )}
           <Select value={range} onValueChange={handleRangeChange}>
             <SelectTrigger className="w-48">
@@ -140,10 +193,14 @@ export function WebAnalyticsSection() {
 
         <TrafficOverview data={overview.data} loading={loading} error={overview.error} />
 
+        <EngagementPanel data={engagement.data} loading={loading} error={engagement.error} />
+
         <div className="grid gap-6 lg:grid-cols-2">
           <TopPagesTable data={topPages.data} loading={loading} error={topPages.error} />
           <ChannelsChart data={channels.data} loading={loading} error={channels.error} />
         </div>
+
+        <SourcesTable data={sources.data} loading={loading} error={sources.error} />
 
         <AudiencePanel data={audience.data} loading={loading} error={audience.error} />
       </CardContent>

@@ -1,7 +1,10 @@
 import type {
   AnalyticsAudience,
   AnalyticsChannels,
+  AnalyticsEngagement,
+  AnalyticsMeta,
   AnalyticsOverview,
+  AnalyticsSources,
   AnalyticsTopPages,
 } from '@/api/types';
 
@@ -90,4 +93,50 @@ export const emptyAudienceFixture: AnalyticsAudience = {
   stale: false,
   countries: [],
   devices: [],
+};
+
+export const engagementFixture: AnalyticsEngagement = {
+  range: '28d',
+  stale: false,
+  current: { dau: 12, wau: 45, mau: 130, stickiness: 0.092 },
+  series: [
+    { date: '2026-06-06', dau: 10, wau: 40, mau: 120 },
+    { date: '2026-06-07', dau: 12, wau: 45, mau: 130 },
+  ],
+};
+
+export const emptyEngagementFixture: AnalyticsEngagement = {
+  range: '28d',
+  stale: false,
+  current: { dau: 0, wau: 0, mau: 0, stickiness: 0 },
+  series: [],
+};
+
+export const zeroActivityEngagementFixture: AnalyticsEngagement = {
+  range: '28d',
+  stale: false,
+  current: { dau: 0, wau: 0, mau: 0, stickiness: 0 },
+  series: [
+    { date: '2026-06-06', dau: 0, wau: 0, mau: 0 },
+    { date: '2026-06-07', dau: 0, wau: 0, mau: 0 },
+  ],
+};
+
+export const sourcesFixture: AnalyticsSources = {
+  range: '28d',
+  stale: false,
+  sources: [
+    { source: 'google / organic', sessions: 1200, share: 0.6 },
+    { source: '(direct) / (none)', sessions: 800, share: 0.4 },
+  ],
+};
+
+export const emptySourcesFixture: AnalyticsSources = {
+  range: '28d',
+  stale: false,
+  sources: [],
+};
+
+export const metaFixture: AnalyticsMeta = {
+  propertyID: '540943523',
 };
