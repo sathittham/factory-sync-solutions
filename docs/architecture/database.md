@@ -216,6 +216,9 @@ Resend API key is a server-side secret — only used from the Go backend, never 
 cd apps/backend && ENVIRONMENT=development go run ./cmd/set-superadmin --email=admin@company.com
 ```
 Only runs in development and uses the same Firebase Admin credentials as the backend.
+Also supports `--role staff` (defaults to `superadmin`) and `--create --password=...` to
+create a missing Firebase Auth user first — e.g. for provisioning a staff-role e2e test
+account (see `apps/web-backoffice/e2e/.env.e2e.example`).
 
 ---
 
