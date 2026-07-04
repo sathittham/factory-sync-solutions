@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Accessibility', () => {
-  test('landing page has proper document title', async ({ page }) => {
+  test('landing page has proper document title', { tag: '@regression' }, async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveTitle(/FactorySync Solutions/);
   });
 
-  test('all images have alt attributes', async ({ page }) => {
+  test('all images have alt attributes', { tag: '@regression' }, async ({ page }) => {
     await page.goto('/');
     const images = page.locator('img');
     const count = await images.count();
@@ -17,7 +17,7 @@ test.describe('Accessibility', () => {
     }
   });
 
-  test('interactive elements are keyboard accessible', async ({ page }) => {
+  test('interactive elements are keyboard accessible', { tag: '@regression' }, async ({ page }) => {
     await page.goto('/');
 
     // Tab to the first CTA button
@@ -26,7 +26,7 @@ test.describe('Accessibility', () => {
     await expect(focused).toBeVisible();
   });
 
-  test('cookie consent toggle has correct ARIA role', async ({ page }) => {
+  test('cookie consent toggle has correct ARIA role', { tag: '@regression' }, async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => localStorage.removeItem('fss-cookie-consent'));
     await page.reload();
@@ -40,11 +40,15 @@ test.describe('Accessibility', () => {
     expect(count).toBeGreaterThanOrEqual(2); // analytics + marketing
   });
 
-  test('base font size is at least 17px for readability', async ({ page }) => {
-    await page.goto('/');
-    const fontSize = await page.evaluate(() => {
-      return Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
-    });
-    expect(fontSize).toBeGreaterThanOrEqual(17);
-  });
+  test(
+    'base font size is at least 17px for readability',
+    { tag: '@regression' },
+    async ({ page }) => {
+      await page.goto('/');
+      const fontSize = await page.evaluate(() => {
+        return Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+      });
+      expect(fontSize).toBeGreaterThanOrEqual(17);
+    },
+  );
 });
