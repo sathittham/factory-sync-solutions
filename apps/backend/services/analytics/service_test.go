@@ -111,7 +111,7 @@ func TestGetOverview(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := NewService(tt.mock, time.Minute)
-			got, err := svc.GetOverview(context.Background(), tt.rangeParam)
+			got, err := svc.GetOverview(context.Background(), tt.rangeParam, "all")
 			if tt.wantErr != nil {
 				if !errors.Is(err, tt.wantErr) {
 					t.Fatalf("error = %v, want %v", err, tt.wantErr)
@@ -159,12 +159,12 @@ func TestGetOverviewCaching(t *testing.T) {
 	}
 	svc := NewService(mock, time.Minute)
 
-	if _, err := svc.GetOverview(context.Background(), "28d"); err != nil {
+	if _, err := svc.GetOverview(context.Background(), "28d", "all"); err != nil {
 		t.Fatalf("first call: unexpected error: %v", err)
 	}
 	callsAfterFirst := mock.calls
 
-	if _, err := svc.GetOverview(context.Background(), "28d"); err != nil {
+	if _, err := svc.GetOverview(context.Background(), "28d", "all"); err != nil {
 		t.Fatalf("second call: unexpected error: %v", err)
 	}
 	if mock.calls != callsAfterFirst {
@@ -191,12 +191,12 @@ func TestGetOverviewStaleWhileError(t *testing.T) {
 	// second call is treated as expired and refetches.
 	svc := NewService(mock, time.Nanosecond)
 
-	if _, err := svc.GetOverview(context.Background(), "28d"); err != nil {
+	if _, err := svc.GetOverview(context.Background(), "28d", "all"); err != nil {
 		t.Fatalf("first call: unexpected error: %v", err)
 	}
 
 	succeed = false
-	got, err := svc.GetOverview(context.Background(), "28d")
+	got, err := svc.GetOverview(context.Background(), "28d", "all")
 	if err != nil {
 		t.Fatalf("expected stale success, got error: %v", err)
 	}
@@ -221,7 +221,7 @@ func TestGetTopPages(t *testing.T) {
 	}
 	svc := NewService(mock, time.Minute)
 
-	got, err := svc.GetTopPages(context.Background(), "28d")
+	got, err := svc.GetTopPages(context.Background(), "28d", "all")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -241,7 +241,7 @@ func TestGetTopPages(t *testing.T) {
 
 func TestGetTopPagesInvalidRange(t *testing.T) {
 	svc := NewService(&mockGA4Client{}, time.Minute)
-	_, err := svc.GetTopPages(context.Background(), "bogus")
+	_, err := svc.GetTopPages(context.Background(), "bogus", "all")
 	if !errors.Is(err, ErrInvalidRange) {
 		t.Fatalf("error = %v, want ErrInvalidRange", err)
 	}
@@ -260,7 +260,7 @@ func TestGetChannels(t *testing.T) {
 	}
 	svc := NewService(mock, time.Minute)
 
-	got, err := svc.GetChannels(context.Background(), "28d")
+	got, err := svc.GetChannels(context.Background(), "28d", "all")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -283,7 +283,7 @@ func TestGetChannelsZeroSessions(t *testing.T) {
 	}
 	svc := NewService(mock, time.Minute)
 
-	got, err := svc.GetChannels(context.Background(), "28d")
+	got, err := svc.GetChannels(context.Background(), "28d", "all")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -313,7 +313,7 @@ func TestGetAudience(t *testing.T) {
 	}
 	svc := NewService(mock, time.Minute)
 
-	got, err := svc.GetAudience(context.Background(), "28d")
+	got, err := svc.GetAudience(context.Background(), "28d", "all")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -327,7 +327,7 @@ func TestGetAudience(t *testing.T) {
 
 func TestGetAudienceInvalidRange(t *testing.T) {
 	svc := NewService(&mockGA4Client{}, time.Minute)
-	_, err := svc.GetAudience(context.Background(), "")
+	_, err := svc.GetAudience(context.Background(), "", "all")
 	if !errors.Is(err, ErrInvalidRange) {
 		t.Fatalf("error = %v, want ErrInvalidRange", err)
 	}
@@ -335,7 +335,7 @@ func TestGetAudienceInvalidRange(t *testing.T) {
 
 func TestGetChannelsInvalidRange(t *testing.T) {
 	svc := NewService(&mockGA4Client{}, time.Minute)
-	_, err := svc.GetChannels(context.Background(), "1d")
+	_, err := svc.GetChannels(context.Background(), "1d", "all")
 	if !errors.Is(err, ErrInvalidRange) {
 		t.Fatalf("error = %v, want ErrInvalidRange", err)
 	}
@@ -425,7 +425,7 @@ func TestGetEngagement(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := NewService(tt.mock, time.Minute)
-			got, err := svc.GetEngagement(context.Background(), tt.rangeParam)
+			got, err := svc.GetEngagement(context.Background(), tt.rangeParam, "all")
 			if tt.wantErr != nil {
 				if !errors.Is(err, tt.wantErr) {
 					t.Fatalf("error = %v, want %v", err, tt.wantErr)
@@ -473,12 +473,12 @@ func TestGetEngagementCaching(t *testing.T) {
 	}
 	svc := NewService(mock, time.Minute)
 
-	if _, err := svc.GetEngagement(context.Background(), "28d"); err != nil {
+	if _, err := svc.GetEngagement(context.Background(), "28d", "all"); err != nil {
 		t.Fatalf("first call: unexpected error: %v", err)
 	}
 	callsAfterFirst := mock.calls
 
-	if _, err := svc.GetEngagement(context.Background(), "28d"); err != nil {
+	if _, err := svc.GetEngagement(context.Background(), "28d", "all"); err != nil {
 		t.Fatalf("second call: unexpected error: %v", err)
 	}
 	if mock.calls != callsAfterFirst {
@@ -500,12 +500,12 @@ func TestGetEngagementStaleWhileError(t *testing.T) {
 	}
 	svc := NewService(mock, time.Nanosecond)
 
-	if _, err := svc.GetEngagement(context.Background(), "28d"); err != nil {
+	if _, err := svc.GetEngagement(context.Background(), "28d", "all"); err != nil {
 		t.Fatalf("first call: unexpected error: %v", err)
 	}
 
 	succeed = false
-	got, err := svc.GetEngagement(context.Background(), "28d")
+	got, err := svc.GetEngagement(context.Background(), "28d", "all")
 	if err != nil {
 		t.Fatalf("expected stale success, got error: %v", err)
 	}
@@ -530,7 +530,7 @@ func TestGetSources(t *testing.T) {
 	}
 	svc := NewService(mock, time.Minute)
 
-	got, err := svc.GetSources(context.Background(), "28d")
+	got, err := svc.GetSources(context.Background(), "28d", "all")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -556,7 +556,7 @@ func TestGetSources(t *testing.T) {
 
 func TestGetSourcesInvalidRange(t *testing.T) {
 	svc := NewService(&mockGA4Client{}, time.Minute)
-	_, err := svc.GetSources(context.Background(), "365d")
+	_, err := svc.GetSources(context.Background(), "365d", "all")
 	if !errors.Is(err, ErrInvalidRange) {
 		t.Fatalf("error = %v, want ErrInvalidRange", err)
 	}
@@ -570,7 +570,7 @@ func TestGetSourcesEmptyRows(t *testing.T) {
 	}
 	svc := NewService(mock, time.Minute)
 
-	got, err := svc.GetSources(context.Background(), "28d")
+	got, err := svc.GetSources(context.Background(), "28d", "all")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -592,12 +592,12 @@ func TestGetSourcesCaching(t *testing.T) {
 	}
 	svc := NewService(mock, time.Minute)
 
-	if _, err := svc.GetSources(context.Background(), "28d"); err != nil {
+	if _, err := svc.GetSources(context.Background(), "28d", "all"); err != nil {
 		t.Fatalf("first call: unexpected error: %v", err)
 	}
 	callsAfterFirst := mock.calls
 
-	if _, err := svc.GetSources(context.Background(), "28d"); err != nil {
+	if _, err := svc.GetSources(context.Background(), "28d", "all"); err != nil {
 		t.Fatalf("second call: unexpected error: %v", err)
 	}
 	if mock.calls != callsAfterFirst {
@@ -619,12 +619,12 @@ func TestGetSourcesStaleWhileError(t *testing.T) {
 	}
 	svc := NewService(mock, time.Nanosecond)
 
-	if _, err := svc.GetSources(context.Background(), "28d"); err != nil {
+	if _, err := svc.GetSources(context.Background(), "28d", "all"); err != nil {
 		t.Fatalf("first call: unexpected error: %v", err)
 	}
 
 	succeed = false
-	got, err := svc.GetSources(context.Background(), "28d")
+	got, err := svc.GetSources(context.Background(), "28d", "all")
 	if err != nil {
 		t.Fatalf("expected stale success, got error: %v", err)
 	}
@@ -644,7 +644,7 @@ func TestGetSourcesUpstreamFailureNoCache(t *testing.T) {
 	}
 	svc := NewService(mock, time.Minute)
 
-	_, err := svc.GetSources(context.Background(), "28d")
+	_, err := svc.GetSources(context.Background(), "28d", "all")
 	if !errors.Is(err, ErrAnalyticsUnavailable) {
 		t.Fatalf("error = %v, want ErrAnalyticsUnavailable", err)
 	}
@@ -684,8 +684,134 @@ func TestServiceDisabled(t *testing.T) {
 		t.Fatal("expected DisabledReason to be non-empty when env vars are missing")
 	}
 
-	_, err := svc.GetOverview(context.Background(), "28d")
+	_, err := svc.GetOverview(context.Background(), "28d", "all")
 	if !errors.Is(err, ErrAnalyticsUnavailable) {
 		t.Fatalf("error = %v, want ErrAnalyticsUnavailable", err)
+	}
+}
+
+func TestGetOverviewInvalidSite(t *testing.T) {
+	svc := NewService(&mockGA4Client{}, time.Minute)
+	_, err := svc.GetOverview(context.Background(), "28d", "blog")
+	if !errors.Is(err, ErrInvalidSite) {
+		t.Fatalf("error = %v, want ErrInvalidSite", err)
+	}
+}
+
+func TestSiteHostFilter(t *testing.T) {
+	// site=official/app must attach a hostName InListFilter to every report
+	// request; site=all (and "") must leave DimensionFilter nil.
+	tests := []struct {
+		name      string
+		site      string
+		wantHosts []string
+	}{
+		{name: "all applies no filter", site: "all", wantHosts: nil},
+		{name: "empty defaults to all", site: "", wantHosts: nil},
+		{name: "official filters marketing hostnames", site: "official",
+			wantHosts: []string{"factorysyncsolutions.com", "www.factorysyncsolutions.com"}},
+		{name: "app filters app hostname", site: "app",
+			wantHosts: []string{"app.factorysyncsolutions.com"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var captured *analyticsdata.FilterExpression
+			mock := &mockGA4Client{
+				respFunc: func(callIdx int, req *analyticsdata.RunReportRequest) (*analyticsdata.RunReportResponse, error) {
+					captured = req.DimensionFilter
+					return &analyticsdata.RunReportResponse{}, nil
+				},
+			}
+			svc := NewService(mock, time.Minute)
+
+			got, err := svc.GetTopPages(context.Background(), "28d", tt.site)
+			if err != nil {
+				t.Fatalf("GetTopPages: %v", err)
+			}
+
+			if tt.wantHosts == nil {
+				if captured != nil {
+					t.Fatalf("expected no DimensionFilter, got %+v", captured)
+				}
+				if got.Site != "all" {
+					t.Errorf("Site = %q, want %q", got.Site, "all")
+				}
+				return
+			}
+
+			if captured == nil || captured.Filter == nil || captured.Filter.InListFilter == nil {
+				t.Fatalf("expected hostName InListFilter, got %+v", captured)
+			}
+			if captured.Filter.FieldName != "hostName" {
+				t.Errorf("FieldName = %q, want hostName", captured.Filter.FieldName)
+			}
+			if len(captured.Filter.InListFilter.Values) != len(tt.wantHosts) {
+				t.Fatalf("filter values = %v, want %v", captured.Filter.InListFilter.Values, tt.wantHosts)
+			}
+			for i, h := range tt.wantHosts {
+				if captured.Filter.InListFilter.Values[i] != h {
+					t.Errorf("filter value[%d] = %q, want %q", i, captured.Filter.InListFilter.Values[i], h)
+				}
+			}
+			if got.Site != tt.site {
+				t.Errorf("Site = %q, want %q", got.Site, tt.site)
+			}
+		})
+	}
+}
+
+func TestSiteHostsEnvOverride(t *testing.T) {
+	t.Setenv("GA4_HOSTS_APP", "app.example.com, beta.example.com")
+
+	var captured *analyticsdata.FilterExpression
+	mock := &mockGA4Client{
+		respFunc: func(callIdx int, req *analyticsdata.RunReportRequest) (*analyticsdata.RunReportResponse, error) {
+			captured = req.DimensionFilter
+			return &analyticsdata.RunReportResponse{}, nil
+		},
+	}
+	svc := NewService(mock, time.Minute)
+
+	if _, err := svc.GetSources(context.Background(), "28d", "app"); err != nil {
+		t.Fatalf("GetSources: %v", err)
+	}
+
+	want := []string{"app.example.com", "beta.example.com"}
+	if captured == nil || captured.Filter == nil || captured.Filter.InListFilter == nil {
+		t.Fatalf("expected hostName InListFilter, got %+v", captured)
+	}
+	if len(captured.Filter.InListFilter.Values) != 2 ||
+		captured.Filter.InListFilter.Values[0] != want[0] ||
+		captured.Filter.InListFilter.Values[1] != want[1] {
+		t.Errorf("filter values = %v, want %v", captured.Filter.InListFilter.Values, want)
+	}
+}
+
+func TestSiteCacheKeysAreSeparate(t *testing.T) {
+	// The same endpoint+range must be cached per site — an "all" hit must not
+	// serve an "app"-filtered request.
+	mock := &mockGA4Client{
+		respFunc: func(callIdx int, req *analyticsdata.RunReportRequest) (*analyticsdata.RunReportResponse, error) {
+			return &analyticsdata.RunReportResponse{}, nil
+		},
+	}
+	svc := NewService(mock, time.Minute)
+
+	if _, err := svc.GetChannels(context.Background(), "28d", "all"); err != nil {
+		t.Fatalf("GetChannels all: %v", err)
+	}
+	callsAfterAll := mock.calls
+	if _, err := svc.GetChannels(context.Background(), "28d", "app"); err != nil {
+		t.Fatalf("GetChannels app: %v", err)
+	}
+	if mock.calls == callsAfterAll {
+		t.Fatal("expected a fresh GA4 call for site=app, got a cache hit from site=all")
+	}
+	if _, err := svc.GetChannels(context.Background(), "28d", "app"); err != nil {
+		t.Fatalf("GetChannels app again: %v", err)
+	}
+	if mock.calls != callsAfterAll+1 {
+		t.Fatalf("expected repeat site=app call to hit the cache, calls = %d", mock.calls)
 	}
 }

@@ -50,6 +50,26 @@ func TestHandlerGetOverview(t *testing.T) {
 			wantCode:   "VALIDATION_ERROR",
 		},
 		{
+			name:       "invalid site returns 400 VALIDATION_ERROR",
+			path:       "/analytics/overview?site=blog",
+			mock:       &mockGA4Client{},
+			wantStatus: http.StatusBadRequest,
+			wantCode:   "VALIDATION_ERROR",
+		},
+		{
+			name: "explicit site=official succeeds",
+			path: "/analytics/overview?site=official",
+			mock: &mockGA4Client{
+				respFunc: func(callIdx int, req *analyticsdata.RunReportRequest) (*analyticsdata.RunReportResponse, error) {
+					if req.DimensionFilter == nil {
+						return nil, errors.New("expected hostName filter for site=official")
+					}
+					return &analyticsdata.RunReportResponse{}, nil
+				},
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
 			name: "upstream failure with no cache returns 503 ANALYTICS_UNAVAILABLE",
 			path: "/analytics/overview",
 			mock: &mockGA4Client{

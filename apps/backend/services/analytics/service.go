@@ -25,6 +25,8 @@ var (
 	ErrAnalyticsUpstream = errors.New("analytics upstream error")
 	// ErrInvalidRange is returned when the requested range is not one of the allowlisted values.
 	ErrInvalidRange = errors.New("invalid range")
+	// ErrInvalidSite is returned when the requested site is not one of the allowlisted values.
+	ErrInvalidSite = errors.New("invalid site")
 )
 
 const defaultCacheTTL = 15 * time.Minute
@@ -38,6 +40,50 @@ var validRanges = map[string]int{
 }
 
 const defaultRange = "28d"
+
+// Site tabs: "all" applies no filter; the other values restrict every report
+// to the GA4 hostName values of that surface. Both surfaces stream into the
+// same GA4 property, so the split is a hostName dimension filter.
+const (
+	siteAll      = "all"
+	siteOfficial = "official"
+	siteApp      = "app"
+)
+
+const defaultSite = siteAll
+
+// defaultSiteHosts can be overridden per environment with GA4_HOSTS_OFFICIAL /
+// GA4_HOSTS_APP (comma-separated hostnames) without a code change.
+var defaultSiteHosts = map[string][]string{
+	siteOfficial: {"factorysyncsolutions.com", "www.factorysyncsolutions.com"},
+	siteApp:      {"app.factorysyncsolutions.com"},
+}
+
+func siteHostsFromEnv() map[string][]string {
+	hosts := map[string][]string{
+		siteOfficial: defaultSiteHosts[siteOfficial],
+		siteApp:      defaultSiteHosts[siteApp],
+	}
+	for site, envKey := range map[string]string{
+		siteOfficial: "GA4_HOSTS_OFFICIAL",
+		siteApp:      "GA4_HOSTS_APP",
+	} {
+		raw := strings.TrimSpace(os.Getenv(envKey))
+		if raw == "" {
+			continue
+		}
+		var parsed []string
+		for _, h := range strings.Split(raw, ",") {
+			if h = strings.TrimSpace(h); h != "" {
+				parsed = append(parsed, h)
+			}
+		}
+		if len(parsed) > 0 {
+			hosts[site] = parsed
+		}
+	}
+	return hosts
+}
 
 const topPagesLimit = 10
 const topChannelsLimit = 10
@@ -80,6 +126,8 @@ type Service struct {
 	// frontend can deep-link to the Google Analytics console. It is not used
 	// for the runReport calls themselves — those are bound inside ga4Client.
 	propertyID string
+	// siteHosts maps the "official"/"app" site tabs to hostName allowlists.
+	siteHosts map[string][]string
 
 	mu    sync.RWMutex
 	cache map[string]cacheEntry
@@ -92,9 +140,37 @@ func NewService(client GA4Client, cacheTTL time.Duration) *Service {
 		cacheTTL = defaultCacheTTL
 	}
 	return &Service{
-		client:   client,
-		cacheTTL: cacheTTL,
-		cache:    make(map[string]cacheEntry),
+		client:    client,
+		cacheTTL:  cacheTTL,
+		siteHosts: siteHostsFromEnv(),
+		cache:     make(map[string]cacheEntry),
+	}
+}
+
+// resolveSite validates the site query param, defaulting empty to "all".
+func resolveSite(site string) (string, error) {
+	switch site {
+	case "":
+		return defaultSite, nil
+	case siteAll, siteOfficial, siteApp:
+		return site, nil
+	default:
+		return "", ErrInvalidSite
+	}
+}
+
+// hostFilter returns the GA4 dimension filter for a site tab, or nil for
+// "all" (no filtering).
+func (s *Service) hostFilter(site string) *analyticsdata.FilterExpression {
+	hosts := s.siteHosts[site]
+	if len(hosts) == 0 {
+		return nil
+	}
+	return &analyticsdata.FilterExpression{
+		Filter: &analyticsdata.Filter{
+			FieldName:    "hostName",
+			InListFilter: &analyticsdata.InListFilter{Values: hosts, CaseSensitive: false},
+		},
 	}
 }
 
@@ -218,15 +294,19 @@ func fetchWithCache[T any](s *Service, ctx context.Context, key string, fetch fu
 }
 
 // GetOverview returns traffic totals and a daily time series for the range.
-func (s *Service) GetOverview(ctx context.Context, rangeParam string) (*OverviewResponse, error) {
+func (s *Service) GetOverview(ctx context.Context, rangeParam, siteParam string) (*OverviewResponse, error) {
 	days, ok := validRanges[rangeParam]
 	if !ok {
 		return nil, ErrInvalidRange
 	}
+	site, err := resolveSite(siteParam)
+	if err != nil {
+		return nil, err
+	}
 
-	key := "overview:" + rangeParam
+	key := "overview:" + rangeParam + ":" + site
 	payload, stale, err := fetchWithCache(s, ctx, key, func(ctx context.Context) (OverviewResponse, error) {
-		return s.fetchOverview(ctx, rangeParam, days)
+		return s.fetchOverview(ctx, rangeParam, days, site)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("get overview: %w", err)
@@ -236,15 +316,19 @@ func (s *Service) GetOverview(ctx context.Context, rangeParam string) (*Overview
 }
 
 // GetTopPages returns the top 10 page paths by views for the range.
-func (s *Service) GetTopPages(ctx context.Context, rangeParam string) (*TopPagesResponse, error) {
+func (s *Service) GetTopPages(ctx context.Context, rangeParam, siteParam string) (*TopPagesResponse, error) {
 	days, ok := validRanges[rangeParam]
 	if !ok {
 		return nil, ErrInvalidRange
 	}
+	site, err := resolveSite(siteParam)
+	if err != nil {
+		return nil, err
+	}
 
-	key := "top-pages:" + rangeParam
+	key := "top-pages:" + rangeParam + ":" + site
 	payload, stale, err := fetchWithCache(s, ctx, key, func(ctx context.Context) (TopPagesResponse, error) {
-		return s.fetchTopPages(ctx, rangeParam, days)
+		return s.fetchTopPages(ctx, rangeParam, days, site)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("get top pages: %w", err)
@@ -254,15 +338,19 @@ func (s *Service) GetTopPages(ctx context.Context, rangeParam string) (*TopPages
 }
 
 // GetChannels returns sessions grouped by GA4 default channel group.
-func (s *Service) GetChannels(ctx context.Context, rangeParam string) (*ChannelsResponse, error) {
+func (s *Service) GetChannels(ctx context.Context, rangeParam, siteParam string) (*ChannelsResponse, error) {
 	days, ok := validRanges[rangeParam]
 	if !ok {
 		return nil, ErrInvalidRange
 	}
+	site, err := resolveSite(siteParam)
+	if err != nil {
+		return nil, err
+	}
 
-	key := "channels:" + rangeParam
+	key := "channels:" + rangeParam + ":" + site
 	payload, stale, err := fetchWithCache(s, ctx, key, func(ctx context.Context) (ChannelsResponse, error) {
-		return s.fetchChannels(ctx, rangeParam, days)
+		return s.fetchChannels(ctx, rangeParam, days, site)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("get channels: %w", err)
@@ -272,15 +360,19 @@ func (s *Service) GetChannels(ctx context.Context, rangeParam string) (*Channels
 }
 
 // GetSources returns sessions grouped by session source / medium (top 10).
-func (s *Service) GetSources(ctx context.Context, rangeParam string) (*SourcesResponse, error) {
+func (s *Service) GetSources(ctx context.Context, rangeParam, siteParam string) (*SourcesResponse, error) {
 	days, ok := validRanges[rangeParam]
 	if !ok {
 		return nil, ErrInvalidRange
 	}
+	site, err := resolveSite(siteParam)
+	if err != nil {
+		return nil, err
+	}
 
-	key := "sources:" + rangeParam
+	key := "sources:" + rangeParam + ":" + site
 	payload, stale, err := fetchWithCache(s, ctx, key, func(ctx context.Context) (SourcesResponse, error) {
-		return s.fetchSources(ctx, rangeParam, days)
+		return s.fetchSources(ctx, rangeParam, days, site)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("get sources: %w", err)
@@ -299,15 +391,19 @@ func (s *Service) GetMeta() (*MetaResponse, error) {
 }
 
 // GetAudience returns sessions by top-10 country and by device category.
-func (s *Service) GetAudience(ctx context.Context, rangeParam string) (*AudienceResponse, error) {
+func (s *Service) GetAudience(ctx context.Context, rangeParam, siteParam string) (*AudienceResponse, error) {
 	days, ok := validRanges[rangeParam]
 	if !ok {
 		return nil, ErrInvalidRange
 	}
+	site, err := resolveSite(siteParam)
+	if err != nil {
+		return nil, err
+	}
 
-	key := "audience:" + rangeParam
+	key := "audience:" + rangeParam + ":" + site
 	payload, stale, err := fetchWithCache(s, ctx, key, func(ctx context.Context) (AudienceResponse, error) {
-		return s.fetchAudience(ctx, rangeParam, days)
+		return s.fetchAudience(ctx, rangeParam, days, site)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("get audience: %w", err)
@@ -317,15 +413,19 @@ func (s *Service) GetAudience(ctx context.Context, rangeParam string) (*Audience
 }
 
 // GetEngagement returns rolling DAU/WAU/MAU and stickiness for the range.
-func (s *Service) GetEngagement(ctx context.Context, rangeParam string) (*EngagementResponse, error) {
+func (s *Service) GetEngagement(ctx context.Context, rangeParam, siteParam string) (*EngagementResponse, error) {
 	days, ok := validRanges[rangeParam]
 	if !ok {
 		return nil, ErrInvalidRange
 	}
+	site, err := resolveSite(siteParam)
+	if err != nil {
+		return nil, err
+	}
 
-	key := "engagement:" + rangeParam
+	key := "engagement:" + rangeParam + ":" + site
 	payload, stale, err := fetchWithCache(s, ctx, key, func(ctx context.Context) (EngagementResponse, error) {
-		return s.fetchEngagement(ctx, rangeParam, days)
+		return s.fetchEngagement(ctx, rangeParam, days, site)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("get engagement: %w", err)
@@ -382,11 +482,12 @@ func (s *Service) runReport(ctx context.Context, req *analyticsdata.RunReportReq
 	return resp, nil
 }
 
-func (s *Service) fetchOverview(ctx context.Context, rangeParam string, days int) (OverviewResponse, error) {
+func (s *Service) fetchOverview(ctx context.Context, rangeParam string, days int, site string) (OverviewResponse, error) {
 	dr := dateRangeFor(days)
 
 	totalsResp, err := s.runReport(ctx, &analyticsdata.RunReportRequest{
-		DateRanges: []*analyticsdata.DateRange{dr},
+		DateRanges:      []*analyticsdata.DateRange{dr},
+		DimensionFilter: s.hostFilter(site),
 		Metrics: []*analyticsdata.Metric{
 			{Name: "activeUsers"},
 			{Name: "sessions"},
@@ -411,8 +512,9 @@ func (s *Service) fetchOverview(ctx context.Context, rangeParam string, days int
 	}
 
 	seriesResp, err := s.runReport(ctx, &analyticsdata.RunReportRequest{
-		DateRanges: []*analyticsdata.DateRange{dr},
-		Dimensions: []*analyticsdata.Dimension{{Name: "date"}},
+		DateRanges:      []*analyticsdata.DateRange{dr},
+		DimensionFilter: s.hostFilter(site),
+		Dimensions:      []*analyticsdata.Dimension{{Name: "date"}},
 		Metrics: []*analyticsdata.Metric{
 			{Name: "activeUsers"},
 			{Name: "sessions"},
@@ -436,17 +538,19 @@ func (s *Service) fetchOverview(ctx context.Context, rangeParam string, days int
 
 	return OverviewResponse{
 		Range:  rangeParam,
+		Site:   site,
 		Totals: totals,
 		Series: series,
 	}, nil
 }
 
-func (s *Service) fetchTopPages(ctx context.Context, rangeParam string, days int) (TopPagesResponse, error) {
+func (s *Service) fetchTopPages(ctx context.Context, rangeParam string, days int, site string) (TopPagesResponse, error) {
 	dr := dateRangeFor(days)
 
 	resp, err := s.runReport(ctx, &analyticsdata.RunReportRequest{
-		DateRanges: []*analyticsdata.DateRange{dr},
-		Dimensions: []*analyticsdata.Dimension{{Name: "pagePath"}},
+		DateRanges:      []*analyticsdata.DateRange{dr},
+		DimensionFilter: s.hostFilter(site),
+		Dimensions:      []*analyticsdata.Dimension{{Name: "pagePath"}},
 		Metrics: []*analyticsdata.Metric{
 			{Name: "screenPageViews"},
 			{Name: "userEngagementDuration"},
@@ -477,17 +581,19 @@ func (s *Service) fetchTopPages(ctx context.Context, rangeParam string, days int
 
 	return TopPagesResponse{
 		Range: rangeParam,
+		Site:  site,
 		Pages: pages,
 	}, nil
 }
 
-func (s *Service) fetchChannels(ctx context.Context, rangeParam string, days int) (ChannelsResponse, error) {
+func (s *Service) fetchChannels(ctx context.Context, rangeParam string, days int, site string) (ChannelsResponse, error) {
 	dr := dateRangeFor(days)
 
 	resp, err := s.runReport(ctx, &analyticsdata.RunReportRequest{
-		DateRanges: []*analyticsdata.DateRange{dr},
-		Dimensions: []*analyticsdata.Dimension{{Name: "sessionDefaultChannelGroup"}},
-		Metrics:    []*analyticsdata.Metric{{Name: "sessions"}},
+		DateRanges:      []*analyticsdata.DateRange{dr},
+		DimensionFilter: s.hostFilter(site),
+		Dimensions:      []*analyticsdata.Dimension{{Name: "sessionDefaultChannelGroup"}},
+		Metrics:         []*analyticsdata.Metric{{Name: "sessions"}},
 		OrderBys: []*analyticsdata.OrderBy{
 			{Desc: true, Metric: &analyticsdata.MetricOrderBy{MetricName: "sessions"}},
 		},
@@ -515,17 +621,19 @@ func (s *Service) fetchChannels(ctx context.Context, rangeParam string, days int
 
 	return ChannelsResponse{
 		Range:    rangeParam,
+		Site:     site,
 		Channels: channels,
 	}, nil
 }
 
-func (s *Service) fetchSources(ctx context.Context, rangeParam string, days int) (SourcesResponse, error) {
+func (s *Service) fetchSources(ctx context.Context, rangeParam string, days int, site string) (SourcesResponse, error) {
 	dr := dateRangeFor(days)
 
 	resp, err := s.runReport(ctx, &analyticsdata.RunReportRequest{
-		DateRanges: []*analyticsdata.DateRange{dr},
-		Dimensions: []*analyticsdata.Dimension{{Name: "sessionSourceMedium"}},
-		Metrics:    []*analyticsdata.Metric{{Name: "sessions"}},
+		DateRanges:      []*analyticsdata.DateRange{dr},
+		DimensionFilter: s.hostFilter(site),
+		Dimensions:      []*analyticsdata.Dimension{{Name: "sessionSourceMedium"}},
+		Metrics:         []*analyticsdata.Metric{{Name: "sessions"}},
 		OrderBys: []*analyticsdata.OrderBy{
 			{Desc: true, Metric: &analyticsdata.MetricOrderBy{MetricName: "sessions"}},
 		},
@@ -553,17 +661,19 @@ func (s *Service) fetchSources(ctx context.Context, rangeParam string, days int)
 
 	return SourcesResponse{
 		Range:   rangeParam,
+		Site:    site,
 		Sources: sources,
 	}, nil
 }
 
-func (s *Service) fetchAudience(ctx context.Context, rangeParam string, days int) (AudienceResponse, error) {
+func (s *Service) fetchAudience(ctx context.Context, rangeParam string, days int, site string) (AudienceResponse, error) {
 	dr := dateRangeFor(days)
 
 	countryResp, err := s.runReport(ctx, &analyticsdata.RunReportRequest{
-		DateRanges: []*analyticsdata.DateRange{dr},
-		Dimensions: []*analyticsdata.Dimension{{Name: "country"}},
-		Metrics:    []*analyticsdata.Metric{{Name: "sessions"}},
+		DateRanges:      []*analyticsdata.DateRange{dr},
+		DimensionFilter: s.hostFilter(site),
+		Dimensions:      []*analyticsdata.Dimension{{Name: "country"}},
+		Metrics:         []*analyticsdata.Metric{{Name: "sessions"}},
 		OrderBys: []*analyticsdata.OrderBy{
 			{Desc: true, Metric: &analyticsdata.MetricOrderBy{MetricName: "sessions"}},
 		},
@@ -582,9 +692,10 @@ func (s *Service) fetchAudience(ctx context.Context, rangeParam string, days int
 	}
 
 	deviceResp, err := s.runReport(ctx, &analyticsdata.RunReportRequest{
-		DateRanges: []*analyticsdata.DateRange{dr},
-		Dimensions: []*analyticsdata.Dimension{{Name: "deviceCategory"}},
-		Metrics:    []*analyticsdata.Metric{{Name: "sessions"}},
+		DateRanges:      []*analyticsdata.DateRange{dr},
+		DimensionFilter: s.hostFilter(site),
+		Dimensions:      []*analyticsdata.Dimension{{Name: "deviceCategory"}},
+		Metrics:         []*analyticsdata.Metric{{Name: "sessions"}},
 		OrderBys: []*analyticsdata.OrderBy{
 			{Desc: true, Metric: &analyticsdata.MetricOrderBy{MetricName: "sessions"}},
 		},
@@ -604,17 +715,19 @@ func (s *Service) fetchAudience(ctx context.Context, rangeParam string, days int
 
 	return AudienceResponse{
 		Range:     rangeParam,
+		Site:      site,
 		Countries: countries,
 		Devices:   devices,
 	}, nil
 }
 
-func (s *Service) fetchEngagement(ctx context.Context, rangeParam string, days int) (EngagementResponse, error) {
+func (s *Service) fetchEngagement(ctx context.Context, rangeParam string, days int, site string) (EngagementResponse, error) {
 	dr := dateRangeFor(days)
 
 	resp, err := s.runReport(ctx, &analyticsdata.RunReportRequest{
-		DateRanges: []*analyticsdata.DateRange{dr},
-		Dimensions: []*analyticsdata.Dimension{{Name: "date"}},
+		DateRanges:      []*analyticsdata.DateRange{dr},
+		DimensionFilter: s.hostFilter(site),
+		Dimensions:      []*analyticsdata.Dimension{{Name: "date"}},
 		Metrics: []*analyticsdata.Metric{
 			{Name: "active1DayUsers"},
 			{Name: "active7DayUsers"},
@@ -651,6 +764,7 @@ func (s *Service) fetchEngagement(ctx context.Context, rangeParam string, days i
 
 	return EngagementResponse{
 		Range:   rangeParam,
+		Site:    site,
 		Current: current,
 		Series:  series,
 	}, nil

@@ -42,6 +42,11 @@ func parseRange(r *http.Request) string {
 	return rangeParam
 }
 
+// parseSite reads the `site` query param; the service defaults "" to all.
+func parseSite(r *http.Request) string {
+	return r.URL.Query().Get("site")
+}
+
 // GetOverview godoc
 // @Summary      GA4 traffic overview
 // @Description  Returns traffic totals (active users, sessions, page views, avg engagement time) and a daily series for the selected range
@@ -49,6 +54,7 @@ func parseRange(r *http.Request) string {
 // @Produce      json
 // @Param        Authorization  header  string  true   "Bearer {firebase-id-token}"
 // @Param        range          query   string  false  "7d, 28d (default), or 90d"
+// @Param        site           query   string  false  "all (default), official, or app"
 // @Success      200  {object}  pkg.JSONResponse
 // @Failure      400  {object}  pkg.ErrorResponse
 // @Failure      401  {object}  pkg.ErrorResponse
@@ -57,7 +63,7 @@ func parseRange(r *http.Request) string {
 // @Security     BearerAuth
 // @Router       /backoffice/analytics/overview [get]
 func (h *Handler) GetOverview(w http.ResponseWriter, r *http.Request) {
-	overview, err := h.service.GetOverview(r.Context(), parseRange(r))
+	overview, err := h.service.GetOverview(r.Context(), parseRange(r), parseSite(r))
 	if err != nil {
 		handleError(w, r, err)
 		return
@@ -72,6 +78,7 @@ func (h *Handler) GetOverview(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string  true   "Bearer {firebase-id-token}"
 // @Param        range          query   string  false  "7d, 28d (default), or 90d"
+// @Param        site           query   string  false  "all (default), official, or app"
 // @Success      200  {object}  pkg.JSONResponse
 // @Failure      400  {object}  pkg.ErrorResponse
 // @Failure      401  {object}  pkg.ErrorResponse
@@ -80,7 +87,7 @@ func (h *Handler) GetOverview(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /backoffice/analytics/top-pages [get]
 func (h *Handler) GetTopPages(w http.ResponseWriter, r *http.Request) {
-	topPages, err := h.service.GetTopPages(r.Context(), parseRange(r))
+	topPages, err := h.service.GetTopPages(r.Context(), parseRange(r), parseSite(r))
 	if err != nil {
 		handleError(w, r, err)
 		return
@@ -95,6 +102,7 @@ func (h *Handler) GetTopPages(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string  true   "Bearer {firebase-id-token}"
 // @Param        range          query   string  false  "7d, 28d (default), or 90d"
+// @Param        site           query   string  false  "all (default), official, or app"
 // @Success      200  {object}  pkg.JSONResponse
 // @Failure      400  {object}  pkg.ErrorResponse
 // @Failure      401  {object}  pkg.ErrorResponse
@@ -103,7 +111,7 @@ func (h *Handler) GetTopPages(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /backoffice/analytics/channels [get]
 func (h *Handler) GetChannels(w http.ResponseWriter, r *http.Request) {
-	channels, err := h.service.GetChannels(r.Context(), parseRange(r))
+	channels, err := h.service.GetChannels(r.Context(), parseRange(r), parseSite(r))
 	if err != nil {
 		handleError(w, r, err)
 		return
@@ -118,6 +126,7 @@ func (h *Handler) GetChannels(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string  true   "Bearer {firebase-id-token}"
 // @Param        range          query   string  false  "7d, 28d (default), or 90d"
+// @Param        site           query   string  false  "all (default), official, or app"
 // @Success      200  {object}  pkg.JSONResponse
 // @Failure      400  {object}  pkg.ErrorResponse
 // @Failure      401  {object}  pkg.ErrorResponse
@@ -126,7 +135,7 @@ func (h *Handler) GetChannels(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /backoffice/analytics/audience [get]
 func (h *Handler) GetAudience(w http.ResponseWriter, r *http.Request) {
-	audience, err := h.service.GetAudience(r.Context(), parseRange(r))
+	audience, err := h.service.GetAudience(r.Context(), parseRange(r), parseSite(r))
 	if err != nil {
 		handleError(w, r, err)
 		return
@@ -141,6 +150,7 @@ func (h *Handler) GetAudience(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string  true   "Bearer {firebase-id-token}"
 // @Param        range          query   string  false  "7d, 28d (default), or 90d"
+// @Param        site           query   string  false  "all (default), official, or app"
 // @Success      200  {object}  pkg.JSONResponse
 // @Failure      400  {object}  pkg.ErrorResponse
 // @Failure      401  {object}  pkg.ErrorResponse
@@ -149,7 +159,7 @@ func (h *Handler) GetAudience(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /backoffice/analytics/engagement [get]
 func (h *Handler) GetEngagement(w http.ResponseWriter, r *http.Request) {
-	engagement, err := h.service.GetEngagement(r.Context(), parseRange(r))
+	engagement, err := h.service.GetEngagement(r.Context(), parseRange(r), parseSite(r))
 	if err != nil {
 		handleError(w, r, err)
 		return
@@ -164,6 +174,7 @@ func (h *Handler) GetEngagement(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        Authorization  header  string  true   "Bearer {firebase-id-token}"
 // @Param        range          query   string  false  "7d, 28d (default), or 90d"
+// @Param        site           query   string  false  "all (default), official, or app"
 // @Success      200  {object}  pkg.JSONResponse
 // @Failure      400  {object}  pkg.ErrorResponse
 // @Failure      401  {object}  pkg.ErrorResponse
@@ -172,7 +183,7 @@ func (h *Handler) GetEngagement(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /backoffice/analytics/sources [get]
 func (h *Handler) GetSources(w http.ResponseWriter, r *http.Request) {
-	sources, err := h.service.GetSources(r.Context(), parseRange(r))
+	sources, err := h.service.GetSources(r.Context(), parseRange(r), parseSite(r))
 	if err != nil {
 		handleError(w, r, err)
 		return
@@ -208,6 +219,9 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 	switch {
 	case errors.Is(err, ErrInvalidRange):
 		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", "range must be one of: 7d, 28d, 90d")
+
+	case errors.Is(err, ErrInvalidSite):
+		pkg.RespondError(w, http.StatusBadRequest, "VALIDATION_ERROR", "site must be one of: all, official, app")
 
 	// Spec FR-007: upstream failure with no cache → 503; the wrapped error
 	// chain preserves the GA4 cause (ErrAnalyticsUpstream et al.) for the log.

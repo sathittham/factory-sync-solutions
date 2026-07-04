@@ -134,12 +134,12 @@ describe('WebAnalyticsSection', () => {
     expect(screen.getByText('google / organic')).toBeInTheDocument();
     expect(container.querySelectorAll('.animate-pulse')).toHaveLength(0);
 
-    expect(mockedApi.getAnalyticsOverview).toHaveBeenCalledWith('28d');
-    expect(mockedApi.getAnalyticsTopPages).toHaveBeenCalledWith('28d');
-    expect(mockedApi.getAnalyticsChannels).toHaveBeenCalledWith('28d');
-    expect(mockedApi.getAnalyticsAudience).toHaveBeenCalledWith('28d');
-    expect(mockedApi.getAnalyticsEngagement).toHaveBeenCalledWith('28d');
-    expect(mockedApi.getAnalyticsSources).toHaveBeenCalledWith('28d');
+    expect(mockedApi.getAnalyticsOverview).toHaveBeenCalledWith('28d', 'all');
+    expect(mockedApi.getAnalyticsTopPages).toHaveBeenCalledWith('28d', 'all');
+    expect(mockedApi.getAnalyticsChannels).toHaveBeenCalledWith('28d', 'all');
+    expect(mockedApi.getAnalyticsAudience).toHaveBeenCalledWith('28d', 'all');
+    expect(mockedApi.getAnalyticsEngagement).toHaveBeenCalledWith('28d', 'all');
+    expect(mockedApi.getAnalyticsSources).toHaveBeenCalledWith('28d', 'all');
   });
 
   it('shows a per-panel inline error without blanking the panels that succeeded (UT-F02)', async () => {
@@ -174,7 +174,7 @@ describe('WebAnalyticsSection', () => {
     await waitForInitialLoad();
 
     expect(mockedApi.getAnalyticsOverview).toHaveBeenCalledTimes(1);
-    expect(mockedApi.getAnalyticsOverview).toHaveBeenLastCalledWith('28d');
+    expect(mockedApi.getAnalyticsOverview).toHaveBeenLastCalledWith('28d', 'all');
 
     const deferred = createDeferred<typeof overviewFixture>();
     mockedApi.getAnalyticsOverview.mockReturnValue(deferred.promise);
@@ -198,12 +198,35 @@ describe('WebAnalyticsSection', () => {
       expect(container.querySelectorAll('.animate-pulse')).toHaveLength(0);
     });
 
-    expect(mockedApi.getAnalyticsOverview).toHaveBeenLastCalledWith('7d');
-    expect(mockedApi.getAnalyticsTopPages).toHaveBeenLastCalledWith('7d');
-    expect(mockedApi.getAnalyticsChannels).toHaveBeenLastCalledWith('7d');
-    expect(mockedApi.getAnalyticsAudience).toHaveBeenLastCalledWith('7d');
-    expect(mockedApi.getAnalyticsEngagement).toHaveBeenLastCalledWith('7d');
-    expect(mockedApi.getAnalyticsSources).toHaveBeenLastCalledWith('7d');
+    expect(mockedApi.getAnalyticsOverview).toHaveBeenLastCalledWith('7d', 'all');
+    expect(mockedApi.getAnalyticsTopPages).toHaveBeenLastCalledWith('7d', 'all');
+    expect(mockedApi.getAnalyticsChannels).toHaveBeenLastCalledWith('7d', 'all');
+    expect(mockedApi.getAnalyticsAudience).toHaveBeenLastCalledWith('7d', 'all');
+    expect(mockedApi.getAnalyticsEngagement).toHaveBeenLastCalledWith('7d', 'all');
+    expect(mockedApi.getAnalyticsSources).toHaveBeenLastCalledWith('7d', 'all');
+  });
+
+  it('refetches every panel with the selected site when a site tab is clicked (UT-F11)', async () => {
+    resolveAllWithFixtures('28d');
+
+    renderSection();
+    await waitForInitialLoad();
+
+    expect(mockedApi.getAnalyticsOverview).toHaveBeenLastCalledWith('28d', 'all');
+
+    const user = userEvent.setup();
+    expect(screen.getByRole('tab', { name: 'All' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Official website' })).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Web app' }));
+
+    await waitFor(() => {
+      expect(mockedApi.getAnalyticsOverview).toHaveBeenLastCalledWith('28d', 'app');
+    });
+    expect(mockedApi.getAnalyticsTopPages).toHaveBeenLastCalledWith('28d', 'app');
+    expect(mockedApi.getAnalyticsChannels).toHaveBeenLastCalledWith('28d', 'app');
+    expect(mockedApi.getAnalyticsAudience).toHaveBeenLastCalledWith('28d', 'app');
+    expect(mockedApi.getAnalyticsEngagement).toHaveBeenLastCalledWith('28d', 'app');
+    expect(mockedApi.getAnalyticsSources).toHaveBeenLastCalledWith('28d', 'app');
   });
 
   it('shows a retry-able stale warning while keeping all sections visible (UT-F07)', async () => {
