@@ -441,7 +441,10 @@ function QuizTab({
       <div className="bg-card rounded-lg border p-4 mb-5 animate-fade-up delay-3">
         <div className="flex flex-wrap gap-4 items-end">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
+            <label
+              htmlFor="admin-filter-industry"
+              className="text-xs font-medium text-muted-foreground"
+            >
               {t('admin.industry')}
             </label>
             <Select
@@ -462,14 +465,21 @@ function QuizTab({
             </Select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
+            <label
+              htmlFor="admin-filter-size"
+              className="text-xs font-medium text-muted-foreground"
+            >
               {t('admin.companySize')}
             </label>
             <Select
               value={sizeFilter || '__all__'}
               onValueChange={(v: string) => setSizeFilter(v === '__all__' ? '' : v)}
             >
-              <SelectTrigger className="w-[180px]" data-testid="admin-filter-size">
+              <SelectTrigger
+                id="admin-filter-size"
+                className="w-[180px]"
+                data-testid="admin-filter-size"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -486,7 +496,7 @@ function QuizTab({
             data-testid="admin-export-csv-btn-mobile"
             className="gap-2 sm:hidden"
           >
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 16 16" fill="none">
               <path
                 d="M2 10v3a1 1 0 001 1h10a1 1 0 001-1v-3M8 2v8m0 0l-3-3m3 3l3-3"
                 stroke="currentColor"
@@ -678,7 +688,13 @@ function PermissionsDialog({
                       >
                         {granted ? (
                           <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 mx-auto">
-                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                            <svg
+                              aria-hidden="true"
+                              width="10"
+                              height="10"
+                              viewBox="0 0 10 10"
+                              fill="none"
+                            >
                               <path
                                 d="M2 5l2 2 4-4"
                                 stroke="currentColor"
@@ -1263,7 +1279,11 @@ function UsersTab() {
         header: () => null,
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="text-right" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="text-right"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
             <UserRowActions
               user={row.original}
               updatingUid={updatingUid}
@@ -1467,7 +1487,7 @@ export function AdminPage() {
       data-testid="admin-export-csv-btn"
       className="gap-2 hidden sm:flex"
     >
-      <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <svg aria-hidden="true" width="15" height="15" viewBox="0 0 16 16" fill="none">
         <path
           d="M2 10v3a1 1 0 001 1h10a1 1 0 001-1v-3M8 2v8m0 0l-3-3m3 3l3-3"
           stroke="currentColor"

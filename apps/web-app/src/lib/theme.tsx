@@ -65,7 +65,7 @@ export function ThemeProvider({ children }: { readonly children: ReactNode }) {
     } catch {
       /* noop */
     }
-  }, [setTheme]);
+  }, []);
 
   const value = useMemo(
     () => ({ theme, setTheme: handleSetTheme, resolvedTheme }),
