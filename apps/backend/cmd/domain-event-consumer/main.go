@@ -56,8 +56,9 @@ func main() {
 	resultSvc := result.NewService(resultRepo)
 
 	var emailClient notification.EmailSender
-	if token := strings.TrimSpace(os.Getenv("CF_EMAIL_API_TOKEN")); token != "" {
-		accountID := strings.TrimSpace(os.Getenv("CLOUDFLARE_ACCOUNT_ID"))
+	token := strings.TrimSpace(os.Getenv("CLOUDFLARE_API_TOKEN"))
+	accountID := strings.TrimSpace(os.Getenv("CLOUDFLARE_ACCOUNT_ID"))
+	if token != "" && accountID != "" {
 		emailClient = notification.NewEmailClient(accountID, token, "FactorySync Solutions <no-reply@factorysyncsolutions.com>")
 	}
 	slackClient := notification.NewSlackClient()
