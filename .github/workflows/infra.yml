@@ -82,9 +82,10 @@ jobs:
         with:
           tofu_version: ${{ env.TOFU_VERSION }}
 
-      # GCP auth only for the GCP dirs (SA key scoped to that env's project).
+      # All three roots (incl. cloudflare) keep state in a GCS backend, so every
+      # leg needs GCP creds to init. Each env's GCP_SA_KEY is the deployer SA that
+      # owns that env's state bucket (cloudflare state lives in the prod bucket).
       - name: Authenticate to GCP
-        if: startsWith(matrix.name, 'gcp-')
         uses: google-github-actions/auth@v3
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
