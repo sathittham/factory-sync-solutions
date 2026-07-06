@@ -36,8 +36,10 @@ Swaps the transactional email provider from Resend to **Cloudflare Email Sending
 
 1. Onboard the sending domain: `npx wrangler email sending enable factorysyncsolutions.com`
    and complete SPF/DKIM/DMARC. Verify: `npx wrangler email sending list`.
-2. Mint an API token with **email send** permission. This is the `cf-email-api-token`
-   value below. Keep it out of git/CI logs.
+2. Mint an API token at https://dash.cloudflare.com/profile/api-tokens → Create
+   Custom Token with permission **Account → Email Sending → Edit**, Account
+   Resources = the account owning the domain. Copy it once — this is the
+   `cf-email-api-token` value below. Keep it out of git/CI logs.
 3. Add a repo **secret** `CF_EMAIL_API_TOKEN` (prod environment) for the prod deploy.
    `CLOUDFLARE_ACCOUNT_ID` already exists as a secret.
 
