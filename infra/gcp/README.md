@@ -22,8 +22,9 @@ gcp/
 |---|---|
 | Cloud Run service | Container images (built + tagged by CI) |
 | Firestore `(default)` database | Firestore rules/indexes (root `firestore.*`, Firebase CLI) |
-| Pub/Sub topic + subscription | Secret *values* (Secret Manager, set out-of-band) |
-| API runtime SA + IAM bindings | Cloudflare (see `../cloudflare/terraform`) |
+| Pub/Sub topic + subscription | Secret *values* (versions, seeded out-of-band) |
+| API runtime SA + IAM bindings | Cloud Run env vars (deploy workflow `--set-env-vars`/`--set-secrets`) |
+| Secret Manager containers + accessor IAM (`var.runtime_secrets`) | Cloudflare (see `../cloudflare/terraform`) |
 
 ## Prerequisites (once)
 

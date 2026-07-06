@@ -20,15 +20,18 @@ export GOOGLE_OAUTH_ACCESS_TOKEN="$(gcloud auth print-access-token)"   # s.sathi
 ---
 
 ## 1. Secret Manager migration — HIGHEST PRIORITY (security)
-The Cloud Run API + consumer services hold ~26 **plaintext** env vars, including real
-secrets: `RESEND_API_KEY`, `CF_TURNSTILE_SECRET`, `R2_ACCESS_KEY_SECRET`,
-`GA4_SA_CREDENTIALS_JSON`, Slack webhooks.
+The Cloud Run API + consumer services set real secrets as **plaintext** env vars via
+the deploy workflows' `--set-env-vars`: `RESEND_API_KEY`, `CF_TURNSTILE_SECRET`,
+`R2_ACCESS_KEY_ID/SECRET`, `API_DOCS_R2_*`, Slack webhooks. (`GA4_SA_CREDENTIALS_JSON`
+is **already** on Secret Manager via `--set-secrets`.)
 
-- Move them into Secret Manager and reference via `value_source.secret_key_ref` in the
-  module container blocks.
-- Grant the runtime SA `roles/secretmanager.secretAccessor` (the shared `deployer` SA
-  lacks it today — or grant the least-priv SA from item 4).
-- Once managed, drop `template[0].containers[0].env` from `ignore_changes`.
+**Full runbook: [secret-manager-migration.md](secret-manager-migration.md).** Approach
+(prepared on `feature/infra-secret-manager`): Terraform manages the secret containers +
+per-secret runtime-SA accessor grant (`var.runtime_secrets` in the `api-env` module);
+the deploy workflow moves each secret from `--set-env-vars` to `--set-secrets` (the
+pattern GA4 already uses). Env stays pipeline-owned — not Terraform-owned — so this
+does **not** touch `ignore_changes`. Values are seeded out-of-band; never committed.
+Do staging fully, verify, then production.
 
 ## 2. Firestore server-side delete protection
 `delete_protection_state` is **DISABLED** live in both projects. Enable it in

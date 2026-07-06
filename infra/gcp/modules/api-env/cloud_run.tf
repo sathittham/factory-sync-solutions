@@ -22,17 +22,18 @@ resource "google_cloud_run_v2_service" "api" {
         value = var.domain_event_mode
       }
 
-      # Secret-backed env vars (Turnstile, R2, etc.) use Secret Manager:
-      #   env { name = "X"; value_source { secret_key_ref { secret = ..., version = "latest" } } }
-      # Never put secret values in .tf/.tfvars.
+      # Runtime env vars (incl. secrets) are set by the deploy workflow's
+      # `gcloud run deploy --set-env-vars` / `--set-secrets`, not here — so `env`
+      # is ignored below. Secret-backed vars point at Secret Manager entries whose
+      # containers are managed in secrets.tf. Never inline secret values in .tf.
     }
   }
 
-  # CI redeploys with a new image tag; don't let Terraform revert the live revision.
-  # Runtime env vars (incl. secrets: R2/Turnstile/Resend/Slack/GA4 creds) are set
-  # out-of-band by the deploy pipeline and Secret Manager, NOT here — never commit
-  # secret values to .tf. Ignore env drift so `plan` stays empty; migrating these
-  # to value_source.secret_key_ref is a tracked follow-up.
+  # CI redeploys with a new image tag and re-sets env/secrets on every deploy;
+  # don't let Terraform revert the live revision. `env` stays ignored because the
+  # deploy pipeline owns it — Terraform's role in the Secret Manager migration is
+  # the secret containers + IAM (secrets.tf), not the service's env block. See
+  # docs/operations/secret-manager-migration.md.
   lifecycle {
     ignore_changes = [
       template[0].containers[0].image,

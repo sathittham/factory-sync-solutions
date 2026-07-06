@@ -21,8 +21,10 @@ resource "google_cloud_run_v2_service" "consumer" {
   }
 
   # Same rationale as the API service: CI owns the image tag, and runtime env vars
-  # (incl. secrets: Resend/Slack) are set out-of-band — never committed here. The
-  # service-level scaling block is auto-populated on import; leave it as-is.
+  # (incl. secrets: Resend/Slack) are set by the deploy workflow's --set-env-vars /
+  # --set-secrets — never here. `env` stays ignored; the Secret Manager migration
+  # manages only the secret containers + IAM (secrets.tf). The service-level
+  # scaling block is auto-populated on import; leave it as-is.
   lifecycle {
     ignore_changes = [
       template[0].containers[0].image,

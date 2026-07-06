@@ -57,3 +57,22 @@ variable "consumer_max_instances" {
   type        = number
   default     = 3
 }
+
+# --- Secret Manager migration (item 1) --------------------------------------
+# Terraform manages the secret CONTAINERS + the runtime SA's accessor grant; the
+# deploy workflow references them via `gcloud run deploy --set-secrets` (the same
+# pattern GA4 already uses). Values (versions) are added out-of-band and never
+# touch Terraform. Default empty, so this is a no-op until an env populates it —
+# `tofu plan` stays empty and the branch is safe to merge. Runbook:
+# docs/operations/secret-manager-migration.md.
+variable "runtime_secrets" {
+  description = <<-EOT
+    Secret Manager secret IDs to manage for this environment (kebab-case, e.g.
+    "resend-api-key"). Terraform creates the containers and grants the runtime SA
+    roles/secretmanager.secretAccessor per secret. The env-var → secret-id mapping
+    lives in the deploy workflow's --set-secrets; secret VALUES are added
+    out-of-band with `gcloud secrets versions add` and never committed.
+  EOT
+  type        = set(string)
+  default     = []
+}
