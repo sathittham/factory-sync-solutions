@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"time"
 
-	"github.com/resend/resend-go/v2"
 	"github.com/sathittham/factory-sync-solutions/apps/backend/services/scoring"
 )
 
@@ -76,16 +75,9 @@ func (e *EmailClient) SendResult(ctx context.Context, to, contactName, companyNa
 		return fmt.Errorf("build result email html: %w", err)
 	}
 
-	params := &resend.SendEmailRequest{
-		From:    e.from,
-		To:      []string{to},
-		Subject: fmt.Sprintf("FactorySync Solutions Result — %s (%.2f/5.00)", diagnosis, overallScore),
-		Html:    body,
-	}
-
-	_, err = e.client.Emails.Send(params)
-	if err != nil {
-		return fmt.Errorf("resend send: %w", err)
+	subject := fmt.Sprintf("FactorySync Solutions Result — %s (%.2f/5.00)", diagnosis, overallScore)
+	if err := e.send(ctx, []string{to}, subject, body); err != nil {
+		return fmt.Errorf("send result email: %w", err)
 	}
 	return nil
 }

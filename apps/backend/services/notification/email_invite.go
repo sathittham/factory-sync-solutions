@@ -7,8 +7,6 @@ import (
 	"html/template"
 	"log/slog"
 	"time"
-
-	"github.com/resend/resend-go/v2"
 )
 
 type inviteEmailData struct {
@@ -103,16 +101,9 @@ func (e *EmailClient) SendInvitation(ctx context.Context, to, inviterEmail, comp
 		return fmt.Errorf("build invite email html: %w", err)
 	}
 
-	params := &resend.SendEmailRequest{
-		From:    e.from,
-		To:      []string{to},
-		Subject: "คุณได้รับคำเชิญเข้าร่วม FactorySync Solutions / You've been invited to FactorySync Solutions",
-		Html:    body,
-	}
-
-	_, err = e.client.Emails.Send(params)
-	if err != nil {
-		return fmt.Errorf("resend send invitation: %w", err)
+	subject := "คุณได้รับคำเชิญเข้าร่วม FactorySync Solutions / You've been invited to FactorySync Solutions"
+	if err := e.send(ctx, []string{to}, subject, body); err != nil {
+		return fmt.Errorf("send invitation email: %w", err)
 	}
 	return nil
 }
