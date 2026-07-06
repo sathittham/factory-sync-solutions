@@ -1,0 +1,8 @@
+# Copy to terraform.tfvars (gitignored) and fill in. NEVER commit real values.
+# The API token comes from the CLOUDFLARE_API_TOKEN env var, not this file.
+account_id = "your-cloudflare-account-id"
+zone_id    = "your-zone-id-for-factorysyncsolutions-com"
+
+backoffice_access_emails = [
+  # "operator@example.com",
+]
