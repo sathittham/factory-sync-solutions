@@ -29,15 +29,26 @@ resource "cloudflare_r2_bucket" "uploads" {
   location   = "eeur"
 }
 
-# Public custom domain for each upload bucket (creates the cdn* DNS + R2 binding).
-resource "cloudflare_r2_custom_domain" "uploads" {
-  for_each    = local.upload_buckets
-  account_id  = var.account_id
-  bucket_name = each.value.name
-  domain      = each.value.custom_domain
-  zone_id     = var.zone_id
-  enabled     = true
-}
+# Public custom domain for each upload bucket (the cdn* DNS + R2 binding).
+#
+# NOT MANAGED YET: the cloudflare provider (latest stable, v5.21.1) does not
+# implement import for cloudflare_r2_custom_domain ("Resource Import Not
+# Implemented"), so these existing domains can't be adopted onto the live account
+# without a from-scratch create (which would collide). Until a provider release
+# adds import support, cdn/cdn-staging stay managed out-of-band (dashboard), same
+# category as the Pages/Wrangler-owned DNS noted in dns.tf. To adopt later:
+# uncomment, `tofu init -upgrade` to the version that supports it, then
+# `tofu import 'cloudflare_r2_custom_domain.uploads["prod"]' <account_id>/<bucket>/<domain>`
+# for each and reconcile to empty. var.zone_id is retained for that day.
+#
+# resource "cloudflare_r2_custom_domain" "uploads" {
+#   for_each    = local.upload_buckets
+#   account_id  = var.account_id
+#   bucket_name = each.value.name
+#   domain      = each.value.custom_domain
+#   zone_id     = var.zone_id
+#   enabled     = true
+# }
 
 # API-docs buckets: private, no custom domain. Backend reads with scoped creds.
 resource "cloudflare_r2_bucket" "apidoc" {
