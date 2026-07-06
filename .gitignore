@@ -83,3 +83,17 @@ npm-debug.log*
 /FactorySync_Cost_Estimate.xlsx
 /knowledge-collapsed.png
 /knowledge-mobile-fixed.png
+
+# OpenTofu / Terraform (infra/gcp, infra/cloudflare/terraform) — never commit state or secrets
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+!*.tfvars.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+# .terraform.lock.hcl IS committed (reproducible provider versions) — do not ignore it

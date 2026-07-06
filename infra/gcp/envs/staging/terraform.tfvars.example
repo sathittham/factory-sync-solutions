@@ -1,0 +1,4 @@
+# Copy to terraform.tfvars (gitignored). NEVER commit real values.
+project_id = "factory-sync-solutions-staging"
+region     = "asia-southeast3"
+api_image  = "asia-southeast3-docker.pkg.dev/factory-sync-solutions-staging/cloud-run/factory-sync-solutions-api-staging:latest"
