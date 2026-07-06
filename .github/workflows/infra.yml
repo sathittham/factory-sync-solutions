@@ -105,6 +105,9 @@ jobs:
           TF_VAR_api_image: ${{ vars.API_IMAGE }}
           TF_VAR_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           TF_VAR_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          # JSON list, e.g. ["a@x.com"] — must match the live Access allow-list
+          # so the cloudflare plan stays empty. Undeclared (harmless) for GCP dirs.
+          TF_VAR_backoffice_access_emails: ${{ secrets.BACKOFFICE_ACCESS_EMAILS }}
         run: |
           tofu plan -input=false -no-color -lock=false 2>&1 | tee plan.txt
         continue-on-error: true
