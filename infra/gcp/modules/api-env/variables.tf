@@ -35,3 +35,25 @@ variable "max_instances" {
   type        = number
   default     = 10
 }
+
+variable "consumer_service_name" {
+  description = "Cloud Run service name for the domain-event consumer worker."
+  type        = string
+}
+
+variable "consumer_image" {
+  description = "Container image for the consumer. CI overrides the tag on each deploy; ignored by Terraform after import."
+  type        = string
+}
+
+variable "consumer_min_instances" {
+  description = "Consumer Cloud Run min instances (kept warm to drain the subscription)."
+  type        = number
+  default     = 1
+}
+
+variable "consumer_max_instances" {
+  description = "Consumer Cloud Run max instances."
+  type        = number
+  default     = 3
+}

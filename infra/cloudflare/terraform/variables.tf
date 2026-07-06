@@ -8,12 +8,6 @@ variable "zone_id" {
   type        = string
 }
 
-variable "zone_name" {
-  description = "Root domain."
-  type        = string
-  default     = "factorysyncsolutions.com"
-}
-
 variable "backoffice_access_emails" {
   description = "Emails allowed through Cloudflare Access on the production backoffice."
   type        = list(string)

@@ -29,4 +29,9 @@ module "api" {
   domain_event_mode = "pubsub"
   min_instances     = 0
   max_instances     = 20
+
+  consumer_service_name  = "factory-sync-solutions-domain-event-consumer-staging"
+  consumer_image         = "asia-southeast3-docker.pkg.dev/factory-sync-solutions-staging/cloud-run/factory-sync-solutions-domain-event-consumer-staging:latest"
+  consumer_min_instances = 1
+  consumer_max_instances = 2
 }

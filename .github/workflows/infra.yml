@@ -44,6 +44,15 @@ jobs:
       - name: validate
         working-directory: ${{ matrix.dir }}
         run: tofu validate
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+      - name: tflint
+        env:
+          TFLINT_CONFIG_FILE: ${{ github.workspace }}/infra/.tflint.hcl
+        run: |
+          tflint --init
+          tflint --chdir=${{ matrix.dir }} --no-color
 
   # Real `tofu plan` against live state. Requires the state buckets + initial
   # imports to already exist, so it is gated behind repo variable
