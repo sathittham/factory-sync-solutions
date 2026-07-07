@@ -1,3 +1,4 @@
+import { CONSENT_VERSION, LegalModal, type LegalType } from '@/components/LegalModal';
 import { Turnstile } from '@/components/Turnstile';
 import { LoginForm } from '@/components/login-form';
 import { Button } from '@/components/ui/button';
@@ -422,6 +423,7 @@ export function RegisterPage() {
   const [turnstileError, setTurnstileError] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [createdProfile, setCreatedProfile] = useState<Profile | null>(null);
+  const [legalModal, setLegalModal] = useState<LegalType>(null);
 
   // Field-level Zod schemas (depend on t — defined before hooks per React rules)
   const companyRegIdSchema = z.string().regex(/^\d{13}$/, t('register.regIdError'));
@@ -430,6 +432,7 @@ export function RegisterPage() {
   const companySizeSchema = z.string().min(1, t('register.companySizeError'));
   const contactNameSchema = z.string().min(1, t('register.contactNameError'));
   const contactPhoneSchema = z.string().min(9, t('register.contactPhoneError'));
+  const acceptTermsSchema = z.boolean().refine((v) => v, t('register.acceptTermsError'));
 
   const companyForm = useForm({
     defaultValues: {
@@ -449,6 +452,7 @@ export function RegisterPage() {
       contactName: user?.displayName ?? '',
       contactEmail: user?.email ?? '',
       contactPhone: '',
+      acceptTerms: false,
       marketingConsent: false,
     },
     onSubmit: async ({ value }) => {
@@ -461,6 +465,7 @@ export function RegisterPage() {
           contactEmail: value.contactEmail,
           contactPhone: value.contactPhone,
           marketingConsent: value.marketingConsent,
+          consentVersion: CONSENT_VERSION,
           turnstileToken: turnstileToken ?? '',
         });
         setCreatedProfile(profile);
@@ -846,6 +851,53 @@ export function RegisterPage() {
                 </contactForm.Field>
               </div>
 
+              <contactForm.Field
+                name="acceptTerms"
+                validators={{ onChange: acceptTermsSchema, onSubmit: acceptTermsSchema }}
+              >
+                {(field) => {
+                  // No isTouched gate: a checkbox only gains errors after a change
+                  // or submit attempt, and handleSubmit doesn't touch unvisited fields.
+                  const isInvalid = field.state.meta.errors.length > 0;
+                  return (
+                    <div className="space-y-1 pt-1">
+                      <div className="flex items-start gap-2.5">
+                        <input
+                          type="checkbox"
+                          id="acceptTerms"
+                          className="mt-1 h-4 w-4 rounded border-gray-300 accent-primary"
+                          checked={field.state.value as boolean}
+                          onChange={(e) => field.handleChange(e.target.checked)}
+                        />
+                        <label htmlFor="acceptTerms" className="text-sm leading-relaxed">
+                          {t('register.acceptTerms')}{' '}
+                          <button
+                            type="button"
+                            onClick={() => setLegalModal('terms')}
+                            className="text-primary hover:underline font-medium"
+                          >
+                            {t('register.termsLink')}
+                          </button>{' '}
+                          {t('register.and')}{' '}
+                          <button
+                            type="button"
+                            onClick={() => setLegalModal('privacy')}
+                            className="text-primary hover:underline font-medium"
+                          >
+                            {t('register.privacyLink')}
+                          </button>
+                        </label>
+                      </div>
+                      {isInvalid && (
+                        <div className="ml-6">
+                          <FieldError errors={field.state.meta.errors} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }}
+              </contactForm.Field>
+
               <contactForm.Field name="marketingConsent">
                 {(field) => (
                   <div className="flex items-start gap-2.5 pt-1">
@@ -860,14 +912,13 @@ export function RegisterPage() {
                       {t('register.marketingConsent')}
                       <span className="block text-xs text-muted-foreground mt-0.5">
                         {t('register.marketingConsentDetail')}{' '}
-                        <a
-                          href="https://factorysyncsolutions.com/marketing"
-                          target="_blank"
-                          rel="noreferrer"
+                        <button
+                          type="button"
+                          onClick={() => setLegalModal('marketing')}
                           className="text-primary hover:underline font-medium"
                         >
                           {t('register.marketingPolicyLink')}
-                        </a>
+                        </button>
                       </span>
                     </label>
                   </div>
@@ -933,6 +984,8 @@ export function RegisterPage() {
           </form>
         )}
       </RegisterShell>
+
+      <LegalModal open={legalModal} onClose={() => setLegalModal(null)} />
     </>
   );
 }
