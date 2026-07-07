@@ -12,29 +12,31 @@
 
 - [Current State](#current-state)
 - [Phase 1 — Personal activity (built)](#phase-1--personal-activity-built)
-- [Phase 2 — Project / company audit (planned)](#phase-2--project--company-audit-planned)
-- [Phase 3 — Backoffice audit (planned)](#phase-3--backoffice-audit-planned)
+- [Phase 2 — Project / company audit (mostly built via backoffice)](#phase-2--project--company-audit-mostly-built-via-backoffice)
+- [Phase 3 — Backoffice audit (backend built; frontend unverified)](#phase-3--backoffice-audit-backend-built-frontend-unverified)
 - [Related Documents](#related-documents)
 
 ---
 
 ## Current State
 
-**Personal activity is live; everything project- and backoffice-scoped is planned.** The
-shared logger (`services/audit/audit.go`) writes timestamped documents to
-`audit_events/{uuid}` and is wired into the profile and quiz services and the admin CSV
-export. Users see their own events in the `web-app` Profile activity tab, fed by
-`GET /profile/activity`.
+**Personal activity and backoffice audit are both live on the backend; only the
+project-owner-scoped endpoint and some frontend pieces remain.** The shared logger
+(`services/audit/audit.go`) writes timestamped documents to `audit_events/{uuid}` and is
+wired into the profile, quiz, admin, and backoffice services. Users see their own events
+in the `web-app` Profile activity tab, fed by `GET /profile/activity`; staff/superadmin
+activity is served by `GET /backoffice/audit` and `GET /backoffice/users/{uid}/activity`.
 
-Honest partials: the base `Event` model still lacks the target-schema `projectID` /
-`targetUID` fields, so events cannot yet be project-scoped; the ProfilePage activity tab
-needs route/use-date cleanup; and `admin.SetUserRole` has a known correctness bug — it
-logs the **target** UID as the actor instead of the admin who made the change.
+The `Event` model already carries `projectID`, `targetUID`, and actor-snapshot
+(`actorEmail`/`actorName`) fields, and `admin.SetUserRole` correctly logs
+`middleware.GetUID(r)` (the admin) as the actor — the schema gap and actor bug once
+tracked here have both been resolved.
 
-Not started: project/backoffice event-type constants, audit-writer injection into the
-backoffice handler, the `GET /project/audit` and `GET /backoffice/audit` +
-`GET /backoffice/users/{uid}/activity` endpoints, and all `web-backoffice` audit UI.
-No `go test -cover` figure is recorded for `services/audit/` yet.
+Not started: the owner/`system_admin`-scoped `GET /project/audit` endpoint and the
+optional web-app project-audit tab. Unverified in this pass and needing a fresh look:
+`web-backoffice` audit UI (Audit page, "View Activity", staff activity gating) and the
+Phase 1-3 test suites below. No `go test -cover` figure is recorded for `services/audit/`
+yet.
 
 ---
 
@@ -43,13 +45,13 @@ No `go test -cover` figure is recorded for `services/audit/` yet.
 Mirrors [feature-spec.md § 3](./feature-spec.md#3-current-state).
 
 - [x] `Logger` / `Log` — `apps/backend/services/audit/audit.go`
-- [ ] Base `Event` model with target schema — built, but ⚠️ needs `projectID` / `targetUID` (+ actor snapshot) fields
+- [x] Base `Event` model with target schema — `projectID` / `targetUID` / actor-snapshot fields present — `apps/backend/services/audit/audit.go`
 - [x] `profile.Service` audit writes — `apps/backend/services/profile/service.go`
 - [x] `quiz.Service` audit writes — `apps/backend/services/quiz/service.go`
 - [x] `GET /profile/activity` — `apps/backend/services/profile/handler.go`
-- [ ] ProfilePage activity tab — built, but ⚠️ route/use-date cleanup needed — `apps/web-app/src/pages/ProfilePage.tsx`
+- [x] ProfilePage activity tab — uses `formatDateTime()`, no route issue found — `apps/web-app/src/pages/ProfilePage.tsx`
 - [x] `admin.export` audit write — `apps/backend/services/admin/handler.go`
-- [ ] `admin.SetUserRole` actor correctness — ⚠️ bug: logs target UID as actor — `apps/backend/services/admin/handler.go`
+- [x] `admin.SetUserRole` actor correctness — actor is `middleware.GetUID(r)`, target only in `TargetUID` — `apps/backend/services/admin/handler.go`
 
 ### Phase 1 Tests
 
@@ -60,15 +62,16 @@ Mirrors [feature-spec.md § 3](./feature-spec.md#3-current-state).
 
 ---
 
-## Phase 2 — Project / company audit (planned)
+## Phase 2 — Project / company audit (mostly built via backoffice)
 
-All ❌ not started.
+Backend plumbing landed as part of the backoffice work below; the owner-scoped endpoint
+and web-app tab are the remaining gap.
 
-- [ ] Project/company event constants (`project.*`) — `apps/backend/services/audit/audit.go`
-- [ ] Project-scoped writes for project + member lifecycle events
-- [ ] `GET /project/audit` (guard: `owner` / `system_admin` of the active project)
+- [x] Project/company event constants (`EventProjectCreated`, etc.) — `apps/backend/services/audit/audit.go`
+- [x] Project-scoped writes for project + member lifecycle events — `apps/backend/services/backoffice/handler.go`
+- [ ] `GET /project/audit` (guard: `owner` / `system_admin` of the active project) — not started; only the superadmin-gated `/backoffice/audit` exists today
 - [ ] Optional web-app project-audit tab for `owner` / `system_admin`
-- [ ] Composite index `projectID ASC, createdAt DESC` in `firestore.indexes.json`
+- [x] Composite index `projectID ASC, createdAt DESC` in `firestore.indexes.json`
 
 ### Phase 2 Tests
 
@@ -77,15 +80,13 @@ All ❌ not started.
 
 ---
 
-## Phase 3 — Backoffice audit (planned)
+## Phase 3 — Backoffice audit (backend built; frontend unverified)
 
-All ❌ not started.
-
-- [ ] Staff/user CRUD event constants (`backoffice.*`) — `apps/backend/services/audit/audit.go`
-- [ ] Audit writer injection — `apps/backend/services/backoffice/handler.go`
-- [ ] `GET /backoffice/audit` (superadmin) + `GET /backoffice/users/{uid}/activity`
-- [ ] Backoffice audit UI: Audit page, user "View Activity", staff activity — hidden from `staff` role
-- [ ] Remaining composite indexes (`targetUID`, `eventType`, `resourceType` + `createdAt`)
+- [x] Staff/user CRUD event constants (`backoffice.*`) — `apps/backend/services/audit/audit.go`
+- [x] Audit writer injection — `apps/backend/services/backoffice/handler.go`
+- [x] `GET /backoffice/audit` (superadmin, `ListAudit`) + `GET /backoffice/users/{uid}/activity` (`GetUserActivity`) — `apps/backend/services/backoffice/handler.go`
+- [ ] Backoffice audit UI: Audit page, user "View Activity", staff activity — hidden from `staff` role — ⚠️ not verified in this pass, re-check `web-backoffice`
+- [x] Remaining composite indexes (`targetUID`, `eventType`, `resourceType` + `createdAt`)
 
 ### Phase 3 Tests
 
@@ -102,5 +103,5 @@ All ❌ not started.
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.1.0*
+*Last updated: 5 July 2026*

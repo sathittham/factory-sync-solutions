@@ -1,8 +1,10 @@
 # web-app · Admin Dashboard — ASCII Mockups
 
 Surface: `web-app` (authenticated React app). Design system: shadcn/ui · Tailwind.
-One route (`/admin`, admin-claim only) with two shadcn `Tabs` and two dialogs. Layouts
-follow [feature-spec.md § 4](../feature-spec.md#4-ui-layout).
+One route (`/admin`, gated by `canManageUsers()` — admin claim or owner/system_admin/
+manager permission) with two shadcn `Tabs` and four dialogs (`UserDetailDialog`,
+`RoleChangeDialog`, `InviteMemberDialog`, `PermissionsDialog`). Layouts follow
+[feature-spec.md § 4](../feature-spec.md#4-ui-layout).
 
 ---
 
@@ -33,8 +35,8 @@ follow [feature-spec.md § 4](../feature-spec.md#4-ui-layout).
 │  ◍ Admin User…    ⇅   │   └───────────┴───────────┴─────────┴───────┴─────────────┘ │
 └──────────────────────┴──────────────────────────────────────────────────────────────┘
 
-Industry/size selects are shadcn Select. Known issue: changing them re-fetches
-but the backend ignores the params (see status.md).
+Industry/size selects are shadcn Select. Changing either re-fetches via TanStack
+Query (keyed on both filters) — the backend now applies them (see admin-api.md).
 ```
 
 ### 1b. State: row expanded (inline detail panel)
@@ -80,19 +82,23 @@ First expand fetches GET /admin/assessments/{id}; re-expand uses cached scores.
 
 ```
    [Assessments] [Users]
-   ┌──────────────────────────────────────────────────────────────────────┐
-   │  [Role ▾ All]                                        12 / 45 users   │
-   ├──────────┬───────────────┬───────────┬─────────┬──────────┬──────────┤
-   │ Name     │ Email(desktop)│ Company   │ Role    │Registered│          │
-   ├──────────┼───────────────┼───────────┼─────────┼──────────┼──────────┤
-   │ Jane D.  │ jane@…        │ Acme Co.  │ [admin] │ 10 มิ.ย. │ [Demote] │
-   │ John S.  │ john@…        │ Beta Ltd. │ [user]  │ 09 มิ.ย. │ [Promote │
-   │          │               │           │         │          │  Admin]  │
-   └──────────┴───────────────┴───────────┴─────────┴──────────┴──────────┘
+   ┌────────────────────────────────────────────────────────────────────────────────┐
+   │  [All] [Owner] [System Admin] [Manager] [User]   [Search…]   [Invite Member +] │
+   ├───┬──────────────┬───────────────┬───────────┬───────────┬──────────┬─────────┤
+   │   │ Name         │ Email(desktop)│ Company   │ Role      │Registered│         │
+   ├───┼──────────────┼───────────────┼───────────┼───────────┼──────────┼─────────┤
+   │ ◍ │ Jane D.      │ jane@…        │ Acme Co.  │ [Owner]   │ 10 มิ.ย. │ [✎]     │
+   │ ◍ │ John S.      │ john@…        │ Beta Ltd. │ [Manager] │ 09 มิ.ย. │ [✎]     │
+   │ ◍ │ Somchai P.   │ somchai@…     │ Gamma Co. │ [Pending] │ invited  │[↻] [✕]  │
+   └───┴──────────────┴───────────────┴───────────┴───────────┴──────────┴─────────┘
 
-Role filter narrows rows client-side (no re-fetch). Row click → UserDetailDialog
-(screen 3); role button click stops propagation → RoleChangeDialog (screen 4).
-Dates via formatDateTime() — Thai locale shows Buddhist Era.
+Role chips + search narrow rows client-side (no re-fetch); "Owner"/"System Admin"
+etc. are computed counts, not fixed labels. Avatar (◍) shows photoURL or initial
+fallback. Row click on a *registered* row → UserDetailDialog (screen 3); the
+pencil (✎) stops propagation → RoleChangeDialog (screen 4). A pending row instead
+shows Resend (↻) / Cancel (✕) icon buttons — no detail dialog. Dates via
+formatDateTime() — Thai locale shows Buddhist Era. The list excludes legacy
+`admin`/`superadmin` role accounts (managed elsewhere).
 ```
 
 ---
@@ -144,11 +150,32 @@ shadcn `Dialog`, max-w-md — confirmation before committing the role change
 │            [Cancel]   [Demote to User]         │  ← outline confirm
 └───────────────────────────────────────────────┘
 
-Confirm → PUT /admin/users/{uid}/role → success toast "Role updated
+Confirm → PUT /manage/users/{uid}/role → success toast "Role updated
 successfully" / error toast "Failed to update role".
 ```
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+## 5. `InviteMemberDialog`
+
+shadcn `Dialog`, max-w-sm — `@tanstack/react-form` + Zod email validation.
+
+```
+┌───────────────────────────────────────────────┐
+│  Invite Member                                 │
+│                                                │
+│  Email     [ jane@example.com          ]       │
+│  Role      [ User ▾ ]                          │
+│                                                │
+│            [Cancel]   [Send Invite]            │
+└───────────────────────────────────────────────┘
+
+Submit → POST /manage/invitations. 409 → "user already exists" inline error;
+403 → "not permitted" inline error; 200 → dialog closes, success toast, pending
+row appears in the Users table.
+```
+
+---
+
+*Version: 2.0.0*
+*Last updated: 5 July 2026*

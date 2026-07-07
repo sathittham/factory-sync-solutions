@@ -1,8 +1,8 @@
 ---
-version: 1.3.0
-lastUpdated: 2026-07-03
+version: 1.4.0
+lastUpdated: 2026-07-05
 author: Sathittham Sangthong
-status: Partially built - personal activity exists; project/backoffice audit views planned
+status: Partially built - personal activity and backoffice audit views shipped; project-owner audit planned
 ---
 
 # Audit Logging - Feature Spec
@@ -18,8 +18,7 @@ status: Partially built - personal activity exists; project/backoffice audit vie
 
 The audit logger (`apps/backend/services/audit/audit.go`) provides a `Log`
 method that creates timestamped documents in `audit_events/{uuid}`. It is
-already wired into profile and quiz services and partially wired into admin
-export.
+wired into the profile, quiz, admin, and backoffice services.
 
 The product direction is:
 
@@ -65,25 +64,25 @@ The product direction is:
 | Component | Location | Status |
 |-----------|----------|--------|
 | `Logger` / `Log` | `apps/backend/services/audit/audit.go` | Built |
-| Base `Event` model | `apps/backend/services/audit/audit.go` | Built, needs `projectID`/target fields |
+| Base `Event` model (incl. `targetUID`/`projectID`/actor snapshot) | `apps/backend/services/audit/audit.go` | Built |
 | `profile.Service` audit writes | `apps/backend/services/profile/service.go` | Built |
-| `quiz.Service` audit writes | `apps/backend/services/quiz/service.go` | Built |
+| `quiz.Service` audit writes | `apps/backend/services/quiz/service.go` | Built, missing `projectID` on `assessment.submitted` |
 | `GET /profile/activity` | `apps/backend/services/profile/handler.go` | Built |
-| `ProfilePage` activity tab | `apps/web-app/src/pages/ProfilePage.tsx` | Built, route/use-date cleanup needed |
+| `ProfilePage` activity tab | `apps/web-app/src/pages/ProfilePage.tsx` | Built |
 | `admin.export` audit write | `apps/backend/services/admin/handler.go` | Built |
-| `admin.SetUserRole` actor correctness | `apps/backend/services/admin/handler.go` | Needs fix; currently logs target UID as actor |
-| Backoffice audit writer injection | `apps/backend/services/backoffice/handler.go` | Not implemented |
-| Project/company event constants | `apps/backend/services/audit/audit.go` | Not implemented |
-| Staff/user CRUD event constants | `apps/backend/services/audit/audit.go` | Not implemented |
+| `admin.SetUserRole` actor correctness | `apps/backend/services/admin/handler.go` | Built — actor is `middleware.GetUID(r)` |
+| Backoffice audit writer injection | `apps/backend/services/backoffice/handler.go` | Built |
+| Project/company event constants | `apps/backend/services/audit/audit.go` | Built, except `member_invited`/`member_joined`/`ownership_transferred`/`invitation_revoked`/`active_switched` |
+| Staff/user CRUD event constants | `apps/backend/services/audit/audit.go` | Built |
 | `GET /project/audit` | planned route | Not implemented |
-| `GET /backoffice/audit` | planned route | Not implemented |
-| Backoffice audit UI | `apps/web-backoffice` | Not implemented |
+| `GET /backoffice/audit` | `apps/backend/services/backoffice/handler.go` (`ListAudit`) | Built |
+| Backoffice audit UI | `apps/web-backoffice/src/pages/AuditPage.tsx`, `AuditActivityDialog.tsx` | Built |
 
 ---
 
 ## 4. Event Document Structure
 
-Target schema:
+Built schema (`apps/backend/services/audit/audit.go`):
 
 ```go
 type Event struct {
@@ -127,24 +126,24 @@ Field intent:
 | `user.registered` | `POST /profile` | `profile:{actorUID}` | Include `projectID`/company registration ID |
 | `user.profile_updated` | `PUT /profile` | `profile:{actorUID}` | Include changed field names |
 | `user.role_changed` | Admin/backoffice role change | `profile:{targetUID}` | Actor must be admin/superadmin UID, target is affected UID |
-| `assessment.submitted` | Quiz submission | `assessment:{assessmentID}` | Include `projectID`, quiz ID, score, diagnosis |
+| `assessment.submitted` | Quiz submission | `assessment:{assessmentID}` | Includes quiz ID, score, diagnosis; **`projectID` not yet included** — `quiz/service.go:116` |
 | `admin.export` | Result CSV export | `export:assessments.csv` | Include row count and caller |
 
 ### 5.2 Company / Project Activity
 
-| Event type | Trigger |
-|------------|---------|
-| `project.created` | Project created by registration or backoffice |
-| `project.settings_updated` | Company/project settings changed |
-| `project.deactivated` | Backoffice superadmin deactivates project |
-| `project.reactivated` | Backoffice superadmin reactivates project |
-| `project.member_invited` | Owner/system admin/backoffice invites user |
-| `project.member_joined` | User accepts invitation |
-| `project.member_role_changed` | Project role changes |
-| `project.member_removed` | Member removed from company/project |
-| `project.ownership_transferred` | Owner changes |
-| `project.invitation_revoked` | Invitation revoked |
-| `project.active_switched` | User switches active project |
+| Event type | Trigger | Status |
+|------------|---------|--------|
+| `project.created` | Project created by registration or backoffice | Built |
+| `project.settings_updated` | Company/project settings changed | Built |
+| `project.deactivated` | Backoffice superadmin deactivates project | Built |
+| `project.reactivated` | Backoffice superadmin reactivates project | Built |
+| `project.member_invited` | Owner/system admin/backoffice invites user | Not implemented |
+| `project.member_joined` | User accepts invitation | Not implemented |
+| `project.member_role_changed` | Project role changes | Built |
+| `project.member_removed` | Member removed from company/project | Built |
+| `project.ownership_transferred` | Owner changes | Not implemented |
+| `project.invitation_revoked` | Invitation revoked | Not implemented |
+| `project.active_switched` | User switches active project | Not implemented |
 
 ### 5.3 Backoffice Staff/User CRUD Activity
 
@@ -287,31 +286,33 @@ index from the error link and document it here.
 
 ### Existing Personal Events
 
-- [ ] Login creates `user.login` for the caller.
-- [ ] Registration creates `user.registered` with `projectID`.
-- [ ] Profile update creates `user.profile_updated` with changed field names.
+- [x] Login creates `user.login` for the caller.
+- [x] Registration creates `user.registered` with `projectID`.
+- [x] Profile update creates `user.profile_updated` with changed field names.
 - [ ] Quiz submission creates `assessment.submitted` with `projectID`, quiz ID,
-      score, and diagnosis.
-- [ ] `GET /profile/activity` returns only the caller's own actor/target events.
-- [ ] Profile Activity UI formats dates with `formatDateTime()`.
+      score, and diagnosis — `projectID` still missing (`quiz/service.go:116`).
+- [x] `GET /profile/activity` returns only the caller's own actor/target events.
+- [x] Profile Activity UI formats dates with `formatDateTime()`.
 
 ### Project / Company Events
 
-- [ ] Project create/update/deactivate/reactivate write project-scoped events.
-- [ ] Member invite/join/role-change/remove write project-scoped events.
+- [x] Project create/update/deactivate/reactivate write project-scoped events.
+- [ ] Member invite/join/role-change/remove write project-scoped events — role-change
+      and remove are done; invite/join/ownership-transfer/active-switch have no event
+      constants yet.
 - [ ] `GET /project/audit` requires `owner` or `system_admin`.
 - [ ] `GET /project/audit` never returns events for another project.
 
 ### Backoffice Events
 
-- [ ] Backoffice user delete and role changes write events with correct actor
+- [x] Backoffice user delete and role changes write events with correct actor
       and target UID.
-- [ ] Staff role grant/change/revoke writes events with old/new role metadata.
-- [ ] Backoffice project/member CRUD writes events with `projectID`.
-- [ ] `GET /backoffice/audit` requires superadmin.
-- [ ] `GET /backoffice/users/{uid}/activity` returns actor and target events
+- [x] Staff role grant/change/revoke writes events with old/new role metadata.
+- [x] Backoffice project/member CRUD writes events with `projectID`.
+- [x] `GET /backoffice/audit` requires superadmin.
+- [x] `GET /backoffice/users/{uid}/activity` returns actor and target events
       for that UID.
-- [ ] Backoffice Audit page is hidden from `staff` users.
+- [x] Backoffice Audit page is hidden from `staff` users.
 
 ---
 
@@ -338,5 +339,5 @@ index from the error link and document it here.
 
 ---
 
-*Version: 1.3.0*
-*Last updated: 3 July 2026*
+*Version: 1.4.0*
+*Last updated: 5 July 2026*

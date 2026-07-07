@@ -3,8 +3,9 @@
 How each actor moves through the audit surfaces. See [README.md](./README.md) for the
 design spec and [feature-spec.md](./feature-spec.md) for the formal requirements.
 
-> Reflects what is **built today** — only the personal-activity journey is shipped. The
-> project-audit and backoffice journeys are entirely roadmap and shown dashed.
+> Reflects what is **built today** — the personal-activity and backoffice-audit journeys
+> are both shipped (solid arrows). The project-audit journey is still roadmap and shown
+> dashed.
 
 ---
 
@@ -12,7 +13,7 @@ design spec and [feature-spec.md](./feature-spec.md) for the formal requirements
 
 - [Factory operator — reviewing own activity](#factory-operator--reviewing-own-activity)
 - [Project owner / system admin — project audit (roadmap)](#project-owner--system-admin--project-audit-roadmap)
-- [Super admin — backoffice audit (roadmap)](#super-admin--backoffice-audit-roadmap)
+- [Super admin — backoffice audit (built)](#super-admin--backoffice-audit-built)
 
 ---
 
@@ -27,8 +28,7 @@ flowchart TD
     B --> C[("audit_events/{uuid}")]
     D["/profile — Activity tab"] --> E["GET /profile/activity (limit ≤ 100, before cursor, eventType filter)"]
     E --> C
-    E --> F["Own actor/target events listed, localized labels + timestamps"]
-    F -.->|roadmap| G["formatDateTime() cleanup — dates via @/lib/dayjs"]
+    E --> F["Own actor/target events listed, localized labels + timestamps via formatDateTime()"]
 ```
 
 **Guard(s):** Bearer token; the handler matches events on the caller's UID from
@@ -52,27 +52,28 @@ flowchart TD
 
 **Guard(s):** planned — Bearer token + `owner` / `system_admin` role in the active
 project; events are scoped by `projectID`, so another company's events are never returned.
-Blocked on the `projectID` event-model field (see [status.md](./status.md)).
+Blocked on the `GET /project/audit` endpoint itself (see [status.md](./status.md)) — the
+`projectID` field already exists on the event model.
 
 ---
 
-## Super admin — backoffice audit (roadmap)
+## Super admin — backoffice audit (built)
 
-Planned: a FactorySync superadmin searches platform-wide events or pulls one user's or
-staff member's timeline from the Users/Staff pages.
+A FactorySync superadmin searches platform-wide events, or pulls one user's or staff
+member's timeline from the Users/Staff pages.
 
 ```mermaid
 flowchart TD
-    A["web-backoffice — Audit page (hidden from staff role)"] -.-> B["GET /backoffice/audit — filters: eventType / actorUID / targetUID / projectID / resourceType"]
-    C["Users page — 'View Activity' on a user row"] -.-> D["GET /backoffice/users/{uid}/activity — actor + target events for that UID"]
-    B -.-> E["Table: actor · target · event type · project · timestamp · metadata"]
-    D -.-> E
-    F["Staff role user"] -.-> G["No audit pages in sidebar; direct API call → 403"]
+    A["web-backoffice — AuditPage.tsx (hidden from staff role)"] --> B["GET /backoffice/audit — filters: eventType / actorUID / targetUID / projectID / resourceType"]
+    C["Users/Staff page — 'View Activity' on a row"] --> D["GET /backoffice/users/{uid}/activity — actor + target events for that UID (AuditActivityDialog.tsx)"]
+    B --> E["Table: actor · target · event type · project · timestamp · metadata"]
+    D --> E
+    F["Staff role user"] --> G["No audit pages in sidebar; direct API call → 403"]
 ```
 
-**Guard(s):** planned — Firebase custom claim `backofficeRole == "superadmin"` checked
-server-side; `staff` users must not see audit pages or reach the superadmin audit APIs.
-Detail in [audit-query-api.md](./audit-query-api.md).
+**Guard(s):** Firebase custom claim `backofficeRole == "superadmin"` checked server-side
+(`Sidebar.tsx` administratorNavItems + handler auth); `staff` users do not see audit pages
+or reach the superadmin audit APIs. Detail in [audit-query-api.md](./audit-query-api.md).
 
 ---
 
@@ -80,5 +81,5 @@ Detail in [audit-query-api.md](./audit-query-api.md).
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.1.0*
+*Last updated: 5 July 2026*

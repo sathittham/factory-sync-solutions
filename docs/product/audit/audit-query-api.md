@@ -2,9 +2,9 @@
 
 ## Summary
 
-The four read endpoints over `audit_events` — one built (personal activity, served by the
-profile service), three planned (project audit and the two superadmin backoffice
-lookups). Each surface is scoped by role so a caller can only ever read events they are
+The four read endpoints over `audit_events` — three built (personal activity, served by
+the profile service, and the two superadmin backoffice lookups), one planned (project
+audit). Each surface is scoped by role so a caller can only ever read events they are
 entitled to.
 
 ## Implementation
@@ -27,16 +27,20 @@ Events where `projectID == activeProjectID`, newest first. Caller must be `owner
 `system_admin` in the active project. Params: `limit` (default 50, max 200), `before`,
 `eventType`, `actorUID`, `targetUID`. Must never return another project's events.
 
-### Planned — `GET /api/v1/backoffice/audit`
+### Built — `GET /api/v1/backoffice/audit`
 
 Platform-wide search for `backofficeRole == "superadmin"`. Params: `limit` (default 100,
 max 500), `before`, `eventType`, `actorUID`, `targetUID`, `projectID`, `resourceType`.
+Handler: `ListAudit` in `apps/backend/services/backoffice/handler.go`. Consumed by
+`AuditPage.tsx` in `web-backoffice`.
 
-### Planned — `GET /api/v1/backoffice/users/{uid}/activity`
+### Built — `GET /api/v1/backoffice/users/{uid}/activity`
 
-Events where `actorUID == uid` or `targetUID == uid` — powers a "View Activity" action on
-the Backoffice Users page so a superadmin can inspect one user's or staff member's
-timeline without hand-building filters. Superadmin only.
+Events where `actorUID == uid` or `targetUID == uid` — powers the "View Activity" action
+on the Backoffice Users and Staff pages so a superadmin can inspect one user's or staff
+member's timeline without hand-building filters. Superadmin only. Handler:
+`GetUserActivity` in `apps/backend/services/backoffice/handler.go`. Consumed by
+`AuditActivityDialog.tsx` in `web-backoffice`.
 
 ### Firestore indexes
 
@@ -71,8 +75,8 @@ wrong role    → pkg.RespondError(w, 403, "FORBIDDEN", msg)
 no/bad token  → pkg.RespondError(w, 401, "UNAUTHORIZED", msg)
 ```
 
-Consumers: web-app Profile activity tab (built), web-app project-audit tab and
-web-backoffice audit pages (planned — see [user-journeys.md](./user-journeys.md)).
+Consumers: web-app Profile activity tab and web-backoffice audit pages (both built);
+web-app project-audit tab (planned — see [user-journeys.md](./user-journeys.md)).
 
 ## Acceptance Criteria
 
@@ -86,12 +90,12 @@ web-backoffice audit pages (planned — see [user-journeys.md](./user-journeys.m
 
 - [x] `GET /profile/activity` — `apps/backend/services/profile/handler.go`
 - [ ] `GET /project/audit` — planned route
-- [ ] `GET /backoffice/audit` — planned route
-- [ ] `GET /backoffice/users/{uid}/activity` — planned route
-- [ ] Composite indexes in `firestore.indexes.json` (add as queries land)
+- [x] `GET /backoffice/audit` — `apps/backend/services/backoffice/handler.go` (`ListAudit`)
+- [x] `GET /backoffice/users/{uid}/activity` — `apps/backend/services/backoffice/handler.go` (`GetUserActivity`)
+- [x] Composite indexes in `firestore.indexes.json` — all 5 present (`actorUID`, `targetUID`, `projectID`, `eventType`, `resourceType`, each + `createdAt DESC`)
 - [ ] Query-builder unit tests for actor / target / project / backoffice filters
 
 ---
 
-*Version: 1.0.0*
-*Last updated: 3 July 2026*
+*Version: 1.1.0*
+*Last updated: 5 July 2026*
