@@ -36,4 +36,24 @@ module "api" {
   consumer_image         = "asia-southeast3-docker.pkg.dev/factory-sync-solutions/cloud-run/factory-sync-solutions-domain-event-consumer:latest"
   consumer_min_instances = 1
   consumer_max_instances = 3
+
+  # Secret Manager migration (item 1) — containers + runtime-SA accessor IAM.
+  # Values seeded out-of-band; deploy workflow maps env→secret via --set-secrets.
+  # See docs/operations/secret-manager-migration.md.
+  runtime_secrets = [
+    "resend-api-key",
+    "cf-turnstile-secret",
+    "slack-webhook-registration",
+    "slack-webhook-quiz-result",
+    "r2-access-key-id",
+    "r2-access-key-secret",
+    "api-docs-r2-account-id",
+    "api-docs-r2-access-key-id",
+    "api-docs-r2-access-key-secret",
+  ]
+}
+
+output "runtime_secret_ids" {
+  description = "Secret Manager secret IDs managed for production."
+  value       = module.api.runtime_secret_ids
 }
