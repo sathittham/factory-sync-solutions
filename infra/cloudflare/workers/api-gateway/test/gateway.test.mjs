@@ -73,6 +73,42 @@ test('rewrites public v1 path and query to the configured upstream', async (t) =
   assert.equal(response.headers.get('Cache-Control'), 'no-store');
 });
 
+test('forwards a POST body upstream and overwrites the client X-Forwarded-For', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  let proxiedRequest;
+  let proxiedBody;
+  globalThis.fetch = async (request) => {
+    proxiedRequest = request;
+    proxiedBody = await request.text();
+    return new Response(JSON.stringify({ success: true }), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  };
+
+  const request = new Request('https://api.factorysyncsolutions.com/v1/profile', {
+    method: 'POST',
+    headers: {
+      Origin: 'https://app.factorysyncsolutions.com',
+      'Content-Type': 'application/json',
+      'CF-Connecting-IP': '203.0.113.7',
+      'X-Forwarded-For': '198.51.100.4',
+    },
+    body: JSON.stringify({ name: 'Factory A' }),
+  });
+
+  const response = await handleRequest(request, env);
+
+  assert.equal(response.status, 201);
+  assert.equal(proxiedRequest.url, 'https://cloud-run.example.run.app/api/v1/profile');
+  assert.equal(proxiedBody, JSON.stringify({ name: 'Factory A' }));
+  assert.equal(proxiedRequest.headers.get('X-Forwarded-For'), '203.0.113.7');
+});
+
 test('rejects api v1 path at the gateway', async (t) => {
   const originalFetch = globalThis.fetch;
   t.after(() => {

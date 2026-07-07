@@ -32,6 +32,14 @@ export async function handleRequest(request, env = {}) {
   const headers = new Headers(request.headers);
   headers.set('X-Forwarded-Host', new URL(request.url).host);
   headers.set('X-Forwarded-Proto', 'https');
+  // Overwrite client-supplied forwarding headers with the edge-trusted client IP
+  // so the backend cannot be tricked into trusting a spoofed X-Forwarded-For.
+  const clientIP = request.headers.get('CF-Connecting-IP');
+  if (clientIP) {
+    headers.set('X-Forwarded-For', clientIP);
+  } else {
+    headers.delete('X-Forwarded-For');
+  }
 
   const init = {
     method: request.method,
@@ -40,6 +48,9 @@ export async function handleRequest(request, env = {}) {
   };
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     init.body = request.body;
+    // Required when constructing a Request with a streaming body on recent
+    // compatibility dates; without it the runtime throws.
+    init.duplex = 'half';
   }
 
   try {
