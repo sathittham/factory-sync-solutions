@@ -71,6 +71,12 @@ func (s *Service) StartConversation(ctx context.Context, uid, channel, locale, t
 		return nil, nil, nil, fmt.Errorf("get open conversation for uid %s: %w", uid, err)
 	}
 	if existing != nil {
+		// Reusing an open conversation appends a message and runs the engine, so
+		// it must be rate-limited exactly like SendCustomerMessage — otherwise the
+		// StartConversation path is an unmetered way to trigger the AI engine.
+		if err := s.checkRateLimit(ctx, existing.ID); err != nil {
+			return nil, nil, nil, err
+		}
 		conv, customerMsg, botMsg, err := s.appendCustomerMessage(ctx, existing, text)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("start conversation (reuse existing): %w", err)

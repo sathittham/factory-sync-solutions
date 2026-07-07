@@ -458,6 +458,34 @@ func TestServiceSendCustomerMessageRateLimited(t *testing.T) {
 	}
 }
 
+func TestServiceStartConversationReuseRateLimited(t *testing.T) {
+	// Reusing an open conversation must be rate-limited just like SendCustomerMessage,
+	// otherwise StartConversation is an unmetered path to trigger the AI engine.
+	existing := &Conversation{ID: "conv-1", UserID: "uid-1", Status: StatusBot, Channel: ChannelWebApp}
+	appendCalled := false
+	mock := &MockRepository{
+		GetOpenConversationByUIDFunc: func(_ context.Context, _ string) (*Conversation, error) {
+			return existing, nil
+		},
+		CountMessagesSinceFunc: func(_ context.Context, _ string, _ string, _ time.Time) (int, error) {
+			return 10, nil // already at the 10 msg/min cap
+		},
+		AppendMessageFunc: func(_ context.Context, _ string, _ *Message) error {
+			appendCalled = true
+			return nil
+		},
+	}
+	svc := NewService(mock, engineWithStub("reply", false, ""), nil)
+
+	_, _, _, err := svc.StartConversation(context.Background(), "uid-1", ChannelWebApp, "en", "spam")
+	if !errors.Is(err, ErrRateLimited) {
+		t.Fatalf("error = %v, want ErrRateLimited", err)
+	}
+	if appendCalled {
+		t.Fatal("AppendMessage was called despite the rate limit — the message was not blocked")
+	}
+}
+
 func TestServiceGetOpenConversationByUIDNone(t *testing.T) {
 	mock := &MockRepository{
 		GetOpenConversationByUIDFunc: func(_ context.Context, _ string) (*Conversation, error) {
