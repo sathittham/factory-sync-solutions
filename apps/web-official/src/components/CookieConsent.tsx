@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { updateConsentMode } from "@/lib/consent";
+import { OPEN_SETTINGS_EVENT, updateConsentMode } from "@/lib/consent";
 import { LocaleProvider, useLocale } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 
@@ -9,8 +9,9 @@ export const CONSENT_KEY = "fss-cookie-consent";
 const MARKETING_KEY = "fss-marketing-consent";
 const ANALYTICS_KEY = "fss-analytics-consent";
 
-// Custom event the footer "Cookie Settings" link can dispatch to reopen the panel.
-export const OPEN_SETTINGS_EVENT = "fss:open-cookie-settings";
+// Re-exported so tests and callers can import the event contract alongside the
+// island. Source of truth lives in @/lib/consent.
+export { OPEN_SETTINGS_EVENT };
 
 function getStored(key: string, fallback: boolean): boolean {
 	try {

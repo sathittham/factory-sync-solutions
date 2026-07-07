@@ -2,8 +2,24 @@
 
 import { PageHero } from "@/components/site/PageHero";
 import { SiteShell } from "@/components/site/SiteShell";
+import { Button } from "@/components/ui/button";
+import { openCookieSettings } from "@/lib/consent";
 import { type Locale, useLocale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+
+// Opens the consent modal (owned by the CookieConsent island) so visitors can
+// change or withdraw their analytics/marketing choice after the first decision.
+function ManageCookiePreferencesButton({ label }: { readonly label: string }) {
+	return (
+		<Button
+			onClick={openCookieSettings}
+			className="mt-2"
+			data-testid="manage-cookie-preferences-btn"
+		>
+			{label}
+		</Button>
+	);
+}
 
 // ---------------------------------------------------------------------------
 // Legal content — Thai & English
@@ -724,13 +740,17 @@ function CookieSettingsTh() {
 	return (
 		<div className={prose}>
 			<p>ท่านสามารถจัดการความยินยอมคุกกี้สำหรับเว็บไซต์ FactorySync Solutions ได้ผ่านวิธีการต่อไปนี้</p>
+			<ManageCookiePreferencesButton label="จัดการการตั้งค่าคุกกี้" />
 			<h2 className={h2Class}>คุกกี้ที่จำเป็น</h2>
 			<p>
 				คุกกี้เหล่านี้ไม่สามารถปิดได้ เนื่องจากจำเป็นต่อการทำงานของเว็บไซต์ ได้แก่ การยืนยันตัวตน การตั้งค่าภาษา
 				และการจดจำการตั้งค่าคุกกี้
 			</p>
 			<h2 className={h2Class}>คุกกี้วิเคราะห์และการตลาด</h2>
-			<p>สำหรับคุกกี้วิเคราะห์ (Google Analytics) และคุกกี้การตลาด ท่านสามารถจัดการได้ผ่านการตั้งค่าเบราว์เซอร์</p>
+			<p>
+				สำหรับคุกกี้วิเคราะห์ (Google Analytics) และคุกกี้การตลาด ท่านสามารถเปิดหรือปิดได้โดยกดปุ่ม
+				“จัดการการตั้งค่าคุกกี้” ด้านบน หรือผ่านการตั้งค่าเบราว์เซอร์
+			</p>
 			<h2 className={h2Class}>วิธีจัดการคุกกี้ผ่านเบราว์เซอร์</h2>
 			<ul className={ulClass}>
 				<li>
@@ -765,6 +785,7 @@ function CookieSettingsEn() {
 				You can manage cookie consent for the FactorySync Solutions website through the following
 				methods.
 			</p>
+			<ManageCookiePreferencesButton label="Manage cookie preferences" />
 			<h2 className={h2Class}>Essential Cookies</h2>
 			<p>
 				These cookies cannot be disabled as they are required for the website to function:
@@ -772,8 +793,8 @@ function CookieSettingsEn() {
 			</p>
 			<h2 className={h2Class}>Analytics and Marketing Cookies</h2>
 			<p>
-				For analytics (Google Analytics) and marketing cookies, you can manage them through your
-				browser settings.
+				For analytics (Google Analytics) and marketing cookies, you can turn them on or off using
+				the “Manage cookie preferences” button above, or through your browser settings.
 			</p>
 			<h2 className={h2Class}>Managing Cookies via Browser</h2>
 			<ul className={ulClass}>

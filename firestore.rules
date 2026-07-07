@@ -48,6 +48,16 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Conversations collection — AI support chatbot transcripts (PII)
+    match /conversations/{conversationId} {
+      // Only the backend (via Admin SDK) reads/writes conversations
+      allow read, write: if false;
+
+      match /messages/{messageId} {
+        allow read, write: if false;
+      }
+    }
+
     // Deny all other access by default
     match /{document=**} {
       allow read, write: if false;

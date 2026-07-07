@@ -1,7 +1,7 @@
 ---
 isoOutput: PM.O1 (Change Control)
-version: 1.2.0
-lastUpdated: 2026-07-04
+version: 1.3.0
+lastUpdated: 2026-07-07
 author: Sathittham Sangthong
 ---
 
@@ -162,7 +162,7 @@ CR-004/005 are raised on the parallel `feature/chatbot-core` branch.
 **Impact Analysis:**
 - Schedule: 0 (same iteration)
 - Effort: ~1 day
-- Risk: GA4 Data API quota exhaustion — mitigated by 15m TTL cache (R-014 candidate);
+- Risk: GA4 Data API quota exhaustion — mitigated by 15m TTL cache (R-010);
   new runtime secrets (`GA4_PROPERTY_ID`, `GA4_SA_CREDENTIALS_JSON`) must be provisioned
   per environment — service degrades gracefully (503 `ANALYTICS_UNAVAILABLE`) if unset.
 - Affected components: `apps/backend/services/analytics` (new), `apps/backend/main.go`,
@@ -191,6 +191,100 @@ CR-004/005 are raised on the parallel `feature/chatbot-core` branch.
   `/analytics/meta` (property ID) powering an "Open in Google Analytics" console
   deep link. Verified same day (backend 87.6%, frontend analytics 97.42% stmts);
   `sessionSourceMedium` validated against the live Data API.
+
+---
+
+### CR-005 | MCP server for external AI agents | Draft
+
+| Field | Value |
+|---|---|
+| **Date Raised** | 2026-07-03 |
+| **Raised By** | Sathittham Sangthong |
+| **Type** | Scope change (new integration surface: Model Context Protocol) |
+| **Priority** | Medium |
+
+**Description:**
+Expose FactorySync data to external AI agents (Claude Code, Claude Desktop/claude.ai, Codex
+CLI, Cursor, …) via a remote MCP server over Streamable HTTP at
+`mcp(-staging).factorysyncsolutions.com`. Phase 1 is read-only: public tools (quiz catalog,
+Knowledge Hub search) plus API-key-authenticated tools scoped to the key owner's UID
+(own results, own profile). Includes an `apiKeys` service + key-management UI in **both
+web-app and web-backoffice** (key `scope: user|backoffice` derived server-side from the
+creator's role). OAuth 2.1, write tools, and backoffice-scoped tools deferred to follow-up CRs.
+
+**Impact Analysis:**
+- Schedule: ~3–5 days for Phase 1 (server + apikey service + settings UI + docs)
+- Effort: largest in the MCP transport/auth layer and key lifecycle; tools are thin reads
+  over existing services
+- Risk: API-key leakage (keys hashed, shown once, revocable ≤ 60s); data exposure via
+  misscoped tools (UID always from verified key, not caller input); new public endpoint
+  (rate limiting + audit logging required) — add entries to the risk register on approval
+- Affected components: `apps/mcp-server` (new, placement decision in SDD — Worker vs
+  in-backend), `apps/backend/services/apikey` (new), `apps/web-app` Settings page,
+  `apps/web-backoffice` Settings page, `firestore.rules`, `firestore.indexes.json`,
+  deploy workflow
+
+**Decision:**
+- [ ] Approved — proceed
+- [ ] Rejected — reason: [reason]
+- [ ] Deferred to version: [vX.Y.Z]
+
+**Decision Date:** —
+**Decision By:** —
+
+**Implementation Notes:**
+- SRS: [docs/product/mcp-server/feature-spec.md](../product/mcp-server/feature-spec.md)
+- Client quickstart: [docs/product/mcp-server/README.md](../product/mcp-server/README.md)
+- SDD: `docs/architecture/mcp-server-design.md` (to be created before implementation)
+
+---
+
+### CR-004 | AI customer support chatbot (omni-channel) | Approved
+
+| Field | Value |
+|---|---|
+| **Date Raised** | 2026-07-03 |
+| **Raised By** | Sathittham Sangthong |
+| **Type** | Scope change (new feature domain: customer support) |
+| **Priority** | High |
+
+**Description:**
+Add an AI-first customer support chatbot answering TH/EN questions about FactorySync services
+and the health-check quizzes, with human escalation. Customer-facing: LINE Official Account +
+chat bubble on `web-app` (authenticated) and `web-official` (anonymous, Turnstile-gated).
+Team-facing: Slack (escalation alerts, later two-way thread relay) + a Conversations page in
+`web-backoffice`. New backend `chat` service (Vertex AI Gemini Flash engine via ADC,
+LINE/Slack adapters); delivered in 5 phases (core+web-app → backoffice → web-official →
+LINE → Slack two-way), with agentic tools/ADK-Go and Knowledge-Hub RAG deferred to
+follow-up CRs (SDD §2.3 roadmap).
+
+**Impact Analysis:**
+- Schedule: 5 phases, each its own branch/PR; Phase 1 estimate ~2–3 days, later phases ~1–2 days each.
+- Effort: largest in Phase 1 (service + engine + widget) and Phase 4 (LINE adapter).
+- Risk: LLM answer quality/hallucination (R-012), Vertex/Gemini API cost under abuse (R-013),
+  PII in transcripts (R-014), third-party channel dependency (R-015) — added to risk register.
+  New external setup needed: Vertex AI API enabled + `roles/aiplatform.user` on the Cloud Run
+  service account + GCP budget alert, LINE OA + Messaging API, Slack app (bot token).
+  Firebase Anonymous Auth provider must be enabled for web-official.
+- Affected components: `apps/backend/services/chat/` (new), `apps/backend/main.go`,
+  `apps/backend/config/chatbot-knowledge.md` (new), `packages/shared` (ChatWidget),
+  `apps/web-app/src/components/Layout.tsx`, `apps/web-official/src/layouts/Layout.astro`,
+  `apps/web-backoffice` (Conversations pages), `firestore.rules`, `firestore.indexes.json`.
+
+**Decision:**
+- [x] Approved — proceed
+- [ ] Rejected — reason: [reason]
+- [ ] Deferred to version: [vX.Y.Z]
+
+**Decision Date:** 2026-07-03
+**Decision By:** Sathittham Sangthong
+
+**Implementation Notes:**
+- SRS: [docs/product/ai-chatbot/feature-spec.md](../product/ai-chatbot/feature-spec.md)
+- SDD: [docs/architecture/ai-chatbot-design.md](../architecture/ai-chatbot-design.md)
+- Test plan per phase: `docs/product/ai-chatbot/test-plan.md` (to be created at Phase 1 start)
+
+---
 
 ### CR-003 | Adopt TanStack Table + Query in web-app | Approved
 
@@ -330,3 +424,6 @@ Add ISO 29110 Basic Profile as a fifth quiz variant. Also create the compliance 
 - `apps/backend/config/questions-iso29110.json` created (38 questions, 8 dimensions)
 - `apps/backend/main.go` updated to register iso29110 config
 - `docs/iso29110/` directory created with all compliance artifacts
+
+*Version: 1.3.0*
+*Last updated: 3 July 2026*

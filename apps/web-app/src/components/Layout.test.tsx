@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/lib/theme';
 import authReducer, { setLoading, setProfile, setUser } from '@/store/authSlice';
 import quizReducer from '@/store/quizSlice';
 import { configureStore } from '@reduxjs/toolkit';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   RouterProvider,
   createMemoryHistory,
@@ -117,14 +118,20 @@ function renderLayout(initialPath: string, store: ReturnType<typeof makeStore>) 
     history: createMemoryHistory({ initialEntries: [initialPath] }),
   });
 
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+
   return render(
-    <Provider store={store}>
-      <LocaleProvider>
-        <ThemeProvider>
-          <RouterProvider router={router} />
-        </ThemeProvider>
-      </LocaleProvider>
-    </Provider>,
+    <QueryClientProvider client={queryClient}>
+      <Provider store={store}>
+        <LocaleProvider>
+          <ThemeProvider>
+            <RouterProvider router={router} />
+          </ThemeProvider>
+        </LocaleProvider>
+      </Provider>
+    </QueryClientProvider>,
   );
 }
 
