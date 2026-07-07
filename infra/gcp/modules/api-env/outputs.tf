@@ -12,3 +12,8 @@ output "domain_events_topic" {
   description = "Pub/Sub domain-events topic id."
   value       = google_pubsub_topic.domain_events.id
 }
+
+output "runtime_secret_ids" {
+  description = "Secret Manager secret IDs managed for this env — the ones needing `gcloud secrets versions add`."
+  value       = sort([for s in google_secret_manager_secret.runtime : s.secret_id])
+}
