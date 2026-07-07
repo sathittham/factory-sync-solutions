@@ -16,12 +16,15 @@ import (
 // Service orchestrates email and Slack notifications.
 // Notification failures are logged but never propagated to the caller.
 type Service struct {
-	email    *EmailClient
+	email    EmailSender
 	slack    *SlackClient
 	fsClient *firestore.Client
 }
 
-func NewService(email *EmailClient, slack *SlackClient, fsClient *firestore.Client) *Service {
+// NewService wires the notification dependencies. email may be nil when no email
+// provider is configured; pass a nil EmailSender (not a typed-nil *EmailClient)
+// so the s.email != nil guards behave correctly.
+func NewService(email EmailSender, slack *SlackClient, fsClient *firestore.Client) *Service {
 	return &Service{email: email, slack: slack, fsClient: fsClient}
 }
 

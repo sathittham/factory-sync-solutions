@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"log/slog"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -55,9 +55,11 @@ func main() {
 	resultRepo := result.NewRepository(firestoreClient)
 	resultSvc := result.NewService(resultRepo)
 
-	var emailClient *notification.EmailClient
-	if apiKey := strings.TrimSpace(os.Getenv("RESEND_API_KEY")); apiKey != "" {
-		emailClient = notification.NewEmailClient(apiKey, "FactorySync Solutions <no-reply@factorysyncsolutions.com>")
+	var emailClient notification.EmailSender
+	token := strings.TrimSpace(os.Getenv("CLOUDFLARE_API_TOKEN"))
+	accountID := strings.TrimSpace(os.Getenv("CLOUDFLARE_ACCOUNT_ID"))
+	if token != "" && accountID != "" {
+		emailClient = notification.NewEmailClient(accountID, token, "FactorySync Solutions <no-reply@factorysyncsolutions.com>")
 	}
 	slackClient := notification.NewSlackClient()
 	notificationSvc := notification.NewService(emailClient, slackClient, firestoreClient)
@@ -108,9 +110,9 @@ func main() {
 	consumerConfig := events.ConsumerConfig{
 		ProjectID:              projectID,
 		SubscriptionID:         strings.TrimSpace(os.Getenv("DOMAIN_EVENT_SUBSCRIPTION")),
-		FirestoreClient:         firestoreClient,
+		FirestoreClient:        firestoreClient,
 		InboxCollection:        getEnvString("DOMAIN_EVENT_INBOX_COLLECTION", "domain_event_inbox"),
-		InboxLeaseDuration:      getEnvDuration("DOMAIN_EVENT_INBOX_LEASE", 5*time.Minute),
+		InboxLeaseDuration:     getEnvDuration("DOMAIN_EVENT_INBOX_LEASE", 5*time.Minute),
 		MaxAttempts:            getEnvInt("DOMAIN_EVENT_MAX_ATTEMPTS", 5),
 		DLQProjectID:           getEnvString("DOMAIN_EVENT_DLQ_PROJECT_ID", ""),
 		DLQTopicID:             strings.TrimSpace(os.Getenv("DOMAIN_EVENT_PUBSUB_DLQ_TOPIC")),

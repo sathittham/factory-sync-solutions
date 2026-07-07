@@ -16,7 +16,7 @@ paths:
 - **Database**: Cloud Firestore (`cloud.google.com/go/firestore`)
 - **Auth**: Firebase Auth (`firebase.google.com/go/v4/auth`)
 - **Validation**: `github.com/go-playground/validator/v10`
-- **Email**: Resend (`github.com/resend/resend-go/v2`)
+- **Email**: Cloudflare Email Sending — REST API (`notification.EmailClient`)
 
 ## Response Format
 

@@ -39,7 +39,8 @@ module "api" {
   # Values seeded out-of-band; deploy workflow maps env→secret via --set-secrets.
   # See docs/operations/secret-manager-migration.md.
   runtime_secrets = [
-    "resend-api-key",
+    "cloudflare-api-token", # reused CF API token; backs Email Sending (replaces Resend)
+    "resend-api-key",       # TODO: remove after CF email cutover is verified in prod
     "cf-turnstile-secret",
     "slack-webhook-registration",
     "slack-webhook-quiz-result",

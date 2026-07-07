@@ -141,9 +141,9 @@ func main() {
 	}()
 
 	// Notification
-	var emailClient *notification.EmailClient
-	if apiKey := os.Getenv("RESEND_API_KEY"); apiKey != "" {
-		emailClient = notification.NewEmailClient(apiKey, "FactorySync Solutions <no-reply@factorysyncsolutions.com>")
+	var emailClient notification.EmailSender
+	if token, accountID := os.Getenv("CLOUDFLARE_API_TOKEN"), os.Getenv("CLOUDFLARE_ACCOUNT_ID"); token != "" && accountID != "" {
+		emailClient = notification.NewEmailClient(accountID, token, "FactorySync Solutions <no-reply@factorysyncsolutions.com>")
 	}
 	slackClient := notification.NewSlackClient()
 	notifSvc := notification.NewService(emailClient, slackClient, firestoreClient)
