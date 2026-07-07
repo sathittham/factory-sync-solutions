@@ -5,9 +5,13 @@ import { CONSENT_KEY, CookieConsent, OPEN_SETTINGS_EVENT } from "./CookieConsent
 const ANALYTICS_KEY = "fss-analytics-consent";
 const MARKETING_KEY = "fss-marketing-consent";
 
-// Mock updateConsentMode to avoid real gtag calls.
+// Mock updateConsentMode to avoid real gtag calls. OPEN_SETTINGS_EVENT is the
+// shared event contract re-exported by CookieConsent, so the mock must provide
+// it (and the dispatcher) to keep the event name consistent across modules.
 vi.mock("@/lib/consent", () => ({
 	updateConsentMode: vi.fn(),
+	openCookieSettings: vi.fn(),
+	OPEN_SETTINGS_EVENT: "fss:open-cookie-settings",
 }));
 
 // After mocking, import so we can assert on the mock.

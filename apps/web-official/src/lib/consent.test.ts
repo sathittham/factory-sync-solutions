@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { updateConsentMode } from "./consent";
+import { OPEN_SETTINGS_EVENT, openCookieSettings, updateConsentMode } from "./consent";
 
 function clearCookies() {
 	for (const raw of document.cookie.split(";")) {
@@ -121,6 +121,16 @@ describe("updateConsentMode", () => {
 
 		expect(attemptedDomains).toContain(".example.com");
 		expect(attemptedDomains).toContain(".app.example.com");
+	});
+
+	it("openCookieSettings dispatches the reopen event the CookieConsent island listens for", () => {
+		const handler = vi.fn();
+		globalThis.addEventListener(OPEN_SETTINGS_EVENT, handler);
+
+		openCookieSettings();
+
+		expect(handler).toHaveBeenCalledTimes(1);
+		globalThis.removeEventListener(OPEN_SETTINGS_EVENT, handler);
 	});
 
 	it("does not throw on localhost and still clears cookies without domain prefix", () => {
