@@ -113,8 +113,6 @@ export function CompanySettingsPage() {
         contactPhone: profile.contactPhone || '',
         emailNotifications: profile.emailNotifications ?? false,
       });
-      setError(null);
-      setSuccess(false);
     }
   }, [profile, form]);
 

@@ -1,0 +1,140 @@
+name: Infra (OpenTofu)
+
+# Validates the OpenTofu configs on every PR that touches infra/, and (once
+# enabled) posts a read-only `tofu plan` per environment so reviewers see drift
+# before merge. Never applies — apply stays a manual, human-run step.
+
+on:
+  pull_request:
+    paths:
+      - "infra/gcp/**"
+      - "infra/cloudflare/terraform/**"
+      - ".github/workflows/infra.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write # for the plan summary comment
+
+env:
+  TOFU_VERSION: "1.8.5"
+
+jobs:
+  # fmt + validate need no cloud credentials — this is the required PR gate.
+  validate:
+    name: fmt & validate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir:
+          - infra/gcp/envs/staging
+          - infra/gcp/envs/production
+          - infra/cloudflare/terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
+      - name: fmt check (whole tree)
+        run: tofu fmt -check -recursive infra/
+      - name: init (no backend)
+        working-directory: ${{ matrix.dir }}
+        run: tofu init -backend=false -input=false
+      - name: validate
+        working-directory: ${{ matrix.dir }}
+        run: tofu validate
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+      - name: tflint
+        env:
+          TFLINT_CONFIG_FILE: ${{ github.workspace }}/infra/.tflint.hcl
+        run: |
+          tflint --init
+          tflint --chdir=${{ matrix.dir }} --no-color
+
+  # Real `tofu plan` against live state. Requires the state buckets + initial
+  # imports to already exist, so it is gated behind repo variable
+  # INFRA_PLAN_ENABLED=true — flip that on after the one-time adoption import.
+  plan:
+    name: plan (${{ matrix.name }})
+    needs: validate
+    if: vars.INFRA_PLAN_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: gcp-staging
+            dir: infra/gcp/envs/staging
+            environment: staging
+          - name: gcp-production
+            dir: infra/gcp/envs/production
+            environment: production
+          - name: cloudflare
+            dir: infra/cloudflare/terraform
+            environment: production
+    environment: ${{ matrix.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
+
+      # All three roots (incl. cloudflare) keep state in a GCS backend, so every
+      # leg needs GCP creds to init. Each env's GCP_SA_KEY is the deployer SA that
+      # owns that env's state bucket (cloudflare state lives in the prod bucket).
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: tofu init
+        working-directory: ${{ matrix.dir }}
+        env:
+          # Cloudflare provider reads this; harmless for GCP dirs.
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: tofu init -backend-config="bucket=${{ secrets.TFSTATE_BUCKET }}"
+
+      - name: tofu plan
+        id: plan
+        working-directory: ${{ matrix.dir }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+          TF_VAR_api_image: ${{ vars.API_IMAGE }}
+          TF_VAR_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TF_VAR_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          # JSON list, e.g. ["a@x.com"] — must match the live Access allow-list
+          # so the cloudflare plan stays empty. Undeclared (harmless) for GCP dirs.
+          TF_VAR_backoffice_access_emails: ${{ secrets.BACKOFFICE_ACCESS_EMAILS }}
+        run: |
+          tofu plan -input=false -no-color -lock=false 2>&1 | tee plan.txt
+        continue-on-error: true
+
+      - name: Comment plan on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const raw = fs.readFileSync('${{ matrix.dir }}/plan.txt', 'utf8');
+            const body = [
+              `### tofu plan — \`${{ matrix.name }}\``,
+              '```',
+              raw.slice(-60000),
+              '```',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+      - name: Fail if plan errored
+        if: steps.plan.outcome == 'failure'
+        run: |
+          echo "tofu plan failed — see the PR comment / log above." >&2
+          exit 1

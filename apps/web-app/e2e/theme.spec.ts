@@ -5,13 +5,20 @@ test.describe('Theme Switching', () => {
     await page.goto('/');
   });
 
-  test('defaults to system theme', async ({ page }) => {
-    // The html element should have a class of "light" or "dark" based on system preference
+  // `lib/theme.tsx` uses Tailwind's class-based dark mode: it only ever
+  // `classList.toggle('dark', resolved === 'dark')`. There is no explicit
+  // "light" class — light mode is the *absence* of "dark". Assertions below
+  // check for that, not a literal "light" string.
+
+  test('defaults to system theme', { tag: '@regression' }, async ({ page }) => {
+    // No stored preference — resolves from the system color scheme, which
+    // Playwright/Chromium defaults to "light" (no "dark" class) unless
+    // emulateMedia({ colorScheme: 'dark' }) is set.
     const htmlClass = await page.locator('html').getAttribute('class');
-    expect(htmlClass).toMatch(/light|dark/);
+    expect(htmlClass ?? '').not.toContain('dark');
   });
 
-  test('persists theme preference in localStorage', async ({ page }) => {
+  test('persists theme preference in localStorage', { tag: '@regression' }, async ({ page }) => {
     // Set theme via localStorage and verify it persists
     await page.evaluate(() => localStorage.setItem('fss-theme', 'dark'));
     await page.reload();
@@ -20,19 +27,24 @@ test.describe('Theme Switching', () => {
     expect(htmlClass).toContain('dark');
   });
 
-  test('light theme applies correct background', async ({ page }) => {
+  test('light theme applies correct background', { tag: '@regression' }, async ({ page }) => {
     await page.evaluate(() => localStorage.setItem('fss-theme', 'light'));
     await page.reload();
 
     const htmlClass = await page.locator('html').getAttribute('class');
-    expect(htmlClass).toContain('light');
+    expect(htmlClass ?? '').not.toContain('dark');
   });
 
-  test('system theme resolves to a valid class when no preference is stored', async ({ page }) => {
-    await page.evaluate(() => localStorage.removeItem('fss-theme'));
-    await page.reload();
+  test(
+    'system theme resolves to a valid class when no preference is stored',
+    { tag: '@regression' },
+    async ({ page }) => {
+      await page.evaluate(() => localStorage.removeItem('fss-theme'));
+      await page.reload();
 
-    const htmlClass = await page.locator('html').getAttribute('class');
-    expect(htmlClass).toMatch(/light|dark/);
-  });
+      // Valid resolved states are "no dark class" (light) or "dark class present".
+      const htmlClass = await page.locator('html').getAttribute('class');
+      expect(htmlClass === null || htmlClass.includes('dark')).toBe(true);
+    },
+  );
 });

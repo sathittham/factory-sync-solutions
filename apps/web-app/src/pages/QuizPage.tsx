@@ -61,7 +61,7 @@ function DimensionTabs({
             className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${getDimTabClass(i === currentStep, isComplete)}`}
           >
             {isComplete && i !== currentStep && (
-              <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+              <svg aria-hidden="true" width="11" height="11" viewBox="0 0 12 12" fill="none">
                 <path
                   d="M3 6l2 2 4-4"
                   stroke="currentColor"
@@ -282,7 +282,7 @@ function QuizNavigation({
         data-testid="quiz-prev-btn"
         className="gap-1.5"
       >
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none">
           <path
             d="M10 4l-4 4 4 4"
             stroke="currentColor"
@@ -303,7 +303,12 @@ function QuizNavigation({
         >
           {isSubmitting ? (
             <>
-              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <svg
+                aria-hidden="true"
+                className="animate-spin h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
                 <circle
                   className="opacity-25"
                   cx="12"
@@ -327,7 +332,7 @@ function QuizNavigation({
       ) : (
         <Button onClick={onNext} data-testid="quiz-next-btn" className="gap-1.5">
           {t('quiz.next')}
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none">
             <path
               d="M6 4l4 4-4 4"
               stroke="currentColor"
@@ -516,7 +521,7 @@ export function QuizPage() {
                 onClick={() => setShowExitDialog(true)}
                 className="text-muted-foreground hover:text-foreground gap-1.5 h-8 px-2"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M18 6L6 18M6 6l12 12"
                     stroke="currentColor"

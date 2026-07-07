@@ -1,5 +1,14 @@
 import { api, apiUrl } from '@/lib/api';
 import type {
+  AnalyticsAudience,
+  AnalyticsChannels,
+  AnalyticsEngagement,
+  AnalyticsMeta,
+  AnalyticsOverview,
+  AnalyticsRange,
+  AnalyticsSite,
+  AnalyticsSources,
+  AnalyticsTopPages,
   ApiDocsMetadata,
   ApiDocsVersionsResponse,
   Assessment,
@@ -12,12 +21,17 @@ import type {
   OwnerInvitation,
   Project,
   StaffMember,
+  UploadedFile,
   UserProfile,
 } from './types';
 
 export const backofficeApi = {
   // Stats
   getStats: () => api.get<BackofficeStats>('/backoffice/stats'),
+
+  // Utilities
+  uploadFile: (formData: FormData) =>
+    api.postForm<UploadedFile>('/backoffice/upload/file', formData),
 
   // Projects
   listProjects: (params?: { isActive?: boolean }) => {
@@ -90,6 +104,21 @@ export const backofficeApi = {
     api.get<{ spec: OpenApiSpec }>(`/backoffice/api-docs/${apiVersion}/openapi.json`),
   getApiDocsYaml: (apiVersion: string) =>
     api.get<{ yaml: string }>(`/backoffice/api-docs/${apiVersion}/openapi.yaml`),
+
+  // Analytics (GA4)
+  getAnalyticsOverview: (range: AnalyticsRange, site: AnalyticsSite = 'all') =>
+    api.get<AnalyticsOverview>(`/backoffice/analytics/overview?range=${range}&site=${site}`),
+  getAnalyticsTopPages: (range: AnalyticsRange, site: AnalyticsSite = 'all') =>
+    api.get<AnalyticsTopPages>(`/backoffice/analytics/top-pages?range=${range}&site=${site}`),
+  getAnalyticsChannels: (range: AnalyticsRange, site: AnalyticsSite = 'all') =>
+    api.get<AnalyticsChannels>(`/backoffice/analytics/channels?range=${range}&site=${site}`),
+  getAnalyticsAudience: (range: AnalyticsRange, site: AnalyticsSite = 'all') =>
+    api.get<AnalyticsAudience>(`/backoffice/analytics/audience?range=${range}&site=${site}`),
+  getAnalyticsEngagement: (range: AnalyticsRange, site: AnalyticsSite = 'all') =>
+    api.get<AnalyticsEngagement>(`/backoffice/analytics/engagement?range=${range}&site=${site}`),
+  getAnalyticsSources: (range: AnalyticsRange, site: AnalyticsSite = 'all') =>
+    api.get<AnalyticsSources>(`/backoffice/analytics/sources?range=${range}&site=${site}`),
+  getAnalyticsMeta: () => api.get<AnalyticsMeta>('/backoffice/analytics/meta'),
 };
 
 function auditQuery(params?: AuditFilters): string {

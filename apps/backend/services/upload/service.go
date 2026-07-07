@@ -11,12 +11,14 @@ import (
 	_ "image/png"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
 	"github.com/chai2010/webp"
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/google/uuid"
 	"golang.org/x/image/draw"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -26,6 +28,10 @@ const (
 	avatarKey          = "avatars/%s/profile.webp"
 	avatarContentType  = "image/webp"
 	avatarCacheControl = "public, max-age=3600"
+
+	generalUploadKey          = "uploads/%s/%s" // fileID / storageFilename
+	generalUploadCacheControl = "public, max-age=31536000, immutable"
+	maxOriginalFilenameBytes  = 255
 )
 
 var (
@@ -148,14 +154,86 @@ func (s *Service) DeleteAvatar(ctx context.Context, uid string) error {
 	return nil
 }
 
-func (s *Service) ensureConfigured() error {
+// ensureStoreConfigured checks only the R2 store dependencies — for
+// operations like UploadFile that never touch Firestore.
+// UploadFile is a general-purpose upload for the backoffice utility page —
+// unlike UploadAvatar it does not process the file, and it never touches
+// Firestore; it just validates, uploads to R2 under a server-generated key,
+// and returns the CDN URL.
+func (s *Service) UploadFile(ctx context.Context, originalFilename string, data []byte) (*FileResponse, error) {
+	if err := s.ensureStoreConfigured(); err != nil {
+		return nil, err
+	}
+
+	contentType := mimetype.Detect(data).String()
+	maxBytes, ok := generalUploadMaxBytes[contentType]
+	if !ok {
+		return nil, ErrInvalidFileType
+	}
+	if int64(len(data)) > maxBytes {
+		return nil, ErrFileTooLarge
+	}
+
+	fileID := uuid.New().String()
+	storageFilename := fileID + generalUploadExtensions[contentType]
+	key := fmt.Sprintf(generalUploadKey, fileID, storageFilename)
+
+	if err := s.store.PutObject(ctx, s.publicBucket, key, data, contentType, generalUploadCacheControl); err != nil {
+		return nil, fmt.Errorf("upload file to r2: %w", err)
+	}
+
+	fileURL := s.publicBaseURL + "/" + url.PathEscape("uploads") + "/" + url.PathEscape(fileID) + "/" + url.PathEscape(storageFilename)
+
+	return &FileResponse{
+		FileURL:          fileURL,
+		OriginalFilename: sanitizeFilename(originalFilename),
+		ContentType:      contentType,
+		FileSizeBytes:    int64(len(data)),
+	}, nil
+}
+
+// sanitizeFilename strips any path component and control characters from a
+// client-supplied filename before it is echoed back for display — it is
+// never used to build the R2 object key (see storageFilename above).
+func sanitizeFilename(name string) string {
+	name = filepath.Base(strings.TrimSpace(name))
+	var b strings.Builder
+	for _, r := range name {
+		if r < 0x20 || r == 0x7f {
+			continue
+		}
+		b.WriteRune(r)
+	}
+	sanitized := b.String()
+	if len(sanitized) > maxOriginalFilenameBytes {
+		sanitized = sanitized[:maxOriginalFilenameBytes]
+	}
+	switch sanitized {
+	case "", ".", "/":
+		return "file"
+	default:
+		return sanitized
+	}
+}
+
+func (s *Service) ensureStoreConfigured() error {
 	if s == nil {
 		return ErrUploadDisabled
 	}
 	if s.disabledErr != nil {
 		return s.disabledErr
 	}
-	if s.store == nil || s.firestore == nil || s.publicBucket == "" || s.publicBaseURL == "" {
+	if s.store == nil || s.publicBucket == "" || s.publicBaseURL == "" {
+		return ErrUploadDisabled
+	}
+	return nil
+}
+
+func (s *Service) ensureConfigured() error {
+	if err := s.ensureStoreConfigured(); err != nil {
+		return err
+	}
+	if s.firestore == nil {
 		return ErrUploadDisabled
 	}
 	return nil

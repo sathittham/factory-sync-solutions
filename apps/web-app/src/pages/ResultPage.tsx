@@ -66,7 +66,7 @@ function ScoreRing({
   const offset = circumference - (pct / 100) * circumference;
 
   return (
-    <svg width={size} height={size} className="transform -rotate-90">
+    <svg aria-hidden="true" width={size} height={size} className="transform -rotate-90">
       <circle
         cx={size / 2}
         cy={size / 2}
@@ -136,6 +136,7 @@ function DimensionDetail({
           </div>
         </div>
         <svg
+          aria-hidden="true"
           width="16"
           height="16"
           viewBox="0 0 16 16"
@@ -349,6 +350,7 @@ function QuizResultDetail({
               <div className="flex items-center gap-2 mb-4">
                 <div className="h-7 w-7 rounded-md bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center">
                   <svg
+                    aria-hidden="true"
                     width="14"
                     height="14"
                     viewBox="0 0 24 24"
@@ -405,6 +407,7 @@ function QuizResultDetail({
               <div className="flex items-center gap-2 mb-4">
                 <div className="h-7 w-7 rounded-md bg-red-50 dark:bg-red-950/40 flex items-center justify-center">
                   <svg
+                    aria-hidden="true"
                     width="14"
                     height="14"
                     viewBox="0 0 24 24"
@@ -732,6 +735,7 @@ export function ResultPage() {
                       <div className="bg-card rounded-lg border p-10 text-center">
                         <div className="h-14 w-14 rounded-lg bg-muted flex items-center justify-center mx-auto mb-4">
                           <svg
+                            aria-hidden="true"
                             width="28"
                             height="28"
                             viewBox="0 0 24 24"

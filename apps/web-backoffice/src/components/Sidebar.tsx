@@ -22,12 +22,12 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { openCmsBlog } from '@/lib/cmsSso';
 import { auth } from '@/lib/firebase';
 import { useLocale } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { logout } from '@/store/authSlice';
-import { openCmsBlog } from '@/lib/cmsSso';
 import fsDarkLogo from '@shared/brand/fs-dark.png';
 import fsLightLogo from '@shared/brand/fs-light.png';
 import { getCmsSsoUrl } from '@shared/lib/cmsSite';
@@ -35,6 +35,7 @@ import { signOut } from 'firebase/auth';
 import {
   BarChart3,
   Building2,
+  ChartLine,
   ChevronsUpDown,
   CircleHelp,
   ExternalLink,
@@ -44,6 +45,7 @@ import {
   Newspaper,
   ScrollText,
   ShieldCheck,
+  Upload,
   User,
   Users,
 } from 'lucide-react';
@@ -117,6 +119,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
   const navItems: NavItem[] = [
     { to: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
+    { to: '/analytics', icon: ChartLine, labelKey: 'nav.analytics' },
     { to: '/projects', icon: Building2, labelKey: 'nav.projects' },
     { to: '/users', icon: Users, labelKey: 'nav.users' },
     { to: '/results', icon: BarChart3, labelKey: 'nav.results' },
@@ -127,6 +130,10 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     { to: '/staff', icon: ShieldCheck, labelKey: 'nav.staff' },
     { to: '/audit', icon: ScrollText, labelKey: 'nav.audit' },
     { to: '/help/api-docs', icon: CircleHelp, labelKey: 'nav.apiDocs' },
+  ];
+
+  const utilityNavItems: NavItem[] = [
+    { to: '/utilities/upload', icon: Upload, labelKey: 'nav.uploadTool' },
   ];
 
   return (
@@ -172,6 +179,28 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                     tooltip={t(item.labelKey)}
                   >
                     {renderNavInner(item)}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>{t('nav.utilities')}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {utilityNavItems.map((item) => (
+                <SidebarMenuItem key={item.to}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.to || pathname.startsWith(`${item.to}/`)}
+                    tooltip={t(item.labelKey)}
+                  >
+                    <Link to={item.to ?? '#'} onClick={onNavigate}>
+                      <item.icon />
+                      <span>{t(item.labelKey)}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

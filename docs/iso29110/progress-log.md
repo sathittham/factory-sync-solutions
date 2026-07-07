@@ -50,6 +50,43 @@ Copy and prepend above the previous entries:
 
 ## Progress Entries
 
+### 2026-07-04 | Iteration 12 | Status: On Track
+
+**Participants:** Sathittham Sangthong
+**Duration:** 2026-07-03 → 2026-07-04
+
+#### Accomplishments
+- Released **v0.14.0** — backoffice GA4 analytics: `services/analytics` GA4 Data API proxy (7 endpoints, TTL cache, stale-while-error, staff+superadmin guard) + `web-backoffice` dashboard section (CR-006, PR #32).
+- Relocated analytics to a dedicated `/analytics` page with sidebar menu and added per-surface site tabs (All / Official / App via `hostName` filter) — CR-007, PR #34.
+- Provisioned GA4 runtime env end-to-end: Secret Manager `ga4-sa-credentials` in both GCP projects + `GA4_PROPERTY_ID` GitHub env vars, wired into Cloud Run deploys (PR #33); web-app production tracking configured (dedicated GTM container `GTM-K9KJSX6S` + GA4 stream `G-ZFGWPBEQEF`).
+- Reworked `web-app` DashboardPage into KPI stat cards; cleared repo-wide Biome lint debt (a11y).
+- Reconciled diverged `staging` history (pre-rewrite SHAs of #25–#30) via documented `merge -s ours` fast-forward; promotion flow then executed develop → staging (`v0.14.0-staging`) → main (`v0.14.0`).
+
+#### Planned for Next Iteration
+- Playwright infra for `web-backoffice` (unblocks E2E-001…005 in bo-dashboard-ga4 test plan).
+- **CR-003 Phase 2**: profile reads → `useProfileQuery` (carried over).
+- AI chatbot (CR-004) phases 2–5 on `feature/chatbot-core` (parallel branch).
+
+#### Issues & Action Items
+| # | Issue | Owner | Due | Status |
+|---|---|---|---|---|
+| 1 | web-backoffice Playwright infra missing (analytics E2E blocked) | Sathittham | TBD | Open |
+| 2 | CR-003 Phase 2 (profile reads → useProfileQuery) not started | Sathittham | TBD | Open |
+| 3 | Verify no GA4 double-tracking after web-app prod deploy (GTM vs gtag) | Sathittham | v0.14.0 post-deploy | Open |
+
+#### Risk Review
+- New risk **R-010** added — GA4 Data API dependency/quota for the backoffice dashboard (see risk-register.md). All prior risks re-confirmed.
+
+#### Metrics
+| Metric | Value |
+|---|---|
+| Backend test coverage (analytics) | 87.6% |
+| Frontend unit tests (web-backoffice) | 50/50 pass (10 files) |
+| Quiz variants available | 5 (unchanged) |
+| Change requests pending | 2 (CR-003 Phase 2, CR-004 phases 2–5) |
+
+---
+
 ### 2026-07-02 | Iteration 11 | Status: On Track
 
 **Participants:** Sathittham Sangthong

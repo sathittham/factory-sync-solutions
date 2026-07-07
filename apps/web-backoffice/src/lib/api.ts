@@ -6,16 +6,15 @@ export function apiUrl(path: string): string {
   return `${API_BASE}${path}`;
 }
 
-async function getAuthHeaders(): Promise<HeadersInit> {
+async function getAuthHeaders(includeContentType = true): Promise<HeadersInit> {
   const user = auth.currentUser;
   if (!user) {
-    return { 'Content-Type': 'application/json' };
+    return includeContentType ? { 'Content-Type': 'application/json' } : {};
   }
   const token = await user.getIdToken();
-  return {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-  };
+  const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
+  if (includeContentType) headers['Content-Type'] = 'application/json';
+  return headers;
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -30,6 +29,30 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const errMsg = body.error?.message || body.error || res.statusText;
     throw new ApiError(res.status, typeof errMsg === 'string' ? errMsg : res.statusText);
   }
+
+  if (res.status === 204) return undefined as T;
+
+  const json = await res.json();
+  return json.data !== undefined ? json.data : json;
+}
+
+// requestForm submits FormData (e.g. file uploads) — omits Content-Type so
+// the browser sets the multipart boundary itself.
+async function requestForm<T>(path: string, body: FormData): Promise<T> {
+  const headers = await getAuthHeaders(false);
+  const res = await fetch(apiUrl(path), {
+    method: 'POST',
+    body,
+    headers,
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({ error: { message: res.statusText } }));
+    const errMsg = errorBody.error?.message || errorBody.error || res.statusText;
+    throw new ApiError(res.status, typeof errMsg === 'string' ? errMsg : res.statusText);
+  }
+
+  if (res.status === 204) return undefined as T;
 
   const json = await res.json();
   return json.data !== undefined ? json.data : json;
@@ -61,4 +84,6 @@ export const api = {
     }),
 
   delete: <T = void>(path: string) => request<T>(path, { method: 'DELETE' }),
+
+  postForm: <T>(path: string, body: FormData) => requestForm<T>(path, body),
 };

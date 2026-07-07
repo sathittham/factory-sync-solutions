@@ -1,6 +1,6 @@
 ---
 version: 1.3.0
-lastUpdated: 2026-06-14
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Partially built - personal activity exists; project/backoffice audit views planned
 ---
@@ -335,3 +335,8 @@ index from the error link and document it here.
 - Quiz service call sites: [quiz/service.go](../../../apps/backend/services/quiz/service.go)
 - Backoffice spec: [backoffice/feature-spec.md](../backoffice/feature-spec.md)
 - Profile spec: [profile/feature-spec.md](../profile/feature-spec.md)
+
+---
+
+*Version: 1.3.0*
+*Last updated: 3 July 2026*

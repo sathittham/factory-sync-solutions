@@ -1,7 +1,7 @@
 ---
 isoOutput: PM.O1 (Change Control)
 version: 1.3.0
-lastUpdated: 2026-07-03
+lastUpdated: 2026-07-07
 author: Sathittham Sangthong
 ---
 
@@ -54,6 +54,145 @@ Copy this block and add to the Active section:
 ---
 
 ## Active Change Requests
+
+### CR-008 | Backoffice Upload Utility | Approved
+
+| Field | Value |
+|---|---|
+| **Date Raised** | 2026-07-04 |
+| **Raised By** | Sathittham Sangthong |
+| **Type** | Scope change (new endpoint + UI, additive) |
+| **Priority** | Low |
+
+**Description:**
+Add a `Utilities` section to `web-backoffice` with an `Upload File` page, so
+staff can upload an image/PDF/spreadsheet and get a permanent CDN URL to copy
+(e.g. for CMS content). Backed by a new `POST /api/v1/backoffice/upload/file`
+endpoint. This is a standalone code path in the existing
+`apps/backend/services/upload/` package — direct-through-backend, no presign
+step, no Firestore record — deliberately simpler than, and not a step toward,
+the Phase 2 presign/confirm flow documented in
+`docs/product/upload/feature-spec.md`.
+
+**Impact Analysis:**
+- Schedule: 0 (same iteration)
+- Effort: ~2 hours
+- Risk: low — new endpoint gated by the existing `RequireBackofficeRole`
+  middleware (same class as other `/backoffice/*` routes) plus a new per-user
+  rate limit; no changes to the avatar path or Phase 2/3 plans.
+- Affected components: `apps/backend/services/upload`, `apps/backend/middleware`
+  (new `RateLimitByUID`), `apps/backend/main.go`; `apps/web-backoffice` (router,
+  Sidebar, new `UploadUtilityPage`, `api/{backoffice,types}.ts`, `lib/api.ts`, i18n).
+
+**Decision:**
+- [x] Approved — proceed
+- [ ] Rejected — reason: [reason]
+- [ ] Deferred to version: [vX.Y.Z]
+
+**Decision Date:** 2026-07-04
+**Decision By:** Sathittham Sangthong
+
+**Implementation Notes:**
+- SRS: [docs/product/bo-upload-utility/feature-spec.md](../product/bo-upload-utility/feature-spec.md)
+- Branch: `fix/upload-security-gaps` — implemented 2026-07-04 alongside an
+  unrelated avatar-upload security fix (Firestore rule + per-user rate limit);
+  not yet split into separate branches/PRs.
+- Backend `services/upload` coverage 38.7%, `middleware` 20.3% (both `-race`);
+  `web-backoffice` 53 tests / 11 files green; type-check + Biome clean.
+- Pending: manual click-through against a live R2-configured environment
+  (MT-002 in [test-plan.md](../product/bo-upload-utility/test-plan.md)) before merge.
+
+### CR-007 | Backoffice Analytics Menu (relocate GA4 UI) | Approved
+
+| Field | Value |
+|---|---|
+| **Date Raised** | 2026-07-04 |
+| **Raised By** | Sathittham Sangthong |
+| **Type** | Scope change (UI relocation — frontend only) |
+| **Priority** | Low |
+
+**Description:**
+Move the CR-006 GA4 web-analytics UI from a section at the bottom of the
+backoffice `/dashboard` to a dedicated `/analytics` page with its own "Analytics"
+sidebar menu item. `WebAnalyticsSection`, its panels, and the backend
+`/api/v1/backoffice/analytics/*` API are reused untouched.
+
+**Impact Analysis:**
+- Schedule: 0 (same iteration)
+- Effort: ~1 hour
+- Risk: none — additive route + section removal; access scope unchanged
+  (frontend `BackofficeGuard`, backend `RequireBackofficeRole("superadmin","staff")`).
+- Affected components: `apps/web-backoffice` (router, Sidebar, DashboardPage,
+  new AnalyticsPage, i18n).
+
+**Decision:**
+- [x] Approved — proceed
+- [ ] Rejected — reason: [reason]
+- [ ] Deferred to version: [vX.Y.Z]
+
+**Decision Date:** 2026-07-04
+**Decision By:** Sathittham Sangthong
+
+**Implementation Notes:**
+- SRS: [docs/product/bo-analytics-menu/feature-spec.md](../product/bo-analytics-menu/feature-spec.md)
+- Branch: `feature/bo-analytics-menu` — implemented 2026-07-04; 49 web-backoffice
+  tests green (2 new `AnalyticsPage` tests); type-check + Biome clean.
+- 2026-07-04 — Scope addition FR-005/FR-006 (SRS v0.2.0): per-surface site tabs
+  (All / Official website / Web app) + `site` query param on the six data
+  endpoints with GA4 `hostName` `inListFilter` (env-overridable hosts) and
+  per-site cache keys. Both surfaces verified to stream into the shared GA4
+  property. Backend 87.6% coverage, frontend 50 tests, all green.
+
+### CR-006 | Backoffice GA4 Analytics Dashboard | Approved
+
+| Field | Value |
+|---|---|
+| **Date Raised** | 2026-07-03 |
+| **Raised By** | Sathittham Sangthong |
+| **Type** | Scope change (new backoffice dashboard section + backend service) |
+| **Priority** | Medium |
+
+**Description:**
+Add a Web Analytics section to the backoffice `/dashboard` surfacing GA4 reporting
+data (traffic overview, top pages, acquisition channels, audience) for the public
+site and app, backed by a new `apps/backend/services/analytics` GA4 Data API proxy
+with in-memory TTL cache and stale-while-error fallback. CR numbered 006 because
+CR-004/005 are raised on the parallel `feature/chatbot-core` branch.
+
+**Impact Analysis:**
+- Schedule: 0 (same iteration)
+- Effort: ~1 day
+- Risk: GA4 Data API quota exhaustion — mitigated by 15m TTL cache (R-010);
+  new runtime secrets (`GA4_PROPERTY_ID`, `GA4_SA_CREDENTIALS_JSON`) must be provisioned
+  per environment — service degrades gracefully (503 `ANALYTICS_UNAVAILABLE`) if unset.
+- Affected components: `apps/backend/services/analytics` (new), `apps/backend/main.go`,
+  `apps/web-backoffice` dashboard + analytics components.
+
+**Decision:**
+- [x] Approved — proceed
+- [ ] Rejected — reason: [reason]
+- [ ] Deferred to version: [vX.Y.Z]
+
+**Decision Date:** 2026-07-03
+**Decision By:** Sathittham Sangthong
+
+**Implementation Notes:**
+- SRS: [docs/product/bo-dashboard-ga4/feature-spec.md](../product/bo-dashboard-ga4/feature-spec.md)
+- Branch: `feature/bo-dashboard-ga4` — Phase 1 (all four endpoints + dashboard section) implemented
+  with backend coverage 84.3% and frontend analytics coverage 97.6%; Playwright E2E deferred
+  (no Playwright infra in `web-backoffice` yet — tracked in status.md as follow-up).
+- 2026-07-04 — Scope addition FR-008 (SRS v0.2.0): fifth endpoint
+  `/analytics/engagement` (DAU/WAU/MAU rolling actives + stickiness) +
+  `EngagementPanel`; verified same day (backend 86.3%, frontend analytics
+  96.96% stmts). Local dev GA4 provisioned (property + SA Viewer);
+  staging/prod env still pending.
+- 2026-07-04 — Scope addition FR-009 + FR-010 (SRS v0.3.0): `/analytics/sources`
+  (top-10 `sessionSourceMedium` with share) + `SourcesTable`, and
+  `/analytics/meta` (property ID) powering an "Open in Google Analytics" console
+  deep link. Verified same day (backend 87.6%, frontend analytics 97.42% stmts);
+  `sessionSourceMedium` validated against the live Data API.
+
+---
 
 ### CR-005 | MCP server for external AI agents | Draft
 
@@ -122,8 +261,8 @@ follow-up CRs (SDD §2.3 roadmap).
 **Impact Analysis:**
 - Schedule: 5 phases, each its own branch/PR; Phase 1 estimate ~2–3 days, later phases ~1–2 days each.
 - Effort: largest in Phase 1 (service + engine + widget) and Phase 4 (LINE adapter).
-- Risk: LLM answer quality/hallucination (R-010), Anthropic API cost under abuse (R-011),
-  PII in transcripts (R-012), third-party channel dependency (R-013) — added to risk register.
+- Risk: LLM answer quality/hallucination (R-012), Vertex/Gemini API cost under abuse (R-013),
+  PII in transcripts (R-014), third-party channel dependency (R-015) — added to risk register.
   New external setup needed: Vertex AI API enabled + `roles/aiplatform.user` on the Cloud Run
   service account + GCP budget alert, LINE OA + Messaging API, Slack app (bot token).
   Firebase Anonymous Auth provider must be enabled for web-official.

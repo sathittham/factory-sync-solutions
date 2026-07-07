@@ -28,6 +28,7 @@ import (
 	"github.com/sathittham/factory-sync-solutions/apps/backend/pkg"
 	"github.com/sathittham/factory-sync-solutions/apps/backend/pkg/events"
 	"github.com/sathittham/factory-sync-solutions/apps/backend/services/admin"
+	"github.com/sathittham/factory-sync-solutions/apps/backend/services/analytics"
 	auditpkg "github.com/sathittham/factory-sync-solutions/apps/backend/services/audit"
 	"github.com/sathittham/factory-sync-solutions/apps/backend/services/backoffice"
 	"github.com/sathittham/factory-sync-solutions/apps/backend/services/chat"
@@ -191,6 +192,15 @@ func main() {
 	dbdSvc := dbd.NewDefaultService()
 	dbdHandler := dbd.NewHandler(dbdSvc)
 
+	// Analytics (GA4 Data API) — starts disabled if GA4_PROPERTY_ID /
+	// GA4_SA_CREDENTIALS_JSON are not provisioned; endpoints return
+	// ANALYTICS_UNAVAILABLE instead of crashing startup.
+	analyticsSvc := analytics.NewServiceFromEnv(ctx)
+	if reason := analyticsSvc.DisabledReason(); reason != "" {
+		slog.Warn("analytics service disabled", "reason", reason)
+	}
+	analyticsHandler := analytics.NewHandler(analyticsSvc)
+
 	// Upload
 	uploadSvc := upload.NewServiceFromEnv(firestoreClient)
 	if reason := uploadSvc.DisabledReason(); reason != "" {
@@ -263,6 +273,8 @@ func main() {
 			r.Route("/backoffice", func(r chi.Router) {
 				r.Use(appMiddleware.RequireBackofficeRole(authClient, "superadmin", "staff"))
 				backofficeHandler.Routes(r)
+				r.Route("/analytics", analyticsHandler.Routes)
+				r.Route("/upload", uploadHandler.BackofficeRoutes)
 			})
 		})
 	})

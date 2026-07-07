@@ -1,7 +1,7 @@
 ---
 isoOutput: SI.O1
 version: 0.1.0
-lastUpdated: 2026-07-01
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 ---
 
@@ -76,3 +76,8 @@ uses `@tanstack/react-form`; this extends the same family to two areas currently
 - AdminPage table sorts, paginates, and searches; expandable rows and filters still work; tests green.
 - Pilot page fetches via `useQuery` with unchanged loading/error UX.
 - `.claude/rules/react.md` updated to reflect TanStack Query as the server-state convention.
+
+---
+
+*Version: 0.1.0*
+*Last updated: 3 July 2026*

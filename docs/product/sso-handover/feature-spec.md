@@ -1,7 +1,7 @@
 ---
 isoOutput: SI.O1
 version: 1.0.0
-lastUpdated: 2026-06-30
+lastUpdated: 2026-07-04
 author: Sathittham Sangthong
 status: Approved — implemented & merged on feature/web-cms-sonicjs
 ---
@@ -325,3 +325,8 @@ handed-off session.
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-06-30 | Sathittham Sangthong | Initial (back-filled) SRS for as-built handover |
+
+---
+
+*Version: 1.0.0*
+*Last updated: 4 July 2026*

@@ -1,38 +1,39 @@
 ---
-version: 1.1.0
-lastUpdated: 2026-06-11
+version: 2.1.0
+lastUpdated: 2026-07-04
 author: Sathittham Sangthong
-status: Built — not yet routed (web-app); Live (web-backoffice)
+status: Live (web-app); Live (web-backoffice)
 ---
 
 # Dashboard Page — Feature Spec
 
-> Post-login home screen showing all completed quiz cards with mini score rings,
-> two quick-action cards (View Results / Retake Shindan), and a list of available
-> quizzes not yet completed. Currently built but not wired into the router.
+> Post-login home screen for the authenticated `web-app` user: KPI stat cards for the
+> active quiz (overall score, level, attempt count, assessed-on date), a per-dimension
+> score-bar panel, two quick-action cards (View Results / Retake), and a list of
+> available quizzes not yet completed. Live at `/dashboard`.
 
-> **Two separate dashboards exist** — this spec covers the `web-app` user
-> dashboard (`DashboardPage.tsx`). The `web-backoffice` backoffice dashboard
-> is a distinct page (same file name, different app) that is already **live and
-> fully routed** at `/dashboard` — it shows platform-wide stats (projects, users,
-> avg score, staff count) and a recent-results table. See
-> [backoffice/feature-spec.md §4](../backoffice/feature-spec.md) for that page.
+> **Two separate dashboards exist** — this spec covers the `web-app` user dashboard
+> (`DashboardPage.tsx`). The `web-backoffice` backoffice dashboard is a distinct page
+> (same file name, different app) that shows platform-wide stats and a recent-results
+> table. See [backoffice/feature-spec.md §4](../backoffice/feature-spec.md) for that page.
 
 ---
 
 ## 1. Summary
 
-`DashboardPage` is designed to be the authenticated user's landing screen after
-sign-in. It aggregates all assessment results by quiz variant and presents them as
-an at-a-glance status board. Each completed quiz shows the latest score and
-diagnosis. Two persistent action cards offer fast paths to the Result page and
-Shindan re-take. Quizzes the user has not completed yet are listed below as
-"Start" entries.
+`DashboardPage` is the authenticated user's landing screen after sign-in. It presents
+the latest assessment for one "active" quiz as a KPI board (score, diagnosis level,
+attempts, date) with a per-dimension breakdown, lets the user switch between completed
+quizzes via selector tabs, and offers fast paths to the Result page, a re-take, and any
+quiz not yet taken. New users get an onboarding empty state: a ghost KPI row previewing
+the dashboard plus a card grid of all available quizzes.
 
-**Current status:** The component (`apps/web-app/src/pages/DashboardPage.tsx`,
-436 lines) is fully implemented and exported but **is not imported in `router.tsx`
-and has no route path**. It cannot be reached through normal navigation. This is
-the primary open task for the feature.
+**Current status:** Live. The route shipped in the TanStack Router adoption (PR #25,
+1 July 2026) and the page was rebuilt around TanStack Query and the KPI/dimension layout
+in the Query rollout (`f626a67`, 2 July 2026). The component is
+`apps/web-app/src/pages/DashboardPage.tsx` (597 lines), routed at
+`/_authed/_registered/dashboard` with a nav item in `Layout.tsx`. Remaining work is test
+coverage (§10).
 
 ---
 
@@ -40,18 +41,20 @@ the primary open task for the feature.
 
 ### Goals
 
-- Show all completed quizzes grouped by quiz variant with the latest score and
-  diagnosis at a glance.
-- Provide one-tap access to full results (`/results`) and Shindan re-take (`/quiz`).
-- List uncompleted quizzes with a direct "Start" path.
-- Show a helpful empty state for users who have not taken any quiz yet.
+- Show the latest score, diagnosis level, attempt count, and submission date for each
+  completed quiz — one quiz at a time, switchable via tabs.
+- Break the latest assessment down per dimension with color-coded score bars.
+- Provide one-tap access to full results (`/results`), a re-take of the active quiz, and
+  every uncompleted quiz.
+- Onboard new users with a ghost-dashboard empty state and a "start here" quiz grid.
 - Bilingual (TH/EN) — all text through `useLocale()`.
-- Reuse existing Redux state (`resultSlice`, `quizSlice`) — no new API endpoints.
+- Server state via TanStack Query (`useAssessmentsQuery`, `useQuizzesQuery`) — no new
+  API endpoints.
 
 ### Non-Goals
 
 - Side-by-side assessment comparison (that is the Result page).
-- Admin-level aggregate view (that is the Admin Dashboard).
+- Admin-level aggregate view (that is the backoffice dashboard).
 - Score trending or historical charts (future work).
 - Separate dashboard endpoint in the backend — existing `GET /results` and
   `GET /quiz/quizzes` are sufficient.
@@ -62,54 +65,48 @@ the primary open task for the feature.
 
 | Component | Location | Status |
 |-----------|----------|--------|
-| Dashboard page | `apps/web-app/src/pages/DashboardPage.tsx` | ✅ Built — ❌ not routed |
-| `MiniScoreRing` | Inline in `DashboardPage.tsx` | ✅ Built |
-| Route entry in `router.tsx` | `apps/web-app/src/router.tsx` | ❌ Missing |
-| Nav link in `Layout.tsx` | `apps/web-app/src/components/Layout.tsx` | ❌ Missing |
-| Empty-state i18n keys | `apps/web-app/src/lib/i18n.tsx` | ⚠️ Hardcoded TH/EN (not via `t()`) |
-| `quiz.yourCompany` i18n key | `apps/web-app/src/lib/i18n.tsx` | To verify |
+| Dashboard page | `apps/web-app/src/pages/DashboardPage.tsx` | ✅ Live |
+| Route entry | `apps/web-app/src/routes/_authed/_registered/dashboard.tsx` | ✅ Live — file-based route |
+| Nav link | `apps/web-app/src/components/Layout.tsx` (`getNavItems()`, first item; sidebar logo also links here) | ✅ Live |
+| Post-login redirect | `SignInPage.tsx` (`<Navigate to="/dashboard" />`), `RegisterPage.tsx` (post-registration) | ✅ Live |
+| i18n keys | `apps/web-app/src/lib/i18n.tsx` — all §8 keys present (TH + EN) | ✅ Done |
+| Vitest unit tests | `apps/web-app/src/pages/DashboardPage.test.tsx` — 16 cases, all passing | ✅ Done |
+| Dashboard Playwright spec | `apps/web-app/e2e/` — only the login redirect assertion exists | ⚠️ Partial |
 
 ---
 
 ## 4. UI Layout
 
+Three mutually exclusive body states below a persistent gradient page header
+(`quiz.welcomeBack` + `profile.companyName`, fallback `quiz.yourCompany`).
+
+### Filled dashboard (has completed assessments)
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  [gradient header]                                          │
-│  ยินดีต้อนรับกลับ / Welcome back,                           │
-│  <Company Name>  ← from Redux profile.companyName          │
+│  [gradient header]  ยินดีต้อนรับกลับ / Welcome back,         │
+│  <Company Name>          ← authSlice profile.companyName    │
 ├─────────────────────────────────────────────────────────────┤
-│  คะแนนล่าสุด / LATEST SCORE                                 │
-│                                                             │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │ [MiniRing]  │  │ [MiniRing]  │  │ [MiniRing]  │         │
-│  │  3.5        │  │  4.1        │  │  …          │         │
-│  │ Shindan     │  │ Factory     │  │ …           │         │
-│  │ [Established│  │ [Advanced]  │  │             │         │
-│  │  badge]     │  │  badge]     │  │             │         │
-│  │ 10 มิ.ย. 69 │  │ 09 มิ.ย. 69 │  │             │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
-│  (clicking any card → /results)                             │
+│  [Shindan] [Factory] …   ← selector tabs (only if >1 quiz)  │
 ├─────────────────────────────────────────────────────────────┤
-│  ACTION CARDS (2-column)                                    │
-│                                                             │
-│  ┌────────────────────────┐  ┌────────────────────────┐    │
-│  │ 📊 ดูผลลัพธ์            │  │ 🔄 ทำแบบประเมินใหม่    │    │
-│  │ View Results            │  │ Retake Assessment      │    │
-│  │ [desc text]             │  │ [desc text]            │    │
-│  │ View results →          │  │ Start over →           │    │
-│  └────────────────────────┘  └────────────────────────┘    │
-│  (left → /results)  (right → /quiz, quizId='shindan')       │
-├─────────────────────────────────────────────────────────────┤
-│  แบบประเมินอื่น / OTHER ASSESSMENTS                          │
-│                                                             │
+│  KPI STAT CARDS (2-col mobile / 4-col desktop)              │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐        │
+│  │ คะแนนรวม │ │ ระดับ     │ │ ครั้งที่  │ │ ประเมิน  │        │
+│  │ 3.52     │ │[Establish│ │ ประเมิน  │ │ เมื่อ     │        │
+│  │ / 5.00   │ │  badge]  │ │ 3 ครั้ง   │ │10 มิ.ย.69│        │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘        │
+├───────────────────────────────────┬─────────────────────────┤
+│  คะแนนรายมิติ / DIMENSION SCORES  │  QUICK ACTIONS          │
+│  Dimension A  ▓▓▓▓▓▓▓░░░  3.5     │  ┌───────────────────┐  │
+│  Dimension B  ▓▓▓▓▓▓▓▓▓░  4.5     │  │ 📊 View Results → │  │
+│  …(8 rows, color by threshold)    │  ├───────────────────┤  │
+│  (2/3 width)                      │  │ 🔄 Retake       → │  │
+│                                   │  └───────────────────┘  │
+├───────────────────────────────────┴─────────────────────────┤
+│  แบบประเมินอื่น / OTHER ASSESSMENTS (hidden when none left)  │
 │  ┌─────────────────────────────────────────────────────┐    │
-│  │ 📋 Cybersecurity Assessment     Start →             │    │
+│  │ 📋 Cybersecurity Assessment              Start →    │    │
 │  └─────────────────────────────────────────────────────┘    │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │ 📋 Lean Assessment              Start →             │    │
-│  └─────────────────────────────────────────────────────┘    │
-│  (clicking → /quiz, quizId=<id>)                            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -118,73 +115,94 @@ the primary open task for the feature.
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  [gradient header]                                          │
-│  ยินดีต้อนรับกลับ / Welcome back,  <Company Name>          │
 ├─────────────────────────────────────────────────────────────┤
-│  ACTION CARDS (2-column) — always visible                   │
+│  GHOST KPI ROW — 4 dashed cards, value "--"                 │
+│  (previews what appears after the first quiz)               │
 ├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│              [ 📋 icon ]                                    │
-│         ยังไม่มีผลประเมิน                                    │
-│         No assessments yet                                  │
-│  เริ่มทำแบบประเมินเพื่อตรวจสุขภาพโรงงานของคุณ               │
-│  Start an assessment to check your factory health           │
-│                                                             │
+│  [📊] ยังไม่มีผลประเมิน / No assessments yet                 │
+│       เริ่มทำแบบประเมิน… / Start an assessment…              │
+├─────────────────────────────────────────────────────────────┤
+│  AVAILABLE QUIZZES — card grid (1/2/3-col responsive)       │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐                     │
+│  │ Shindan  │ │ Factory  │ │ Cyber…   │  each → Start →     │
+│  └──────────┘ └──────────┘ └──────────┘                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Known issue:** Empty-state text (lines 423–428 in `DashboardPage.tsx`) uses
-`locale === 'th' ? '...' : '...'` inline comparisons instead of `t()`. This
-violates the project's i18n rule. Fix: extract to two i18n keys before the
-dashboard is shipped (see §10).
+### Loading (fetch pending, no cached assessments)
+
+Skeleton mirror of the filled layout: 4 × `h-24` KPI skeletons, then a
+`lg:grid-cols-3` row with an `h-64 lg:col-span-2` panel skeleton and an `h-64` actions
+skeleton. The empty state's quiz grid shows its own 3 × `h-32` skeletons while
+`quizzesLoading`.
 
 ---
 
 ## 5. Component Breakdown
 
-### `MiniScoreRing`
+All helpers are defined inline in `DashboardPage.tsx`.
 
-An inline SVG component (defined within `DashboardPage.tsx`). Accepts `score`
-(0–5) and optional `size` (default 64). Renders two concentric circles — a
-background track using CSS variable `--border` and a filled arc using `--primary`.
-Arc angle is proportional to `score / 5`. Stroke width is 5px. Arc animates via
-`transition-all duration-1000 ease-out`.
+### `StatCard` / `GhostStatCard`
 
-The numeric score is rendered as an absolutely-positioned `<span>` centred over
-the SVG (`absolute inset-0 flex items-center justify-center`).
+`StatCard({ label, children })` — bordered `bg-card rounded-xl` KPI tile with an
+uppercase label. `GhostStatCard({ label })` — dashed-border variant rendering a muted
+`--` value; used only in the empty state to preview the KPI row.
 
-### Completed quiz cards
+### `DimensionRow`
 
-Rendered by `Object.entries(quizGroups)` inside a `StaggerChildren` grid
-(stagger 0.08 s). Each card is a `<button>` navigating to `/results` on click.
-Shows: `MiniScoreRing`, quiz name (locale-aware), diagnosis badge, formatted
-submitted date, and an assessment count line when `quizAssessments.length > 1`.
+`DimensionRow({ dim, locale })` — one horizontal score bar per `DimensionScore`:
+locale-aware dimension name (`dimensionNameTh` / `dimensionName` with cross-fallback),
+a track bar filled to `score / 5 × 100 %` (capped at 100), and the numeric score
+(`toFixed(1)`). Bar and score colors come from shared thresholds:
 
-Diagnosis badge colours share the same `diagnosisConfig` lookup used by
-`ResultPage`.
+| Score | Bar (`getDimBarColor`) | Text (`getDimScoreText`) |
+|-------|------------------------|--------------------------|
+| ≥ 4 | `bg-emerald-500` | emerald |
+| ≥ 3 | `bg-blue-500` | blue |
+| ≥ 2 | `bg-amber-500` | amber |
+| < 2 | `bg-red-500` | red |
 
-### Action cards
+Bar width animates via `transition-all duration-700 ease-out`.
 
-Two static `<button>` elements in a 2-column `StaggerChildren` (stagger 0.1 s):
-1. **View Results** — navigates to `/results`. Icon: bar-chart SVG, colour: `--primary`.
-2. **Retake Assessment** — hardcoded to `quizId='shindan'`. Calls `handleStartQuiz('shindan')`.
-   Icon: refresh SVG, colour: `amber-600`.
+### Quiz selector tabs
 
-Action cards are always rendered regardless of whether assessments exist.
+Rendered only when `completedQuizIds.length > 1`. One pill button per completed quiz
+(`getQuizName(qid)` resolves the locale-aware name from `availableQuizzes`, falling back
+to the raw ID). Clicking sets `activeQuizId` (local `useState`); the active pill uses
+`bg-primary text-white`.
+
+### KPI stat cards
+
+Four `StatCard`s in a `StaggerChildren` grid (stagger 0.06 s), all derived from
+`latest` — the newest assessment of the active quiz:
+
+1. **Overall score** — `latest.overallScore.toFixed(2)` + `/ 5.00`, tinted by diagnosis.
+2. **Level** — `Badge` with `t('diagnosis.<latest.diagnosis>')`, colored by `diagnosisConfig`.
+3. **Assessment count** — `totalAttempts` (+ ครั้ง/times unit).
+4. **Assessed on** — `formatDateTime(latest.submittedAt, locale)` (Buddhist Era in TH).
+
+`diagnosisConfig` maps Beginning → red, Developing → amber, Established → blue,
+Advanced → emerald (light + dark variants); unknown diagnoses fall back to Beginning.
+
+### Quick actions
+
+Two `<button>` cards in the right column:
+
+1. **View Results** — `navigate({ to: '/results' })`. Bar-chart icon, `--primary` accent.
+2. **Retake** — `handleStartQuiz(activeId ?? 'shindan')` — re-takes the **active** quiz
+   (the `'shindan'` fallback is unreachable defense: `activeId` is always set when the
+   filled dashboard renders). Refresh icon, amber accent.
 
 ### Uncompleted quizzes list
 
-Derived by filtering `availableQuizzes` for IDs not in `completedQuizIds`. Each
-row is a full-width `<button>`. Clicking calls `handleStartQuiz(q.id)` which:
+`availableQuizzes` minus `completedQuizIds`; hidden when empty. Each row is a full-width
+`<button>` calling `handleStartQuiz(q.id)`:
+
 1. `dispatch(resetQuiz())`
 2. `dispatch(setQuizId(q.id))`
-3. `navigate('/quiz')`
+3. `navigate({ to: '/quiz' })`
 
-Uses `FadeIn` (delay 0.25 s). Hidden when all quizzes are completed.
-
-### Loading skeleton
-
-Shown when `resultLoading && assessments.length === 0`. Three `Skeleton`
-components in a 3-column grid, each `h-44 rounded-xl`.
+The empty state reuses the same handler from its quiz card grid.
 
 ---
 
@@ -193,204 +211,204 @@ components in a 3-column grid, each `h-44 rounded-xl`.
 ```mermaid
 sequenceDiagram
     participant DP as DashboardPage
-    participant ST as Redux (result + quiz slices)
+    participant TQ as TanStack Query cache
     participant API as Go API
 
     note over DP: On mount
-
-    DP->>ST: select assessments (result slice)
-    alt assessments empty
-        DP->>API: GET /results
-        API-->>DP: [Assessment…]
-        DP->>ST: dispatch(setAssessments(data))
-        DP->>ST: dispatch(setAssessment(data[0]))
+    DP->>TQ: useAssessmentsQuery() — key ['results']
+    alt cache empty / stale
+        TQ->>API: GET /results
+        API-->>TQ: [Assessment…]
     end
+    TQ-->>DP: { data: assessments, isPending: resultLoading }
 
-    DP->>ST: select availableQuizzes (quiz slice)
-    alt availableQuizzes empty
-        DP->>API: GET /quiz/quizzes
-        API-->>DP: [QuizListItem…]
-        DP->>ST: dispatch(setAvailableQuizzes(data))
+    DP->>TQ: useQuizzesQuery() — key ['quizzes']
+    alt cache empty / stale
+        TQ->>API: GET /quiz/quizzes
+        API-->>TQ: [QuizListItem…]
     end
+    TQ-->>DP: { data: availableQuizzes, isPending: quizzesLoading }
 
-    DP->>DP: group assessments by quizId
-    DP->>DP: filter uncompleted quizzes
-    DP->>DP: render cards + action panel + uncompleted list
+    DP->>DP: quizGroups — group by quizId (fallback 'shindan')
+    DP->>DP: activeId → latest, dimensionScores, totalAttempts
+    DP->>DP: uncompletedQuizzes = available − completed
+    DP->>DP: render KPI cards + dimension panel + actions + list
 ```
 
-Both fetches are skipped when the respective Redux slice already has data — this
-makes the dashboard instant when navigating back from `/results` or `/quiz`.
+Caching is owned by TanStack Query (`lib/queryClient.ts`): navigating back from
+`/results` or `/quiz` renders instantly from cache, and the quiz-submit mutation
+invalidates `['results']` so the dashboard refetches after a new assessment.
 
 ---
 
-## 7. Redux State Dependencies
+## 7. State Dependencies
 
-| Slice | Fields read | Fields written |
-|-------|-------------|----------------|
-| `authSlice` | `profile.companyName` | — |
-| `resultSlice` | `assessments`, `loading` | `setAssessments`, `setAssessment`, `setLoading` |
-| `quizSlice` | `availableQuizzes` | `setAvailableQuizzes`, `resetQuiz`, `setQuizId` |
+| Owner | What | Used for |
+|-------|------|----------|
+| TanStack Query — `useAssessmentsQuery()` (`lib/queries.ts`) | `GET /results` → `Assessment[]` | quiz groups, KPI cards, dimension panel |
+| TanStack Query — `useQuizzesQuery()` (`lib/queries.ts`) | `GET /quiz/quizzes` → `QuizListItem[]` | quiz names, uncompleted list, empty-state grid |
+| Redux `authSlice` | `profile.companyName` (read) | header greeting |
+| Redux `quizSlice` | `resetQuiz()`, `setQuizId()` (dispatched) | start/retake flow into `/quiz` |
+| Local `useState` | `activeQuizId` | selector tabs |
 
-No new slice actions are needed — all dispatched actions already exist.
+The former `resultSlice` was retired in the TanStack Query rollout (CR-003); server data
+is never mirrored into Redux.
 
 ---
 
 ## 8. i18n Key Map
 
-All text flows through `t()` except the empty-state copy (known issue — see §10).
+All keys exist in `apps/web-app/src/lib/i18n.tsx` (TH + EN).
 
 | Key | TH | EN |
 |-----|----|----|
 | `quiz.welcomeBack` | ยินดีต้อนรับกลับ | Welcome back |
-| `quiz.yourCompany` | (fallback for missing companyName — to verify) | Your Company |
-| `quiz.latestScore` | คะแนนล่าสุด | Latest Score |
-| `quiz.totalAssessments` | `{count} ครั้ง` | `{count} assessments` |
-| `quiz.viewResults` | ดูผลลัพธ์ | View Results |
-| `quiz.viewResultsDesc` | ดูผลวิเคราะห์เชิงลึก กราฟเรดาร์ จุดแข็ง และข้อเสนอแนะ | View detailed analysis, radar chart, strengths & recommendations |
-| `quiz.viewResultsAction` | ดูผลลัพธ์ | View results |
-| `quiz.retake` | ทำแบบประเมินใหม่ | Retake Assessment |
-| `quiz.retakeDesc` | ทำแบบประเมินใหม่อีกครั้งเพื่อเปรียบเทียบกับผลลัพธ์ก่อนหน้า | Take the assessment again and compare with your previous results |
-| `quiz.retakeAction` | เริ่มทำใหม่ | Start over |
+| `quiz.yourCompany` | บริษัทของคุณ | Your Company |
+| `result.overallScore` | คะแนนรวม | Overall Score |
+| `dashboard.level` | ระดับ | Level |
+| `dashboard.assessmentCount` | ครั้งที่ประเมิน | Assessments |
+| `quiz.assessedOn` | ประเมินเมื่อ | Assessed on |
+| `result.dimensionScores` | คะแนนรายมิติ | Dimension Scores |
+| `quiz.noResults.title` | ยังไม่มีผลประเมิน | No assessments yet |
+| `quiz.noResults.desc` | เริ่มทำแบบประเมินเพื่อตรวจสุขภาพโรงงานของคุณ | Start an assessment to check your factory health |
+| `quiz.viewResults` / `Desc` / `Action` | ดูผลลัพธ์ / … | View Results / … |
+| `quiz.retake` / `Desc` / `Action` | ทำแบบประเมินใหม่ / … | Retake Assessment / … |
+| `dashboard.times` | ครั้ง | times |
 | `quiz.otherAssessments` | แบบประเมินอื่น | Other Assessments |
-| `quiz.startNewAssessment` | (TH label in row body — to verify) | (EN label in row body — to verify) |
-| `quiz.start` | (TH CTA — to verify) | Start |
-| `diagnosis.Beginning` | เริ่มต้น | Beginning |
-| `diagnosis.Developing` | กำลังพัฒนา | Developing |
-| `diagnosis.Established` | มีระบบ | Established |
-| `diagnosis.Advanced` | ก้าวหน้า | Advanced |
+| `quiz.startNewAssessment` | เริ่มทำแบบประเมินชุดใหม่ | Start this new assessment |
+| `quiz.start` | เริ่มทำ | Start |
+| `nav.dashboard` | แดชบอร์ด | Dashboard |
+| `diagnosis.Beginning` / `Developing` / `Established` / `Advanced` | เริ่มต้น / กำลังพัฒนา / มั่นคง / ก้าวหน้า | Beginning / Developing / Established / Advanced |
+
+The attempt-count unit uses `dashboard.times`; `quiz.assessedOn` has no trailing space
+(both cleaned up 4 July 2026 — see §10.2). Quiz names (`q.nameTh` / `q.nameEn`) are API
+data, not hardcoded strings — locale selection on them is expected.
 
 ---
 
 ## 9. Backend API
 
-No new backend endpoints. The dashboard reuses:
+No dashboard-specific endpoints. The page reuses:
 
 | Endpoint | Usage |
 |----------|-------|
-| `GET /api/v1/results` | Fetch all user assessments (see [result/feature-spec.md](../result/feature-spec.md)) |
-| `GET /api/v1/quiz/quizzes` | Fetch available quiz list for uncompleted section (see [quiz/feature-spec.md](../quiz/feature-spec.md)) |
+| `GET /api/v1/results` | All caller assessments, newest first (see [result/feature-spec.md](../result/feature-spec.md)) |
+| `GET /api/v1/quiz/quizzes` | Available quiz list (see [quiz/feature-spec.md](../quiz/feature-spec.md)) |
+
+Both require a Firebase Bearer token (route group `_authed`) and a completed profile
+(`_registered`).
 
 ---
 
-## 10. Open Tasks (before shipping)
+## 10. Open Tasks
 
-### 10.1 Wire `DashboardPage` into the router — BLOCKING
+### 10.1 Test coverage — the remaining gap
 
-`DashboardPage` has **zero references** in the app. It is exported from
-`DashboardPage.tsx` but never imported anywhere.
+The Vitest unit suite is done: `DashboardPage.test.tsx` (16 cases covering UT-001–UT-017,
+all passing). Still open: a dashboard Playwright spec (only `e2e/login.spec.ts` asserts
+the post-login redirect lands on `/dashboard`). IT-002 (empty state) and IT-006
+(≥2 completed quizzes) need dedicated test accounts in those data states — the single
+`E2E_USER_EMAIL` account cannot cover both. See [test-plan.md](./test-plan.md).
 
-Required changes in `apps/web-app/src/router.tsx`:
+### 10.2 Minor i18n cleanup — ✅ done (4 July 2026)
 
-```tsx
-// 1. Import the page
-import { DashboardPage } from '@/pages/DashboardPage';
+- The attempt-count unit now renders `t('dashboard.times')` (key added TH/EN); the
+  inline `locale === 'th' ? 'ครั้ง' : 'times'` ternary is gone.
+- `quiz.assessedOn` values no longer carry a trailing space; the `.trim()` calls were
+  removed. Decorative SVGs also gained `aria-hidden="true"`, clearing the page's
+  Biome a11y errors.
 
-// 2. Add route inside RegisterGuard
-<Route path="/dashboard" element={<DashboardPage />} />
-```
+### 10.3 Resolved decisions (for the record)
 
-Also decide the navigation intent:
-- Should `/` (for authenticated + registered users) redirect to `/dashboard`
-  instead of `/results`?
-- Should `useAuth`'s post-login redirect go to `/dashboard`?
-- Should `SignInPage` redirect to `/dashboard` instead of `/results`?
-
-### 10.2 Add dashboard link to Layout nav
-
-The nav bar in `apps/web-app/src/components/Layout.tsx` needs a "Dashboard"
-nav item pointing to `/dashboard`.
-
-### 10.3 Fix empty-state i18n
-
-Lines 422–428 in `DashboardPage.tsx` use raw locale comparisons:
-
-```tsx
-// ❌ Current — violates project i18n rule
-{locale === 'th' ? 'ยังไม่มีผลประเมิน' : 'No assessments yet'}
-```
-
-Fix: add `dashboard.noResults` and `dashboard.noResultsDesc` keys to
-`apps/web-app/src/lib/i18n.tsx` and replace with `t('dashboard.noResults')`.
-
-### 10.4 Retake action hardcoded to `'shindan'`
-
-The "Retake Assessment" action card calls `handleStartQuiz('shindan')` regardless
-of which quizzes the user has completed. If the user has not completed the Shindan
-quiz, this creates a re-take flow for a never-taken quiz.
-
-Options:
-- Keep hardcoded (`'shindan'` is the primary quiz) and clarify the label to
-  "Retake Shindan".
-- Derive the target from the first completed quiz ID.
+| Former open decision | Resolution shipped |
+|----------------------|--------------------|
+| Retake target hardcoded to `'shindan'` | Retake now targets the active quiz (`activeId ?? 'shindan'`); fallback is defensive only |
+| Post-login landing route | `/dashboard` — `SignInPage` redirects authenticated users there; `RegisterPage` navigates there after registration |
 
 ---
 
 ## 11. Animation Sequence
 
-| Element | Wrapper | Delay |
-|---------|---------|-------|
+| Element | Wrapper | Delay / stagger |
+|---------|---------|-----------------|
 | Header (company name) | `FadeIn` | 0 s |
-| Completed quiz cards | `StaggerChildren` (stagger 0.08 s) | — |
-| Action cards | `StaggerChildren` (stagger 0.1 s) | — |
-| Uncompleted quizzes | `FadeIn` | 0.25 s |
-| Empty state | `ScaleIn` | 0 s |
+| Empty state (whole body) | `ScaleIn` | 0 s |
+| Empty-state quiz grid | `StaggerChildren` | 0.07 s stagger |
+| Filled dashboard (whole body) | `FadeIn` | 0 s |
+| KPI stat cards | `StaggerChildren` | 0.06 s stagger |
+| Dimension panel | `FadeIn` | 0.15 s |
+| Quick actions | `FadeIn` | 0.2 s |
+| Uncompleted quizzes | `FadeIn` | 0.3 s |
+| Dimension bars | CSS `transition-all` | 700 ms ease-out |
 
 ---
 
 ## 12. Accessibility
 
-- All interactive cards are `<button type="button">` elements with visible focus
-  rings (Tailwind ring utilities via global styles).
-- `MiniScoreRing` SVG is purely decorative — the numeric score label adjacent to
-  it provides the text equivalent.
-- Diagnosis badge colours match the `diagnosisConfig` palette from `ResultPage`,
-  which meets minimum contrast ratios in both light and dark modes.
-- Base font size is `text-sm` for secondary labels and `text-base`/`text-lg` for
-  card titles (≥ 17 px body — accessible for factory-floor workers).
+- Every interactive card (quiz cards, quick actions, selector tabs, uncompleted rows) is
+  a `<button type="button">` with visible focus rings via global Tailwind ring utilities.
+- Dimension bars are decorative; each row carries the dimension name and numeric score as
+  text (name also in `title` for truncation).
+- Diagnosis badge and score colors have light/dark variants meeting contrast minimums.
+- Labels are `text-sm`+, values `text-base`–`text-3xl` (≥ 17 px body — accessible for
+  factory-floor workers).
 
 ---
 
 ## 13. Acceptance Criteria
 
-- [ ] `DashboardPage` is importable via a route (e.g. `/dashboard`).
-- [ ] Navigating to `/dashboard` shows the gradient header with the user's company name.
-- [ ] Completed quiz cards appear — one per distinct `quizId` — each with `MiniScoreRing`, quiz name, diagnosis badge, and formatted submission date.
-- [ ] Clicking a completed quiz card navigates to `/results`.
-- [ ] "View Results" action card navigates to `/results`.
-- [ ] "Retake Assessment" action card dispatches `resetQuiz()` + `setQuizId('shindan')` and navigates to `/quiz`.
-- [ ] Uncompleted quizzes section lists quizzes not yet taken; each row's "Start" button dispatches `resetQuiz()` + `setQuizId(q.id)` and navigates to `/quiz`.
-- [ ] When all quizzes are completed, the uncompleted section is hidden.
-- [ ] When no assessments exist, the empty-state card renders instead of the quiz-card grid.
-- [ ] Empty-state text renders in the active locale.
-- [ ] Loading skeletons appear while `resultLoading` is true and `assessments` is empty.
-- [ ] Navigating back to `/dashboard` from `/results` does not re-fetch results (uses Redux cache).
-- [ ] `make lint-web` and `make test-web` pass.
+- [x] `/dashboard` is a live route inside the `_authed/_registered` guard group, with a
+      "Dashboard" nav item in `Layout.tsx`.
+- [x] Signing in (or completing registration) lands the user on `/dashboard`.
+- [x] The gradient header shows the profile company name, falling back to
+      `quiz.yourCompany`.
+- [x] With completed assessments: KPI cards show the active quiz's latest overall score
+      (2 dp), diagnosis badge, attempt count, and `formatDateTime` submission date.
+- [x] The dimension panel renders one color-thresholded bar per dimension score.
+- [x] Selector tabs appear only when more than one quiz has been completed; switching
+      tabs swaps all KPI/dimension data.
+- [x] "View Results" navigates to `/results`; "Retake" dispatches `resetQuiz()` +
+      `setQuizId(activeId)` and navigates to `/quiz`.
+- [x] Uncompleted quizzes list rows start their quiz; the section hides when all quizzes
+      are completed.
+- [x] With no assessments: ghost KPI row, onboarding banner, and the available-quiz card
+      grid render; all copy through `t()`.
+- [x] Loading skeletons render while the assessments query is pending with no cached data.
+- [x] Navigating back to `/dashboard` renders from the TanStack Query cache without a
+      spinner; submitting a quiz invalidates `['results']`.
+- [x] Vitest unit suite green (§10.1) — 16/16 in `DashboardPage.test.tsx`.
+- [ ] Dashboard Playwright spec green (§10.1).
+- [x] `make test-web` passes (96 tests); `DashboardPage.tsx` is Biome-clean (repo has unrelated pre-existing lint debt elsewhere).
 
 ---
 
 ## 14. Testing
 
-- **Unit (Vitest):** `handleStartQuiz` dispatches `resetQuiz()`, `setQuizId(id)`, and calls `navigate('/quiz')`.
-- **Unit (Vitest):** `quizGroups` derivation — assessments with the same `quizId` are grouped under the same key; the first entry is the latest.
-- **Unit (Vitest):** `uncompletedQuizzes` derivation — excludes IDs present in `completedQuizIds`.
-- **Unit (Vitest):** `MiniScoreRing` renders correct `strokeDashoffset` for a given score (e.g. score=2.5 → 50% arc).
-- **E2E (Playwright):**
-  - New user (no assessments) → `/dashboard` → assert empty-state card visible.
-  - User with assessments → `/dashboard` → assert quiz cards present, assertion count label for repeat quizzes.
-  - Click quiz card → assert navigation to `/results`.
-  - Click "Start" on uncompleted quiz → assert navigation to `/quiz` with correct `quizId` in Redux state.
+Detailed cases in [test-plan.md](./test-plan.md). Summary:
+
+- **Unit (Vitest)** ✅ — `DashboardPage.test.tsx`: derivations, color thresholds,
+  `DimensionRow` width/fallback, `handleStartQuiz` dispatch sequence, state selection,
+  tabs, KPI formatting. 16 cases, all passing.
+- **E2E (Playwright)** ⚠️ — post-login redirect exists (`login.spec.ts`); the dashboard
+  spec (empty state, KPI values, tabs, Start/Retake, View Results) is still to write and
+  needs dedicated test accounts for the empty and multi-quiz states.
 
 ---
 
 ## 15. References
 
 - Dashboard page: [DashboardPage.tsx](../../../apps/web-app/src/pages/DashboardPage.tsx)
-- Router: [router.tsx](../../../apps/web-app/src/router.tsx)
+- Route file: [dashboard.tsx](../../../apps/web-app/src/routes/_authed/_registered/dashboard.tsx)
 - Layout nav: [Layout.tsx](../../../apps/web-app/src/components/Layout.tsx)
+- Query hooks: [queries.ts](../../../apps/web-app/src/lib/queries.ts)
 - i18n keys: [i18n.tsx](../../../apps/web-app/src/lib/i18n.tsx)
-- Result slice: [resultSlice.ts](../../../apps/web-app/src/store/resultSlice.ts)
 - Quiz slice: [quizSlice.ts](../../../apps/web-app/src/store/quizSlice.ts)
 - Auth slice: [authSlice.ts](../../../apps/web-app/src/store/authSlice.ts)
 - Result feature: [result/feature-spec.md](../result/feature-spec.md)
 - Quiz feature: [quiz/feature-spec.md](../quiz/feature-spec.md)
 - Auth feature: [auth/feature-spec.md](../auth/feature-spec.md)
+
+---
+
+*Version: 2.1.0*
+*Last updated: 4 July 2026*

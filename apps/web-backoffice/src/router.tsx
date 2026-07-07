@@ -2,6 +2,7 @@ import { Layout } from '@/components/Layout';
 import { AuthGuard } from '@/components/guards/AuthGuard';
 import { BackofficeGuard } from '@/components/guards/BackofficeGuard';
 import { SuperAdminGuard } from '@/components/guards/SuperAdminGuard';
+import { AnalyticsPage } from '@/pages/AnalyticsPage';
 import { ApiDocsPage } from '@/pages/ApiDocsPage';
 import { AuditPage } from '@/pages/AuditPage';
 import { DashboardPage } from '@/pages/DashboardPage';
@@ -13,6 +14,7 @@ import { ResultsPage } from '@/pages/ResultsPage';
 import { SignInPage } from '@/pages/SignInPage';
 import { StaffPage } from '@/pages/StaffPage';
 import { UnauthorizedPage } from '@/pages/UnauthorizedPage';
+import { UploadUtilityPage } from '@/pages/UploadUtilityPage';
 import { UsersPage } from '@/pages/UsersPage';
 import { Navigate, createBrowserRouter } from 'react-router';
 
@@ -30,11 +32,13 @@ export const router = createBrowserRouter([
             element: <Layout />,
             children: [
               { path: 'dashboard', element: <DashboardPage /> },
+              { path: 'analytics', element: <AnalyticsPage /> },
               { path: 'profile', element: <ProfilePage /> },
               { path: 'projects', element: <ProjectsPage /> },
               { path: 'projects/:projectID', element: <ProjectDetailPage /> },
               { path: 'users', element: <UsersPage /> },
               { path: 'results', element: <ResultsPage /> },
+              { path: 'utilities/upload', element: <UploadUtilityPage /> },
               {
                 element: <SuperAdminGuard />,
                 children: [

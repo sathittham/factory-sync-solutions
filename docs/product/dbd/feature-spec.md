@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-lastUpdated: 2026-06-10
+lastUpdated: 2026-07-03
 author: Sathittham Sangthong
 status: Done
 ---
@@ -263,3 +263,8 @@ in the output.
 - Frontend call site: [RegisterPage.tsx](../../../apps/web-app/src/pages/RegisterPage.tsx)
 - Register feature: [register/feature-spec.md](../register/feature-spec.md)
 - DBD Open Data portal: https://www.dbd.go.th/
+
+---
+
+*Version: 1.0.0*
+*Last updated: 3 July 2026*

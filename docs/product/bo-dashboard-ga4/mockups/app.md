@@ -1,0 +1,148 @@
+# web-backoffice · GA4 Analytics Dashboard — ASCII Mockups
+
+Surface: `web-backoffice` (authenticated backoffice React app). Design system: shadcn/ui ·
+Tailwind. The feature adds a **Web Analytics** section to the existing `/dashboard` page —
+no new route. Everything below is per the Draft spec; nothing is merged yet. Panels marked
+(P2)/(P3) ship after the Phase 1 overview.
+
+---
+
+## 1. `/dashboard` — Web Analytics section
+
+Sits below the existing platform stat cards + recent results. Range selector is a shadcn
+`Select` (7 / 28 / 90 days, default 28).
+
+### 1a. State: loading (initial fetch or range change — skeletons)
+
+```
+   ┌──────────────────────────────────────────────────────────────────┐
+   │  Web Analytics                               [ Last 28 days ▾ ]  │
+   │                                                                  │
+   │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐    │
+   │  │ ▒▒▒▒▒▒▒  │ │ ▒▒▒▒▒▒▒  │ │ ▒▒▒▒▒▒▒  │ │ ▒▒▒▒▒▒▒▒▒▒▒▒▒▒  │    │
+   │  │ ▒▒▒▒     │ │ ▒▒▒▒     │ │ ▒▒▒▒     │ │ ▒▒▒▒▒▒          │    │
+   │  └──────────┘ └──────────┘ └──────────┘ └──────────────────┘    │
+   │  ┌────────────────────────────────────────────────────────┐     │
+   │  │ ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ │     │
+   │  └────────────────────────────────────────────────────────┘     │
+   └──────────────────────────────────────────────────────────────────┘
+
+   The section fetches independently — the platform stats above render
+   without waiting for GA4. Changing the range re-shows these skeletons.
+```
+
+### 1b. State: loaded (Phase 1 + later-phase panels)
+
+```
+   ┌──────────────────────────────────────────────────────────────────┐
+   │  Web Analytics                               [ Last 28 days ▾ ]  │
+   │                                                                  │
+   │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐    │
+   │  │ Active   │ │ Sessions │ │ Page     │ │ Avg engagement   │    │
+   │  │ users    │ │          │ │ views    │ │ time             │    │
+   │  │  1,843   │ │  2,571   │ │  8,420   │ │  1m 14s          │    │
+   │  └──────────┘ └──────────┘ └──────────┘ └──────────────────┘    │
+   │  ┌────────────────────────────────────────────────────────┐     │
+   │  │ Active users / sessions per day                        │     │
+   │  │    ╭─╮        ╭╮                                       │     │
+   │  │ ╭──╯ ╰─╮  ╭───╯╰──╮   ╭──╮                             │     │
+   │  │─╯      ╰──╯       ╰───╯  ╰────                         │     │
+   │  │  6 มิ.ย.        13 มิ.ย.        20 มิ.ย.   (BE in TH)  │     │
+   │  └────────────────────────────────────────────────────────┘     │
+   │                                                                  │
+   │  Top Pages (P2)                  Channels (P2)                   │
+   │  ┌──────────────┬───────┬─────┐  ┌───────────────────────┐      │
+   │  │ Page path    │ Views │ Avg │  │      ◔  Organic 46%   │      │
+   │  ├──────────────┼───────┼─────┤  │         Direct  31%   │      │
+   │  │ /            │ 2,150 │ 58s │  │         Referral 12%  │      │
+   │  │ /quiz/factory│ 1,043 │ 96s │  │         Social  11%   │      │
+   │  │ /pricing     │   871 │ 41s │  └───────────────────────┘      │
+   │  │ … (top 10)   │       │     │                                 │
+   │  └──────────────┴───────┴─────┘                                 │
+   │                                                                  │
+   │  Audience (P3)                                                   │
+   │  ┌─────────────────────────┐  ┌───────────────────────────┐     │
+   │  │ Thailand      ████ 1,904│  │ Desktop ██████ 61%        │     │
+   │  │ Japan         █     212 │  │ Mobile  ████   35%        │     │
+   │  │ … (top 10)              │  │ Tablet  ▏       4%        │     │
+   │  └─────────────────────────┘  └───────────────────────────┘     │
+   └──────────────────────────────────────────────────────────────────┘
+
+   Long page paths truncate with the full value in a tooltip (FR-004).
+   All labels via useLocale(); dates via formatDateTime().
+```
+
+### 1c. State: stale data (GA4 upstream failed, cache hit — `stale: true`)
+
+```
+   ┌──────────────────────────────────────────────────────────────────┐
+   │  Web Analytics                               [ Last 28 days ▾ ]  │
+   │  ┌────────────────────────────────────────────────────────────┐  │
+   │  │ ⚠  Showing cached data — analytics upstream is     [Retry] │  │
+   │  │    temporarily unreachable.                                │  │
+   │  └────────────────────────────────────────────────────────────┘  │
+   │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐    │
+   │  │ Active   │ │ Sessions │ │ Page     │ │ Avg engagement   │    │
+   │  │ users    │ │          │ │ views    │ │ time             │    │
+   │  │  1,843   │ │  2,571   │ │  8,420   │ │  1m 14s          │    │
+   │  └──────────┘ └──────────┘ └──────────┘ └──────────────────┘    │
+   │  [ … cached chart + panels render as in 1b … ]                   │
+   └──────────────────────────────────────────────────────────────────┘
+```
+
+### 1d. State: section error (GA4 unreachable, no cache — `503 ANALYTICS_UNAVAILABLE`)
+
+```
+   ┌──────────────────────────────────────────────────────────────────┐
+   │  Web Analytics                               [ Last 28 days ▾ ]  │
+   │                                                                  │
+   │   ┌──────────────────────────────────────────────────────────┐   │
+   │   │  ⚠  Analytics is temporarily unavailable.               │   │
+   │   │                                            [ Retry ]    │   │
+   │   └──────────────────────────────────────────────────────────┘   │
+   └──────────────────────────────────────────────────────────────────┘
+
+   Inline, section-scoped error — the platform stats and recent results
+   above keep rendering normally (FR-007).
+```
+
+### 1e. State: empty (zero traffic in the selected range)
+
+```
+   ┌──────────────────────────────────────────────────────────────────┐
+   │  Web Analytics                               [ Last 7 days ▾ ]   │
+   │                                                                  │
+   │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐    │
+   │  │ Active   │ │ Sessions │ │ Page     │ │ Avg engagement   │    │
+   │  │ users  0 │ │        0 │ │ views  0 │ │ time          0s │    │
+   │  └──────────┘ └──────────┘ └──────────┘ └──────────────────┘    │
+   │  ┌────────────────────────────────────────────────────────┐     │
+   │  │                                                        │     │
+   │  │                  No data for this range                │     │
+   │  │                     (common.noData)                    │     │
+   │  └────────────────────────────────────────────────────────┘     │
+   └──────────────────────────────────────────────────────────────────┘
+
+   Empty state, not an error (FR-002).
+```
+
+---
+
+## 2. Range selector — shadcn `Select`
+
+```
+                                   ┌──────────────────┐
+                                   │ Last 7 days      │
+                                   │ Last 28 days   ✓ │
+                                   │ Last 90 days     │
+                                   └──────────────────┘
+
+   Changing the value refetches all analytics panels with the new
+   range param (FR-003); invalid values never leave the client —
+   the backend also rejects them with 400 VALIDATION_ERROR.
+```
+
+---
+
+*Version: 1.0.0*
+*Last updated: 3 July 2026*

@@ -736,15 +736,6 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
     </span>
   ));
 
-  const submitLabel = form.state.isSubmitting ? (
-    <>
-      <SpinnerIcon />
-      {t('profile.saving')}
-    </>
-  ) : (
-    t('profile.save')
-  );
-
   const userInitial = (user?.displayName || user?.email || 'U').charAt(0);
 
   const userAvatar = user?.photoURL ? (
@@ -1056,14 +1047,25 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
             </div>
           )}
 
-          <Button
-            type="submit"
-            className="w-full h-11 font-semibold"
-            disabled={form.state.isSubmitting || !form.state.isDirty}
-            data-testid="profile-submit-btn"
-          >
-            {submitLabel}
-          </Button>
+          <form.Subscribe selector={(state) => [state.isSubmitting, state.isDirty] as const}>
+            {([isSubmitting, isDirty]) => (
+              <Button
+                type="submit"
+                className="w-full h-11 font-semibold"
+                disabled={isSubmitting || !isDirty}
+                data-testid="profile-submit-btn"
+              >
+                {isSubmitting ? (
+                  <>
+                    <SpinnerIcon />
+                    {t('profile.saving')}
+                  </>
+                ) : (
+                  t('profile.save')
+                )}
+              </Button>
+            )}
+          </form.Subscribe>
         </form>
 
         {/* Change Password — outside main form, only for email/password accounts */}

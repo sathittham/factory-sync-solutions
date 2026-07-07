@@ -84,7 +84,8 @@ upload_object() {
 
 	$WRANGLER r2 object put "$API_DOCS_R2_BUCKET/$key" \
 		--file "$file" \
-		--content-type "$content_type"
+		--content-type "$content_type" \
+		--remote
 }
 
 verify_object() {
@@ -97,7 +98,7 @@ verify_object() {
 		return 0
 	fi
 
-	$WRANGLER r2 object get "$API_DOCS_R2_BUCKET/$key" --file "$verify_file" >/dev/null
+	$WRANGLER r2 object get "$API_DOCS_R2_BUCKET/$key" --file "$verify_file" --remote >/dev/null
 	if ! cmp -s "$expected_file" "$verify_file"; then
 		echo "R2 upload verification failed for r2://$API_DOCS_R2_BUCKET/$key" >&2
 		exit 1
